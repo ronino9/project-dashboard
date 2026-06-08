@@ -8,12 +8,12 @@
   <link rel="icon" href="data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAMAAAHdfXoaAAAAD1BMVEUAAAD///////////////+Pj7BcAAAABXRSTlMAHzChw7M0MwAAAChJREFUeNpjYKAuYGJgYGBgYGJgYGJgYGJgYGJgYGJgYGJgYGJgYAMAMwQBDpXyX0YAAAAASUVORK5CYII=">
 
   <style>
-    /* Slate Dark Mode UI 최적화 */
+    /* Slate Dark Mode UI */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; }
     .container { max-width: 1400px; margin: 0 auto; padding: 16px; }
     
-    .header, .chart-card, .table-card { 
+    .header, .chart-card { 
       background: #1e293b; 
       border: 1px solid #334155; 
       border-radius: 8px; 
@@ -28,11 +28,10 @@
     .basic-info { font-size: 12px; color: #94a3b8; line-height: 1.6; }
     .basic-info strong { color: #e2e8f0; display: block; margin-top: 4px; }
     
-    .donuts-row { display: flex; gap: 16px; flex-wrap: wrap; flex: 1; min-width: 300px; }
-    .kpi-panel { flex: 0 0 200px; display: flex; flex-direction: column; gap: 8px; }
+    .donuts-row { display: flex; gap: 16px; flex-wrap: wrap; flex: 1; min-width: 300px; justify-content: space-around;}
     
     .progress-bar { height: 12px; background: #334155; border-radius: 6px; overflow: hidden; margin-top: 12px; }
-    .progress-fill { height: 100%; background: #3b82f6; transition: width 0.3s; }
+    .progress-fill { height: 100%; background: #3b82f6; transition: width 1s ease-out; }
     
     .charts-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 12px; margin-bottom: 12px; }
     .chart-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #f8fafc; }
@@ -40,21 +39,6 @@
     .legend-item { display: flex; align-items: center; gap: 4px; }
     .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
     .canvas-wrap { position: relative; height: 200px; }
-    
-    /* Table Styling */
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th { text-align: left; padding: 10px 8px; background: #0f172a; border-bottom: 1px solid #334155; font-weight: 600; color: #cbd5e1; }
-    td { padding: 10px 8px; border-bottom: 1px solid #334155; color: #f1f5f9; }
-    tr:hover { background: #334155; transition: background 0.2s; }
-    
-    /* Dynamic Badges */
-    .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
-    .badge-complete { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .badge-progress { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
-    .badge-hold { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-    .badge-delay { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-    
-    .loading-text { text-align: center; padding: 20px; color: #94a3b8; font-size: 14px; }
     
     @media(max-width: 768px) {
       .header-top { flex-direction: column; }
@@ -75,13 +59,12 @@
           </div>
         </div>
         <div class="donuts-row" id="donuts"></div>
-        <div class="kpi-panel" id="kpi"></div>
       </div>
       <div style="margin-top:12px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
           <span style="font-size:12px;color:#94a3b8;">Overall Progress</span>
           <div class="progress-bar" style="flex:1;margin:0;">
-            <div class="progress-fill" id="progressFill" style="width:48%"></div>
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
           </div>
           <span style="font-size:12px;font-weight:600;color:#60a5fa;" id="progressText">48%</span>
         </div>
@@ -107,96 +90,49 @@
         <div class="canvas-wrap"><canvas id="chartCnt" style="max-height:200px;"></canvas></div>
       </div>
     </div>
-
-    <div class="table-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <div class="chart-title" style="margin:0;">이력 사항 DB</div>
-      </div>
-      <div style="overflow-x: auto;">
-        <table>
-          <thead>
-            <tr id="tableHeaders"></tr>
-          </thead>
-          <tbody id="dataBody">
-            <tr><td colspan="8" class="loading-text">Google Sheets 데이터를 불러오는 중입니다...</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div style="font-size:12px;color:#64748b;margin-top:12px;padding-top:12px;border-top:1px solid #334155;" id="rowCount"></div>
-    </div>
   </div>
 
   <script>
-    // 업데이트된 새 배포 GAS 웹앱 URL
-    const API_URL = 'https://script.google.com/macros/s/AKfycbycw-REYRcQVIG0n1-FBZRU4VQV9MtLGAGvFqtewffulObrKr3SnjrzN0N8xNetMdXVvQ/exec';
-    let allData = [];
+    // 🍩 도넛 차트를 렌더링하는 함수 (데이터 하드코딩 적용)
+    function renderDonuts() {
+      const donutContainer = document.getElementById('donuts');
       
-    async function loadData() {
-      try {
-        const response = await fetch(API_URL, {
-          method: 'GET',
-          redirect: 'follow' 
-        });
-        
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      // 첫 번째 엑셀 이미지에 있는 요약 데이터
+      const donutData = [
+        { label: '제작', value: 100, status: 'Completed', color: '#34d399' }, // 녹색
+        { label: 'FAT', value: 90, status: 'In Progress', color: '#60a5fa' }, // 파란색
+        { label: 'SET-UP', value: 0, status: 'Waiting', color: '#fbbf24' },   // 노란색
+        { label: 'SAT', value: 0, status: 'Waiting', color: '#fbbf24' }       // 노란색
+      ];
 
-        const result = await response.json();
-        allData = result.rows;
-        renderTable();
-        console.log('데이터 로드 완료 (건수):', result.count);
-      } catch (error) {
-        document.getElementById('dataBody').innerHTML = `<tr><td colspan="8" class="loading-text" style="color:#f87171;">데이터를 불러오지 못했습니다. API URL을 확인해주세요.</td></tr>`;
-        console.error('데이터 로드 실패:', error);
-      }
-    }
-    
-    // 상태 텍스트에 따라 배지 클래스를 자동으로 매핑하는 함수
-    function getStatusBadge(statusText) {
-      if (!statusText) return '';
-      const text = statusText.toString().toLowerCase();
-      if (text.includes('완료') || text.includes('completed')) return `<span class="badge badge-complete">${statusText}</span>`;
-      if (text.includes('지연') || text.includes('에러')) return `<span class="badge badge-delay">${statusText}</span>`;
-      if (text.includes('보류') || text.includes('waiting')) return `<span class="badge badge-hold">${statusText}</span>`;
-      return `<span class="badge badge-progress">${statusText}</span>`; // 기본값 (진행중 등)
-    }
-    
-    function renderTable() {
-      const tbody = document.getElementById('dataBody');
-      const headers = document.getElementById('tableHeaders');
-      
-      if (!allData || allData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="loading-text">표시할 데이터가 없습니다.</td></tr>`;
-        return;
-      }
-      
-      // 헤더 동적 생성
-      if (headers.children.length === 0) {
-        const headerCells = ['#', '진행상태', '항목/내용', '단계', '대응구분', '파트', '완료예정일', '공수(MD)'];
-        headerCells.forEach(h => {
-          const th = document.createElement('th');
-          th.textContent = h;
-          headers.appendChild(th);
-        });
-      }
-      
-      // 데이터 바인딩 (구글 시트 열 인덱스 기준)
-      tbody.innerHTML = allData.map((row, idx) => {
-        return `<tr>
-          <td>${idx + 1}</td>
-          <td>${getStatusBadge(row[1])}</td>
-          <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${row[2] || '-'}</td>
-          <td>${row[4] || '-'}</td>
-          <td>${row[5] || '-'}</td>
-          <td>${row[7] || '-'}</td>
-          <td>${row[10] || '-'}</td>
-          <td style="font-weight:600;">${row[12] || '-'}</td>
-        </tr>`;
+      donutContainer.innerHTML = donutData.map(d => {
+        const dashArray = `${d.value}, 100`;
+        const circleColor = d.value === 0 ? '#334155' : d.color; 
+        const textColor = d.value === 0 ? '#64748b' : d.color;
+
+        return `
+          <div style="flex: 0 1 100px; text-align: center;">
+            <div style="font-size: 13px; font-weight: 600; color: #cbd5e1; margin-bottom: 8px;">${d.label}</div>
+            <div style="position: relative; width: 80px; height: 80px; margin: 0 auto;">
+              <svg viewBox="0 0 36 36" style="width: 100%; height: 100%;">
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#0f172a" stroke-width="3.5"/>
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="${circleColor}" stroke-width="3.5" stroke-dasharray="${dashArray}" style="transition: stroke-dasharray 1.5s ease-out; stroke-linecap: round;"/>
+              </svg>
+              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; font-weight: 700; color: ${textColor};">${d.value}%</div>
+            </div>
+            <div style="font-size: 12px; font-weight: 600; margin-top: 8px; color: ${d.color};">${d.status}</div>
+          </div>
+        `;
       }).join('');
       
-      document.getElementById('rowCount').textContent = `Total: ${allData.length} records updated in real-time.`;
+      // 전체 진행률 바 애니메이션 실행
+      setTimeout(() => {
+        document.getElementById('progressFill').style.width = '48%';
+      }, 100);
     }
-    
-    window.addEventListener('load', loadData);
+
+    // 화면이 켜지면 무거운 통신 없이 바로 도넛만 띄웁니다!
+    window.addEventListener('load', renderDonuts);
   </script>
 </body>
 </html>
