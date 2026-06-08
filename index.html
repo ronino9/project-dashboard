@@ -11,20 +11,18 @@
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; }
     .container { max-width: 1400px; margin: 0 auto; padding: 16px; }
     
-    /* Header (도넛 & 막대) */
+    /* 1. Header (도넛 & 막대) */
     .header { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; margin-bottom: 16px; }
     .header-top { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
     .project-basic { flex: 0 0 auto; min-width: 150px; }
     .project-no { font-size: 28px; font-weight: 700; color: #f8fafc; margin-bottom: 4px; }
-    
-    /* 🛠️ 도넛 컨테이너 (반응형 대응을 위해 min-width 제거) */
-    .donuts-row { display: flex; gap: 20px; flex: 1; justify-content: space-around; width: 100%; }
+    .donuts-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 100%; flex: 1; }
     
     .progress-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid #334155; }
     .progress-bar { height: 16px; background: #334155; border-radius: 8px; overflow: hidden; margin: 8px 0; }
     .progress-fill { height: 100%; background: linear-gradient(90deg, #34d399, #3b82f6); width: 0%; transition: width 1.5s ease-out; }
     
-    .donut-box { text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; }
+    .donut-box { text-align: center; display: flex; flex-direction: column; align-items: center; }
     .donut-label { font-size: 13px; font-weight: 600; color: #94a3b8; margin-bottom: 10px; }
     .donut-status { font-size: 14px; font-weight: 700; margin-top: 12px; margin-bottom: 16px; }
     .donut-details { width: 100%; max-width: 180px; font-size: 12px; }
@@ -32,8 +30,26 @@
     .detail-label { color: #94a3b8; }
     .detail-val { color: #e2e8f0; font-weight: 500; font-family: monospace; font-size: 13px;}
 
-    /* 🎛️ Slicer (5개 필터 버튼 세트) 구역 */
-    .slicer-panel { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+    /* 🚀 2. 신규: 바로가기 & KPI 요약 패널 */
+    .dashboard-tools { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+    
+    /* Quick Links (바로 이동하기) */
+    .quick-links { flex: 2; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; }
+    .link-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px 8px; color: #cbd5e1; text-decoration: none; font-size: 13px; font-weight: 600; transition: all 0.2s; cursor: pointer; gap: 8px; }
+    .link-btn:hover { border-color: #3b82f6; color: #f8fafc; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .link-icon { font-size: 24px; }
+
+    /* KPI Summary (동적 합계) */
+    .kpi-panel { flex: 1; min-width: 250px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; display: flex; justify-content: space-around; align-items: center; }
+    .kpi-item { text-align: center; }
+    .kpi-title { font-size: 12px; color: #94a3b8; font-weight: 600; margin-bottom: 8px; }
+    .kpi-value { font-size: 24px; font-weight: 700; font-family: monospace; }
+    .val-md { color: #e2e8f0; }
+    .val-issue { color: #ef4444; }
+    .val-incomp { color: #f59e0b; }
+
+    /* 🎛️ 3. Slicer (필터 버튼) */
+    .slicer-panel { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
     .filter-group { display: flex; flex-direction: column; gap: 8px; background: #0f172a; padding: 12px; border-radius: 6px; border: 1px solid #334155; }
     .filter-title { font-size: 12px; color: #3b82f6; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #223047; padding-bottom: 4px; margin-bottom: 4px; }
     .filter-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -42,19 +58,17 @@
     .filter-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; font-weight: 600; }
     .filter-btn.all { border-style: dashed; }
 
-    /* 📊 Chart 구역 */
+    /* 📊 4. Charts */
     .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .chart-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; }
     .chart-title { font-size: 16px; font-weight: 600; color: #f8fafc; margin-bottom: 16px; }
     .canvas-container { position: relative; height: 320px; width: 100%; }
     
-    /* 📱 모바일 전용 반응형 레이아웃 (768px 이하 화면) */
-    @media(max-width: 768px) { 
-      .charts-grid { grid-template-columns: 1fr; } /* 차트를 위아래 1줄로 */
-      .header-top { flex-direction: column; align-items: flex-start; gap: 16px; }
-      /* 도넛을 2x2 그리드로 변경하여 잘림 방지 */
-      .donuts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 12px; width: 100%; }
-      .donut-details { max-width: 100%; }
+    /* 📱 모바일 반응형 */
+    @media(max-width: 1024px) { 
+      .charts-grid { grid-template-columns: 1fr; } 
+      .donuts-row { grid-template-columns: 1fr 1fr; gap: 24px 12px; }
+      .dashboard-tools { flex-direction: column; }
     }
   </style>
 </head>
@@ -74,6 +88,32 @@
           <span style="font-size:18px; font-weight:700; color:#3b82f6;" id="progressText">0%</span>
         </div>
         <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+    </div>
+
+    <div class="dashboard-tools">
+      <div class="quick-links">
+        <a href="#" target="_blank" class="link-btn"><span class="link-icon">💼</span>Works</a>
+        <a href="#" target="_blank" class="link-btn"><span class="link-icon">📋</span>PMO</a>
+        <a href="#" target="_blank" class="link-btn"><span class="link-icon">📑</span>통합관리</a>
+        <a href="#" target="_blank" class="link-btn"><span class="link-icon">🗄️</span>Data Base</a>
+        <a href="#" target="_blank" class="link-btn"><span class="link-icon">🗺️</span>Master Plan</a>
+        <a href="#" target="_blank" class="link-btn"><span class="link-icon">🔍</span>상세이력</a>
+      </div>
+      
+      <div class="kpi-panel">
+        <div class="kpi-item">
+          <div class="kpi-title">공수 합계</div>
+          <div class="kpi-value val-md" id="kpi-md">0.0</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-title">ISSUE 합계</div>
+          <div class="kpi-value val-issue" id="kpi-issue">0</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-title">미완료 합계</div>
+          <div class="kpi-value val-incomp" id="kpi-incomp">0</div>
+        </div>
       </div>
     </div>
 
@@ -114,6 +154,7 @@
       return dateStr || '-';
     }
 
+    // ========== 1. 상단 도넛 렌더링 ==========
     function renderDonuts(summaryData) {
       const labels = ['제작', 'FAT', 'SET-UP', 'SAT'];
       const donutHTML = labels.map((label, i) => {
@@ -174,6 +215,7 @@
       document.getElementById('progressText').textContent = summaryData.overall || '0%';
     }
 
+    // ========== 2. 슬라이서 동적 렌더링 ==========
     function renderSlicers() {
       const container = document.getElementById('slicers');
       container.innerHTML = '';
@@ -204,7 +246,9 @@
       updateCharts();  
     }
 
+    // ========== 3. 데이터 연산 및 차트/KPI 업데이트 ==========
     function updateCharts() {
+      // 1) 필터링 수행
       let filteredData = rawData.filter(row => {
         for (let cat in activeFilters) {
           if (activeFilters[cat] !== 'All' && row[cat] !== activeFilters[cat]) return false;
@@ -212,6 +256,25 @@
         return true;
       });
 
+      // 🚀 2) KPI 동적 합계 연산 및 화면 업데이트
+      let sumMD = 0;
+      let countIssue = 0;
+      let countIncomplete = 0;
+
+      filteredData.forEach(r => {
+        sumMD += parseFloat(r['공수(MD)']) || 0;
+        if (r['업무 구분'] === 'Issue') countIssue++;
+        // '완료', '지연완료'가 아니면 전부 미완료로 카운트
+        const status = r['진행상태'] || '';
+        if (status && !status.includes('완료')) countIncomplete++;
+      });
+
+      // 숫자 소수점 정리 후 HTML에 꽂아넣기
+      document.getElementById('kpi-md').textContent = sumMD.toFixed(1);
+      document.getElementById('kpi-issue').textContent = countIssue;
+      document.getElementById('kpi-incomp').textContent = countIncomplete;
+
+      // 3) 차트 업데이트 (X축 날짜 설정)
       let dates = [...new Set(filteredData.map(r => r['접수일'] || r['완료예정일']).filter(v => v && v.includes('.')))].sort();
       
       const colorMap = {
@@ -257,8 +320,9 @@
       });
     }
 
+    // ========== 초기화 ==========
     async function syncDashboard() {
-      const cached = localStorage.getItem('project7_dashboard_v3');
+      const cached = localStorage.getItem('project7_dashboard_v4');
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
@@ -272,7 +336,7 @@
         const response = await fetch(API_URL, { redirect: 'follow' });
         const freshData = await response.json();
         
-        localStorage.setItem('project7_dashboard_v3', JSON.stringify(freshData));
+        localStorage.setItem('project7_dashboard_v4', JSON.stringify(freshData));
         
         renderDonuts(freshData.summary);
         rawData = freshData.history || [];
