@@ -16,7 +16,9 @@
     .header-top { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
     .project-basic { flex: 0 0 auto; min-width: 150px; }
     .project-no { font-size: 28px; font-weight: 700; color: #f8fafc; margin-bottom: 4px; }
-    .donuts-row { display: flex; gap: 20px; flex: 1; justify-content: space-around; min-width: 400px; }
+    
+    /* 🛠️ 도넛 컨테이너 (반응형 대응을 위해 min-width 제거) */
+    .donuts-row { display: flex; gap: 20px; flex: 1; justify-content: space-around; width: 100%; }
     
     .progress-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid #334155; }
     .progress-bar { height: 16px; background: #334155; border-radius: 8px; overflow: hidden; margin: 8px 0; }
@@ -46,7 +48,14 @@
     .chart-title { font-size: 16px; font-weight: 600; color: #f8fafc; margin-bottom: 16px; }
     .canvas-container { position: relative; height: 320px; width: 100%; }
     
-    @media(max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } }
+    /* 📱 모바일 전용 반응형 레이아웃 (768px 이하 화면) */
+    @media(max-width: 768px) { 
+      .charts-grid { grid-template-columns: 1fr; } /* 차트를 위아래 1줄로 */
+      .header-top { flex-direction: column; align-items: flex-start; gap: 16px; }
+      /* 도넛을 2x2 그리드로 변경하여 잘림 방지 */
+      .donuts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 12px; width: 100%; }
+      .donut-details { max-width: 100%; }
+    }
   </style>
 </head>
 <body>
@@ -89,7 +98,6 @@
     let mdChartInstance = null;
     let statusChartInstance = null;
     
-    // 🎛️ 요청하신 5개 카테고리 필터 초기화
     let activeFilters = {
       '단계 구분': 'All',
       '대응 구분': 'All',
@@ -106,7 +114,6 @@
       return dateStr || '-';
     }
 
-    // ========== 1. 상단 도넛 렌더링 ==========
     function renderDonuts(summaryData) {
       const labels = ['제작', 'FAT', 'SET-UP', 'SAT'];
       const donutHTML = labels.map((label, i) => {
@@ -167,12 +174,10 @@
       document.getElementById('progressText').textContent = summaryData.overall || '0%';
     }
 
-    // ========== 2. 5대 슬라이서 동적 렌더링 ==========
     function renderSlicers() {
       const container = document.getElementById('slicers');
       container.innerHTML = '';
       
-      // 요청하신 정확한 5개 슬라이서 그룹 명칭
       const filterCategories = ['단계 구분', '대응 구분', '유/무상', '파트 구분', '진행상태'];
       
       filterCategories.forEach(category => {
@@ -199,9 +204,7 @@
       updateCharts();  
     }
 
-    // ========== 3. 날짜별 차트 데이터 매핑 및 빌드 ==========
     function updateCharts() {
-      // 슬라이서 조건 필터링 수행
       let filteredData = rawData.filter(row => {
         for (let cat in activeFilters) {
           if (activeFilters[cat] !== 'All' && row[cat] !== activeFilters[cat]) return false;
@@ -209,16 +212,13 @@
         return true;
       });
 
-      // 📅 X축을 '월별'이 아닌 '날짜별(접수일 기준)'로 맵핑 및 정렬
       let dates = [...new Set(filteredData.map(r => r['접수일'] || r['완료예정일']).filter(v => v && v.includes('.')))].sort();
       
-      // 구글 시트 색상 매치업 테이블
       const colorMap = {
         '표준': '#94a3b8', '개선': '#34d399', 'Issue': '#ef4444', '기술지원': '#fbbf24', 
         '완료': '#34d399', '지연중': '#ef4444', '보류': '#64748b', '임박': '#f59e0b', '지연완료': '#a78bfa'
       };
 
-      // --- Chart 1: 날짜별 공수 집계 (누적 바) ---
       const mdTypes = ['표준', '개선', 'Issue', '기술지원']; 
       const mdDatasets = mdTypes.map(type => {
         return {
@@ -238,7 +238,6 @@
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { x: { stacked: true }, y: { stacked: true } } }
       });
 
-      // --- Chart 2: 날짜별 진행 현황 건수 (누적 바) ---
       const statusTypes = ['완료', '지연중', '보류', '임박', '지연완료'];
       const statusDatasets = statusTypes.map(type => {
         return {
@@ -258,7 +257,6 @@
       });
     }
 
-    // ========== 초기화 및 캐싱 시스템 ==========
     async function syncDashboard() {
       const cached = localStorage.getItem('project7_dashboard_v3');
       if (cached) {
