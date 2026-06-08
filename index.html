@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Project Dashboard - 7</title>
+  
+  <link rel="icon" href="data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAMAAAHdfXoaAAAAD1BMVEUAAAD///////////////+Pj7BcAAAABXRSTlMAHzChw7M0MwAAAChJREFUeNpjYKAuYGJgYGBgYGJgYGJgYGJgYGJgYGJgYGJgYGJgYAMAMwQBDpXyX0YAAAAASUVORK5CYII=">
+
   <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8f9fa;color:#333}.container{max-width:1400px;margin:0 auto;padding:16px}.header{background:white;border:0.5px solid #e0e0e0;border-radius:8px;padding:16px;margin-bottom:12px}.header-top{display:flex;gap:20px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-start}.project-basic{flex:0 0 auto;min-width:150px}.project-no{font-size:24px;font-weight:600;color:#1a1a1a;margin-bottom:8px}.basic-info{font-size:12px;color:#666;line-height:1.6}.basic-info strong{color:#333;display:block;margin-top:4px}.donuts-row{display:flex;gap:16px;flex-wrap:wrap;flex:1;min-width:300px}.donut-item{flex:0 1 120px;text-align:center}.donut-label{font-size:12px;color:#666;margin-bottom:8px}.donut-svg{width:100%;height:auto;max-width:120px}.donut-status{font-size:11px;font-weight:500;margin-top:6px;color:#1d9e75}.donut-status.waiting{color:#ef9f27}.kpi-panel{flex:0 0 200px;display:flex;flex-direction:column;gap:8px}.kpi-row{display:flex;gap:20px;font-size:12px}.kpi-item{flex:1}.kpi-label{color:#666;font-size:11px;margin-bottom:2px}.kpi-value{font-size:16px;font-weight:600;color:#1a1a1a}.kpi-value.issue{color:#e24b4a}.progress-bar{height:12px;background:#f0f0f0;border-radius:6px;overflow:hidden;margin-top:12px}.progress-fill{height:100%;background:#1d9e75;transition:width 0.3s}.charts-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:12px;margin-bottom:12px}.chart-card{background:white;border:0.5px solid #e0e0e0;border-radius:8px;padding:16px}.chart-title{font-size:14px;font-weight:600;margin-bottom:12px;color:#1a1a1a}.chart-legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;font-size:11px;color:#666}.legend-item{display:flex;align-items:center;gap:4px}.legend-dot{width:8px;height:8px;border-radius:2px}.canvas-wrap{position:relative;height:200px}.table-card{background:white;border:0.5px solid #e0e0e0;border-radius:8px;padding:16px}.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.filter-btn{padding:6px 12px;font-size:12px;border:0.5px solid #d0d0d0;background:white;border-radius:4px;cursor:pointer}.filter-btn.active{background:#1d9e75;color:white;border-color:#1d9e75}table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;padding:8px;background:#f9f9f9;border-bottom:1px solid #e0e0e0;font-weight:600;color:#666}td{padding:8px;border-bottom:0.5px solid #f0f0f0}tr:hover{background:#fafafa}.badge{display:inline-block;padding:3px 8px;border-radius:3px;font-size:11px;font-weight:500}.badge-complete{background:#e1f5ee;color:#0f6e56}.badge-progress{background:#e6f1fb;color:#185fa5}.badge-hold{background:#faeeda;color:#854f0b}.badge-delay{background:#fcebeb;color:#a32d2d}@media(max-width:768px){.header-top{flex-direction:column}.donuts-row{justify-content:center}.charts-row{grid-template-columns:1fr}.kpi-panel{flex:1}}</style>
 </head>
 <body>
@@ -27,14 +30,14 @@
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script>
-    // ⭐️ 1. 실제 데이터가 출력되는 유효한 웹앱 주소로 변경했습니다.
+    // ⭐️ 1. 실제 데이터가 출력되는 유효한 웹앱 주소로 지정 완료
     const API_URL = 'https://script.google.com/macros/s/AKfycbzhf9pQ5DH38qScb8xzwSZjWBIbnFyFsBfOd5H_84v5w8iGph24esX-jeZgSm2VyHlBjQ/exec';
     let allData = [];
     let filterVal = '전체';
      
     async function loadData() {
       try {
-        // ⭐️ 2. 구글의 리다이렉션을 정상적으로 추적하도록 redirect 옵션을 추가했습니다.
+        // ⭐️ 2. 구글의 리다이렉션을 정상적으로 추적하도록 redirect 옵션 지정 완료
         const response = await fetch(API_URL, {
           method: 'GET',
           redirect: 'follow'
