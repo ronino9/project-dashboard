@@ -6,40 +6,29 @@
   <title>Real-time Control Tower - Project 7</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* Slate Dark Mode UI Base */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; }
     .container { max-width: 1400px; margin: 0 auto; padding: 16px; }
-    
-    /* 1. Header (도넛 & 막대) */
     .header { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; margin-bottom: 16px; }
     .header-top { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
     .project-basic { flex: 0 0 auto; min-width: 150px; }
     .project-no { font-size: 28px; font-weight: 700; color: #f8fafc; margin-bottom: 4px; }
     .donuts-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 100%; flex: 1; }
-    
     .progress-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid #334155; }
     .progress-bar { height: 16px; background: #334155; border-radius: 8px; overflow: hidden; margin: 8px 0; }
     .progress-fill { height: 100%; background: linear-gradient(90deg, #34d399, #3b82f6); width: 0%; transition: width 1.5s ease-out; }
-    
     .donut-box { text-align: center; display: flex; flex-direction: column; align-items: center; }
     .donut-label { font-size: 13px; font-weight: 600; color: #94a3b8; margin-bottom: 10px; }
     .donut-status { font-size: 14px; font-weight: 700; margin-top: 12px; margin-bottom: 16px; }
     .donut-details { width: 100%; max-width: 180px; font-size: 12px; }
     .detail-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
     .detail-label { color: #94a3b8; }
-    .detail-val { color: #e2e8f0; font-weight: 500; font-family: monospace; font-size: 13px;}
-
-    /* 🚀 2. 신규: 바로가기 & KPI 요약 패널 */
+    .detail-val { color: #e2e8f0; font-weight: 500; font-family: monospace; font-size: 13px; }
     .dashboard-tools { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
-    
-    /* Quick Links (바로 이동하기) */
     .quick-links { flex: 2; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; }
     .link-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px 8px; color: #cbd5e1; text-decoration: none; font-size: 13px; font-weight: 600; transition: all 0.2s; cursor: pointer; gap: 8px; }
-    .link-btn:hover { border-color: #3b82f6; color: #f8fafc; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .link-btn:hover { border-color: #3b82f6; color: #f8fafc; transform: translateY(-2px); }
     .link-icon { font-size: 24px; }
-
-    /* KPI Summary (동적 합계) */
     .kpi-panel { flex: 1; min-width: 250px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; display: flex; justify-content: space-around; align-items: center; }
     .kpi-item { text-align: center; }
     .kpi-title { font-size: 12px; color: #94a3b8; font-weight: 600; margin-bottom: 8px; }
@@ -47,8 +36,6 @@
     .val-md { color: #e2e8f0; }
     .val-issue { color: #ef4444; }
     .val-incomp { color: #f59e0b; }
-
-    /* 🎛️ 3. Slicer (필터 버튼) */
     .slicer-panel { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
     .filter-group { display: flex; flex-direction: column; gap: 8px; background: #0f172a; padding: 12px; border-radius: 6px; border: 1px solid #334155; }
     .filter-title { font-size: 12px; color: #3b82f6; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #223047; padding-bottom: 4px; margin-bottom: 4px; }
@@ -57,17 +44,28 @@
     .filter-btn:hover { border-color: #3b82f6; color: #f8fafc; }
     .filter-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; font-weight: 600; }
     .filter-btn.all { border-style: dashed; }
-
-    /* 📊 4. Charts */
-    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .chart-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; }
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .chart-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; cursor: pointer; }
     .chart-title { font-size: 16px; font-weight: 600; color: #f8fafc; margin-bottom: 16px; }
     .canvas-container { position: relative; height: 320px; width: 100%; }
-    
-    /* 📱 모바일 반응형 */
+    /* 상세 테이블 */
+    #detailView { background: #1e293b; border: 1px solid #3b82f6; border-radius: 8px; padding: 20px; margin-top: 16px; display: none; }
+    #detailHeader { font-size: 15px; font-weight: 700; color: #3b82f6; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    #detailClose { cursor: pointer; color: #64748b; font-size: 20px; }
+    #detailClose:hover { color: #f8fafc; }
+    #detailTable { width: 100%; border-collapse: collapse; font-size: 12px; }
+    #detailTable th { text-align: left; padding: 8px; background: #0f172a; border-bottom: 1px solid #334155; color: #94a3b8; font-weight: 600; }
+    #detailTable td { padding: 8px; border-bottom: 1px solid #1e293b; color: #e2e8f0; }
+    #detailTable tr:hover { background: #0f172a; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-완료 { background: #064e3b; color: #34d399; }
+    .badge-지연중 { background: #450a0a; color: #ef4444; }
+    .badge-보류 { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+    .badge-임박 { background: #451a03; color: #f59e0b; }
+    .badge-지연완료 { background: #2e1065; color: #a78bfa; }
     @media(max-width: 1024px) { 
       .charts-grid { grid-template-columns: 1fr; } 
-      .donuts-row { grid-template-columns: 1fr 1fr; gap: 24px 12px; }
+      .donuts-row { grid-template-columns: 1fr 1fr; }
       .dashboard-tools { flex-direction: column; }
     }
   </style>
@@ -80,7 +78,7 @@
           <div class="project-no">Project 7</div>
           <div style="font-size: 12px; color: #64748b;">Interactive Control Tower</div>
         </div>
-        <div class="donuts-row" id="donuts"><div style="opacity:0.5; padding:20px;">대시보드 로드 중...</div></div>
+        <div class="donuts-row" id="donuts"><div style="opacity:0.5; padding:20px;">로드 중...</div></div>
       </div>
       <div class="progress-section">
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -93,27 +91,17 @@
 
     <div class="dashboard-tools">
       <div class="quick-links">
-        <a href="#" target="_blank" class="link-btn"><span class="link-icon">💼</span>Works</a>
-        <a href="#" target="_blank" class="link-btn"><span class="link-icon">📋</span>PMO</a>
-        <a href="#" target="_blank" class="link-btn"><span class="link-icon">📑</span>통합관리</a>
-        <a href="#" target="_blank" class="link-btn"><span class="link-icon">🗄️</span>Data Base</a>
-        <a href="#" target="_blank" class="link-btn"><span class="link-icon">🗺️</span>Master Plan</a>
-        <a href="#" target="_blank" class="link-btn"><span class="link-icon">🔍</span>상세이력</a>
+        <a href="#" class="link-btn"><span class="link-icon">💼</span>Works</a>
+        <a href="#" class="link-btn"><span class="link-icon">📋</span>PMO</a>
+        <a href="#" class="link-btn"><span class="link-icon">📑</span>통합관리</a>
+        <a href="#" class="link-btn"><span class="link-icon">🗄️</span>Data Base</a>
+        <a href="#" class="link-btn"><span class="link-icon">🗺️</span>Master Plan</a>
+        <a href="#" class="link-btn"><span class="link-icon">🔍</span>상세이력</a>
       </div>
-      
       <div class="kpi-panel">
-        <div class="kpi-item">
-          <div class="kpi-title">공수 합계</div>
-          <div class="kpi-value val-md" id="kpi-md">0.0</div>
-        </div>
-        <div class="kpi-item">
-          <div class="kpi-title">ISSUE 합계</div>
-          <div class="kpi-value val-issue" id="kpi-issue">0</div>
-        </div>
-        <div class="kpi-item">
-          <div class="kpi-title">미완료 합계</div>
-          <div class="kpi-value val-incomp" id="kpi-incomp">0</div>
-        </div>
+        <div class="kpi-item"><div class="kpi-title">공수 합계</div><div class="kpi-value val-md" id="kpi-md">0.0</div></div>
+        <div class="kpi-item"><div class="kpi-title">ISSUE 합계</div><div class="kpi-value val-issue" id="kpi-issue">0</div></div>
+        <div class="kpi-item"><div class="kpi-title">미완료 합계</div><div class="kpi-value val-incomp" id="kpi-incomp">0</div></div>
       </div>
     </div>
 
@@ -121,40 +109,82 @@
 
     <div class="charts-grid">
       <div class="chart-card">
-        <div class="chart-title">공수 집계 (날짜별 / 업무구분 누적)</div>
+        <div class="chart-title">공수 집계 <span style="font-size:12px;color:#64748b;">(막대 클릭 → 상세)</span></div>
         <div class="canvas-container"><canvas id="mdChart"></canvas></div>
       </div>
       <div class="chart-card">
-        <div class="chart-title">진행 현황 (날짜별 / 상태별 건수 누적)</div>
+        <div class="chart-title">진행 현황 <span style="font-size:12px;color:#64748b;">(막대 클릭 → 상세)</span></div>
         <div class="canvas-container"><canvas id="statusChart"></canvas></div>
       </div>
+    </div>
+
+    <!-- 상세 뷰 -->
+    <div id="detailView">
+      <div id="detailHeader">
+        <span id="detailTitle"></span>
+        <span id="detailClose" onclick="closeDetail()">✕</span>
+      </div>
+      <table id="detailTable"></table>
+      <div style="font-size:12px;color:#64748b;margin-top:8px;" id="detailCount"></div>
     </div>
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwlXXeCPqsyStGX2sKALKRrVOqIN812yeiXagUMWcMeibMi-4gAb5t9k8MNOw4Xgd1Pnw/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwwCFRGw4cpFOtPZITa1kt6P2cO92TIG-UZcv3CXu9igPeaGHkwTm4hcp_iEer5O1edPQ/exec';
 
-    let rawData = []; 
+    let rawData = [];
     let mdChartInstance = null;
     let statusChartInstance = null;
-    
-    let activeFilters = {
-      '단계 구분': 'All',
-      '대응 구분': 'All',
-      '유/무상': 'All',
-      '파트 구분': 'All',
-      '진행상태': 'All'
-    };
+    let currentDates = [];
+    let activeFilters = { '단계 구분': 'All', '대응 구분': 'All', '유/무상': 'All', '파트 구분': 'All', '진행상태': 'All' };
 
     Chart.defaults.color = '#94a3b8';
     Chart.defaults.borderColor = '#334155';
 
     function formatDate(dateStr) {
-      if(dateStr && dateStr.length === 10 && dateStr.startsWith('20')) return dateStr.substring(2);
-      return dateStr || '-';
+      if (!dateStr) return '-';
+      return dateStr.toString().substring(2);
     }
 
-    // ========== 1. 상단 도넛 렌더링 ==========
+    // ===== 상세 보기 =====
+    window.closeDetail = function() {
+      document.getElementById('detailView').style.display = 'none';
+    }
+
+    function showDetail(date, category, isMd) {
+      const filtered = rawData.filter(r => {
+        const d = r['접수일'] || r['완료예정일'];
+        if (!d || d !== date) return false;
+        return isMd ? r['업무 구분'] === category : r['진행상태'] === category;
+      });
+
+      if (filtered.length === 0) return;
+
+      document.getElementById('detailView').style.display = 'block';
+      document.getElementById('detailTitle').textContent = `[ ${formatDate(date)} / ${category} ] 상세 이력`;
+      document.getElementById('detailCount').textContent = `총 ${filtered.length}건`;
+
+      const badgeClass = { '완료': 'badge-완료', '지연중': 'badge-지연중', '보류': 'badge-보류', '임박': 'badge-임박', '지연완료': 'badge-지연완료' };
+
+      document.getElementById('detailTable').innerHTML = `
+        <tr>
+          <th>#</th><th>진행상태</th><th>항목/내용</th><th>단계</th><th>대응구분</th><th>파트</th><th>공수(MD)</th>
+        </tr>` +
+        filtered.map((r, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td><span class="badge ${badgeClass[r['진행상태']] || ''}">${r['진행상태'] || ''}</span></td>
+            <td style="max-width:300px;">${r['표준 레벨 Item / Issue / 개선사항'] || r['내용'] || ''}</td>
+            <td>${r['단계 구분'] || ''}</td>
+            <td>${r['대응 구분'] || ''}</td>
+            <td>${r['파트 구분'] || ''}</td>
+            <td>${r['공수(MD)'] || ''}</td>
+          </tr>`).join('');
+
+      document.getElementById('detailView').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ===== 도넛 =====
     function renderDonuts(summaryData) {
       const labels = ['제작', 'FAT', 'SET-UP', 'SAT'];
       const donutHTML = labels.map((label, i) => {
@@ -162,79 +192,39 @@
         const incomp = summaryData.incomplete[i] || 0;
         const total = comp + incomp;
         const percent = total === 0 ? 0 : Math.round((comp / total) * 100);
-        
         const statusText = summaryData.status[i] || 'Waiting';
-        const dashArray = `${percent}, 100`;
-        
-        let themeColor = '#fbbf24'; 
-        const statusLower = statusText.toLowerCase();
-        if (statusLower.includes('completed')) themeColor = '#34d399'; 
-        else if (statusLower.includes('progress')) themeColor = '#3b82f6'; 
-
+        let themeColor = '#fbbf24';
+        if (statusText.toLowerCase().includes('completed')) themeColor = '#34d399';
+        else if (statusText.toLowerCase().includes('progress')) themeColor = '#3b82f6';
         const circleColor = percent === 0 ? '#334155' : themeColor;
-        const rowData = summaryData.details[i] || []; 
-        const rateStr = rowData[5] || '0%'; 
+        const rowData = summaryData.details[i] || [];
+        const rateStr = rowData[5] || '0%';
         const rateNum = parseFloat(rateStr.replace(/[^0-9.-]/g, '')) || 0;
-        const isOverLimit = rateNum > 100;
-        const rateColor = isOverLimit ? '#ef4444' : '#e2e8f0'; 
-        
-        let detailsHTML = '';
-        if (i === 0) {
-          detailsHTML = `
-            <div class="donut-details">
-              <div class="detail-row"><span class="detail-label">시작일</span><span class="detail-val">${formatDate(rowData[0])}</span></div>
-              <div class="detail-row"><span class="detail-label">완료일</span><span class="detail-val">${formatDate(rowData[2])}</span></div>
-              <div class="detail-row"><span class="detail-label">기한 대비율</span><span class="detail-val" style="color:${rateColor}; font-weight:${isOverLimit?'700':'500'};">${rateStr}</span></div>
-            </div>`;
-        } else {
-          detailsHTML = `
-            <div class="donut-details">
-              <div class="detail-row"><span class="detail-label">계획 공수</span><span class="detail-val">${rowData[1]||'0.0'}</span></div>
-              <div class="detail-row"><span class="detail-label">소요 공수</span><span class="detail-val">${rowData[2]||'0.0'}</span></div>
-              <div class="detail-row"><span class="detail-label">소진율</span><span class="detail-val" style="color:${rateColor}; font-weight:${isOverLimit?'700':'500'};">${rateStr}</span></div>
-            </div>`;
-        }
-
-        return `
-          <div class="donut-box">
-            <div class="donut-label">${label}</div>
-            <div style="position: relative; width: 90px; height: 90px; margin: 0 auto;">
-              <svg viewBox="0 0 36 36" style="width: 100%; height: 100%;">
-                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#0f172a" stroke-width="3"/>
-                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="${circleColor}" stroke-width="3.5" stroke-dasharray="${dashArray}" style="stroke-linecap: round;"/>
-              </svg>
-              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 19px; font-weight: 700; color: ${themeColor};">${percent}%</div>
-            </div>
-            <div class="donut-status" style="color:${themeColor}">${statusText}</div>
-            ${detailsHTML}
-          </div>`;
-      }).join(''); 
-
+        const rateColor = rateNum > 100 ? '#ef4444' : '#e2e8f0';
+        let detailsHTML = i === 0
+          ? `<div class="donut-details"><div class="detail-row"><span class="detail-label">시작일</span><span class="detail-val">${formatDate(rowData[0])}</span></div><div class="detail-row"><span class="detail-label">완료일</span><span class="detail-val">${formatDate(rowData[2])}</span></div><div class="detail-row"><span class="detail-label">기한 대비율</span><span class="detail-val" style="color:${rateColor};">${rateStr}</span></div></div>`
+          : `<div class="donut-details"><div class="detail-row"><span class="detail-label">계획 공수</span><span class="detail-val">${rowData[1]||'0.0'}</span></div><div class="detail-row"><span class="detail-label">소요 공수</span><span class="detail-val">${rowData[2]||'0.0'}</span></div><div class="detail-row"><span class="detail-label">소진율</span><span class="detail-val" style="color:${rateColor};">${rateStr}</span></div></div>`;
+        return `<div class="donut-box"><div class="donut-label">${label}</div><div style="position:relative;width:90px;height:90px;margin:0 auto;"><svg viewBox="0 0 36 36" style="width:100%;height:100%;"><path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#0f172a" stroke-width="3"/><path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="${circleColor}" stroke-width="3.5" stroke-dasharray="${percent}, 100" style="stroke-linecap:round;"/></svg><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:19px;font-weight:700;color:${themeColor};">${percent}%</div></div><div class="donut-status" style="color:${themeColor}">${statusText}</div>${detailsHTML}</div>`;
+      }).join('');
       document.getElementById('donuts').innerHTML = donutHTML;
       document.getElementById('progressFill').style.width = summaryData.overall || '0%';
       document.getElementById('progressText').textContent = summaryData.overall || '0%';
     }
 
-    // ========== 2. 슬라이서 동적 렌더링 ==========
+    // ===== 슬라이서 =====
     function renderSlicers() {
       const container = document.getElementById('slicers');
       container.innerHTML = '';
-      
       const filterCategories = ['단계 구분', '대응 구분', '유/무상', '파트 구분', '진행상태'];
-      
       filterCategories.forEach(category => {
         const uniqueValues = [...new Set(rawData.map(row => row[category]).filter(val => val && val.trim() !== ''))];
-        if(uniqueValues.length === 0) return;
-
+        if (uniqueValues.length === 0) return;
         const groupDiv = document.createElement('div');
         groupDiv.className = 'filter-group';
-        
         let buttonsHTML = `<button class="filter-btn all ${activeFilters[category] === 'All' ? 'active' : ''}" onclick="applyFilter('${category}', 'All')">All</button>`;
         uniqueValues.forEach(val => {
-          const isActive = activeFilters[category] === val ? 'active' : '';
-          buttonsHTML += `<button class="filter-btn ${isActive}" onclick="applyFilter('${category}', '${val}')">${val}</button>`;
+          buttonsHTML += `<button class="filter-btn ${activeFilters[category] === val ? 'active' : ''}" onclick="applyFilter('${category}', '${val}')">${val}</button>`;
         });
-
         groupDiv.innerHTML = `<div class="filter-title">${category}</div><div class="filter-buttons">${buttonsHTML}</div>`;
         container.appendChild(groupDiv);
       });
@@ -242,13 +232,13 @@
 
     window.applyFilter = function(category, value) {
       activeFilters[category] = value;
-      renderSlicers(); 
-      updateCharts();  
+      renderSlicers();
+      updateCharts();
+      closeDetail();
     }
 
-    // ========== 3. 데이터 연산 및 차트/KPI 업데이트 ==========
+    // ===== 차트 =====
     function updateCharts() {
-      // 1) 필터링 수행
       let filteredData = rawData.filter(row => {
         for (let cat in activeFilters) {
           if (activeFilters[cat] !== 'All' && row[cat] !== activeFilters[cat]) return false;
@@ -256,93 +246,75 @@
         return true;
       });
 
-      // 🚀 2) KPI 동적 합계 연산 및 화면 업데이트
-      let sumMD = 0;
-      let countIssue = 0;
-      let countIncomplete = 0;
-
+      let sumMD = 0, countIssue = 0, countIncomplete = 0;
       filteredData.forEach(r => {
         sumMD += parseFloat(r['공수(MD)']) || 0;
         if (r['업무 구분'] === 'Issue') countIssue++;
-        // '완료', '지연완료'가 아니면 전부 미완료로 카운트
         const status = r['진행상태'] || '';
         if (status && !status.includes('완료')) countIncomplete++;
       });
-
-      // 숫자 소수점 정리 후 HTML에 꽂아넣기
       document.getElementById('kpi-md').textContent = sumMD.toFixed(1);
       document.getElementById('kpi-issue').textContent = countIssue;
       document.getElementById('kpi-incomp').textContent = countIncomplete;
 
-      // 3) 차트 업데이트 (X축 날짜 설정)
-      let dates = [...new Set(filteredData.map(r => r['접수일'] || r['완료예정일']).filter(v => v && v.includes('.')))].sort();
-      
-      const colorMap = {
-        '표준': '#94a3b8', '개선': '#34d399', 'Issue': '#ef4444', '기술지원': '#fbbf24', 
-        '완료': '#34d399', '지연중': '#ef4444', '보류': '#64748b', '임박': '#f59e0b', '지연완료': '#a78bfa'
-      };
+      currentDates = [...new Set(filteredData.map(r => r['접수일'] || r['완료예정일']).filter(v => v && v.toString().trim() !== ''))].sort();
 
-      const mdTypes = ['표준', '개선', 'Issue', '기술지원']; 
-      const mdDatasets = mdTypes.map(type => {
-        return {
-          label: type,
-          backgroundColor: colorMap[type] || '#475569',
-          data: dates.map(d => {
-            return filteredData.filter(r => (r['접수일'] === d || r['완료예정일'] === d) && r['업무 구분'] === type)
-                               .reduce((sum, r) => sum + (parseFloat(r['공수(MD)']) || 0), 0);
-          })
-        };
-      });
+      const colorMap = { '표준': '#94a3b8', '개선': '#34d399', 'Issue': '#ef4444', '기술지원': '#fbbf24', '완료': '#34d399', '지연중': '#ef4444', '보류': '#64748b', '임박': '#f59e0b', '지연완료': '#a78bfa' };
 
+      const mdTypes = ['표준', '개선', 'Issue', '기술지원'];
       if (mdChartInstance) mdChartInstance.destroy();
       mdChartInstance = new Chart(document.getElementById('mdChart'), {
         type: 'bar',
-        data: { labels: dates.map(d => formatDate(d)), datasets: mdDatasets },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { x: { stacked: true }, y: { stacked: true } } }
+        data: {
+          labels: currentDates.map(d => formatDate(d)),
+          datasets: mdTypes.map(type => ({
+            label: type,
+            backgroundColor: colorMap[type],
+            data: currentDates.map(d => filteredData.filter(r => (r['접수일'] === d || r['완료예정일'] === d) && r['업무 구분'] === type).reduce((sum, r) => sum + (parseFloat(r['공수(MD)']) || 0), 0))
+          }))
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'top' } },
+          scales: { x: { stacked: true }, y: { stacked: true } },
+          onClick: (e, el) => {
+            if (el.length) showDetail(currentDates[el[0].index], mdTypes[el[0].datasetIndex], true);
+          }
+        }
       });
 
       const statusTypes = ['완료', '지연중', '보류', '임박', '지연완료'];
-      const statusDatasets = statusTypes.map(type => {
-        return {
-          label: type,
-          backgroundColor: colorMap[type] || '#3b82f6',
-          data: dates.map(d => {
-            return filteredData.filter(r => (r['접수일'] === d || r['완료예정일'] === d) && r['진행상태'] === type).length;
-          })
-        };
-      });
-
       if (statusChartInstance) statusChartInstance.destroy();
       statusChartInstance = new Chart(document.getElementById('statusChart'), {
         type: 'bar',
-        data: { labels: dates.map(d => formatDate(d)), datasets: statusDatasets },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { x: { stacked: true }, y: { stacked: true, ticks: { stepSize: 1 } } } }
+        data: {
+          labels: currentDates.map(d => formatDate(d)),
+          datasets: statusTypes.map(type => ({
+            label: type,
+            backgroundColor: colorMap[type],
+            data: currentDates.map(d => filteredData.filter(r => (r['접수일'] === d || r['완료예정일'] === d) && r['진행상태'] === type).length)
+          }))
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'top' } },
+          scales: { x: { stacked: true }, y: { stacked: true, ticks: { stepSize: 1 } } },
+          onClick: (e, el) => {
+            if (el.length) showDetail(currentDates[el[0].index], statusTypes[el[0].datasetIndex], false);
+          }
+        }
       });
     }
 
-    // ========== 초기화 ==========
+    // ===== 초기화 =====
     async function syncDashboard() {
-      const cached = localStorage.getItem('project7_dashboard_v4');
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          renderDonuts(parsed.summary);
-          rawData = parsed.history || [];
-          if(rawData.length > 0) { renderSlicers(); updateCharts(); }
-        } catch(e) { console.error(e); }
-      }
-
       try {
         const response = await fetch(API_URL, { redirect: 'follow' });
         const freshData = await response.json();
-        
-        localStorage.setItem('project7_dashboard_v4', JSON.stringify(freshData));
-        
         renderDonuts(freshData.summary);
         rawData = freshData.history || [];
         renderSlicers();
         updateCharts();
-
       } catch (err) {
         console.error('동기화 실패:', err);
       }
