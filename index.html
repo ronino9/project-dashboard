@@ -1,44 +1,110 @@
-// 🍩 도넛 차트 그려주는 함수 (여기를 추가하세요!)
-    function renderDonuts() {
-      const donutContainer = document.getElementById('donuts');
-      
-      // 첫 번째 이미지에 있던 요약 데이터를 바탕으로 한 설정
-      const donutData = [
-        { label: '제작', value: 100, status: 'Completed', color: '#34d399' },
-        { label: 'FAT', value: 90, status: 'In Progress', color: '#60a5fa' },
-        { label: 'SET-UP', value: 0, status: 'Waiting', color: '#fbbf24' },
-        { label: 'SAT', value: 0, status: 'Waiting', color: '#fbbf24' }
-      ];
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-time Control Tower - Project 7</title>
+  <style>
+    /* Slate Dark Mode UI */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 16px; }
+    .header { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; margin-bottom: 12px; }
+    .header-top { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+    .project-basic { flex: 0 0 auto; min-width: 150px; }
+    .project-no { font-size: 28px; font-weight: 700; color: #f8fafc; margin-bottom: 4px; }
+    .donuts-row { display: flex; gap: 20px; flex: 1; justify-content: space-around; min-width: 400px; }
+    
+    /* Progress Bar */
+    .progress-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid #334155; }
+    .progress-bar { height: 16px; background: #334155; border-radius: 8px; overflow: hidden; margin: 8px 0; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); width: 0%; transition: width 1.5s cubic-bezier(0.1, 0, 0.2, 1); }
+    
+    /* Donut Styling */
+    .donut-box { text-align: center; }
+    .donut-label { font-size: 13px; font-weight: 600; color: #94a3b8; margin-bottom: 10px; }
+    .donut-status { font-size: 12px; font-weight: 600; margin-top: 10px; }
+    .loading { opacity: 0.5; font-size: 14px; text-align: center; padding: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-top">
+        <div class="project-basic">
+          <div class="project-no">Project 7</div>
+          <div style="font-size: 12px; color: #64748b;">No.7_DB1 Real-time Sync</div>
+        </div>
+        <div class="donuts-row" id="donuts">
+          <div class="loading">시트 데이터를 가져오는 중...</div>
+        </div>
+      </div>
 
-      donutContainer.innerHTML = donutData.map(d => {
-        // 원 그리기 공식 (반지름 15.9155 기준, 둘레 100)
-        const dashArray = `${d.value}, 100`;
-        const circleColor = d.value === 0 ? '#334155' : d.color; // 0%면 어두운 회색
-        const textColor = d.value === 0 ? '#64748b' : d.color;
+      <div class="progress-section">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:14px; color:#94a3b8; font-weight:600;">Overall Project Progress</span>
+          <span style="font-size:18px; font-weight:700; color:#3b82f6;" id="progressText">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        return `
-          <div style="flex: 0 1 100px; text-align: center;">
-            <div style="font-size: 13px; font-weight: 600; color: #cbd5e1; margin-bottom: 8px;">${d.label}</div>
-            <div style="position: relative; width: 70px; height: 70px; margin: 0 auto;">
-              <svg viewBox="0 0 36 36" style="width: 100%; height: 100%;">
-                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none" stroke="#0f172a" stroke-width="3.5"/>
-                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none" stroke="${circleColor}" stroke-width="3.5" stroke-dasharray="${dashArray}" 
-                      style="transition: stroke-dasharray 1s ease-out; stroke-linecap: round;"/>
-              </svg>
-              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 15px; font-weight: 700; color: ${textColor};">
-                ${d.value}%
+  <script>
+    // API URL 유지
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwp7R6Up4zcEAvM-iPlSl3haH8ONPVanzqEJk6gHPLaPiG5Cy5y6usgIGsN5ijQbk3Srg/exec';
+
+    async function syncDashboard() {
+      try {
+        const response = await fetch(API_URL, { redirect: 'follow' });
+        const data = await response.json();
+        
+        // 1. 도넛 데이터 매핑 (제작, FAT, SET-UP, SAT)
+        const labels = ['제작', 'FAT', 'SET-UP', 'SAT'];
+        const colors = ['#34d399', '#3b82f6', '#fbbf24', '#f59e0b'];
+        
+        const donutHTML = labels.map((label, i) => {
+          const comp = data.complete[i] || 0;
+          const incomp = data.incomplete[i] || 0;
+          const total = comp + incomp;
+          const percent = total === 0 ? 0 : Math.round((comp / total) * 100);
+          
+          const statusText = data.status[i];
+          const dashArray = `${percent}, 100`;
+          const activeColor = percent === 0 ? '#334155' : colors[i];
+
+          return `
+            <div class="donut-box">
+              <div class="donut-label">${label}</div>
+              <div style="position: relative; width: 85px; height: 85px; margin: 0 auto;">
+                <svg viewBox="0 0 36 36" style="width: 100%; height: 100%;">
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#0f172a" stroke-width="3"/>
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="${activeColor}" stroke-width="3.5" stroke-dasharray="${dashArray}" style="stroke-linecap: round; transition: all 1s;"/>
+                </svg>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18px; font-weight: 700; color: ${activeColor};">${percent}%</div>
               </div>
+              <div class="donut-status" style="color:${activeColor}">${statusText}</div>
             </div>
-            <div style="font-size: 12px; font-weight: 600; margin-top: 8px; color: ${d.color};">${d.status}</div>
-          </div>
-        `;
-      }).join('');
+          `;
+        }).join(''); // .가입하다('') 금지!
+
+        document.getElementById('donuts').innerHTML = donutHTML;
+
+        // 2. 전체 진행률 업데이트 (막대기)
+        const overallPercent = data.overall; // 예: "48%"
+        document.getElementById('progressFill').style.width = overallPercent;
+        document.getElementById('progressText').textContent = overallPercent;
+
+      } catch (err) {
+        console.error('동기화 실패:', err);
+        document.getElementById('donuts').innerHTML = '<div style="color:#ef4444">데이터 연동 에러 (API URL 확인 필요)</div>';
+      }
     }
 
-    // 페이지가 로드될 때 표 데이터와 함께 도넛 차트도 실행하도록 설정
-    window.addEventListener('load', () => {
-      loadData();
-      renderDonuts(); // 도넛 렌더링 함수 실행
-    });
+    // 화면 로드 시 실행
+    window.addEventListener('load', syncDashboard);
+  </script>
+</body>
+</html>
