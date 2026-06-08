@@ -18,7 +18,7 @@
     /* Progress Bar */
     .progress-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid #334155; }
     .progress-bar { height: 16px; background: #334155; border-radius: 8px; overflow: hidden; margin: 8px 0; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); width: 0%; transition: width 1.5s cubic-bezier(0.1, 0, 0.2, 1); }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #34d399, #3b82f6); width: 0%; transition: width 1.5s cubic-bezier(0.1, 0, 0.2, 1); }
     
     /* Donut Styling */
     .donut-box { text-align: center; }
@@ -53,7 +53,7 @@
   </div>
 
   <script>
-    // API URL 유지
+    // 현재 활성화된 API URL
     const API_URL = 'https://script.google.com/macros/s/AKfycbwp7R6Up4zcEAvM-iPlSl3haH8ONPVanzqEJk6gHPLaPiG5Cy5y6usgIGsN5ijQbk3Srg/exec';
 
     async function syncDashboard() {
@@ -61,9 +61,7 @@
         const response = await fetch(API_URL, { redirect: 'follow' });
         const data = await response.json();
         
-        // 1. 도넛 데이터 매핑 (제작, FAT, SET-UP, SAT)
         const labels = ['제작', 'FAT', 'SET-UP', 'SAT'];
-        const colors = ['#34d399', '#3b82f6', '#fbbf24', '#f59e0b'];
         
         const donutHTML = labels.map((label, i) => {
           const comp = data.complete[i] || 0;
@@ -71,9 +69,23 @@
           const total = comp + incomp;
           const percent = total === 0 ? 0 : Math.round((comp / total) * 100);
           
-          const statusText = data.status[i];
+          const statusText = data.status[i] || 'Waiting';
           const dashArray = `${percent}, 100`;
-          const activeColor = percent === 0 ? '#334155' : colors[i];
+          
+          // 🎨 텍스트 기반 상태 색상 판별 로직
+          let themeColor = '#fbbf24'; // 기본 금색
+          const statusLower = statusText.toLowerCase();
+          
+          if (statusLower.includes('completed')) {
+            themeColor = '#34d399'; // 녹색
+          } else if (statusLower.includes('progress')) {
+            themeColor = '#3b82f6'; // 파란색
+          } else if (statusLower.includes('waiting')) {
+            themeColor = '#fbbf24'; // 금색
+          }
+
+          // 0%일 때 원 테두리는 어두운 회색으로 처리
+          const circleColor = percent === 0 ? '#334155' : themeColor;
 
           return `
             <div class="donut-box">
@@ -81,19 +93,19 @@
               <div style="position: relative; width: 85px; height: 85px; margin: 0 auto;">
                 <svg viewBox="0 0 36 36" style="width: 100%; height: 100%;">
                   <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#0f172a" stroke-width="3"/>
-                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="${activeColor}" stroke-width="3.5" stroke-dasharray="${dashArray}" style="stroke-linecap: round; transition: all 1s;"/>
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="${circleColor}" stroke-width="3.5" stroke-dasharray="${dashArray}" style="stroke-linecap: round; transition: all 1s;"/>
                 </svg>
-                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18px; font-weight: 700; color: ${activeColor};">${percent}%</div>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18px; font-weight: 700; color: ${themeColor};">${percent}%</div>
               </div>
-              <div class="donut-status" style="color:${activeColor}">${statusText}</div>
+              <div class="donut-status" style="color:${themeColor}">${statusText}</div>
             </div>
           `;
-        }).join(''); // .가입하다('') 금지!
+        }).join('');
 
         document.getElementById('donuts').innerHTML = donutHTML;
 
-        // 2. 전체 진행률 업데이트 (막대기)
-        const overallPercent = data.overall; // 예: "48%"
+        // 전체 진행률 업데이트
+        const overallPercent = data.overall; 
         document.getElementById('progressFill').style.width = overallPercent;
         document.getElementById('progressText').textContent = overallPercent;
 
