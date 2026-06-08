@@ -20,11 +20,17 @@
     .progress-bar { height: 16px; background: #334155; border-radius: 8px; overflow: hidden; margin: 8px 0; }
     .progress-fill { height: 100%; background: linear-gradient(90deg, #34d399, #3b82f6); width: 0%; transition: width 1.5s cubic-bezier(0.1, 0, 0.2, 1); }
     
-    /* Donut Styling */
-    .donut-box { text-align: center; }
+    /* Donut & Details Styling */
+    .donut-box { text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; }
     .donut-label { font-size: 13px; font-weight: 600; color: #94a3b8; margin-bottom: 10px; }
-    .donut-status { font-size: 12px; font-weight: 600; margin-top: 10px; }
-    .loading { opacity: 0.5; font-size: 14px; text-align: center; padding: 20px; }
+    .donut-status { font-size: 14px; font-weight: 700; margin-top: 12px; margin-bottom: 16px; }
+    .loading { opacity: 0.5; font-size: 14px; text-align: center; padding: 20px; width: 100%; }
+    
+    /* 하단 상세 텍스트 테이블 영역 */
+    .donut-details { width: 100%; max-width: 180px; font-size: 12px; }
+    .detail-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .detail-label { color: #94a3b8; }
+    .detail-val { color: #e2e8f0; font-weight: 500; font-family: monospace; font-size: 13px;}
   </style>
 </head>
 <body>
@@ -53,8 +59,16 @@
   </div>
 
   <script>
-    // 현재 활성화된 API URL
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwp7R6Up4zcEAvM-iPlSl3haH8ONPVanzqEJk6gHPLaPiG5Cy5y6usgIGsN5ijQbk3Srg/exec';
+    // 🚀 최상현님이 새로 보내주신 최신 웹앱 배포 링크 반영 완료!
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwygv0To3Dckq9-mV0UEM63N3Y3DMfB1fd7dwrcqMDGpWiDsjlsMuQDoa2Dvk06fw8Tag/exec';
+
+    // 날짜 포맷 정리 함수 (2026.01.26 -> 26.01.26 형태)
+    function formatDate(dateStr) {
+      if(dateStr && dateStr.length === 10 && dateStr.startsWith('20')) {
+        return dateStr.substring(2);
+      }
+      return dateStr || '-';
+    }
 
     async function syncDashboard() {
       try {
@@ -64,6 +78,7 @@
         const labels = ['제작', 'FAT', 'SET-UP', 'SAT'];
         
         const donutHTML = labels.map((label, i) => {
+          // --- 1. 도넛 퍼센트 및 상태 텍스트 색상 계산 ---
           const comp = data.complete[i] || 0;
           const incomp = data.incomplete[i] || 0;
           const total = comp + incomp;
@@ -72,51 +87,6 @@
           const statusText = data.status[i] || 'Waiting';
           const dashArray = `${percent}, 100`;
           
-          // 🎨 텍스트 기반 상태 색상 판별 로직
-          let themeColor = '#fbbf24'; // 기본 금색
+          let themeColor = '#fbbf24'; // 기본 금색(Waiting)
           const statusLower = statusText.toLowerCase();
-          
-          if (statusLower.includes('completed')) {
-            themeColor = '#34d399'; // 녹색
-          } else if (statusLower.includes('progress')) {
-            themeColor = '#3b82f6'; // 파란색
-          } else if (statusLower.includes('waiting')) {
-            themeColor = '#fbbf24'; // 금색
-          }
-
-          // 0%일 때 원 테두리는 어두운 회색으로 처리
-          const circleColor = percent === 0 ? '#334155' : themeColor;
-
-          return `
-            <div class="donut-box">
-              <div class="donut-label">${label}</div>
-              <div style="position: relative; width: 85px; height: 85px; margin: 0 auto;">
-                <svg viewBox="0 0 36 36" style="width: 100%; height: 100%;">
-                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#0f172a" stroke-width="3"/>
-                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="${circleColor}" stroke-width="3.5" stroke-dasharray="${dashArray}" style="stroke-linecap: round; transition: all 1s;"/>
-                </svg>
-                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18px; font-weight: 700; color: ${themeColor};">${percent}%</div>
-              </div>
-              <div class="donut-status" style="color:${themeColor}">${statusText}</div>
-            </div>
-          `;
-        }).join('');
-
-        document.getElementById('donuts').innerHTML = donutHTML;
-
-        // 전체 진행률 업데이트
-        const overallPercent = data.overall; 
-        document.getElementById('progressFill').style.width = overallPercent;
-        document.getElementById('progressText').textContent = overallPercent;
-
-      } catch (err) {
-        console.error('동기화 실패:', err);
-        document.getElementById('donuts').innerHTML = '<div style="color:#ef4444">데이터 연동 에러 (API URL 확인 필요)</div>';
-      }
-    }
-
-    // 화면 로드 시 실행
-    window.addEventListener('load', syncDashboard);
-  </script>
-</body>
-</html>
+          if (statusLower.includes('
