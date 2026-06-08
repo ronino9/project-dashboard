@@ -27,13 +27,23 @@
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script>
-    const API_URL = 'https://script.google.com/macros/library/d/1TDc8zl4kuY-GpCE6pzi3kHER4qw96kbEzzDG9cD6qYXrQD4HYpEJkDZ-/5';
+    // ⭐️ 1. 실제 데이터가 출력되는 유효한 웹앱 주소로 변경했습니다.
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzhf9pQ5DH38qScb8xzwSZjWBIbnFyFsBfOd5H_84v5w8iGph24esX-jeZgSm2VyHlBjQ/exec';
     let allData = [];
     let filterVal = '전체';
-    
+     
     async function loadData() {
       try {
-        const response = await fetch(API_URL);
+        // ⭐️ 2. 구글의 리다이렉션을 정상적으로 추적하도록 redirect 옵션을 추가했습니다.
+        const response = await fetch(API_URL, {
+          method: 'GET',
+          redirect: 'follow'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const result = await response.json();
         allData = result.rows;
         renderTable();
@@ -47,7 +57,7 @@
       const tbody = document.getElementById('dataBody');
       const headers = document.getElementById('tableHeaders');
       
-      if (allData.length === 0) return;
+      if (!allData || allData.length === 0) return;
       
       // 헤더 설정
       if (headers.children.length === 0) {
