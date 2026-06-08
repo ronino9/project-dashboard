@@ -1,138 +1,44 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control Tower Dashboard - Project 7</title>
-  
-  <link rel="icon" href="data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAMAAAHdfXoaAAAAD1BMVEUAAAD///////////////+Pj7BcAAAABXRSTlMAHzChw7M0MwAAAChJREFUeNpjYKAuYGJgYGBgYGJgYGJgYGJgYGJgYGJgYGJgYGJgYAMAMwQBDpXyX0YAAAAASUVORK5CYII=">
-
-  <style>
-    /* Slate Dark Mode UI */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; }
-    .container { max-width: 1400px; margin: 0 auto; padding: 16px; }
-    
-    .header, .chart-card { 
-      background: #1e293b; 
-      border: 1px solid #334155; 
-      border-radius: 8px; 
-      padding: 16px; 
-      margin-bottom: 12px; 
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    
-    .header-top { display: flex; gap: 20px; margin-bottom: 16px; flex-wrap: wrap; align-items: flex-start; }
-    .project-basic { flex: 0 0 auto; min-width: 150px; }
-    .project-no { font-size: 24px; font-weight: 600; color: #f8fafc; margin-bottom: 8px; }
-    .basic-info { font-size: 12px; color: #94a3b8; line-height: 1.6; }
-    .basic-info strong { color: #e2e8f0; display: block; margin-top: 4px; }
-    
-    .donuts-row { display: flex; gap: 16px; flex-wrap: wrap; flex: 1; min-width: 300px; justify-content: space-around;}
-    
-    .progress-bar { height: 12px; background: #334155; border-radius: 6px; overflow: hidden; margin-top: 12px; }
-    .progress-fill { height: 100%; background: #3b82f6; transition: width 1s ease-out; }
-    
-    .charts-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 12px; margin-bottom: 12px; }
-    .chart-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #f8fafc; }
-    .chart-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; font-size: 11px; color: #94a3b8; }
-    .legend-item { display: flex; align-items: center; gap: 4px; }
-    .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
-    .canvas-wrap { position: relative; height: 200px; }
-    
-    @media(max-width: 768px) {
-      .header-top { flex-direction: column; }
-      .charts-row { grid-template-columns: 1fr; }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <div class="header-top">
-        <div class="project-basic">
-          <div class="project-no">Project 7</div>
-          <div class="basic-info">
-            <div><strong>발주처</strong></div>
-            <div style="margin-top:4px;"><strong>납품처</strong></div>
-            <div style="margin-top:4px;">Start: 2026.01.26</div>
-          </div>
-        </div>
-        <div class="donuts-row" id="donuts"></div>
-      </div>
-      <div style="margin-top:12px;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-          <span style="font-size:12px;color:#94a3b8;">Overall Progress</span>
-          <div class="progress-bar" style="flex:1;margin:0;">
-            <div class="progress-fill" id="progressFill" style="width:0%"></div>
-          </div>
-          <span style="font-size:12px;font-weight:600;color:#60a5fa;" id="progressText">48%</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="charts-row">
-      <div class="chart-card">
-        <div class="chart-title">공수 집계</div>
-        <div class="chart-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:#fbbf24;"></div>기술지원</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#f87171;"></div>Issue</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#34d399;"></div>개선</div>
-        </div>
-        <div class="canvas-wrap"><canvas id="chartMD" style="max-height:200px;"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">진행 현황 (건수)</div>
-        <div class="chart-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:#f87171;"></div>지연중</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#34d399;"></div>완료</div>
-        </div>
-        <div class="canvas-wrap"><canvas id="chartCnt" style="max-height:200px;"></canvas></div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // 🍩 도넛 차트를 렌더링하는 함수 (데이터 하드코딩 적용)
+// 🍩 도넛 차트 그려주는 함수 (여기를 추가하세요!)
     function renderDonuts() {
       const donutContainer = document.getElementById('donuts');
       
-      // 첫 번째 엑셀 이미지에 있는 요약 데이터
+      // 첫 번째 이미지에 있던 요약 데이터를 바탕으로 한 설정
       const donutData = [
-        { label: '제작', value: 100, status: 'Completed', color: '#34d399' }, // 녹색
-        { label: 'FAT', value: 90, status: 'In Progress', color: '#60a5fa' }, // 파란색
-        { label: 'SET-UP', value: 0, status: 'Waiting', color: '#fbbf24' },   // 노란색
-        { label: 'SAT', value: 0, status: 'Waiting', color: '#fbbf24' }       // 노란색
+        { label: '제작', value: 100, status: 'Completed', color: '#34d399' },
+        { label: 'FAT', value: 90, status: 'In Progress', color: '#60a5fa' },
+        { label: 'SET-UP', value: 0, status: 'Waiting', color: '#fbbf24' },
+        { label: 'SAT', value: 0, status: 'Waiting', color: '#fbbf24' }
       ];
 
       donutContainer.innerHTML = donutData.map(d => {
+        // 원 그리기 공식 (반지름 15.9155 기준, 둘레 100)
         const dashArray = `${d.value}, 100`;
-        const circleColor = d.value === 0 ? '#334155' : d.color; 
+        const circleColor = d.value === 0 ? '#334155' : d.color; // 0%면 어두운 회색
         const textColor = d.value === 0 ? '#64748b' : d.color;
 
         return `
           <div style="flex: 0 1 100px; text-align: center;">
             <div style="font-size: 13px; font-weight: 600; color: #cbd5e1; margin-bottom: 8px;">${d.label}</div>
-            <div style="position: relative; width: 80px; height: 80px; margin: 0 auto;">
+            <div style="position: relative; width: 70px; height: 70px; margin: 0 auto;">
               <svg viewBox="0 0 36 36" style="width: 100%; height: 100%;">
-                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#0f172a" stroke-width="3.5"/>
-                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="${circleColor}" stroke-width="3.5" stroke-dasharray="${dashArray}" style="transition: stroke-dasharray 1.5s ease-out; stroke-linecap: round;"/>
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none" stroke="#0f172a" stroke-width="3.5"/>
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none" stroke="${circleColor}" stroke-width="3.5" stroke-dasharray="${dashArray}" 
+                      style="transition: stroke-dasharray 1s ease-out; stroke-linecap: round;"/>
               </svg>
-              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; font-weight: 700; color: ${textColor};">${d.value}%</div>
+              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 15px; font-weight: 700; color: ${textColor};">
+                ${d.value}%
+              </div>
             </div>
             <div style="font-size: 12px; font-weight: 600; margin-top: 8px; color: ${d.color};">${d.status}</div>
           </div>
         `;
       }).join('');
-      
-      // 전체 진행률 바 애니메이션 실행
-      setTimeout(() => {
-        document.getElementById('progressFill').style.width = '48%';
-      }, 100);
     }
 
-    // 화면이 켜지면 무거운 통신 없이 바로 도넛만 띄웁니다!
-    window.addEventListener('load', renderDonuts);
-  </script>
-</body>
-</html>
+    // 페이지가 로드될 때 표 데이터와 함께 도넛 차트도 실행하도록 설정
+    window.addEventListener('load', () => {
+      loadData();
+      renderDonuts(); // 도넛 렌더링 함수 실행
+    });
