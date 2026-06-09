@@ -298,9 +298,9 @@
 
       currentDates = [...new Set(filteredData.map(r => r['접수일']).filter(v => v && v.toString().trim() !== ''))].sort();
 
-      const colorMap = { '표준': '#94a3b8', '개선': '#34d399', 'Issue': '#ef4444', '기술지원': '#fbbf24', '완료': '#34d399', '지연중': '#ef4444', '보류': '#64748b', '임박': '#f59e0b', '지연완료': '#a78bfa' };
+const colorMap = { '표준': '#94a3b8', '개선': '#34d399', 'Issue': '#ef4444', '기술지원': '#fbbf24', '기능요구': '#8b5cf6', '완료': '#34d399', '지연중': '#ef4444', '보류': '#64748b', '임박': '#f59e0b', '지연완료': '#a78bfa' };
 
-      const mdTypes = ['표준', '개선', 'Issue', '기술지원'];
+const mdTypes = ['표준', '개선', 'Issue', '기술지원', '기능요구'];
       if (mdChartInstance) mdChartInstance.destroy();
       mdChartInstance = new Chart(document.getElementById('mdChart'), {
         type: 'bar',
