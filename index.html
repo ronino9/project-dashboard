@@ -466,17 +466,15 @@ mode: mode,
 }
     // 탭 전환 확장
 window.switchTab = function(tabId) {
-  // 기존 프로젝트 탭 패널
   const projectPanel = document.querySelector('.header');
   const tools = document.querySelector('.dashboard-tools');
   const slicers = document.getElementById('slicers');
   const charts = document.querySelector('.charts-grid');
-  const aiBtn = document.querySelector('[onclick="runAIAnalysis(\'lite\')"]')?.parentElement
-              || document.querySelector('[onclick*="runAIAnalysis"]')?.parentElement;
-
+  const detailView = document.getElementById('detailView');
+  const aiButtons = document.querySelector('[onclick*="runAIAnalysis"]')?.parentElement;
+  const aiResult = document.getElementById('ai-result-box');
   const dailyPanel = document.getElementById('daily-panel');
 
-  // 모든 탭 버튼 active 초기화
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
   if (tabId === 'daily') {
@@ -485,6 +483,9 @@ window.switchTab = function(tabId) {
     tools.style.display = 'none';
     slicers.style.display = 'none';
     charts.style.display = 'none';
+    detailView.style.display = 'none';
+    if (aiButtons) aiButtons.style.display = 'none';
+    if (aiResult) aiResult.style.display = 'none';
     dailyPanel.style.display = 'block';
   } else {
     document.getElementById(`btn-${tabId}`).classList.add('active');
@@ -492,11 +493,11 @@ window.switchTab = function(tabId) {
     tools.style.display = '';
     slicers.style.display = '';
     charts.style.display = '';
+    if (aiButtons) aiButtons.style.display = '';
     dailyPanel.style.display = 'none';
     switchProject(tabId);
   }
 }
-
 // 일일 공수 렌더링
 window.renderDailyLog = function() {
   const dateInput = document.getElementById('daily-date-input').value;
