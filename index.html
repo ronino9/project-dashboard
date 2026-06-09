@@ -498,25 +498,23 @@ window.switchTab = function(tabId) {
     switchProject(tabId);
   }
 }
-// 일일 공수 렌더링
-window.renderDailyLog = function() {
-  const dateInput = document.getElementById('daily-date-input').value;
-  const content = document.getElementById('daily-log-content');
-  if (!dateInput) return;
-
-// 날짜 형식 맞추기 (구글 시트 접수일 형식에 맞게)
+// 날짜 형식 맞추기 (절대 실패하지 않는 숫자 비교 방식)
   const allRawData = Object.values(allData).flatMap(p => p.history || []);
-  const filtered = allRawData.filter(r => {
-    const d = r['접수일'] ? r['접수일'].toString().trim() : '';
-    
-    // 캘린더 입력값(2026-06-09)을 3가지 경우의 수로 모두 만듦
-    const targetDot = dateInput.replace(/-/g, '.'); // 2026.06.09
-    const targetSlash = dateInput.replace(/-/g, '/'); // 2026/06/09
-    
-    // 시트의 데이터(d)가 셋 중 하나라도 포함하고 있으면 통과
-    return d.startsWith(targetDot) || d.startsWith(targetSlash) || d.startsWith(dateInput);
-  });
+  
+  // 1. 달력에서 선택한 날짜에서 숫자만 추출 (예: "2026-06-09" -> "20260609")
+  const cleanInput = dateInput.replace(/[^0-9]/g, '');
 
+  const filtered = allRawData.filter(r => {
+    // 만약 시트 헤더에 띄어쓰기가 섞여 있을 경우를 대비해 키값을 안전하게 찾음
+    const dateKey = Object.keys(r).find(k => k.includes('접수일'));
+    const d = (dateKey && r[dateKey]) ? r[dateKey].toString() : '';
+    
+    // 2. 시트 데이터에서도 숫자만 추출 (예: "2026.06.09" -> "20260609")
+    const cleanData = d.replace(/[^0-9]/g, '');
+
+    // 추출된 숫자가 8자리로 완벽히 일치하는지만 검사
+    return cleanData !== '' && cleanData.startsWith(cleanInput);
+  });
   if (filtered.length === 0) {
     content.innerHTML = `<div style="color:#64748b; font-size:14px;">📭 ${dateInput} 에 해당하는 데이터가 없습니다.</div>`;
     return;
