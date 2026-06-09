@@ -77,16 +77,16 @@
     /* 1. 진행상태 뱃지 */
     .badge-완료 { background: rgba(39, 174, 96, 0.15); color: #2ecc71; border: 1px solid rgba(39, 174, 96, 0.3); }
     .badge-지연중 { background: rgba(192, 57, 43, 0.15); color: #e74c3c; border: 1px solid rgba(192, 57, 43, 0.3); }
-.badge-보류 { background: rgba(100, 116, 139, 0.15); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); } /* 완전한 무채색(슬레이트 그레이) */
-    .badge-지연완료 { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); } /* 차분한 연보라(라벤더)로 확실히 분리 */
-    .badge-지연완료 { background: rgba(115, 138, 148, 0.15); color: #a3b8c2; border: 1px solid rgba(115, 138, 148, 0.3); } /* 그레이시 블루 */
+    .badge-보류 { background: rgba(100, 116, 139, 0.15); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); } 
+    .badge-임박 { background: rgba(211, 84, 0, 0.15); color: #d35400; border: 1px solid rgba(211, 84, 0, 0.3); }
+    .badge-지연완료 { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); } 
 
     /* 2. 업무 구분 뱃지 */
     .badge-표준 { background: rgba(127, 140, 141, 0.15); color: #bdc3c7; border: 1px solid rgba(127, 140, 141, 0.3); }
     .badge-개선 { background: rgba(39, 174, 96, 0.15); color: #2ecc71; border: 1px solid rgba(39, 174, 96, 0.3); }
     .badge-Issue { background: rgba(192, 57, 43, 0.15); color: #e74c3c; border: 1px solid rgba(192, 57, 43, 0.3); }
     .badge-기술지원 { background: rgba(212, 172, 13, 0.15); color: #f1c40f; border: 1px solid rgba(212, 172, 13, 0.3); }
-    .badge-기능요구 { background: rgba(52, 152, 219, 0.15); color: #5dade2; border: 1px solid rgba(52, 152, 219, 0.3); } /* 소프트 블루 */
+    .badge-기능요구 { background: rgba(52, 152, 219, 0.15); color: #5dade2; border: 1px solid rgba(52, 152, 219, 0.3); } 
 
     @media(max-width: 1024px) { 
       .charts-grid { grid-template-columns: 1fr; } 
@@ -99,11 +99,10 @@
   <div class="container">
     
     <div class="tabs">
-<button id="btn-project7" class="tab-btn active" onclick="switchTab('project7')">Project 7</button>
-<button id="btn-project6" class="tab-btn" onclick="switchTab('project6')">Project 6</button>
-<button id="btn-project3" class="tab-btn" onclick="switchTab('project3')">Project 3</button>
-      <!-- 기존 탭 버튼들 뒤에 추가 -->
-<button id="btn-daily" class="tab-btn" onclick="switchTab('daily')">📋 일일 공수</button>
+      <button id="btn-project7" class="tab-btn active" onclick="switchTab('project7')">Project 7</button>
+      <button id="btn-project6" class="tab-btn" onclick="switchTab('project6')">Project 6</button>
+      <button id="btn-project3" class="tab-btn" onclick="switchTab('project3')">Project 3</button>
+      <button id="btn-daily" class="tab-btn" onclick="switchTab('daily')">📋 일일 공수</button>
     </div>
 
     <div class="header">
@@ -158,7 +157,7 @@
         <span id="detailClose" onclick="closeDetail()">✕</span>
       </div>
       <table id="detailTable"></table>
-<div style="font-size:12px;color:#64748b;margin-top:8px;" id="detailCount"></div>
+      <div style="font-size:12px;color:#64748b;margin-top:8px;" id="detailCount"></div>
     </div>
 
     <div id="daily-panel" style="display:none;">
@@ -177,20 +176,20 @@
     </div>
 
   </div>
-<div style="margin: 20px 0; text-align: right;">
-<!-- index.html 버튼 2개로 교체 -->
-<button onclick="runAIAnalysis('lite')">
-  ⚡ 빠른 현황 요약
-</button>
-<button onclick="runAIAnalysis('pro')">
-  🔬 심층 리스크 분석
-  </button>
-</div>
+  <div style="margin: 20px 0; text-align: right;">
+    <button onclick="runAIAnalysis('lite')">
+      ⚡ 빠른 현황 요약
+    </button>
+    <button onclick="runAIAnalysis('pro')">
+      🔬 심층 리스크 분석
+    </button>
+  </div>
 
-<div id="ai-result-box" style="display: none; background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 8px; border: 1px solid #3b82f6; margin-bottom: 20px; line-height: 1.6;">
-  <h3 style="margin-top: 0; color: #60a5fa;">📊 AI Pro Mode 분석 리포트</h3>
-  <div id="ai-report-content" style="font-size: 14px;">데이터를 분석 중입니다. 잠시만 기다려주세요... ⏳</div>
-</div>
+  <div id="ai-result-box" style="display: none; background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 8px; border: 1px solid #3b82f6; margin-bottom: 20px; line-height: 1.6;">
+    <h3 style="margin-top: 0; color: #60a5fa;">📊 AI Pro Mode 분석 리포트</h3>
+    <div id="ai-report-content" style="font-size: 14px;">데이터를 분석 중입니다. 잠시만 기다려주세요... ⏳</div>
+  </div>
+  
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbxePNgd4UVagav5GLyl5y9T05R8GygLFTvKLzDBvNASKuCB1eCR-VQKSeO8HPzOWxdMeA/exec';
 
@@ -220,7 +219,7 @@
       currentProjectId = projectId;
       
       // 모든 버튼의 active 지우고 선택된 것만 부여
-document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(`btn-${projectId}`).className = 'tab-btn active';
       
       // 제목 자동 매핑
@@ -254,7 +253,7 @@ document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
 
       const badgeClass = { '완료': 'badge-완료', '지연중': 'badge-지연중', '보류': 'badge-보류', '임박': 'badge-임박', '지연완료': 'badge-지연완료' };
 
-document.getElementById('detailTable').innerHTML = `
+      document.getElementById('detailTable').innerHTML = `
         <tr>
           <th>#</th><th>업무구분</th><th>진행상태</th><th>내용</th><th>진행사항</th><th style="color:#60a5fa;">분석 데이터</th><th>완료예정일</th><th>지연일</th><th>접수일</th>
         </tr>` +
@@ -350,7 +349,7 @@ document.getElementById('detailTable').innerHTML = `
          [업데이트] 톤 다운된 헥스(HEX) 코드로 변경
          차트에 그려지는 막대 색상들도 부드럽게 세팅됩니다.
          ========================================= */
-const colorMap = { 
+      const colorMap = { 
         '표준': '#7F8C8D', 
         '개선': '#27AE60', 
         'Issue': '#C0392B', 
@@ -422,188 +421,191 @@ const colorMap = {
     }
 
     window.addEventListener('load', syncDashboard);
-    // AI 서버리스 호출 함수
-async function runAIAnalysis(mode = 'lite') {
-  const resultBox = document.getElementById('ai-result-box');
-  const contentBox = document.getElementById('ai-report-content');
-  
-  // 결과창 띄우기
-  resultBox.style.display = 'block';
-  contentBox.innerHTML = '데이터를 분석 중입니다. 잠시만 기다려주세요... ⏳';
-
-  try {
-    // 백엔드(/api/gemini)로 보낼 데이터 포장
-    const payload = {
-projectTitle: currentProjectId,
-historyData: rawData,
-mode: mode,
-    };
-
-    // 우리가 만든 Vercel 서버로 POST 요청 쏘기
-    const response = await fetch('/api/gemini', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await response.json();
-
-    // AI 결과 렌더링
-    if (response.ok) {
-      // 엔터(줄바꿈)를 화면에 맞게 <br>로 변환
-      let formattedText = data.report.replace(/\n/g, '<br>');
-      // 마크다운 **굵은 글씨** 처리 (간단 버전)
-      formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fbbf24;">$1</strong>');
-      
-      contentBox.innerHTML = formattedText;
-    } else {
-      contentBox.innerHTML = `❌ 에러 발생: ${data.error}`;
-    }
-  } catch (error) {
-    console.error('AI 호출 에러:', error);
-    contentBox.innerHTML = `❌ 통신 실패: 서버 연결에 문제가 발생했습니다.`;
-  }
-}
-    // 탭 전환 확장
-window.switchTab = function(tabId) {
-  const projectPanel = document.querySelector('.header');
-  const tools = document.querySelector('.dashboard-tools');
-  const slicers = document.getElementById('slicers');
-  const charts = document.querySelector('.charts-grid');
-  const detailView = document.getElementById('detailView');
-  const aiButtons = document.querySelector('[onclick*="runAIAnalysis"]')?.parentElement;
-  const aiResult = document.getElementById('ai-result-box');
-  const dailyPanel = document.getElementById('daily-panel');
-
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
-  if (tabId === 'daily') {
-    document.getElementById('btn-daily').classList.add('active');
-    projectPanel.style.display = 'none';
-    tools.style.display = 'none';
-    slicers.style.display = 'none';
-    charts.style.display = 'none';
-    detailView.style.display = 'none';
-    if (aiButtons) aiButtons.style.display = 'none';
-    if (aiResult) aiResult.style.display = 'none';
-    dailyPanel.style.display = 'block';
-  } else {
-    document.getElementById(`btn-${tabId}`).classList.add('active');
-    projectPanel.style.display = '';
-    tools.style.display = '';
-    slicers.style.display = '';
-    charts.style.display = '';
-    if (aiButtons) aiButtons.style.display = '';
-    dailyPanel.style.display = 'none';
-    switchProject(tabId);
-  }
-}
-// 날짜 형식 맞추기 (절대 실패하지 않는 숫자 비교 방식)
-  const allRawData = Object.values(allData).flatMap(p => p.history || []);
-  
-  // 1. 달력에서 선택한 날짜에서 숫자만 추출 (예: "2026-06-09" -> "20260609")
-  const cleanInput = dateInput.replace(/[^0-9]/g, '');
-
-  const filtered = allRawData.filter(r => {
-    // 만약 시트 헤더에 띄어쓰기가 섞여 있을 경우를 대비해 키값을 안전하게 찾음
-    const dateKey = Object.keys(r).find(k => k.includes('접수일'));
-    const d = (dateKey && r[dateKey]) ? r[dateKey].toString() : '';
     
-    // 2. 시트 데이터에서도 숫자만 추출 (예: "2026.06.09" -> "20260609")
-    const cleanData = d.replace(/[^0-9]/g, '');
+    // AI 서버리스 호출 함수
+    async function runAIAnalysis(mode = 'lite') {
+      const resultBox = document.getElementById('ai-result-box');
+      const contentBox = document.getElementById('ai-report-content');
+      
+      // 결과창 띄우기
+      resultBox.style.display = 'block';
+      contentBox.innerHTML = '데이터를 분석 중입니다. 잠시만 기다려주세요... ⏳';
 
-    // 추출된 숫자가 8자리로 완벽히 일치하는지만 검사
-    return cleanData !== '' && cleanData.startsWith(cleanInput);
-  });
-  if (filtered.length === 0) {
-    content.innerHTML = `<div style="color:#64748b; font-size:14px;">📭 ${dateInput} 에 해당하는 데이터가 없습니다.</div>`;
-    return;
-  }
+      try {
+        // 백엔드(/api/gemini)로 보낼 데이터 포장
+        const payload = {
+          projectTitle: currentProjectId,
+          historyData: rawData,
+          mode: mode,
+        };
 
-  // 시작 시간 기준 정렬
-const sorted = [...filtered].sort((a, b) => {
-  const toMin = t => {
-    if (!t) return 9999;
-    const [h, m] = t.toString().split(':').map(Number);
-    return h * 60 + (m || 0);
-  };
-  return toMin(a['시작 시간']) - toMin(b['시작 시간']);
-});
+        // 우리가 만든 Vercel 서버로 POST 요청 쏘기
+        const response = await fetch('/api/gemini', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-  // 합계 계산
-  const totalWorkHours = sorted.reduce((sum, r) => sum + (parseFloat(r['작업 시간']) || 0), 0);
-  const totalMD = sorted.reduce((sum, r) => sum + (parseFloat(r['공수(MD)']) || 0), 0);
-  const totalWait = sorted.reduce((sum, r) => sum + (parseFloat(r['대기 시간']) || 0), 0);
+        const data = await response.json();
 
-  const badgeColor = { '표준':'#7F8C8D','개선':'#27AE60','Issue':'#C0392B','기술지원':'#D4AC0D','기능요구':'#3498DB' };
+        // AI 결과 렌더링
+        if (response.ok) {
+          // 엔터(줄바꿈)를 화면에 맞게 <br>로 변환
+          let formattedText = data.report.replace(/\n/g, '<br>');
+          // 마크다운 **굵은 글씨** 처리 (간단 버전)
+          formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fbbf24;">$1</strong>');
+          
+          contentBox.innerHTML = formattedText;
+        } else {
+          contentBox.innerHTML = `❌ 에러 발생: ${data.error}`;
+        }
+      } catch (error) {
+        console.error('AI 호출 에러:', error);
+        contentBox.innerHTML = `❌ 통신 실패: 서버 연결에 문제가 발생했습니다.`;
+      }
+    }
+    
+    // 탭 전환 확장
+    window.switchTab = function(tabId) {
+      const projectPanel = document.querySelector('.header');
+      const tools = document.querySelector('.dashboard-tools');
+      const slicers = document.getElementById('slicers');
+      const charts = document.querySelector('.charts-grid');
+      const detailView = document.getElementById('detailView');
+      const aiButtons = document.querySelector('[onclick*="runAIAnalysis"]')?.parentElement;
+      const aiResult = document.getElementById('ai-result-box');
+      const dailyPanel = document.getElementById('daily-panel');
 
-  const rows = sorted.map((r, i) => {
-    const start = r['시작 시간'] || '-';
-    const end = r['종료 시간'] || '-';
-    const workH = r['작업 시간'] ? `${r['작업 시간']}h` : '-';
-    const waitH = r['대기 시간'] ? `${r['대기 시간']}h` : '-';
-    const md = r['공수(MD)'] || '-';
-    const type = r['업무 구분'] || '표준';
-    const item = r['표준 제작 Item / Issue / 개선사항'] || '';
-    const progress = r['진행 사항'] || '';
-    const rework = r['재작업 여부(Y/N)'] === 'Y';
-    const color = badgeColor[type] || '#7F8C8D';
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
-    return `
-      <div style="display:grid; grid-template-columns:120px 1fr auto; gap:12px; align-items:start;
-                  padding:14px 16px; border-radius:6px; margin-bottom:8px;
-                  background:#0f172a; border-left:3px solid ${color};">
-        <div>
-          <div style="font-size:15px; font-weight:700; color:#f8fafc; font-family:monospace;">
-            ${start} ~ ${end}
+      if (tabId === 'daily') {
+        document.getElementById('btn-daily').classList.add('active');
+        projectPanel.style.display = 'none';
+        tools.style.display = 'none';
+        slicers.style.display = 'none';
+        charts.style.display = 'none';
+        detailView.style.display = 'none';
+        if (aiButtons) aiButtons.style.display = 'none';
+        if (aiResult) aiResult.style.display = 'none';
+        dailyPanel.style.display = 'block';
+      } else {
+        document.getElementById(`btn-${tabId}`).classList.add('active');
+        projectPanel.style.display = '';
+        tools.style.display = '';
+        slicers.style.display = '';
+        charts.style.display = '';
+        if (aiButtons) aiButtons.style.display = '';
+        dailyPanel.style.display = 'none';
+        switchProject(tabId);
+      }
+    }
+    
+    // 일일 공수 렌더링
+    window.renderDailyLog = function() {
+      const dateInput = document.getElementById('daily-date-input').value;
+      const content = document.getElementById('daily-log-content');
+      if (!dateInput) return;
+
+      // 날짜 형식 맞추기 (절대 실패하지 않는 숫자 비교 방식)
+      const allRawData = Object.values(allData).flatMap(p => p.history || []);
+      const cleanInput = dateInput.replace(/[^0-9]/g, '');
+
+      const filtered = allRawData.filter(r => {
+        const dateKey = Object.keys(r).find(k => k.includes('접수일'));
+        const d = (dateKey && r[dateKey]) ? r[dateKey].toString() : '';
+        const cleanData = d.replace(/[^0-9]/g, '');
+        return cleanData !== '' && cleanData.startsWith(cleanInput);
+      });
+
+      if (filtered.length === 0) {
+        content.innerHTML = `<div style="color:#64748b; font-size:14px;">📭 ${dateInput} 에 해당하는 데이터가 없습니다.</div>`;
+        return;
+      }
+
+      // 시작 시간 기준 정렬
+      const sorted = [...filtered].sort((a, b) => {
+        const toMin = t => {
+          if (!t) return 9999;
+          const [h, m] = t.toString().split(':').map(Number);
+          return h * 60 + (m || 0);
+        };
+        return toMin(a['시작 시간']) - toMin(b['시작 시간']);
+      });
+
+      // 합계 계산
+      const totalWorkHours = sorted.reduce((sum, r) => sum + (parseFloat(r['작업 시간']) || 0), 0);
+      const totalMD = sorted.reduce((sum, r) => sum + (parseFloat(r['공수(MD)']) || 0), 0);
+      const totalWait = sorted.reduce((sum, r) => sum + (parseFloat(r['대기 시간']) || 0), 0);
+
+      const badgeColor = { '표준':'#7F8C8D','개선':'#27AE60','Issue':'#C0392B','기술지원':'#D4AC0D','기능요구':'#3498DB' };
+
+      const rows = sorted.map((r, i) => {
+        const start = r['시작 시간'] || '-';
+        const end = r['종료 시간'] || '-';
+        const workH = r['작업 시간'] ? `${r['작업 시간']}h` : '-';
+        const waitH = r['대기 시간'] ? `${r['대기 시간']}h` : '-';
+        const md = r['공수(MD)'] || '-';
+        const type = r['업무 구분'] || '표준';
+        const item = r['표준 제작 Item / Issue / 개선사항'] || '';
+        const progress = r['진행 사항'] || '';
+        const rework = r['재작업 여부(Y/N)'] === 'Y';
+        const color = badgeColor[type] || '#7F8C8D';
+
+        return `
+          <div style="display:grid; grid-template-columns:120px 1fr auto; gap:12px; align-items:start;
+                      padding:14px 16px; border-radius:6px; margin-bottom:8px;
+                      background:#0f172a; border-left:3px solid ${color};">
+            <div>
+              <div style="font-size:15px; font-weight:700; color:#f8fafc; font-family:monospace;">
+                ${start} ~ ${end}
+              </div>
+              <div style="font-size:11px; color:#64748b; margin-top:4px;">
+                작업 ${workH} / 대기 ${waitH}
+              </div>
+            </div>
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <span style="background:${color}22; color:${color}; border:1px solid ${color}44;
+                             padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">${type}</span>
+                ${rework ? '<span style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">🔄 재작업</span>' : ''}
+              </div>
+              <div style="font-size:13px; color:#e2e8f0; font-weight:600; margin-bottom:4px;">${item}</div>
+              <div style="font-size:12px; color:#94a3b8;">${progress}</div>
+            </div>
+            <div style="text-align:right; min-width:60px;">
+              <div style="font-size:18px; font-weight:700; color:#3b82f6; font-family:monospace;">${md}</div>
+              <div style="font-size:10px; color:#64748b;">MD</div>
+            </div>
+          </div>`;
+      }).join('');
+
+      content.innerHTML = `
+        <div style="display:flex; gap:24px; margin-bottom:16px; padding:16px; background:#0f172a; border-radius:8px;">
+          <div style="text-align:center;">
+            <div style="font-size:11px; color:#64748b; margin-bottom:4px;">작업 건수</div>
+            <div style="font-size:22px; font-weight:700; color:#f8fafc;">${sorted.length}<span style="font-size:13px; color:#64748b;">건</span></div>
           </div>
-          <div style="font-size:11px; color:#64748b; margin-top:4px;">
-            작업 ${workH} / 대기 ${waitH}
+          <div style="text-align:center;">
+            <div style="font-size:11px; color:#64748b; margin-bottom:4px;">총 작업시간</div>
+            <div style="font-size:22px; font-weight:700; color:#34d399;">${totalWorkHours.toFixed(1)}<span style="font-size:13px; color:#64748b;">h</span></div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:11px; color:#64748b; margin-bottom:4px;">총 대기시간</div>
+            <div style="font-size:22px; font-weight:700; color:#f59e0b;">${totalWait.toFixed(1)}<span style="font-size:13px; color:#64748b;">h</span></div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:11px; color:#64748b; margin-bottom:4px;">합계 공수</div>
+            <div style="font-size:22px; font-weight:700; color:#3b82f6;">${totalMD.toFixed(2)}<span style="font-size:13px; color:#64748b;">MD</span></div>
           </div>
         </div>
-        <div>
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-            <span style="background:${color}22; color:${color}; border:1px solid ${color}44;
-                         padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">${type}</span>
-            ${rework ? '<span style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">🔄 재작업</span>' : ''}
+        ${rows}
+        <div style="margin-top:12px; padding:12px 16px; background:#0f172a; border-radius:6px; border:1px dashed #334155;">
+          <div style="font-size:11px; color:#64748b; margin-bottom:6px;">📋 ERP 입력용 요약</div>
+          <div style="font-size:13px; color:#e2e8f0; line-height:1.8;">
+            ${sorted.map(r => `${r['시작 시간']}~${r['종료 시간']} [${r['업무 구분']}] ${r['표준 제작 Item / Issue / 개선사항'] || ''}`).join('<br>')}
           </div>
-          <div style="font-size:13px; color:#e2e8f0; font-weight:600; margin-bottom:4px;">${item}</div>
-          <div style="font-size:12px; color:#94a3b8;">${progress}</div>
-        </div>
-        <div style="text-align:right; min-width:60px;">
-          <div style="font-size:18px; font-weight:700; color:#3b82f6; font-family:monospace;">${md}</div>
-          <div style="font-size:10px; color:#64748b;">MD</div>
-        </div>
-      </div>`;
-  }).join('');
-
-  content.innerHTML = `
-    <div style="display:flex; gap:24px; margin-bottom:16px; padding:16px; background:#0f172a; border-radius:8px;">
-      <div style="text-align:center;">
-        <div style="font-size:11px; color:#64748b; margin-bottom:4px;">작업 건수</div>
-        <div style="font-size:22px; font-weight:700; color:#f8fafc;">${sorted.length}<span style="font-size:13px; color:#64748b;">건</span></div>
-      </div>
-      <div style="text-align:center;">
-        <div style="font-size:11px; color:#64748b; margin-bottom:4px;">총 작업시간</div>
-        <div style="font-size:22px; font-weight:700; color:#34d399;">${totalWorkHours.toFixed(1)}<span style="font-size:13px; color:#64748b;">h</span></div>
-      </div>
-      <div style="text-align:center;">
-        <div style="font-size:11px; color:#64748b; margin-bottom:4px;">총 대기시간</div>
-        <div style="font-size:22px; font-weight:700; color:#f59e0b;">${totalWait.toFixed(1)}<span style="font-size:13px; color:#64748b;">h</span></div>
-      </div>
-      <div style="text-align:center;">
-        <div style="font-size:11px; color:#64748b; margin-bottom:4px;">합계 공수</div>
-        <div style="font-size:22px; font-weight:700; color:#3b82f6;">${totalMD.toFixed(2)}<span style="font-size:13px; color:#64748b;">MD</span></div>
-      </div>
-    </div>
-    ${rows}
-    <div style="margin-top:12px; padding:12px 16px; background:#0f172a; border-radius:6px; border:1px dashed #334155;">
-      <div style="font-size:11px; color:#64748b; margin-bottom:6px;">📋 ERP 입력용 요약</div>
-      <div style="font-size:13px; color:#e2e8f0; line-height:1.8;">
-        ${sorted.map(r => `${r['시작 시간']}~${r['종료 시간']} [${r['업무 구분']}] ${r['표준 제작 Item / Issue / 개선사항'] || ''}`).join('<br>')}
-      </div>
-    </div>`;
-}
+        </div>`;
+    }
   </script>
 </body>
 </html>
