@@ -1,4 +1,7 @@
 // api/gemini.js
+// 환경변수 업데이트를 위한 강제 재배포 트리거
+export default async function handler(req, res) { 
+// ... (이하 기존 코드) ...
 export default async function handler(req, res) {
   // 1. CORS 및 POST 요청 허용 세팅
   res.setHeader('Access-Control-Allow-Credentials', true);
