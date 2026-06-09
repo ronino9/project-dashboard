@@ -3,12 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Real-time Control Tower - Project 7</title>
+  <title>Real-time Control Tower - Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; }
     .container { max-width: 1400px; margin: 0 auto; padding: 16px; }
+    
+    /* 탭 메뉴 스타일 추가 */
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tab-btn { padding: 12px 24px; background: #1e293b; color: #94a3b8; border: 1px solid #334155; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 15px; transition: all 0.2s; }
+    .tab-btn:hover { background: #2a3a55; color: #f8fafc; }
+    .tab-btn.active { background: #3b82f6; color: #fff; border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+
     .header { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; margin-bottom: 16px; }
     .header-top { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
     .project-basic { flex: 0 0 auto; min-width: 150px; }
@@ -71,13 +78,19 @@
 </head>
 <body>
   <div class="container">
+    
+    <div class="tabs">
+      <button id="btn-project7" class="tab-btn active" onclick="switchProject('project7')">Project 7</button>
+      <button id="btn-project6" class="tab-btn" onclick="switchProject('project6')">Project 6</button>
+    </div>
+
     <div class="header">
       <div class="header-top">
         <div class="project-basic">
-          <div class="project-no">Project 7</div>
+          <div class="project-no" id="projectTitle">Project 7</div>
           <div style="font-size: 12px; color: #64748b;">Interactive Control Tower</div>
         </div>
-        <div class="donuts-row" id="donuts"><div style="opacity:0.5; padding:20px;">로드 중...</div></div>
+        <div class="donuts-row" id="donuts"><div style="opacity:0.5; padding:20px;">데이터 로드 중...</div></div>
       </div>
       <div class="progress-section">
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -128,8 +141,12 @@
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwwCFRGw4cpFOtPZITa1kt6P2cO92TIG-UZcv3CXu9igPeaGHkwTm4hcp_iEer5O1edPQ/exec';
+    // 본인의 앱스크립트 배포 URL을 그대로 사용합니다.
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxOwI-PSHV9d_6qXqD1BmOic9UJCtxM-HTKHXPsKkjLcr4RKcm2Cn1usyy0DrL1EbZhJA/exec';
 
+    let allData = {}; // No.6와 No.7 데이터를 모두 담아둘 그릇
+    let currentProjectId = 'project7'; // 현재 보고 있는 탭
+    
     let rawData = [];
     let mdChartInstance = null;
     let statusChartInstance = null;
@@ -148,8 +165,31 @@
       document.getElementById('detailView').style.display = 'none';
     }
 
+    // === 탭 전환 핵심 함수 ===
+    window.switchProject = function(projectId) {
+      currentProjectId = projectId;
+      
+      // 버튼 색상 변경
+      document.getElementById('btn-project7').className = (projectId === 'project7') ? 'tab-btn active' : 'tab-btn';
+      document.getElementById('btn-project6').className = (projectId === 'project6') ? 'tab-btn active' : 'tab-btn';
+      
+      // 제목 변경
+      document.getElementById('projectTitle').textContent = (projectId === 'project7') ? 'Project 7' : 'Project 6';
+
+      // 필터 초기화
+      activeFilters = { '단계 구분': 'All', '대응 구분': 'All', '유/무상': 'All', '파트 구분': 'All', '진행상태': 'All' };
+      
+      // 데이터 교체 및 차트 다시 그리기
+      if(allData[projectId]) {
+        rawData = allData[projectId].history || [];
+        renderDonuts(allData[projectId].summary);
+        renderSlicers();
+        updateCharts();
+        closeDetail();
+      }
+    }
+
     function showDetail(date, category, isMd) {
-      // ✅ 접수일 기준으로만 필터링
       const filtered = rawData.filter(r => {
         if (!r['접수일'] || r['접수일'] !== date) return false;
         return isMd ? r['업무 구분'] === category : r['진행상태'] === category;
@@ -163,7 +203,7 @@
 
       const badgeClass = { '완료': 'badge-완료', '지연중': 'badge-지연중', '보류': 'badge-보류', '임박': 'badge-임박', '지연완료': 'badge-지연완료' };
 
-     document.getElementById('detailTable').innerHTML = `
+      document.getElementById('detailTable').innerHTML = `
         <tr>
           <th>#</th><th>업무구분</th><th>진행상태</th><th>내용</th><th>진행사항</th><th>지연사유</th><th>완료예정일</th><th>지연일</th><th>접수일</th>
         </tr>` +
@@ -218,9 +258,9 @@
         if (uniqueValues.length === 0) return;
         const groupDiv = document.createElement('div');
         groupDiv.className = 'filter-group';
-        let buttonsHTML = `<button class="filter-btn all ${activeFilters[category] === 'All' ? 'active' : ''}" onclick="applyFilter('${category}', 'All')">All</button>`;
+        let buttonsHTML = `<button class="filter-btn all ${activeFilters[category] === 'All' ? 'active' : ''}" onclick="window.applyFilter('${category}', 'All')">All</button>`;
         uniqueValues.forEach(val => {
-          buttonsHTML += `<button class="filter-btn ${activeFilters[category] === val ? 'active' : ''}" onclick="applyFilter('${category}', '${val}')">${val}</button>`;
+          buttonsHTML += `<button class="filter-btn ${activeFilters[category] === val ? 'active' : ''}" onclick="window.applyFilter('${category}', '${val}')">${val}</button>`;
         });
         groupDiv.innerHTML = `<div class="filter-title">${category}</div><div class="filter-buttons">${buttonsHTML}</div>`;
         container.appendChild(groupDiv);
@@ -253,7 +293,6 @@
       document.getElementById('kpi-issue').textContent = countIssue;
       document.getElementById('kpi-incomp').textContent = countIncomplete;
 
-      // ✅ 접수일 기준으로만 날짜 추출
       currentDates = [...new Set(filteredData.map(r => r['접수일']).filter(v => v && v.toString().trim() !== ''))].sort();
 
       const colorMap = { '표준': '#94a3b8', '개선': '#34d399', 'Issue': '#ef4444', '기술지원': '#fbbf24', '완료': '#34d399', '지연중': '#ef4444', '보류': '#64748b', '임박': '#f59e0b', '지연완료': '#a78bfa' };
@@ -264,7 +303,6 @@
         type: 'bar',
         data: {
           labels: currentDates.map(d => formatDate(d)),
-          // ✅ 접수일 기준으로만 필터링
           datasets: mdTypes.map(type => ({
             label: type,
             backgroundColor: colorMap[type],
@@ -287,7 +325,6 @@
         type: 'bar',
         data: {
           labels: currentDates.map(d => formatDate(d)),
-          // ✅ 접수일 기준으로만 필터링
           datasets: statusTypes.map(type => ({
             label: type,
             backgroundColor: colorMap[type],
@@ -308,11 +345,11 @@
     async function syncDashboard() {
       try {
         const response = await fetch(API_URL, { redirect: 'follow' });
-        const freshData = await response.json();
-        renderDonuts(freshData.summary);
-        rawData = freshData.history || [];
-        renderSlicers();
-        updateCharts();
+        allData = await response.json(); // API에서 project6, project7 데이터 둘 다 받아옴
+        
+        // 처음 켰을 때 기본적으로 Project 7 화면을 띄워줌
+        switchProject('project7'); 
+        
       } catch (err) {
         console.error('동기화 실패:', err);
       }
