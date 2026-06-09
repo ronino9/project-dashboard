@@ -77,8 +77,8 @@
     /* 1. 진행상태 뱃지 */
     .badge-완료 { background: rgba(39, 174, 96, 0.15); color: #2ecc71; border: 1px solid rgba(39, 174, 96, 0.3); }
     .badge-지연중 { background: rgba(192, 57, 43, 0.15); color: #e74c3c; border: 1px solid rgba(192, 57, 43, 0.3); }
-    .badge-보류 { background: rgba(127, 140, 141, 0.15); color: #bdc3c7; border: 1px solid rgba(127, 140, 141, 0.3); }
-    .badge-임박 { background: rgba(211, 84, 0, 0.15); color: #e67e22; border: 1px solid rgba(211, 84, 0, 0.3); }
+.badge-보류 { background: rgba(100, 116, 139, 0.15); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); } /* 완전한 무채색(슬레이트 그레이) */
+    .badge-지연완료 { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); } /* 차분한 연보라(라벤더)로 확실히 분리 */
     .badge-지연완료 { background: rgba(115, 138, 148, 0.15); color: #a3b8c2; border: 1px solid rgba(115, 138, 148, 0.3); } /* 그레이시 블루 */
 
     /* 2. 업무 구분 뱃지 */
@@ -321,7 +321,7 @@
          [업데이트] 톤 다운된 헥스(HEX) 코드로 변경
          차트에 그려지는 막대 색상들도 부드럽게 세팅됩니다.
          ========================================= */
-      const colorMap = { 
+const colorMap = { 
         '표준': '#7F8C8D', 
         '개선': '#27AE60', 
         'Issue': '#C0392B', 
@@ -329,9 +329,9 @@
         '기능요구': '#3498DB', 
         '완료': '#27AE60', 
         '지연중': '#C0392B', 
-        '보류': '#7F8C8D', 
+        '보류': '#64748b', /* 무채색 회색 */
         '임박': '#D35400', 
-        '지연완료': '#738A94' 
+        '지연완료': '#a78bfa' /* 차분한 연보라 */
       };
 
       const mdTypes = ['표준', '개선', 'Issue', '기술지원', '기능요구'];
