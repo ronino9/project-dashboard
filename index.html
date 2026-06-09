@@ -254,9 +254,9 @@ document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
 
       const badgeClass = { '완료': 'badge-완료', '지연중': 'badge-지연중', '보류': 'badge-보류', '임박': 'badge-임박', '지연완료': 'badge-지연완료' };
 
-      document.getElementById('detailTable').innerHTML = `
+document.getElementById('detailTable').innerHTML = `
         <tr>
-          <th>#</th><th>업무구분</th><th>진행상태</th><th>내용</th><th>진행사항</th><th>지연사유</th><th>완료예정일</th><th>지연일</th><th>접수일</th>
+          <th>#</th><th>업무구분</th><th>진행상태</th><th>내용</th><th>진행사항</th><th style="color:#60a5fa;">분석 데이터</th><th>완료예정일</th><th>지연일</th><th>접수일</th>
         </tr>` +
         filtered.map((r, i) => `
           <tr>
@@ -265,7 +265,7 @@ document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
             <td><span class="badge ${badgeClass[r['진행상태']] || ''}">${r['진행상태'] || ''}</span></td>
             <td style="max-width:250px;">${r['표준 제작 Item / Issue / 개선사항'] || ''}</td>
             <td style="max-width:200px;">${r['진행 사항'] || ''}</td>
-            <td style="max-width:200px;">${r['지연 사유'] || ''}</td>
+            <td style="max-width:250px; color:#fbbf24; line-height:1.4;">${r['분석 데이터'] || ''}</td>
             <td>${r['완료예정일'] || ''}</td>
             <td>${r['지연일'] || ''}</td>
             <td>${r['접수일'] || ''}</td>
