@@ -220,9 +220,7 @@
       currentProjectId = projectId;
       
       // 모든 버튼의 active 지우고 선택된 것만 부여
-      document.getElementById('btn-project7').className = 'tab-btn';
-      document.getElementById('btn-project6').className = 'tab-btn';
-      document.getElementById('btn-project3').className = 'tab-btn';
+document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(`btn-${projectId}`).className = 'tab-btn active';
       
       // 제목 자동 매핑
@@ -506,9 +504,10 @@ window.renderDailyLog = function() {
   if (!dateInput) return;
 
   // 날짜 형식 맞추기 (구글 시트 접수일 형식에 맞게)
-  const filtered = rawData.filter(r => {
+const allRawData = Object.values(allData).flatMap(p => p.history || []);
+const filtered = allRawData.filter(r => {
     const d = r['접수일'] ? r['접수일'].toString().trim() : '';
-    return d === dateInput;
+    return d === dateInput.replace(/-/g, '.');
   });
 
   if (filtered.length === 0) {
