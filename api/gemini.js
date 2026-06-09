@@ -42,11 +42,6 @@ export default async function handler(req, res) {
     if (apiData.candidates && apiData.candidates[0].content.parts[0].text) {
       return res.status(200).json({ report: apiData.candidates[0].content.parts[0].text });
     } else {
-      return res.status(500).json({ error: 'Gemini 응답 파싱 실패' });
+      // 구글이 보낸 원본 에러 데이터를 화면에 그대로 출력하도록 수정합니다.
+      return res.status(500).json({ error: `구글 AI 거절 사유: ${JSON.stringify(apiData)}` });
     }
-
-  } catch (error) {
-    console.error('서버 에러:', error);
-    return res.status(500).json({ error: error.message });
-  }
-}
