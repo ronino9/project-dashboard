@@ -17,9 +17,13 @@ export default async function handler(req, res) {
 
   try {
     // 2. 금고에 숨겨둔 Gemini API 키 가져오기
-    const apiKey = process.env.GEMINI_API_KEY;
+const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: 'Vercel 환경 변수에 GEMINI_API_KEY가 설정되지 않았습니다.' });
+      // Vercel이 현재 읽고 있는 모든 환경변수 이름을 뽑아냅니다.
+      const envKeys = Object.keys(process.env).join(', ');
+      return res.status(500).json({ 
+        error: `서버에 GEMINI_API_KEY가 없습니다. 현재 인식된 변수들: [ ${envKeys} ]` 
+      });
     }
 
     // 3. 프론트엔드(대시보드)가 보내온 프로젝트 데이터 받기
