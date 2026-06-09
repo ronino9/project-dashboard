@@ -504,11 +504,17 @@ window.renderDailyLog = function() {
   const content = document.getElementById('daily-log-content');
   if (!dateInput) return;
 
-  // 날짜 형식 맞추기 (구글 시트 접수일 형식에 맞게)
-const allRawData = Object.values(allData).flatMap(p => p.history || []);
-const filtered = allRawData.filter(r => {
+// 날짜 형식 맞추기 (구글 시트 접수일 형식에 맞게)
+  const allRawData = Object.values(allData).flatMap(p => p.history || []);
+  const filtered = allRawData.filter(r => {
     const d = r['접수일'] ? r['접수일'].toString().trim() : '';
-    return d === dateInput.replace(/-/g, '.');
+    
+    // 캘린더 입력값(2026-06-09)을 3가지 경우의 수로 모두 만듦
+    const targetDot = dateInput.replace(/-/g, '.'); // 2026.06.09
+    const targetSlash = dateInput.replace(/-/g, '/'); // 2026/06/09
+    
+    // 시트의 데이터(d)가 셋 중 하나라도 포함하고 있으면 통과
+    return d.startsWith(targetDot) || d.startsWith(targetSlash) || d.startsWith(dateInput);
   });
 
   if (filtered.length === 0) {
