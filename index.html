@@ -159,7 +159,16 @@
       <div style="font-size:12px;color:#64748b;margin-top:8px;" id="detailCount"></div>
     </div>
   </div>
+<div style="margin: 20px 0; text-align: right;">
+  <button onclick="runAIAnalysis()" style="background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+    🤖 AI 현장 리스크 진단 실행
+  </button>
+</div>
 
+<div id="ai-result-box" style="display: none; background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 8px; border: 1px solid #3b82f6; margin-bottom: 20px; line-height: 1.6;">
+  <h3 style="margin-top: 0; color: #60a5fa;">📊 AI Pro Mode 분석 리포트</h3>
+  <div id="ai-report-content" style="font-size: 14px;">데이터를 분석 중입니다. 잠시만 기다려주세요... ⏳</div>
+</div>
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbxePNgd4UVagav5GLyl5y9T05R8GygLFTvKLzDBvNASKuCB1eCR-VQKSeO8HPzOWxdMeA/exec';
 
@@ -393,6 +402,50 @@ const colorMap = {
     }
 
     window.addEventListener('load', syncDashboard);
+    // AI 서버리스 호출 함수
+async function runAIAnalysis() {
+  const resultBox = document.getElementById('ai-result-box');
+  const contentBox = document.getElementById('ai-report-content');
+  
+  // 결과창 띄우기
+  resultBox.style.display = 'block';
+  contentBox.innerHTML = '데이터를 분석 중입니다. 잠시만 기다려주세요... ⏳';
+
+  try {
+    // 백엔드(/api/gemini)로 보낼 데이터 포장
+    const payload = {
+      projectTitle: "선택된 프로젝트", 
+      // Vercel에서 구글 시트 데이터를 가져올 때 쓰는 배열 변수를 넣습니다. 
+      // (만약 변수명을 모른다면 일단 아래처럼 임시 데이터를 넣고 테스트합니다)
+      historyData: typeof window.historyData !== 'undefined' ? window.historyData : [{ "테스트": "데이터 연동 준비 완료" }], 
+      reportStyle: "과장님 보고용 요약"
+    };
+
+    // 우리가 만든 Vercel 서버로 POST 요청 쏘기
+    const response = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    // AI 결과 렌더링
+    if (response.ok) {
+      // 엔터(줄바꿈)를 화면에 맞게 <br>로 변환
+      let formattedText = data.report.replace(/\n/g, '<br>');
+      // 마크다운 **굵은 글씨** 처리 (간단 버전)
+      formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fbbf24;">$1</strong>');
+      
+      contentBox.innerHTML = formattedText;
+    } else {
+      contentBox.innerHTML = `❌ 에러 발생: ${data.error}`;
+    }
+  } catch (error) {
+    console.error('AI 호출 에러:', error);
+    contentBox.innerHTML = `❌ 통신 실패: 서버 연결에 문제가 발생했습니다.`;
+  }
+}
   </script>
 </body>
 </html>
