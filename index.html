@@ -160,8 +160,12 @@
     </div>
   </div>
 <div style="margin: 20px 0; text-align: right;">
-  <button onclick="runAIAnalysis()" style="background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-    🤖 AI 현장 리스크 진단 실행
+<!-- index.html 버튼 2개로 교체 -->
+<button onclick="runAIAnalysis('lite')">
+  ⚡ 빠른 현황 요약
+</button>
+<button onclick="runAIAnalysis('pro')">
+  🔬 심층 리스크 분석
   </button>
 </div>
 
@@ -403,7 +407,7 @@ const colorMap = {
 
     window.addEventListener('load', syncDashboard);
     // AI 서버리스 호출 함수
-async function runAIAnalysis() {
+async function runAIAnalysis(mode = 'lite') {
   const resultBox = document.getElementById('ai-result-box');
   const contentBox = document.getElementById('ai-report-content');
   
@@ -414,11 +418,9 @@ async function runAIAnalysis() {
   try {
     // 백엔드(/api/gemini)로 보낼 데이터 포장
     const payload = {
-      projectTitle: "선택된 프로젝트", 
-      // Vercel에서 구글 시트 데이터를 가져올 때 쓰는 배열 변수를 넣습니다. 
-      // (만약 변수명을 모른다면 일단 아래처럼 임시 데이터를 넣고 테스트합니다)
-      historyData: typeof window.historyData !== 'undefined' ? window.historyData : [{ "테스트": "데이터 연동 준비 완료" }], 
-      reportStyle: "과장님 보고용 요약"
+projectTitle: currentProjectId,
+historyData: rawData,
+mode: mode,
     };
 
     // 우리가 만든 Vercel 서버로 POST 요청 쏘기
