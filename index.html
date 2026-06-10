@@ -196,7 +196,7 @@
   </div>
   
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxA_YIcgsbmLt7Jx9CYq4ULnD0ls63rY8UbltiKWAtJ7YD8bBucgeyhteWElWVTxU9q0w/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycby4w36CbQDy-TKTO2C9ORd8HpxYMIfJN43O7oit9LzELOzaFpl5vV-biqsU3FgZHsRt-Q/exec';
 
     let allData = {}; 
     let currentProjectId = 'project7'; 
@@ -624,15 +624,93 @@
         dailyPanel.style.display = 'block';
       } else {
         document.getElementById(`btn-${tabId}`).classList.add('active');
-        projectPanel.style.display = '';
-        tools.style.display = '';
-        slicers.style.display = '';
-        charts.style.display = '';
-        if (aiButtons) aiButtons.style.display = '';
-        csPanel.style.display = 'none';
-        dailyPanel.style.display = 'none';
+        projectPanel.style.display = 'block';  // ← 명시적으로 'block'
+        tools.style.display = 'block';         // ← 명시적으로 'block'
+        slicers.style.display = 'grid';        // ← 명시적으로 'grid'
+        charts.style.display = 'grid';         // ← 명시적으로 'grid'
+        if (aiButtons) aiButtons.style.display = 'block';  // ← 명시적으로 'block'
+        csPanel.style.display = 'none';        // ← 명시적으로 'none'
+        dailyPanel.style.display = 'none';     // ← 명시적으로 'none'
+        detailView.style.display = 'none';     // ← 추가
         switchProject(tabId);
       }
+문제 2: C/S 탭에 데이터가 없음
+Apps Script에서 getCsRiskMapData() 함수를 이렇게 수정하세요:
+
+javascript
+function getCsRiskMapData() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const historySheet = ss.getSheetByName('No.1_이력사항');
+  const dbSheet = ss.getSheetByName('No.1_DB1');
+  
+  if (!historySheet || !dbSheet) return [];
+
+  try {
+    const dbData = dbSheet.getRange('B4:H100').getValues();
+    const progressMap = {};
+    
+    dbData.forEach(row => {
+      const projectNo = row[1];      // C: Project No
+      const progress = parseFloat(row[2]) || 0;  // D: 진행율
+      const status = row[5];         // H: 상태분류
+      
+      if (projectNo && projectNo !== '') {
+        progressMap[projectNo] = { progress: progress, status: status };
+      }
+    });
+
+    // A5부터 읽기 (C/D 컬럼)
+    const histData = historySheet.getRange('A5:E200').getValues();
+    const projectMap = {};
+
+    histData.forEach(row => {
+      const projectNo = row[3];      // D: 프로젝트 코드
+      const status = row[2];         // C: 진행상태
+      
+      if (!projectNo || projectNo === '') return;
+      
+      if (!projectMap[projectNo]) {
+        projectMap[projectNo] = { urgent: 0, delay: 0 };
+      }
+      
+      if (status === '임박') projectMap[projectNo].urgent++;
+      else if (status === '지연' || status === '지연중' || status === '지연완료') projectMap[projectNo].delay++;
+    });
+
+    const projects = [];
+    Object.keys(projectMap).forEach(projectNo => {
+      const urgent = projectMap[projectNo].urgent;
+      const delay = projectMap[projectNo].delay;
+      const dbInfo = progressMap[projectNo] || { progress: 0, status: '안정' };
+      const progress = dbInfo.progress;
+      const dbStatus = dbInfo.status;
+      
+      const x = urgent * 0.2;
+      const y = delay * 0.2;
+      const size = Math.max(progress, 20);
+
+      projects.push({
+        name: projectNo,
+        status: dbStatus,
+        x: x,
+        y: y,
+        size: size
+      });
+    });
+
+    return projects;
+  } catch (err) {
+    Logger.log("에러: " + err);
+    return [];
+  }
+}
+저장 → 새 배포 하세요! ✅
+
+이 두 가지만 하면 완벽하게 작동할 거예요! 🚀
+
+
+
+
     }
     
     window.renderDailyLog = function() {
