@@ -156,7 +156,31 @@
     <!-- ========== C/S 리스크맵 뷰 ========== -->
     <div id="cs-view" style="display: none; display: grid; grid-template-columns: 1fr 300px; gap: 16px;">
       <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px;">
-        <div style="font-size: 16px; font-weight: 600; color: #f8fafc; margin-bottom: 16px;">C/S 프로젝트 리스크맵</div>
+        <div style="font-size: 16px; font-weight: 600; color: #f8fafc; margin-bottom: 12px;">C/S 프로젝트 리스크맵</div>
+        
+        <!-- 상태별 색상 범례 -->
+        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; padding: 12px; background: #0f172a; border-radius: 6px; border: 1px solid #334155;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="width: 16px; height: 16px; background: #86EFAC; border-radius: 50%;"></div>
+            <span style="color: #94a3b8; font-size: 12px;">안정</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="width: 16px; height: 16px; background: #FCD34D; border-radius: 50%;"></div>
+            <span style="color: #94a3b8; font-size: 12px;">임박</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="width: 16px; height: 16px; background: #F9A8D4; border-radius: 50%;"></div>
+            <span style="color: #94a3b8; font-size: 12px;">주의</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="width: 16px; height: 16px; background: #FCA5A5; border-radius: 50%;"></div>
+            <span style="color: #94a3b8; font-size: 12px;">위험</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="width: 16px; height: 16px; background: #EF4444; border-radius: 50%;"></div>
+            <span style="color: #94a3b8; font-size: 12px;">심각</span>
+          </div>
+        </div>
         
         <!-- 간격 조절 슬라이더 -->
         <div style="background: #0f172a; padding: 12px; border-radius: 6px; margin-bottom: 16px; border: 1px solid #334155;">
