@@ -390,6 +390,19 @@
       ctx.moveTo(padding, padding);
       ctx.lineTo(padding, canvas.height - padding);
       ctx.stroke();
+            // X축/Y축 레이블
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText('임박 수준 →', canvas.width / 2, canvas.height - 20);
+      
+      ctx.save();
+      ctx.translate(20, canvas.height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = 'center';
+      ctx.fillText('← 지연 수준', 0, 0);
+      ctx.restore();
 
 const colorMap = { '안정': '#86EFAC', '임박': '#FCD34D', '주의': '#F9A8D4', '위험': '#FCA5A5', '심각': '#EF4444' };
 
