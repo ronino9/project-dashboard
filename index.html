@@ -391,12 +391,31 @@
       ctx.lineTo(padding, canvas.height - padding);
       ctx.stroke();
 
-      const colorMap = { '안정': '#86EFAC', '임박': '#FCD34D', '주의': '#F9A8D4', '위험': '#FCA5A5', '심각': '#EF4444' };
+const colorMap = { '안정': '#86EFAC', '임박': '#FCD34D', '주의': '#F9A8D4', '위험': '#FCA5A5', '심각': '#EF4444' };
 
-      csRiskData.forEach((project, index) => {
+// 같은 좌표 그룹화 ← 추가!
+const grouped = {};
+csRiskData.forEach((project, idx) => {
+  const key = `${project.x.toFixed(2)},${project.y.toFixed(2)}`;
+  if (!grouped[key]) grouped[key] = [];
+  grouped[key].push({ ...project, originalIndex: idx });
+});
+
+csRiskData.forEach((project, index) => {
         let x = padding + (project.x / maxX) * graphWidth;
         let y = canvas.height - padding - (project.y / maxY) * graphHeight;
-        const radius = (project.size / 100) * 20 + 15;
+const radius = (project.size / 100) * 20 + 15;
+
+        // 대각선 배치 ← 추가!
+        const key = `${project.x.toFixed(2)},${project.y.toFixed(2)}`;
+        const groupIndex = grouped[key].findIndex(p => p.originalIndex === index);
+        const groupSize = grouped[key].length;
+
+        if (groupSize > 1) {
+          const spacing = window.bubbleSpacing || 50;
+          x += groupIndex * spacing;
+          y -= groupIndex * spacing;
+        }
 
         let color = colorMap[project.status] || '#86EFAC';
 
