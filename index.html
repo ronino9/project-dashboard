@@ -200,11 +200,33 @@
         
         <canvas id="csBubbleCanvas" style="width: 100%; height: 500px; background: #0f172a; border-radius: 6px; display: block;"></canvas>
       </div>
-      <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; height: fit-content;">
-        <div style="font-size: 14px; font-weight: 700; color: #3b82f6; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 12px;">프로젝트 정보</div>
-        <div id="csDetailContent" style="color: #94a3b8; font-size: 12px;">버블을 클릭하면 상세 정보가 표시됩니다.</div>
-      </div>
+<div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; height: fit-content; max-height: 600px; overflow-y: auto;">
+  <!-- 프로젝트 기본 정보 -->
+  <div id="csProjectInfo" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #334155;">
+    <div style="font-size: 14px; font-weight: 700; color: #3b82f6; margin-bottom: 12px;">프로젝트 정보</div>
+    <div id="csDetailContent" style="color: #94a3b8; font-size: 12px;">버블을 클릭하면 상세 정보가 표시됩니다.</div>
+  </div>
+  
+  <!-- 전체 C/S 현황 -->
+  <div id="csTotalStats" style="margin-bottom: 20px;">
+    <div style="font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 12px; cursor: pointer;" onclick="toggleSection('totalStats')">
+      ▼ 전체 C/S 현황
     </div>
+    <div id="totalStatsContent" style="display: block;">
+      <!-- 여기에 차트가 들어옴 -->
+    </div>
+  </div>
+  
+  <!-- 프로젝트별 상세 현황 -->
+  <div id="csDetailStats" style="margin-bottom: 20px;">
+    <div style="font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 12px; cursor: pointer;" onclick="toggleSection('detailStats')">
+      ▼ 상세 현황
+    </div>
+    <div id="detailStatsContent" style="display: block;">
+      <!-- 여기에 차트가 들어옴 -->
+    </div>
+  </div>
+</div>
 
     <div id="daily-panel" style="display:none;">
       <div style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:24px; margin-bottom:16px;">
@@ -237,7 +259,7 @@
   </div>
   
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzWB_o9LaV6RxFj2toc1H71CmJOW4P4FgJqBua4DcEqfU05oJxkweIER3vLbebFfavxeg/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzXHFAwA9pzKRfHFYfHGJ0nY5NL-T7HCkM8Yx4_iXsCA3VuZUHRi9mj2ZZmwOYBydGkXQ/exec';
 
     let allData = {}; 
     let currentProjectId = 'project7'; 
