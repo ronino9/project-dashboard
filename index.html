@@ -89,11 +89,17 @@
 
     <div class="slicer-panel" id="slicers"></div>
 
-    <div class="charts-grid">
-      <div class="chart-card">
-        <div class="chart-title">공수 집계</div>
-        <div class="canvas-container"><canvas id="mdChart"></canvas></div>
+<div class="charts-grid">
+  <div class="chart-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <div class="chart-title" style="margin: 0;">공수 집계</div>
+      <div style="display: flex; gap: 16px; font-size: 12px; color: var(--color-text-secondary);">
+        <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></span>유상</span>
+        <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #d1d5db; border-radius: 2px;"></span>무상</span>
       </div>
+    </div>
+    <div class="canvas-container"><canvas id="mdChart"></canvas></div>
+  </div>
       <div class="chart-card">
         <div class="chart-title">진행 현황</div>
         <div class="canvas-container"><canvas id="statusChart"></canvas></div>
@@ -518,16 +524,16 @@ const radius = (project.size / 100) * 20 + 15;
       renderDetailStats(project.name);
     }
 
-    function renderDetailStats(projectNo) {
-      const content = document.getElementById('detailStatsContent');
-      
-      if (!csStatsData.detail || !csStatsData.detail[projectNo]) {
-        content.innerHTML = '<div style="color: #64748b; font-size: 12px;">데이터 없음</div>';
-        return;
-      }
+function renderDetailStats(projectNo) {
+  const content = document.getElementById('detailStatsContent');
+  
+  if (!csStatsData.detail || !csStatsData.detail[projectNo]) {
+    content.innerHTML = '<div style="color: #64748b; font-size: 12px;">데이터 없음</div>';
+    return;
+  }
 
-      const projectData = csStatsData.detail[projectNo];
-      let html = '';
+  const projectData = csStatsData.detail[projectNo];
+  let html = '<div style="display: flex; gap: 16px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 12px;"><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></span>유상</span><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #d1d5db; border-radius: 2px;"></span>무상</span></div>';
 
       for (const taskType in projectData) {
         html += `<div style="margin-bottom: 12px;"><div style="color: #cbd5e1; font-size: 11px; margin-bottom: 6px; font-weight: 600;">${taskType}</div>`;
