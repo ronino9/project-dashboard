@@ -157,6 +157,23 @@
     <div id="cs-view" style="display: none; display: grid; grid-template-columns: 1fr 300px; gap: 16px;">
       <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px;">
         <div style="font-size: 16px; font-weight: 600; color: #f8fafc; margin-bottom: 16px;">C/S 프로젝트 리스크맵</div>
+        
+        <!-- 간격 조절 슬라이더 -->
+        <div style="background: #0f172a; padding: 12px; border-radius: 6px; margin-bottom: 16px; border: 1px solid #334155;">
+          <label style="color: #94a3b8; font-size: 12px; display: block; margin-bottom: 8px;">원 간격 조절</label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input 
+              type="range" 
+              id="spacingSlider" 
+              min="20" 
+              max="100" 
+              value="50" 
+              style="flex: 1; cursor: pointer; height: 6px;"
+            >
+            <span id="spacingValue" style="color: #e2e8f0; min-width: 40px; text-align: right; font-weight: bold; font-size: 13px;">50</span>
+          </div>
+        </div>
+        
         <canvas id="csBubbleCanvas" style="width: 100%; height: 500px; background: #0f172a; border-radius: 6px; display: block;"></canvas>
       </div>
       <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; height: fit-content;">
@@ -504,28 +521,30 @@
         '심각': '#EF4444'
       };
 
-      // 위치 충돌 회피
+      // 같은 좌표 그룹화 후 대각선 배치
+      const grouped = {};
+      csRiskData.forEach((project, idx) => {
+        const key = `${project.x.toFixed(2)},${project.y.toFixed(2)}`;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push({ ...project, originalIndex: idx });
+      });
+
       const placed = [];
       csRiskData.forEach((project, index) => {
         let x = padding + (project.x / maxX) * graphWidth;
         let y = canvas.height - padding - (project.y / maxY) * graphHeight;
         const radius = (project.size / 100) * 20 + 15;
 
-        // 충돌 회피
-        let attempts = 0;
-        let collision = true;
-        while (collision && attempts < 10) {
-          collision = false;
-          for (let p of placed) {
-            const dist = Math.sqrt(Math.pow(x - p.x, 2) + Math.pow(y - p.y, 2));
-            if (dist < radius + p.radius + 10) {
-              collision = true;
-              x += Math.random() * 20 - 10;
-              y += Math.random() * 20 - 10;
-              break;
-            }
-          }
-          attempts++;
+        const key = `${project.x.toFixed(2)},${project.y.toFixed(2)}`;
+        const groupIndex = grouped[key].findIndex(p => p.originalIndex === index);
+        const groupSize = grouped[key].length;
+
+        // 대각선 배치
+        if (groupSize > 1) {
+          const offset = window.bubbleSpacing || 50;
+          const angle = (groupIndex / groupSize) * Math.PI * 2;
+          x += Math.cos(angle) * offset * (1 + groupIndex * 0.2);
+          y += Math.sin(angle) * offset * (1 + groupIndex * 0.2);
         }
 
         placed.push({ x, y, radius });
@@ -604,6 +623,19 @@
     }
 
     window.addEventListener('load', syncDashboard);
+    
+    // 슬라이더 간격 조절
+    window.bubbleSpacing = 50;
+    document.addEventListener('DOMContentLoaded', () => {
+      const slider = document.getElementById('spacingSlider');
+      if (slider) {
+        slider.addEventListener('input', (e) => {
+          window.bubbleSpacing = parseInt(e.target.value);
+          document.getElementById('spacingValue').textContent = window.bubbleSpacing;
+          renderCsBubbleChart();
+        });
+      }
+    });
     
     async function runAIAnalysis(mode = 'lite') {
       const resultBox = document.getElementById('ai-result-box');
