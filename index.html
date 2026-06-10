@@ -411,22 +411,24 @@ console.log('maxX:', maxX, 'maxY:', maxY);
       ctx.textAlign = 'center';
       ctx.fillText('← 지연 수준', 0, 0);
       ctx.restore();
-            // 축 숫자 (0~5)
+      // X축 숫자 (동적)
       ctx.font = '11px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       ctx.fillStyle = '#94a3b8';
       for (let i = 0; i <= 5; i++) {
+        const value = (maxX / 5) * i;  // ← 추가
         const x = padding + (graphWidth / 5) * i;
-        ctx.fillText(i, x, canvas.height - padding + 20);
+        ctx.fillText(value.toFixed(1), x, canvas.height - padding + 20);  // i → value로 변경
       }
       
-      // Y축 숫자
+      // Y축 숫자 (동적)
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
       for (let i = 0; i <= 5; i++) {
+        const value = (maxY / 5) * i;  // ← 이 줄 추가!
         const y = canvas.height - padding - (graphHeight / 5) * i;
-        ctx.fillText(i, padding - 15, y);
+        ctx.fillText(value.toFixed(1), padding - 15, y);  // i → value로 변경
       }
 
 const colorMap = { '안정': '#86EFAC', '임박': '#FCD34D', '주의': '#F9A8D4', '위험': '#FCA5A5', '심각': '#EF4444' };
