@@ -543,25 +543,53 @@ const radius = (project.size / 100) * 20 + 15;
       content.innerHTML = html;
     }
 
-    function renderTotalStats() {
-      const content = document.getElementById('totalStatsContent');
+function renderTotalStats() {
+  const content = document.getElementById('totalStatsContent');
+  
+  if (!csStatsData.detail) {
+    content.innerHTML = '<div style="color: #64748b; font-size: 12px;">데이터 없음</div>';
+    return;
+  }
+
+  let html = '';
+  
+  // 모든 프로젝트의 데이터를 합산
+  const aggregated = {};
+  
+  for (const projectNo in csStatsData.detail) {
+    const projectData = csStatsData.detail[projectNo];
+    
+    for (const taskType in projectData) {
+      if (!aggregated[taskType]) aggregated[taskType] = {};
       
-      if (!csStatsData.total) {
-        content.innerHTML = '<div style="color: #64748b; font-size: 12px;">데이터 없음</div>';
-        return;
+      for (const partType in projectData[taskType]) {
+        if (!aggregated[taskType][partType]) {
+          aggregated[taskType][partType] = { 유상: 0, 무상: 0 };
+        }
+        
+        aggregated[taskType][partType].유상 += projectData[taskType][partType].유상;
+        aggregated[taskType][partType].무상 += projectData[taskType][partType].무상;
       }
+    }
+  }
+  
+  // 렌더링
+  for (const taskType in aggregated) {
+    html += `<div style="margin-bottom: 16px;"><div style="color: #cbd5e1; font-size: 12px; margin-bottom: 8px; font-weight: 600;">${taskType}</div>`;
+    
+    for (const partType in aggregated[taskType]) {
+      const data = aggregated[taskType][partType];
+      const total = data.유상 + data.무상;
+      const ratio = total > 0 ? (data.유상 / total * 100).toFixed(0) : 0;
+      
+      html += `<div style="margin-bottom: 8px;"><div style="color: #94a3b8; font-size: 11px; margin-bottom: 4px;">${partType}: ${total.toFixed(1)}MD</div><div style="display: flex; height: 20px; border-radius: 4px; overflow: hidden; background: #0f172a;"><div style="background: #3b82f6; width: ${ratio}%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 10px;">${data.유상.toFixed(1)}</div><div style="background: #d1d5db; flex: 1; display: flex; align-items: center; justify-content: center; color: var(--color-text-primary); font-weight: bold; font-size: 10px;">${data.무상.toFixed(1)}</div></div></div>`;
+    }
+    
+    html += '</div>';
+  }
 
-      const totalData = csStatsData.total;
-      let html = '';
-
-      for (const taskType in totalData) {
-        const data = totalData[taskType];
-        const total = data.유상 + data.무상;
-        const ratio = total > 0 ? (data.유상 / total * 100).toFixed(0) : 0;
-        html += `<div style="margin-bottom: 12px;"><div style="color: #cbd5e1; font-size: 11px; margin-bottom: 6px; display: flex; justify-content: space-between;"><span>${taskType}</span><span style="color: #94a3b8;">${total.toFixed(1)}MD</span></div><div style="display: flex; height: 24px; border-radius: 4px; overflow: hidden; background: #0f172a;"><div style="background: #3b82f6; width: ${ratio}%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 11px;">${data.유상.toFixed(1)}</div><div style="background: #6b7280; flex: 1; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 11px;">${data.무상.toFixed(1)}</div></div></div>`;
-      }
-
-      content.innerHTML = html;
+  content.innerHTML = html;
+}
     }
 
     window.switchTab = function(tabId) {
