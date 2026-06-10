@@ -207,7 +207,7 @@
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzLwbCMJuHLWg9alBMwQaD5zccyLLYsucrm4LIl1VbBXziKvcv7r5hHAFMEBshFvW8q5w/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxawndg85aLF9Ydbcf1VN7NwkT0Soi-WvnVeTterA59rK3Iaj_PwA5P01xnQBZoD4T7ag/exec';
 
     let allData = {}; 
     let currentProjectId = 'project7'; 
@@ -480,11 +480,11 @@ function renderCsBubbleChart() {
     const radius = (project.size / 100) * 20 + 15;
 
     const colorMap = {
-      '안정': '#34d399',
-      '임박': '#d35400',
-      '주의': '#f59e0b',
-      '위험': '#ef4444',
-      '심각': '#991b1b'
+      '안정': '#86EFAC',    // ← 이 부분 변경
+      '임박': '#FCD34D',
+      '주의': '#F9A8D4',
+      '위험': '#FCA5A5',
+      '심각': '#EF4444'
     };
     let color = colorMap[project.status] || '#34d399';
 
