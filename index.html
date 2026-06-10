@@ -370,6 +370,9 @@
 let maxX = Math.max(...csRiskData.map(p => p.x), 2) * 1.2;
 let maxY = Math.max(...csRiskData.map(p => p.y), 2) * 1.2;
 
+      // 디버그 확인용
+console.log('maxX:', maxX, 'maxY:', maxY);
+
       ctx.strokeStyle = '#334155';
       ctx.lineWidth = 1;
       for (let i = 0; i <= 5; i++) {
