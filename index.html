@@ -449,7 +449,15 @@
       ctx.fillStyle = '#94a3b8';
       ctx.font = '12px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('← 임박도 →', canvas.width / 2, canvas.height - 10);
+ctx.fillText('← 임박도 →', canvas.width / 2, canvas.height - 10);
+
+// Y축 라벨 추가
+ctx.save();
+ctx.translate(20, canvas.height / 2);
+ctx.rotate(-Math.PI / 2);
+ctx.textAlign = 'center';
+ctx.fillText('↑ 지연도 ↓', 0, 0);
+ctx.restore();
 
       if (csRiskData.length === 0) {
         ctx.fillStyle = '#64748b';
@@ -460,8 +468,12 @@
         return;
       }
 
-      let maxX = Math.max(...csRiskData.map(p => p.x), 1);
-      let maxY = Math.max(...csRiskData.map(p => p.y), 1);
+let maxX = Math.max(...csRiskData.map(p => p.x), 0.5);
+let maxY = Math.max(...csRiskData.map(p => p.y), 0.5);
+
+// 여유 공간 추가 (10%)
+maxX = maxX * 1.1;
+maxY = maxY * 1.1;
 
       const colorMap = {
         '안정': '#86EFAC',
@@ -475,10 +487,12 @@ csRiskData.forEach((project, index) => {
   let x = padding + (project.x / maxX) * graphWidth;
   let y = canvas.height - padding - (project.y / maxY) * graphHeight;
   
-  // 같은 위치의 원들을 약간 분산
-  const jitter = 20;
-  x += (Math.random() - 0.5) * jitter;
-  y += (Math.random() - 0.5) * jitter;
+  // 같은 좌표의 원들을 고정된 위치에 배치
+  const offset = 15;
+  const col = index % 2;
+  const row = Math.floor(index / 2);
+  x += (col - 0.5) * offset;
+  y += (row - 0.5) * offset;
         const radius = (project.size / 100) * 20 + 15;
 
         let color = colorMap[project.status] || '#86EFAC';
