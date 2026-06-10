@@ -367,8 +367,8 @@
         return;
       }
 
-      let maxX = Math.max(...csRiskData.map(p => p.x), 0.5) * 1.2;
-      let maxY = Math.max(...csRiskData.map(p => p.y), 0.5) * 1.2;
+let maxX = Math.max(...csRiskData.map(p => p.x), 5) * 1.2;
+     let maxY = Math.max(...csRiskData.map(p => p.y), 5) * 1.2;
 
       ctx.strokeStyle = '#334155';
       ctx.lineWidth = 1;
