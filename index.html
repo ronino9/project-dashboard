@@ -421,125 +421,110 @@
     }
 
     // ========== C/S 리스크맵 함수 ==========
-    function renderCsBubbleChart() {
-      const canvas = document.getElementById('csBubbleCanvas');
-      const ctx = canvas.getContext('2d');
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
+function renderCsBubbleChart() {
+  const canvas = document.getElementById('csBubbleCanvas');
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
 
-      const padding = 60;
-      const graphWidth = canvas.width - padding * 2;
-      const graphHeight = canvas.height - padding * 2;
+  const padding = 60;
+  const graphWidth = canvas.width - padding * 2;
+  const graphHeight = canvas.height - padding * 2;
 
-      // 배경
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 그리드
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 1;
-      for (let i = 0; i <= 5; i++) {
-        const x = padding + (graphWidth / 5) * i;
-        const y = padding + (graphHeight / 5) * i;
-        ctx.beginPath();
-        ctx.moveTo(x, padding);
-        ctx.lineTo(x, canvas.height - padding);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(padding, y);
-        ctx.lineTo(canvas.width - padding, y);
-        ctx.stroke();
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const x = padding + (graphWidth / 5) * i;
+    const y = padding + (graphHeight / 5) * i;
+    ctx.beginPath();
+    ctx.moveTo(x, padding);
+    ctx.lineTo(x, canvas.height - padding);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(padding, y);
+    ctx.lineTo(canvas.width - padding, y);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(padding, canvas.height - padding);
+  ctx.lineTo(canvas.width - padding, canvas.height - padding);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(padding, padding);
+  ctx.lineTo(padding, canvas.height - padding);
+  ctx.stroke();
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '12px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('← 임박도 →', canvas.width / 2, canvas.height - 10);
+  ctx.save();
+  ctx.translate(15, canvas.height / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('← 심각도 →', 0, 0);
+  ctx.restore();
+
+  let maxX = Math.max(...csRiskData.map(p => p.x), 1);
+  let maxY = Math.max(...csRiskData.map(p => p.y), 1);
+
+  csRiskData.forEach(project => {
+    const x = padding + (project.x / maxX) * graphWidth;
+    const y = canvas.height - padding - (project.y / maxY) * graphHeight;
+    const radius = (project.size / 100) * 20 + 15;
+
+    const colorMap = {
+      '안정': '#34d399',
+      '임박': '#d35400',
+      '주의': '#f59e0b',
+      '위험': '#ef4444',
+      '심각': '#991b1b'
+    };
+    let color = colorMap[project.status] || '#34d399';
+
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.7;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(project.name, x, y);
+
+    project.x_pixel = x;
+    project.y_pixel = y;
+    project.radius = radius;
+  });
+
+  canvas.onclick = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    csRiskData.forEach(project => {
+      const dist = Math.sqrt(Math.pow(mouseX - project.x_pixel, 2) + Math.pow(mouseY - project.y_pixel, 2));
+      if (dist < project.radius) {
+        selectCsProject(project);
       }
-
-      // 축
-      ctx.strokeStyle = '#64748b';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(padding, canvas.height - padding);
-      ctx.lineTo(canvas.width - padding, canvas.height - padding);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(padding, padding);
-      ctx.lineTo(padding, canvas.height - padding);
-      ctx.stroke();
-
-      // 축 레이블
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '12px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('← 임박도 (미해결 이슈) →', canvas.width / 2, canvas.height - 10);
-      ctx.save();
-      ctx.translate(15, canvas.height / 2);
-      ctx.rotate(-Math.PI / 2);
-      ctx.fillText('← 심각도 (지연일) →', 0, 0);
-      ctx.restore();
-
-      // 데이터 정규화
-      let maxUrgent = Math.max(...csRiskData.map(p => p.urgent), 1);
-      let maxDelay = Math.max(...csRiskData.map(p => p.delay), 1);
-
-      // 버블 그리기
-      csRiskData.forEach(project => {
-        const x = padding + (project.urgent / maxUrgent) * graphWidth;
-        const y = canvas.height - padding - (project.delay / maxDelay) * graphHeight;
-        const radius = 20 + (project.total * 3);
-
-        // 상태별 색상
-        let color = '#34d399'; // 안정 (초록)
-        if (project.delay > 3) color = '#ef4444'; // 위험 (빨강)
-        else if (project.delay > 1) color = '#f59e0b'; // 주의 (주황)
-        else if (project.urgent > 2) color = '#d35400'; // 임박 (진주황)
-
-        // 버블 배경
-        ctx.fillStyle = color;
-        ctx.globalAlpha = 0.7;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1;
-
-        // 버블 테두리
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // 텍스트
-        ctx.fillStyle = '#f8fafc';
-        ctx.font = 'bold 13px monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
-        // 프로젝트명
-        const shortName = project.name.split('_')[0];
-        ctx.fillText(shortName, x, y - 8);
-        
-        // 건수
-        ctx.font = '11px sans-serif';
-        ctx.fillText(`임${project.urgent} 지연${project.delay}`, x, y + 8);
-
-        // 마우스 이벤트를 위해 저장
-        project.x = x;
-        project.y = y;
-        project.radius = radius;
-      });
-
-      // 클릭 이벤트
-      canvas.onclick = (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-
-        csRiskData.forEach(project => {
-          const dist = Math.sqrt(Math.pow(mouseX - project.x, 2) + Math.pow(mouseY - project.y, 2));
-          if (dist < project.radius) {
-            selectCsProject(project);
-          }
-        });
-      };
-    }
+    });
+  };
+}
 
     function selectCsProject(project) {
       selectedCsProject = project;
