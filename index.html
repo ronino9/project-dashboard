@@ -505,10 +505,12 @@ const radius = (project.size / 100) * 20 + 15;
           <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">상태</div>
           <div style="font-size: 18px; font-weight: 700; color: #f8fafc;">${project.status}</div>
         </div>
-        <div style="margin-bottom: 20px;">
-          <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">정보</div>
-          <div style="font-size: 13px; color: #e2e8f0;">진행율: ${project.progress}%</div>
-        </div>
+<div style="margin-bottom: 20px;">
+      <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">정보</div>
+      <div style="font-size: 13px; color: #e2e8f0; margin-bottom: 8px;">진행율: ${project.progress}%</div>
+      <div style="font-size: 13px; color: #e2e8f0; margin-bottom: 8px;">임박 수준: ${project.x.toFixed(1)}</div>
+      <div style="font-size: 13px; color: #e2e8f0;">지연일: ${project.y.toFixed(1)}</div>
+    </div>
       `;
       document.getElementById('csDetailContent').innerHTML = html;
       renderDetailStats(project.name);
