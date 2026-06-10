@@ -1,612 +1,150 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Real-time Control Tower - Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; }
-    .container { max-width: 1400px; margin: 0 auto; padding: 16px; }
-    
-    /* 탭 메뉴 스타일 */
-    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-    .tab-btn { padding: 12px 24px; background: #1e293b; color: #94a3b8; border: 1px solid #334155; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 15px; transition: all 0.2s; }
-    .tab-btn:hover { background: #2a3a55; color: #f8fafc; }
-    .tab-btn.active { background: #3b82f6; color: #fff; border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-
-    .header { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; margin-bottom: 16px; }
-    .header-top { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
-    .project-basic { flex: 0 0 auto; min-width: 150px; }
-    .project-no { font-size: 28px; font-weight: 700; color: #f8fafc; margin-bottom: 4px; }
-    .donuts-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 100%; flex: 1; }
-    .progress-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid #334155; }
-    .progress-bar { height: 16px; background: #334155; border-radius: 8px; overflow: hidden; margin: 8px 0; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, #34d399, #3b82f6); width: 0%; transition: width 1.5s ease-out; }
-    .donut-box { text-align: center; display: flex; flex-direction: column; align-items: center; }
-    .donut-label { font-size: 13px; font-weight: 600; color: #94a3b8; margin-bottom: 10px; }
-    .donut-status { font-size: 14px; font-weight: 700; margin-top: 12px; margin-bottom: 16px; }
-    .donut-details { width: 100%; max-width: 180px; font-size: 12px; }
-    .detail-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
-    .detail-label { color: #94a3b8; }
-    .detail-val { color: #e2e8f0; font-weight: 500; font-family: monospace; font-size: 13px; }
-    
-    .dashboard-tools { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
-    .quick-links { flex: 2; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; }
-    .link-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px 8px; color: #cbd5e1; text-decoration: none; font-size: 13px; font-weight: 600; transition: all 0.2s; cursor: pointer; gap: 8px; }
-    .link-btn:hover { border-color: #3b82f6; color: #f8fafc; transform: translateY(-2px); }
-    .link-icon { font-size: 24px; }
-    .kpi-panel { flex: 1; min-width: 250px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; display: flex; justify-content: space-around; align-items: center; }
-    .kpi-item { text-align: center; }
-    .kpi-title { font-size: 12px; color: #94a3b8; font-weight: 600; margin-bottom: 8px; }
-    .kpi-value { font-size: 24px; font-weight: 700; font-family: monospace; }
-    .val-md { color: #e2e8f0; }
-    .val-issue { color: #ef4444; }
-    .val-incomp { color: #f59e0b; }
-    
-    .slicer-panel { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-    .filter-group { display: flex; flex-direction: column; gap: 8px; background: #0f172a; padding: 12px; border-radius: 6px; border: 1px solid #334155; }
-    .filter-title { font-size: 12px; color: #3b82f6; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #223047; padding-bottom: 4px; margin-bottom: 4px; }
-    .filter-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
-    .filter-btn { background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: all 0.15s; }
-    .filter-btn:hover { border-color: #3b82f6; color: #f8fafc; }
-    .filter-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; font-weight: 600; }
-    .filter-btn.all { border-style: dashed; }
-    
-    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-    .chart-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; cursor: pointer; }
-    .chart-title { font-size: 16px; font-weight: 600; color: #f8fafc; margin-bottom: 16px; }
-    .canvas-container { position: relative; height: 320px; width: 100%; }
-    
-    #detailView { background: #1e293b; border: 1px solid #3b82f6; border-radius: 8px; padding: 20px; margin-top: 16px; display: none; }
-    #detailHeader { font-size: 15px; font-weight: 700; color: #3b82f6; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    #detailClose { cursor: pointer; color: #64748b; font-size: 20px; }
-    #detailClose:hover { color: #f8fafc; }
-    #detailTable { width: 100%; border-collapse: collapse; font-size: 12px; }
-    #detailTable th { text-align: left; padding: 8px; background: #0f172a; border-bottom: 1px solid #334155; color: #94a3b8; font-weight: 600; }
-    #detailTable td { padding: 8px; border-bottom: 1px solid #1e293b; color: #e2e8f0; }
-    #detailTable tr:hover { background: #0f172a; }
-    
-    /* =========================================
-       [업데이트] 톤 다운된 다크모드 뱃지 스타일 
-       배경은 반투명(rgba)으로, 글자색은 선명하게 세팅
-       ========================================= */
-    .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
-    
-    /* 1. 진행상태 뱃지 */
-    .badge-완료 { background: rgba(39, 174, 96, 0.15); color: #2ecc71; border: 1px solid rgba(39, 174, 96, 0.3); }
-    .badge-지연중 { background: rgba(192, 57, 43, 0.15); color: #e74c3c; border: 1px solid rgba(192, 57, 43, 0.3); }
-    .badge-보류 { background: rgba(100, 116, 139, 0.15); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); } 
-    .badge-임박 { background: rgba(211, 84, 0, 0.15); color: #d35400; border: 1px solid rgba(211, 84, 0, 0.3); }
-    .badge-지연완료 { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); } 
-
-    /* 2. 업무 구분 뱃지 */
-    .badge-표준 { background: rgba(127, 140, 141, 0.15); color: #bdc3c7; border: 1px solid rgba(127, 140, 141, 0.3); }
-    .badge-개선 { background: rgba(39, 174, 96, 0.15); color: #2ecc71; border: 1px solid rgba(39, 174, 96, 0.3); }
-    .badge-Issue { background: rgba(192, 57, 43, 0.15); color: #e74c3c; border: 1px solid rgba(192, 57, 43, 0.3); }
-    .badge-기술지원 { background: rgba(212, 172, 13, 0.15); color: #f1c40f; border: 1px solid rgba(212, 172, 13, 0.3); }
-    .badge-기능요구 { background: rgba(52, 152, 219, 0.15); color: #5dade2; border: 1px solid rgba(52, 152, 219, 0.3); } 
-
-    @media(max-width: 1024px) { 
-      .charts-grid { grid-template-columns: 1fr; } 
-      .donuts-row { grid-template-columns: 1fr 1fr; }
-      .dashboard-tools { flex-direction: column; }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    
-<div class="tabs">
-  <button id="btn-project7" class="tab-btn active" onclick="switchTab('project7')">Project 7</button>
-  <button id="btn-project6" class="tab-btn" onclick="switchTab('project6')">Project 6</button>
-  <button id="btn-project3" class="tab-btn" onclick="switchTab('project3')">Project 3</button>
-  <button id="btn-project1cs" class="tab-btn" onclick="switchTab('project1cs')">🎯 Project 1 C/S</button>
-  <button id="btn-daily" class="tab-btn" onclick="switchTab('daily')">📋 일일 공수</button>
-</div>
-
-    <div class="header">
-      <div class="header-top">
-        <div class="project-basic">
-          <div class="project-no" id="projectTitle">Project 7</div>
-          <div style="font-size: 12px; color: #64748b;">Interactive Control Tower</div>
-        </div>
-        <div class="donuts-row" id="donuts"><div style="opacity:0.5; padding:20px;">데이터 로드 중...</div></div>
-      </div>
-      <div class="progress-section">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:14px; color:#94a3b8; font-weight:600;">Overall Progress</span>
-          <span style="font-size:18px; font-weight:700; color:#3b82f6;" id="progressText">0%</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-      </div>
-    </div>
-
-    <div class="dashboard-tools">
-      <div class="quick-links">
-        <a href="#" class="link-btn"><span class="link-icon">💼</span>Works</a>
-        <a href="#" class="link-btn"><span class="link-icon">📋</span>PMO</a>
-        <a href="#" class="link-btn"><span class="link-icon">📑</span>통합관리</a>
-        <a href="#" class="link-btn"><span class="link-icon">🗄️</span>Data Base</a>
-        <a href="#" class="link-btn"><span class="link-icon">🗺️</span>Master Plan</a>
-        <a href="#" class="link-btn"><span class="link-icon">🔍</span>상세이력</a>
-      </div>
-      <div class="kpi-panel">
-        <div class="kpi-item"><div class="kpi-title">공수 합계</div><div class="kpi-value val-md" id="kpi-md">0.0</div></div>
-        <div class="kpi-item"><div class="kpi-title">ISSUE 합계</div><div class="kpi-value val-issue" id="kpi-issue">0</div></div>
-        <div class="kpi-item"><div class="kpi-title">미완료 합계</div><div class="kpi-value val-incomp" id="kpi-incomp">0</div></div>
-      </div>
-    </div>
-
-    <div class="slicer-panel" id="slicers"></div>
-
-    <div class="charts-grid">
-      <div class="chart-card">
-        <div class="chart-title">공수 집계 <span style="font-size:12px;color:#64748b;">(막대 클릭 → 상세)</span></div>
-        <div class="canvas-container"><canvas id="mdChart"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">진행 현황 <span style="font-size:12px;color:#64748b;">(막대 클릭 → 상세)</span></div>
-        <div class="canvas-container"><canvas id="statusChart"></canvas></div>
-      </div>
-    </div>
-
-    <div id="detailView">
-      <div id="detailHeader">
-        <span id="detailTitle"></span>
-        <span id="detailClose" onclick="closeDetail()">✕</span>
-      </div>
-      <table id="detailTable"></table>
-      <div style="font-size:12px;color:#64748b;margin-top:8px;" id="detailCount"></div>
-    </div>
-
-    <div id="daily-panel" style="display:none;">
-      <div style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:24px; margin-bottom:16px;">
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
-          <span style="font-size:15px; font-weight:700; color:#94a3b8;">📅 조회 날짜</span>
-          <input type="date" id="daily-date-input"
-            style="background:#0f172a; border:1px solid #334155; border-radius:6px; padding:8px 12px; color:#f8fafc; font-size:14px; cursor:pointer;"
-            onchange="renderDailyLog()" />
-          <span style="font-size:12px; color:#64748b;">현재 프로젝트 데이터 기준</span>
-        </div>
-        <div id="daily-log-content">
-          <div style="color:#64748b; font-size:14px;">날짜를 선택하면 공수 일지가 표시됩니다.</div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-  <div style="margin: 20px 0; text-align: right;">
-    <button onclick="runAIAnalysis('lite')">
-      ⚡ 빠른 현황 요약
-    </button>
-    <button onclick="runAIAnalysis('pro')">
-      🔬 심층 리스크 분석
-    </button>
-  </div>
-
-  <div id="ai-result-box" style="display: none; background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 8px; border: 1px solid #3b82f6; margin-bottom: 20px; line-height: 1.6;">
-    <h3 style="margin-top: 0; color: #60a5fa;">📊 AI Pro Mode 분석 리포트</h3>
-    <div id="ai-report-content" style="font-size: 14px;">데이터를 분석 중입니다. 잠시만 기다려주세요... ⏳</div>
-  </div>
-  
-  <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxA_YIcgsbmLt7Jx9CYq4ULnD0ls63rY8UbltiKWAtJ7YD8bBucgeyhteWElWVTxU9q0w/exec';
-
-    let allData = {}; 
-    let currentProjectId = 'project7'; 
-    
-    let rawData = [];
-    let mdChartInstance = null;
-    let statusChartInstance = null;
-    let currentDates = [];
-    let activeFilters = { '단계 구분': 'All', '대응 구분': 'All', '유/무상': 'All', '파트 구분': 'All', '진행상태': 'All' };
-
-    Chart.defaults.color = '#94a3b8';
-    Chart.defaults.borderColor = '#334155';
-
-    function formatDate(dateStr) {
-      if (!dateStr) return '-';
-      return dateStr.toString().substring(2);
-    }
-
-    window.closeDetail = function() {
-      document.getElementById('detailView').style.display = 'none';
-    }
-
-    // 🔄 탭 전환 유연화 (3개 프로젝트 완벽 대응)
-    window.switchProject = function(projectId) {
-      currentProjectId = projectId;
+// C/S 리스크맵 함수들
+    function renderCsBubbleChart() {
+      const canvas = document.getElementById('csBubbleCanvas');
+      if (!canvas) return;
       
-      // 모든 버튼의 active 지우고 선택된 것만 부여
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(`btn-${projectId}`).className = 'tab-btn active';
-      
-      // 제목 자동 매핑
-      const titleMap = { 'project7': 'Project 7', 'project6': 'Project 6', 'project3': 'Project 3' };
-      document.getElementById('projectTitle').textContent = titleMap[projectId] || 'Project';
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
 
-      // 필터 초기화
-      activeFilters = { '단계 구분': 'All', '대응 구분': 'All', '유/무상': 'All', '파트 구분': 'All', '진행상태': 'All' };
-      
-      // 데이터 바인딩 및 렌더링
-      if(allData[projectId]) {
-        rawData = allData[projectId].history || [];
-        renderDonuts(allData[projectId].summary);
-        renderSlicers();
-        updateCharts();
-        closeDetail();
+      const padding = 60;
+      const graphWidth = canvas.width - padding * 2;
+      const graphHeight = canvas.height - padding * 2;
+
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 5; i++) {
+        const x = padding + (graphWidth / 5) * i;
+        const y = padding + (graphHeight / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, padding);
+        ctx.lineTo(x, canvas.height - padding);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(canvas.width - padding, y);
+        ctx.stroke();
       }
-    }
 
-    function showDetail(date, category, isMd) {
-      const filtered = rawData.filter(r => {
-        if (!r['접수일'] || r['접수일'] !== date) return false;
-        return isMd ? r['업무 구분'] === category : r['진행상태'] === category;
-      });
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padding, canvas.height - padding);
+      ctx.lineTo(canvas.width - padding, canvas.height - padding);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(padding, padding);
+      ctx.lineTo(padding, canvas.height - padding);
+      ctx.stroke();
 
-      if (filtered.length === 0) return;
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('← 임박도 →', canvas.width / 2, canvas.height - 10);
 
-      document.getElementById('detailView').style.display = 'block';
-      document.getElementById('detailTitle').textContent = `[ ${formatDate(date)} / ${category} ] 상세 이력`;
-      document.getElementById('detailCount').textContent = `총 ${filtered.length}건`;
+      if (csRiskData.length === 0) {
+        ctx.fillStyle = '#64748b';
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('데이터 없음', canvas.width / 2, canvas.height / 2);
+        return;
+      }
 
-      const badgeClass = { '완료': 'badge-완료', '지연중': 'badge-지연중', '보류': 'badge-보류', '임박': 'badge-임박', '지연완료': 'badge-지연완료' };
+      let maxX = Math.max(...csRiskData.map(p => p.x), 1);
+      let maxY = Math.max(...csRiskData.map(p => p.y), 1);
 
-      document.getElementById('detailTable').innerHTML = `
-        <tr>
-          <th>#</th><th>업무구분</th><th>진행상태</th><th>내용</th><th>진행사항</th><th style="color:#60a5fa;">분석 데이터</th><th>완료예정일</th><th>지연일</th><th>접수일</th>
-        </tr>` +
-        filtered.map((r, i) => `
-          <tr>
-            <td>${i + 1}</td>
-            <td><span class="badge badge-${r['업무 구분'] || '표준'}">${r['업무 구분'] || ''}</span></td>
-            <td><span class="badge ${badgeClass[r['진행상태']] || ''}">${r['진행상태'] || ''}</span></td>
-            <td style="max-width:250px;">${r['표준 제작 Item / Issue / 개선사항'] || ''}</td>
-            <td style="max-width:200px;">${r['진행 사항'] || ''}</td>
-            <td style="max-width:250px; color:#fbbf24; line-height:1.4;">${r['분석 데이터'] || ''}</td>
-            <td>${r['완료예정일'] || ''}</td>
-            <td>${r['지연일'] || ''}</td>
-            <td>${r['접수일'] || ''}</td>
-          </tr>`).join('');
-
-      document.getElementById('detailView').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function renderDonuts(summaryData) {
-      const labels = ['제작', 'FAT', 'SET-UP', 'SAT'];
-      const donutHTML = labels.map((label, i) => {
-        const comp = summaryData.complete[i] || 0;
-        const incomp = summaryData.incomplete[i] || 0;
-        const total = comp + incomp;
-        const percent = total === 0 ? 0 : Math.round((comp / total) * 100);
-        const statusText = summaryData.status[i] || 'Waiting';
-        let themeColor = '#fbbf24';
-        if (statusText.toLowerCase().includes('completed')) themeColor = '#34d399';
-        else if (statusText.toLowerCase().includes('progress')) themeColor = '#3b82f6';
-        const circleColor = percent === 0 ? '#334155' : themeColor;
-        const rowData = summaryData.details[i] || [];
-        const rateStr = rowData[5] || '0%';
-        const rateNum = parseFloat(rateStr.replace(/[^0-9.-]/g, '')) || 0;
-        const rateColor = rateNum > 100 ? '#ef4444' : '#e2e8f0';
-        let detailsHTML = i === 0
-          ? `<div class="donut-details"><div class="detail-row"><span class="detail-label">시작일</span><span class="detail-val">${formatDate(rowData[0])}</span></div><div class="detail-row"><span class="detail-label">완료일</span><span class="detail-val">${formatDate(rowData[2])}</span></div><div class="detail-row"><span class="detail-label">기한 대비율</span><span class="detail-val" style="color:${rateColor};">${rateStr}</span></div></div>`
-          : `<div class="donut-details"><div class="detail-row"><span class="detail-label">계획 공수</span><span class="detail-val">${rowData[1]||'0.0'}</span></div><div class="detail-row"><span class="detail-label">소요 공수</span><span class="detail-val">${rowData[2]||'0.0'}</span></div><div class="detail-row"><span class="detail-label">소진율</span><span class="detail-val" style="color:${rateColor};">${rateStr}</span></div></div>`;
-        return `<div class="donut-box"><div class="donut-label">${label}</div><div style="position:relative;width:90px;height:90px;margin:0 auto;"><svg viewBox="0 0 36 36" style="width:100%;height:100%;"><path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#0f172a" stroke-width="3"/><path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="${circleColor}" stroke-width="3.5" stroke-dasharray="${percent}, 100" style="stroke-linecap:round;"/></svg><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:19px;font-weight:700;color:${themeColor};">${percent}%</div></div><div class="donut-status" style="color:${themeColor}">${statusText}</div>${detailsHTML}</div>`;
-      }).join('');
-      document.getElementById('donuts').innerHTML = donutHTML;
-      document.getElementById('progressFill').style.width = summaryData.overall || '0%';
-      document.getElementById('progressText').textContent = summaryData.overall || '0%';
-    }
-
-    function renderSlicers() {
-      const container = document.getElementById('slicers');
-      container.innerHTML = '';
-      const filterCategories = ['단계 구분', '대응 구분', '유/무상', '파트 구분', '진행상태'];
-      filterCategories.forEach(category => {
-        const uniqueValues = [...new Set(rawData.map(row => row[category]).filter(val => val && val.trim() !== ''))];
-        if (uniqueValues.length === 0) return;
-        const groupDiv = document.createElement('div');
-        groupDiv.className = 'filter-group';
-        let buttonsHTML = `<button class="filter-btn all ${activeFilters[category] === 'All' ? 'active' : ''}" onclick="window.applyFilter('${category}', 'All')">All</button>`;
-        uniqueValues.forEach(val => {
-          buttonsHTML += `<button class="filter-btn ${activeFilters[category] === val ? 'active' : ''}" onclick="window.applyFilter('${category}', '${val}')">${val}</button>`;
-        });
-        groupDiv.innerHTML = `<div class="filter-title">${category}</div><div class="filter-buttons">${buttonsHTML}</div>`;
-        container.appendChild(groupDiv);
-      });
-    }
-
-    window.applyFilter = function(category, value) {
-      activeFilters[category] = value;
-      renderSlicers();
-      updateCharts();
-      closeDetail();
-    }
-
-    function updateCharts() {
-      let filteredData = rawData.filter(row => {
-        for (let cat in activeFilters) {
-          if (activeFilters[cat] !== 'All' && row[cat] !== activeFilters[cat]) return false;
-        }
-        return true;
-      });
-
-      let sumMD = 0, countIssue = 0, countIncomplete = 0;
-      filteredData.forEach(r => {
-        sumMD += parseFloat(r['공수(MD)']) || 0;
-        if (r['업무 구분'] === 'Issue') countIssue++;
-        const status = r['진행상태'] || '';
-        if (status && !status.includes('완료')) countIncomplete++;
-      });
-      document.getElementById('kpi-md').textContent = sumMD.toFixed(1);
-      document.getElementById('kpi-issue').textContent = countIssue;
-      document.getElementById('kpi-incomp').textContent = countIncomplete;
-
-      currentDates = [...new Set(filteredData.map(r => r['접수일']).filter(v => v && v.toString().trim() !== ''))].sort();
-
-      /* =========================================
-         [업데이트] 톤 다운된 헥스(HEX) 코드로 변경
-         차트에 그려지는 막대 색상들도 부드럽게 세팅됩니다.
-         ========================================= */
-      const colorMap = { 
-        '표준': '#7F8C8D', 
-        '개선': '#27AE60', 
-        'Issue': '#C0392B', 
-        '기술지원': '#D4AC0D', 
-        '기능요구': '#3498DB', 
-        '완료': '#27AE60', 
-        '지연중': '#C0392B', 
-        '보류': '#64748b', /* 무채색 회색 */
-        '임박': '#D35400', 
-        '지연완료': '#a78bfa' /* 차분한 연보라 */
+      const colorMap = {
+        '안정': '#86EFAC',
+        '임박': '#FCD34D',
+        '주의': '#F9A8D4',
+        '위험': '#FCA5A5',
+        '심각': '#EF4444'
       };
 
-      const mdTypes = ['표준', '개선', 'Issue', '기술지원', '기능요구'];
-      if (mdChartInstance) mdChartInstance.destroy();
-      mdChartInstance = new Chart(document.getElementById('mdChart'), {
-        type: 'bar',
-        data: {
-          labels: currentDates.map(d => formatDate(d)),
-          datasets: mdTypes.map(type => ({
-            label: type,
-            backgroundColor: colorMap[type],
-            data: currentDates.map(d => filteredData.filter(r => r['접수일'] === d && r['업무 구분'] === type).reduce((sum, r) => sum + (parseFloat(r['공수(MD)']) || 0), 0))
-          }))
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { position: 'top' } },
-          scales: { x: { stacked: true }, y: { stacked: true } },
-          onClick: (e, el) => {
-            if (el.length) showDetail(currentDates[el[0].index], mdTypes[el[0].datasetIndex], true);
-          }
-        }
+      csRiskData.forEach(project => {
+        const x = padding + (project.x / maxX) * graphWidth;
+        const y = canvas.height - padding - (project.y / maxY) * graphHeight;
+        const radius = (project.size / 100) * 20 + 15;
+
+        let color = colorMap[project.status] || '#86EFAC';
+
+        ctx.fillStyle = color;
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 13px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(project.name, x, y);
+
+        project.x_pixel = x;
+        project.y_pixel = y;
+        project.radius = radius;
       });
 
-      const statusTypes = ['완료', '지연중', '보류', '임박', '지연완료'];
-      if (statusChartInstance) statusChartInstance.destroy();
-      statusChartInstance = new Chart(document.getElementById('statusChart'), {
-        type: 'bar',
-        data: {
-          labels: currentDates.map(d => formatDate(d)),
-          datasets: statusTypes.map(type => ({
-            label: type,
-            backgroundColor: colorMap[type],
-            data: currentDates.map(d => filteredData.filter(r => r['접수일'] === d && r['진행상태'] === type).length)
-          }))
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { position: 'top' } },
-          scales: { x: { stacked: true }, y: { stacked: true, ticks: { stepSize: 1 } } },
-          onClick: (e, el) => {
-            if (el.length) showDetail(currentDates[el[0].index], statusTypes[el[0].datasetIndex], false);
+      canvas.onclick = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        csRiskData.forEach(project => {
+          const dist = Math.sqrt(Math.pow(mouseX - project.x_pixel, 2) + Math.pow(mouseY - project.y_pixel, 2));
+          if (dist < project.radius) {
+            selectCsProject(project);
           }
-        }
-      });
+        });
+      };
     }
 
+    function selectCsProject(project) {
+      const html = `
+        <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #334155;">
+          <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">프로젝트명</div>
+          <div style="font-size: 18px; font-weight: 700; color: #f8fafc; font-family: monospace;">${project.name}</div>
+        </div>
+        <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #334155;">
+          <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">상태</div>
+          <div style="font-size: 18px; font-weight: 700; color: #f8fafc;">${project.status}</div>
+        </div>
+        <div>
+          <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">정보</div>
+          <div style="font-size: 13px; color: #e2e8f0;">
+            진행율: ${project.size}%
+          </div>
+        </div>
+      `;
+      document.getElementById('csDetailContent').innerHTML = html;
+    }
+
+    // syncDashboard 함수 수정
     async function syncDashboard() {
       try {
         const response = await fetch(API_URL, { redirect: 'follow' });
-        allData = await response.json(); 
+        allData = await response.json();
         
-        // 기본 시작 화면을 Project 7로 셋팅
-        switchProject('project7'); 
+        // C/S 데이터 추출
+        if (allData.project1CsRiskMap) {
+          csRiskData = allData.project1CsRiskMap;
+        }
         
+        switchProject('project7');
       } catch (err) {
         console.error('동기화 실패:', err);
       }
     }
-
-    window.addEventListener('load', syncDashboard);
-    
-    // AI 서버리스 호출 함수
-    async function runAIAnalysis(mode = 'lite') {
-      const resultBox = document.getElementById('ai-result-box');
-      const contentBox = document.getElementById('ai-report-content');
-      
-      // 결과창 띄우기
-      resultBox.style.display = 'block';
-      contentBox.innerHTML = '데이터를 분석 중입니다. 잠시만 기다려주세요... ⏳';
-
-      try {
-        // 백엔드(/api/gemini)로 보낼 데이터 포장
-        const payload = {
-          projectTitle: currentProjectId,
-          historyData: rawData,
-          mode: mode,
-        };
-
-        // 우리가 만든 Vercel 서버로 POST 요청 쏘기
-        const response = await fetch('/api/gemini', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await response.json();
-
-        // AI 결과 렌더링
-        if (response.ok) {
-          // 엔터(줄바꿈)를 화면에 맞게 <br>로 변환
-          let formattedText = data.report.replace(/\n/g, '<br>');
-          // 마크다운 **굵은 글씨** 처리 (간단 버전)
-          formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fbbf24;">$1</strong>');
-          
-          contentBox.innerHTML = formattedText;
-        } else {
-          contentBox.innerHTML = `❌ 에러 발생: ${data.error}`;
-        }
-      } catch (error) {
-        console.error('AI 호출 에러:', error);
-        contentBox.innerHTML = `❌ 통신 실패: 서버 연결에 문제가 발생했습니다.`;
-      }
-    }
-    
-    // 탭 전환 확장
-    window.switchTab = function(tabId) {
-      const projectPanel = document.querySelector('.header');
-      const tools = document.querySelector('.dashboard-tools');
-      const slicers = document.getElementById('slicers');
-      const charts = document.querySelector('.charts-grid');
-      const detailView = document.getElementById('detailView');
-      const aiButtons = document.querySelector('[onclick*="runAIAnalysis"]')?.parentElement;
-      const aiResult = document.getElementById('ai-result-box');
-      const dailyPanel = document.getElementById('daily-panel');
-
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
-      if (tabId === 'daily') {
-        document.getElementById('btn-daily').classList.add('active');
-        projectPanel.style.display = 'none';
-        tools.style.display = 'none';
-        slicers.style.display = 'none';
-        charts.style.display = 'none';
-        detailView.style.display = 'none';
-        if (aiButtons) aiButtons.style.display = 'none';
-        if (aiResult) aiResult.style.display = 'none';
-        dailyPanel.style.display = 'block';
-      } else {
-        document.getElementById(`btn-${tabId}`).classList.add('active');
-        projectPanel.style.display = '';
-        tools.style.display = '';
-        slicers.style.display = '';
-        charts.style.display = '';
-        if (aiButtons) aiButtons.style.display = '';
-        dailyPanel.style.display = 'none';
-        switchProject(tabId);
-      }
-    }
-    
-    // 일일 공수 렌더링
-    window.renderDailyLog = function() {
-      const dateInput = document.getElementById('daily-date-input').value;
-      const content = document.getElementById('daily-log-content');
-      if (!dateInput) return;
-
-      // 날짜 형식 맞추기 (절대 실패하지 않는 숫자 비교 방식)
-      const allRawData = Object.values(allData).flatMap(p => p.history || []);
-      const cleanInput = dateInput.replace(/[^0-9]/g, '');
-
-      const filtered = allRawData.filter(r => {
-        const dateKey = Object.keys(r).find(k => k.includes('접수일'));
-        const d = (dateKey && r[dateKey]) ? r[dateKey].toString() : '';
-        const cleanData = d.replace(/[^0-9]/g, '');
-        return cleanData !== '' && cleanData.startsWith(cleanInput);
-      });
-
-      if (filtered.length === 0) {
-        content.innerHTML = `<div style="color:#64748b; font-size:14px;">📭 ${dateInput} 에 해당하는 데이터가 없습니다.</div>`;
-        return;
-      }
-
-      // 시작 시간 기준 정렬
-      const sorted = [...filtered].sort((a, b) => {
-        const toMin = t => {
-          if (!t) return 9999;
-          const [h, m] = t.toString().split(':').map(Number);
-          return h * 60 + (m || 0);
-        };
-        return toMin(a['시작 시간']) - toMin(b['시작 시간']);
-      });
-
-      // 합계 계산
-      const totalWorkHours = sorted.reduce((sum, r) => sum + (parseFloat(r['작업 시간']) || 0), 0);
-      const totalMD = sorted.reduce((sum, r) => sum + (parseFloat(r['공수(MD)']) || 0), 0);
-      const totalWait = sorted.reduce((sum, r) => sum + (parseFloat(r['대기 시간']) || 0), 0);
-
-      const badgeColor = { '표준':'#7F8C8D','개선':'#27AE60','Issue':'#C0392B','기술지원':'#D4AC0D','기능요구':'#3498DB' };
-
-      const rows = sorted.map((r, i) => {
-        const start = r['시작 시간'] || '-';
-        const end = r['종료 시간'] || '-';
-        const workH = r['작업 시간'] ? `${r['작업 시간']}h` : '-';
-        const waitH = r['대기 시간'] ? `${r['대기 시간']}h` : '-';
-        const md = r['공수(MD)'] || '-';
-        const type = r['업무 구분'] || '표준';
-        const item = r['표준 제작 Item / Issue / 개선사항'] || '';
-        const progress = r['진행 사항'] || '';
-        const rework = r['재작업 여부(Y/N)'] === 'Y';
-        const color = badgeColor[type] || '#7F8C8D';
-
-        return `
-          <div style="display:grid; grid-template-columns:120px 1fr auto; gap:12px; align-items:start;
-                      padding:14px 16px; border-radius:6px; margin-bottom:8px;
-                      background:#0f172a; border-left:3px solid ${color};">
-            <div>
-              <div style="font-size:15px; font-weight:700; color:#f8fafc; font-family:monospace;">
-                ${start} ~ ${end}
-              </div>
-              <div style="font-size:11px; color:#64748b; margin-top:4px;">
-                작업 ${workH} / 대기 ${waitH}
-              </div>
-            </div>
-            <div>
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                <span style="background:${color}22; color:${color}; border:1px solid ${color}44;
-                             padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">${type}</span>
-                ${rework ? '<span style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">🔄 재작업</span>' : ''}
-              </div>
-              <div style="font-size:13px; color:#e2e8f0; font-weight:600; margin-bottom:4px;">${item}</div>
-              <div style="font-size:12px; color:#94a3b8;">${progress}</div>
-            </div>
-            <div style="text-align:right; min-width:60px;">
-              <div style="font-size:18px; font-weight:700; color:#3b82f6; font-family:monospace;">${md}</div>
-              <div style="font-size:10px; color:#64748b;">MD</div>
-            </div>
-          </div>`;
-      }).join('');
-
-      content.innerHTML = `
-        <div style="display:flex; gap:24px; margin-bottom:16px; padding:16px; background:#0f172a; border-radius:8px;">
-          <div style="text-align:center;">
-            <div style="font-size:11px; color:#64748b; margin-bottom:4px;">작업 건수</div>
-            <div style="font-size:22px; font-weight:700; color:#f8fafc;">${sorted.length}<span style="font-size:13px; color:#64748b;">건</span></div>
-          </div>
-          <div style="text-align:center;">
-            <div style="font-size:11px; color:#64748b; margin-bottom:4px;">총 작업시간</div>
-            <div style="font-size:22px; font-weight:700; color:#34d399;">${totalWorkHours.toFixed(1)}<span style="font-size:13px; color:#64748b;">h</span></div>
-          </div>
-          <div style="text-align:center;">
-            <div style="font-size:11px; color:#64748b; margin-bottom:4px;">총 대기시간</div>
-            <div style="font-size:22px; font-weight:700; color:#f59e0b;">${totalWait.toFixed(1)}<span style="font-size:13px; color:#64748b;">h</span></div>
-          </div>
-          <div style="text-align:center;">
-            <div style="font-size:11px; color:#64748b; margin-bottom:4px;">합계 공수</div>
-            <div style="font-size:22px; font-weight:700; color:#3b82f6;">${totalMD.toFixed(2)}<span style="font-size:13px; color:#64748b;">MD</span></div>
-          </div>
-        </div>
-        ${rows}
-        <div style="margin-top:12px; padding:12px 16px; background:#0f172a; border-radius:6px; border:1px dashed #334155;">
-          <div style="font-size:11px; color:#64748b; margin-bottom:6px;">📋 ERP 입력용 요약</div>
-          <div style="font-size:13px; color:#e2e8f0; line-height:1.8;">
-            ${sorted.map(r => `${r['시작 시간']}~${r['종료 시간']} [${r['업무 구분']}] ${r['표준 제작 Item / Issue / 개선사항'] || ''}`).join('<br>')}
-          </div>
-        </div>`;
-    }
   </script>
-</body>
-</html>
