@@ -110,30 +110,44 @@
 
     <!-- C/S 리스크맵 뷰 -->
     <div id="cs-view" style="display: none; grid-template-columns: 1fr 300px; gap: 16px;">
-      <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px;">
-        <div style="font-size: 16px; font-weight: 600; color: #f8fafc; margin-bottom: 12px;">C/S 프로젝트 리스크맵</div>
-        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; padding: 12px; background: #0f172a; border-radius: 6px; border: 1px solid #334155;">
-          <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #86EFAC; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">안정</span></div>
-          <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #FCD34D; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">임박</span></div>
-          <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #F9A8D4; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">주의</span></div>
-          <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #FCA5A5; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">위험</span></div>
-          <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #EF4444; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">심각</span></div>
-        </div>
-        <div style="background: #0f172a; padding: 12px; border-radius: 6px; margin-bottom: 16px; border: 1px solid #334155;">
-          <label style="color: #94a3b8; font-size: 12px; display: block; margin-bottom: 8px;">원 간격 조절</label>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <input type="range" id="spacingSlider" min="20" max="100" value="50" style="flex: 1; cursor: pointer; height: 6px;">
-            <span id="spacingValue" style="color: #e2e8f0; min-width: 40px; text-align: right; font-weight: bold; font-size: 13px;">50</span>
-          </div>
-        </div>
-        <canvas id="csBubbleCanvas" style="width: 100%; height: 500px; background: #0f172a; border-radius: 6px; display: block;"></canvas>
-      </div>
+<!-- 좌측: C/S 리스크맵 -->
+<div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px;">
+  <div style="font-size: 16px; font-weight: 600; color: #f8fafc; margin-bottom: 12px;">C/S 프로젝트 리스크맵</div>
+  <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; padding: 12px; background: #0f172a; border-radius: 6px; border: 1px solid #334155;">
+    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #86EFAC; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">안정</span></div>
+    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #FCD34D; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">임박</span></div>
+    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #F9A8D4; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">주의</span></div>
+    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #FCA5A5; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">위험</span></div>
+    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #EF4444; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">심각</span></div>
+  </div>
+  <div style="background: #0f172a; padding: 12px; border-radius: 6px; margin-bottom: 16px; border: 1px solid #334155;">
+    <label style="color: #94a3b8; font-size: 12px; display: block; margin-bottom: 8px;">원 간격 조절</label>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <input type="range" id="spacingSlider" min="20" max="100" value="50" style="flex: 1; cursor: pointer; height: 6px;">
+      <span id="spacingValue" style="color: #e2e8f0; min-width: 40px; text-align: right; font-weight: bold; font-size: 13px;">50</span>
+    </div>
+  </div>
+  <canvas id="csBubbleCanvas" style="width: 100%; height: 500px; background: #0f172a; border-radius: 6px; display: block;"></canvas>
+</div>
 
-      <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; height: fit-content; max-height: 600px; overflow-y: auto;">
-        <div id="csProjectInfo" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #334155;">
-          <div style="font-size: 14px; font-weight: 700; color: #3b82f6; margin-bottom: 12px;">프로젝트 정보</div>
-          <div id="csDetailContent" style="color: #94a3b8; font-size: 12px;">버블을 클릭하면 상세 정보가 표시됩니다.</div>
-        </div>
+<!-- 우측: 전체 C/S 현황 (별도) -->
+<div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px;">
+  <div style="font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 12px; cursor: pointer;" onclick="window.toggleSection('totalStats')">▼ 전체 C/S 현황</div>
+  <div id="totalStatsContent" style="display: block;"></div>
+</div>
+
+<!-- 우측: 프로젝트 정보 + 상세 현황 -->
+<div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; height: fit-content; max-height: 600px; overflow-y: auto;">
+  <div id="csProjectInfo" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #334155;">
+    <div style="font-size: 14px; font-weight: 700; color: #3b82f6; margin-bottom: 12px;">프로젝트 정보</div>
+    <div id="csDetailContent" style="color: #94a3b8; font-size: 12px;">버블을 클릭하면 상세 정보가 표시됩니다.</div>
+  </div>
+  
+  <div id="csDetailStats">
+    <div style="font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 12px; cursor: pointer;" onclick="window.toggleSection('detailStats')">▼ 상세 현황</div>
+    <div id="detailStatsContent" style="display: block;"></div>
+  </div>
+</div>
         
         <div id="csTotalStats" style="margin-bottom: 20px;">
           <div style="font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 12px; cursor: pointer;" onclick="window.toggleSection('totalStats')">▼ 전체 C/S 현황</div>
