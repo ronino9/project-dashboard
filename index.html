@@ -403,6 +403,23 @@
       ctx.textAlign = 'center';
       ctx.fillText('← 지연 수준', 0, 0);
       ctx.restore();
+            // 축 숫자 (0~5)
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = '#94a3b8';
+      for (let i = 0; i <= 5; i++) {
+        const x = padding + (graphWidth / 5) * i;
+        ctx.fillText(i, x, canvas.height - padding + 20);
+      }
+      
+      // Y축 숫자
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      for (let i = 0; i <= 5; i++) {
+        const y = canvas.height - padding - (graphHeight / 5) * i;
+        ctx.fillText(i, padding - 15, y);
+      }
 
 const colorMap = { '안정': '#86EFAC', '임박': '#FCD34D', '주의': '#F9A8D4', '위험': '#FCA5A5', '심각': '#EF4444' };
 
