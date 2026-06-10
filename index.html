@@ -539,12 +539,11 @@
         const groupIndex = grouped[key].findIndex(p => p.originalIndex === index);
         const groupSize = grouped[key].length;
 
-        // 대각선 배치
+        // 대각선 배치 (간격 조절)
         if (groupSize > 1) {
-          const offset = window.bubbleSpacing || 50;
-          const angle = (groupIndex / groupSize) * Math.PI * 2;
-          x += Math.cos(angle) * offset * (1 + groupIndex * 0.2);
-          y += Math.sin(angle) * offset * (1 + groupIndex * 0.2);
+          const spacing = window.bubbleSpacing || 50;
+          x += groupIndex * spacing;
+          y -= groupIndex * spacing;
         }
 
         placed.push({ x, y, radius });
