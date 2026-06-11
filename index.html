@@ -286,7 +286,7 @@
       window.closeDetail();
     }
 
-    function updateCharts() {
+function updateCharts() {
       let filteredData = rawData.filter(row => {
         for (let cat in activeFilters) {
           if (activeFilters[cat] !== 'All' && row[cat] !== activeFilters[cat]) return false;
@@ -309,31 +309,37 @@
 
       const colorMap = { '표준': '#7F8C8D', '개선': '#27AE60', 'Issue': '#C0392B', '기술지원': '#D4AC0D', '기능요구': '#3498DB', '완료': '#27AE60', '지연중': '#C0392B', '보류': '#64748b', '임박': '#D35400', '지연완료': '#a78bfa' };
 
+      // 1. 공수 집계 차트 (왼쪽)
       const mdTypes = ['표준', '개선', 'Issue', '기술지원', '기능요구'];
       if (mdChartInstance) mdChartInstance.destroy();
-// 기존 options 부분을 이렇게 덮어쓰세요
-      statusChartInstance = new Chart(document.getElementById('statusChart'), {
+      mdChartInstance = new Chart(document.getElementById('mdChart'), {
         type: 'bar',
-        data: { /* 기존 코드 동일 */ },
+        data: {
+          labels: currentDates.map(d => formatDate(d)),
+          datasets: mdTypes.map(type => ({
+            label: type,
+            backgroundColor: colorMap[type],
+            data: currentDates.map(d => filteredData.filter(r => r['접수일'] === d && r['업무 구분'] === type).reduce((sum, r) => sum + (parseFloat(r['공수(MD)']) || 0), 0))
+          }))
+        },
         options: {
           responsive: true, maintainAspectRatio: false,
           plugins: { legend: { position: 'top' } },
-          scales: { x: { stacked: true }, y: { stacked: true, ticks: { stepSize: 1 } } },
-          // 👇 클릭 이벤트 추가
+          scales: { x: { stacked: true }, y: { stacked: true } },
           onClick: (e, elements, chart) => {
             if (elements.length === 0) return;
             const idx = elements[0].index;
             const datasetIdx = elements[0].datasetIndex;
             const originalDate = currentDates[idx];
-            const selectedStatus = chart.data.datasets[datasetIdx].label;
+            const selectedType = chart.data.datasets[datasetIdx].label;
 
-            // 클릭한 막대의 날짜와 진행상태에 맞는 데이터만 필터링
-            const details = filteredData.filter(r => r['접수일'] === originalDate && r['진행상태'] === selectedStatus);
-            window.showDetailView(formatDate(originalDate), selectedStatus, details);
+            const details = filteredData.filter(r => r['접수일'] === originalDate && r['업무 구분'] === selectedType);
+            window.showDetailView(formatDate(originalDate), selectedType, details);
           }
         }
       });
 
+      // 2. 진행 현황 차트 (오른쪽)
       const statusTypes = ['완료', '지연중', '보류', '임박', '지연완료'];
       if (statusChartInstance) statusChartInstance.destroy();
       statusChartInstance = new Chart(document.getElementById('statusChart'), {
@@ -349,7 +355,17 @@
         options: {
           responsive: true, maintainAspectRatio: false,
           plugins: { legend: { position: 'top' } },
-          scales: { x: { stacked: true }, y: { stacked: true, ticks: { stepSize: 1 } } }
+          scales: { x: { stacked: true }, y: { stacked: true, ticks: { stepSize: 1 } } },
+          onClick: (e, elements, chart) => {
+            if (elements.length === 0) return;
+            const idx = elements[0].index;
+            const datasetIdx = elements[0].datasetIndex;
+            const originalDate = currentDates[idx];
+            const selectedStatus = chart.data.datasets[datasetIdx].label;
+
+            const details = filteredData.filter(r => r['접수일'] === originalDate && r['진행상태'] === selectedStatus);
+            window.showDetailView(formatDate(originalDate), selectedStatus, details);
+          }
         }
       });
     }
