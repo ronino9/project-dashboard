@@ -520,27 +520,22 @@ window.renderMainDashboard = function() {
     pendingContainer.innerHTML = `<div style="color: #64748b; font-size: 13px;">대기 중인 이슈가 없습니다.</div>`;
   }
 window.showPendingDetail = function(projCode, title) {
-  // 프로젝트 코드(OP7 등)를 데이터 키(project7 등)로 변환
   const pMap = { 'OP7': 'project7', 'OP6': 'project6', 'OP3': 'project3', 'CP_ALL': 'project1' };
   const pKey = pMap[projCode];
   
   if (!pKey || !allData[pKey] || !allData[pKey].history) return;
 
-  // 클릭한 제목과 정확히 일치하는 행(Row)을 히스토리에서 찾음
   const targetRow = allData[pKey].history.find(r => {
       const rowTitle = (r['제목'] || r['표준 제작 Item / Issue / 개선사항'] || '').trim();
       return rowTitle === title;
   });
 
   if (targetRow) {
-      // 상세 내역 테이블에 띄우기 위해 데이터를 가공
       const rowCopy = {
           '프로젝트 코드': projCode,
           '접수일': targetRow['접수일'] || '-',
           ...targetRow
       };
-      
-      // showDetailView 함수 호출 (고질 이슈 상세와 동일한 모달 사용)
       window.showDetailView('⏳ 처리 대기 상세', title, [rowCopy]);
   } else {
       alert("데이터를 찾을 수 없습니다.");
