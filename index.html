@@ -6,58 +6,75 @@
   <title>Real-time Control Tower - Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #334155; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+    /* 기본 테마는 기존 다크 모드로 복구 */
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; }
     .container { max-width: 1400px; margin: 0 auto; padding: 16px; }
     
-    /* 탭 스타일 (화이트 모드) */
+    /* 기존 공통 탭 스타일 (다크 모드) */
     .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-    .tab-btn { padding: 10px 24px; background: #ffffff; color: #64748b; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-    .tab-btn:hover { background: #f1f5f9; color: #0f172a; }
-    .tab-btn.active { background: #ffffff; color: #0f172a; border-color: #0f172a; font-weight: 700; }
+    .tab-btn { padding: 12px 24px; background: #1e293b; color: #94a3b8; border: 1px solid #334155; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 15px; transition: all 0.2s; }
+    .tab-btn:hover { background: #2a3a55; color: #f8fafc; }
+    .tab-btn.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
 
-    /* 메인 대시보드 카드 스타일 */
-    .donuts-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 100%; flex: 1; margin-bottom: 20px; }
-    .main-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-    .main-card-title { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;}
-    .main-card-subtitle { font-size: 12px; color: #64748b; margin-bottom: 16px; }
-    .main-progress-text { font-size: 32px; font-weight: 700; color: #3b82f6; text-align: center; margin: 10px 0; }
+    /* =========================================
+       오직 '메인 대시보드'만 화이트 테마 적용
+       ========================================= */
+    #main-panel { background: #f8fafc; padding: 24px; border-radius: 12px; color: #334155; margin-bottom: 20px; }
+    #main-panel .donuts-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 100%; margin-bottom: 20px; }
+    #main-panel .main-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    #main-panel .main-card-title { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;}
+    #main-panel .main-card-subtitle { font-size: 12px; color: #64748b; margin-bottom: 16px; }
+    #main-panel .main-progress-text { font-size: 32px; font-weight: 700; color: #3b82f6; text-align: center; margin: 10px 0; }
     
-    /* 프로그레스 바 */
-    .progress-bar { height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden; margin: 8px 0; width: 100%; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, #34d399, #3b82f6); width: 0%; transition: width 1.5s ease-out; }
+    #main-panel .progress-bar { height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden; margin: 8px 0; width: 100%; }
+    #main-panel .progress-fill { height: 100%; transition: width 1.5s ease-out; }
     
-    /* 하단 차트 및 리스트 카드 (화이트 모드) */
-    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-    .chart-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-    .chart-title { font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; }
-    .canvas-container { position: relative; height: 320px; width: 100%; }
+    #main-panel .charts-grid { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 16px; margin-bottom: 16px; }
+    #main-panel .chart-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    #main-panel .chart-title { font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; }
     
-    /* 이슈 리스트 아이템 */
-    .issue-list-item { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
-    .issue-list-item:hover { background: #f1f5f9; }
-    .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+    #main-panel .issue-list-item { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+    #main-panel .issue-list-item:hover { background: #f1f5f9; }
+    #main-panel .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
 
-    /* 서브 프로젝트 헤더 */
-    .header { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    /* =========================================
+       기존 탭 (다크 모드 복구 영역)
+       ========================================= */
+    .header { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; margin-bottom: 16px; }
     .header-top { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
-    .project-no { font-size: 28px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
-
-    /* 기타 유틸리티 */
+    .project-no { font-size: 28px; font-weight: 700; color: #f8fafc; margin-bottom: 4px; }
+    .donuts-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 100%; flex: 1; }
+    .progress-bar { height: 16px; background: #334155; border-radius: 8px; overflow: hidden; margin: 8px 0; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #34d399, #3b82f6); width: 0%; transition: width 1.5s ease-out; }
     .dashboard-tools { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
-    .quick-links { flex: 2; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; }
-    .link-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px; padding: 16px 8px; color: #475569; text-decoration: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .link-btn:hover { border-color: #cbd5e1; background: #f1f5f9; color: #0f172a; }
-    .kpi-panel { flex: 1; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; display: flex; justify-content: space-around; align-items: center; }
+    .quick-links { flex: 2; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; }
+    .link-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px 8px; color: #cbd5e1; text-decoration: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .kpi-panel { flex: 1; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; display: flex; justify-content: space-around; align-items: center; }
     .kpi-item { text-align: center; }
-    .kpi-title { font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 8px; }
-    .kpi-value { font-size: 24px; font-weight: 700; font-family: monospace; color: #0f172a; }
-    
-    /* 모달, 테이블 등 기존 스타일 유지 (색상만 밝게) */
-    #detailView { background: #ffffff; border: 1px solid #3b82f6; border-radius: 12px; padding: 24px; margin-top: 16px; display: none; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+    .kpi-title { font-size: 12px; color: #94a3b8; font-weight: 600; margin-bottom: 8px; }
+    .kpi-value { font-size: 24px; font-weight: 700; font-family: monospace; }
+    .slicer-panel { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+    .filter-group { display: flex; flex-direction: column; gap: 8px; background: #0f172a; padding: 12px; border-radius: 6px; border: 1px solid #334155; }
+    .filter-title { font-size: 12px; color: #3b82f6; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #223047; padding-bottom: 4px; margin-bottom: 4px; }
+    .filter-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btn { background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+    .filter-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; font-weight: 600; }
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .chart-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; }
+    .chart-title { font-size: 16px; font-weight: 600; color: #f8fafc; margin-bottom: 16px; }
+    .canvas-container { position: relative; height: 320px; width: 100%; }
+    #detailView { background: #1e293b; border: 1px solid #3b82f6; border-radius: 8px; padding: 20px; margin-top: 16px; display: none; }
     #detailTable { width: 100%; border-collapse: collapse; font-size: 12px; }
-    #detailTable th { text-align: left; padding: 12px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; color: #475569; font-weight: 700; }
-    #detailTable td { padding: 12px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+    #detailTable th { text-align: left; padding: 8px; background: #0f172a; border-bottom: 1px solid #334155; color: #94a3b8; font-weight: 600; }
+    #detailTable td { padding: 8px; border-bottom: 1px solid #1e293b; color: #e2e8f0; }
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    @media(max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } .donuts-row { grid-template-columns: 1fr 1fr; } }
+    .doc-loc-btn { padding: 8px 16px; background: #0f172a; border: 1px solid #334155; color: #94a3b8; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+    .doc-loc-btn:hover { background: #2a3a55; color: #f8fafc; }
+    .doc-loc-btn.active { background: #10b981; border-color: #10b981; color: #fff; }
+    .doc-item-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: #1e293b; border: 1px solid #3b82f6; color: #cbd5e1; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.2s; margin: 4px; font-weight: 600; }
+    .doc-item-btn:hover { background: #3b82f6; color: #fff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
   </style>
 </head>
 <body>
