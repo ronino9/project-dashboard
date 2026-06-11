@@ -567,56 +567,42 @@ window.showIssueDetail = function(idx) {
   const issue = allData.issueRanking[idx];
   if (!issue) return;
 
-  console.log("분석 대상 이슈:", issue.name || issue['이름']);
-  console.log("매칭 시도할 멤버 리스트:", issue.members);
-
   const matchedRows = [];
   const targetProjects = ['project7', 'project6', 'project3'];
+  const issueName = (issue.name || issue['이름'] || '').trim();
+
+  console.log("분석 대상 이슈명:", issueName);
 
   targetProjects.forEach(pKey => {
     if (allData[pKey] && allData[pKey].history) {
       allData[pKey].history.forEach(row => {
-        // 원본 데이터를 확인하기 위해 콘솔 출력
         const title = (row['표준 제작 Item / Issue / 개선사항'] || row['제목'] || '').trim();
         
-        // 매칭 로직 (양쪽 공백 제거 후 비교)
-        const isMatch = issue.members && issue.members.some(m => m.trim() === title);
-        
-        if (isMatch) {
+        // 1. members 정보가 있을 경우 매칭
+        if (issue.members && issue.members.some(m => m.trim() === title)) {
            const pName = pKey.replace('project', 'OP');
            const rowCopy = { ...row };
            rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${pName}] ${title}`;
            matchedRows.push(rowCopy);
-        } else {
-           // 매칭 안 되는 항목이 무엇인지 콘솔에 찍음
-           if(issue.members && issue.members.some(m => m.includes(title.substring(0,5)))) {
-               console.log("매칭 실패 항목 (제목 불일치 가능성):", title);
-           }
+        } 
+        // 2. members가 없거나 매칭 안 될 경우, 제목 포함 여부로 강력 매칭 (폴백)
+        else if (issueName && title.includes(issueName)) {
+           const pName = pKey.replace('project', 'OP');
+           const rowCopy = { ...row };
+           rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${pName}] ${title}`;
+           matchedRows.push(rowCopy);
         }
       });
     }
   });
 
-  // 폴백 검색도 동일하게 공백 제거 적용
+  console.log("최종 매칭된 데이터 개수:", matchedRows.length);
+  
   if (matchedRows.length === 0) {
-      targetProjects.forEach(pKey => {
-        if (allData[pKey] && allData[pKey].history) {
-          allData[pKey].history.forEach(row => {
-            const title = (row['표준 제작 Item / Issue / 개선사항'] || row['제목'] || '').trim();
-            const issueName = (issue.name || issue['이름'] || '').trim();
-            if (issueName && title.includes(issueName)) {
-               const pName = pKey.replace('project', 'OP');
-               const rowCopy = { ...row };
-               rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${pName}] ${title}`;
-               matchedRows.push(rowCopy);
-            }
-          });
-        }
-      });
+      alert("데이터를 찾을 수 없습니다. 이슈 제목과 일치하는 항목이 히스토리에 있는지 확인해보세요.\n대상 이슈명: " + issueName);
   }
 
-  console.log("최종 매칭된 데이터 개수:", matchedRows.length);
-  window.showDetailView('🚨 고질 이슈 분석', issue.name || issue['이름'], matchedRows);
+  window.showDetailView('🚨 고질 이슈 분석', issueName, matchedRows);
 }
 // ✅ 여기까지 복사하세요
 
