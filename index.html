@@ -213,7 +213,16 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
       const detailTitle = document.getElementById('detailTitle');
       const detailTable = document.getElementById('detailTable');
 
-      detailTitle.textContent = `${dateLabel} - [${typeLabel}] 상세 내역`;
+      // 👇 1. 제목 영역에 화면을 숨기는 '닫기' 버튼 동적 추가!
+      detailTitle.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <span>${dateLabel} - [${typeLabel}] 상세 내역</span>
+          <button onclick="document.getElementById('detailView').style.display='none'" 
+                  style="background: #1e293b; color: #ef4444; border: 1px solid #7f1d1d; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px;">
+            닫기 ✖
+          </button>
+        </div>
+      `;
 
       if (dataRows.length === 0) {
         detailTable.innerHTML = '<tr><td style="text-align:center;">데이터가 없습니다.</td></tr>';
@@ -238,7 +247,7 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
               return `<td style="text-align: center; font-size: 11px; color: #94a3b8; white-space: nowrap; vertical-align: top; padding-top: 12px;">${val}</td>`;
             }
             
-            // 👇 3. [최종 진화] 대괄호 '[키워드]' 와 콜론 ':' 모두 인식!
+            // 3. [최종 진화] 대괄호 '[키워드]' 와 콜론 ':' 모두 인식
             if (h === '분석 데이터') {
               let val = row[h] || '-';
               if (val === '-') return `<td style="vertical-align: top; color: #cbd5e1;">-</td>`;
@@ -251,15 +260,12 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
                 let trimmed = line.trim();
                 if (!trimmed) return;
 
-                // 정규식: 맨 앞에 [키워드] 가 있는지 확인
                 const bracketMatch = trimmed.match(/^\[(.*?)\](.*)/);
 
                 if (bracketMatch) {
-                  // 케이스 A: [키워드] 내용
                   currentBlock = { keyword: bracketMatch[1].trim(), content: bracketMatch[2].trim() };
                   blocks.push(currentBlock);
                 } else if (trimmed.includes(':')) {
-                  // 케이스 B: 기존의 키워드 : 내용 방식 (호환성 유지)
                   const splitIndex = trimmed.indexOf(':');
                   const keyword = trimmed.substring(0, splitIndex).trim();
                   const content = trimmed.substring(splitIndex + 1).trim();
@@ -267,11 +273,9 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
                   currentBlock = { keyword: keyword, content: content };
                   blocks.push(currentBlock);
                 } else {
-                  // 키워드가 없는 줄은 이전 키워드 내용에 깔끔하게 이어붙이기!
                   if (currentBlock) {
                     currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed;
                   } else {
-                    // 맨 처음부터 키워드가 없는 일반 텍스트일 경우
                     blocks.push({ keyword: null, content: trimmed });
                   }
                 }
@@ -301,7 +305,7 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
               return `<td style="min-width: 200px; max-width: 350px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; line-height: 1.5; vertical-align: top; color: #e2e8f0;">${val}</td>`;
             }
             
-            // 5. 정렬 디테일 (공수, 업무구분은 가운데 정렬)
+            // 5. 정렬 디테일
             if (h === '공수(MD)' || h === '업무 구분') {
               let val = row[h] || '-';
               return `<td style="text-align: center; vertical-align: top;">${val}</td>`;
