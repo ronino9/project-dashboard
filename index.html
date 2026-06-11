@@ -195,6 +195,34 @@
     window.closeDetail = function() {
       document.getElementById('detailView').style.display = 'none';
     }
+    window.showDetailView = function(dateLabel, typeLabel, dataRows) {
+      const detailView = document.getElementById('detailView');
+      const detailTitle = document.getElementById('detailTitle');
+      const detailTable = document.getElementById('detailTable');
+
+      detailTitle.textContent = `${dateLabel} - [${typeLabel}] 상세 내역`;
+
+      if (dataRows.length === 0) {
+        detailTable.innerHTML = '<tr><td style="text-align:center;">데이터가 없습니다.</td></tr>';
+      } else {
+        const headers = ['프로젝트 코드', '업무 구분', '표준 제작 Item / Issue / 개선사항', '진행 사항', '공수(MD)', '진행상태'];
+        let html = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+
+        dataRows.forEach(row => {
+          html += '<tr>' + headers.map(h => {
+            let val = row[h] || '-';
+            if (h === '진행상태') {
+              let color = val.includes('완료') ? '#059669' : (val.includes('지연') || val === 'Issue' ? '#dc2626' : '#3b82f6');
+              val = `<span class="badge" style="background:${color};">${val}</span>`;
+            }
+            return `<td>${val}</td>`;
+          }).join('') + '</tr>';
+        });
+        detailTable.innerHTML = html;
+      }
+      detailView.style.display = 'block';
+      detailView.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 
     window.toggleSection = function(section) {
       const content = document.getElementById(section + 'Content');
