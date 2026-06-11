@@ -767,8 +767,8 @@ function renderTotalStats() {
   content.innerHTML = html;
 }
 
-    window.switchTab = function(tabId) {
-            document.getElementById('ai-result').style.display = 'none';
+window.switchTab = function(tabId) {
+      document.getElementById('ai-result').style.display = 'none';
       const header = document.querySelector('.header');
       const tools = document.querySelector('.dashboard-tools');
       const slicers = document.getElementById('slicers');
@@ -776,44 +776,47 @@ function renderTotalStats() {
       const detailView = document.getElementById('detailView');
       const dailyPanel = document.getElementById('daily-panel');
       const csPanel = document.getElementById('cs-view');
-        const aiPanel = document.getElementById('ai-panel');  // ✅ 추가
-
+      const aiPanel = document.getElementById('ai-panel');  
+      const docPanel = document.getElementById('doc-hub-panel'); // ✅ 추가: 산출물 패널 요소 가져오기
 
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
-if (tabId === 'project1cs') {
-  document.getElementById('btn-project1cs').classList.add('active');
-  aiPanel.style.display = 'none';  // ✅
-  header.style.display = 'none';
-  tools.style.display = 'none';
-  slicers.style.display = 'none';
-  charts.style.display = 'none';
-  detailView.style.display = 'none';
-  dailyPanel.style.display = 'none';
-  csPanel.style.display = 'grid';
-  setTimeout(() => renderCsBubbleChart(), 100);
-} else if (tabId === 'daily') {
-  document.getElementById('btn-daily').classList.add('active');
-  aiPanel.style.display = 'none';  // ✅
-  header.style.display = 'none';
-  tools.style.display = 'none';
-  slicers.style.display = 'none';
-  charts.style.display = 'none';
-  detailView.style.display = 'none';
-  csPanel.style.display = 'none';
-  dailyPanel.style.display = 'block';
-} else {
-  document.getElementById('btn-' + tabId).classList.add('active');
-  aiPanel.style.display = 'block';  // ✅
-  header.style.display = 'block';
-  tools.style.display = 'flex';
-  slicers.style.display = 'grid';
-  charts.style.display = 'grid';
-  detailView.style.display = 'none';
-  csPanel.style.display = 'none';
-  dailyPanel.style.display = 'none';
-  window.switchProject(tabId);
-}
+      if (tabId === 'project1cs') {
+        document.getElementById('btn-project1cs').classList.add('active');
+        aiPanel.style.display = 'none';  
+        docPanel.style.display = 'none'; // ✅ 추가: C/S 탭에서 산출물 영역 숨김
+        header.style.display = 'none';
+        tools.style.display = 'none';
+        slicers.style.display = 'none';
+        charts.style.display = 'none';
+        detailView.style.display = 'none';
+        dailyPanel.style.display = 'none';
+        csPanel.style.display = 'grid';
+        setTimeout(() => renderCsBubbleChart(), 100);
+      } else if (tabId === 'daily') {
+        document.getElementById('btn-daily').classList.add('active');
+        aiPanel.style.display = 'none';  
+        docPanel.style.display = 'none'; // ✅ 추가: 기간별 업무 내역 탭에서 산출물 영역 숨김
+        header.style.display = 'none';
+        tools.style.display = 'none';
+        slicers.style.display = 'none';
+        charts.style.display = 'none';
+        detailView.style.display = 'none';
+        csPanel.style.display = 'none';
+        dailyPanel.style.display = 'block';
+      } else {
+        document.getElementById('btn-' + tabId).classList.add('active');
+        aiPanel.style.display = 'block';  
+        // 일반 프로젝트 탭(OP7, OP6 등)을 누르면 switchProject 내부의 renderDocumentHub에서 다시 block으로 표시해줍니다.
+        header.style.display = 'block';
+        tools.style.display = 'flex';
+        slicers.style.display = 'grid';
+        charts.style.display = 'grid';
+        detailView.style.display = 'none';
+        csPanel.style.display = 'none';
+        dailyPanel.style.display = 'none';
+        window.switchProject(tabId);
+      }
     }
     
 window.renderDailyLog = function() {
