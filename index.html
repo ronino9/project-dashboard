@@ -206,7 +206,7 @@
     let mdChartInstance = null;
     let statusChartInstance = null;
     let currentDates = [];
-    let activeFilters = { '단계 구분': 'All', '대응 구분': 'All', '유/무상': 'All', '파트 구분': 'All', '진행상태': 'All' };
+    let activeFilters = { '단계 구분': 'All', '대응 구분': 'All', '업무 구분': 'All', '유/무상': 'All', '파트 구분': 'All', '진행상태': 'All' };
 
     Chart.defaults.color = '#94a3b8';
     Chart.defaults.borderColor = '#334155';
@@ -363,7 +363,7 @@ if (h === '진행상태') {
       const titleMap = { 'project7': 'Project 7', 'project6': 'Project 6', 'project3': 'Project 3' };
       document.getElementById('projectTitle').textContent = titleMap[projectId] || 'Project';
 
-      activeFilters = { '단계 구분': 'All', '대응 구분': 'All', '유/무상': 'All', '파트 구분': 'All', '진행상태': 'All' };
+      activeFilters = { '단계 구분': 'All', '대응 구분': 'All', '업무 구분': 'All', '유/무상': 'All', '파트 구분': 'All', '진행상태': 'All' };
       
       if(allData[projectId]) {
         rawData = allData[projectId].history || [];
