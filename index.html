@@ -289,80 +289,82 @@
     }
 
     // (기존 showDetailView 함수 그대로 유지 - 생략 없이 포함)
-    window.showDetailView = function(dateLabel, typeLabel, dataRows) {
-      const detailView = document.getElementById('detailView');
-      const detailTitle = document.getElementById('detailTitle');
-      const detailTable = document.getElementById('detailTable');
+window.showDetailView = function(dateLabel, typeLabel, dataRows) {
+  const detailView = document.getElementById('detailView');
+  const detailTitle = document.getElementById('detailTitle');
+  const detailTable = document.getElementById('detailTable');
 
-      detailTitle.textContent = `${dateLabel} - [${typeLabel}] 상세 내역`;
+  detailTitle.textContent = `${dateLabel} - [${typeLabel}] 상세 내역`;
 
-      if (dataRows.length === 0) {
-        detailTable.innerHTML = '<tr><td style="text-align:center;">데이터가 없습니다.</td></tr>';
-      } else {
-        const headers = ['진행상태', '업무 구분', '작업 시간', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터'];
-        let html = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+  if (dataRows.length === 0) {
+    detailTable.innerHTML = '<tr><td style="text-align:center;">데이터가 없습니다.</td></tr>';
+  } else {
+    // 1. 헤더 정의
+    const headers = ['프로젝트 코드', '접수일', '진행상태', '업무 구분', '작업 시간', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터'];
+    let html = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
 
-        dataRows.forEach(row => {
-          html += '<tr>' + headers.map(h => {
-            if (h === '진행상태') {
-              let val = row[h] || '-';
-              const statusColorMap = { '완료':   '#059669', '지연완료': '#7c3aed', '지연중':  '#dc2626', 'Issue':  '#dc2626', '보류':   '#475569', '임박':   '#d97706', '진행중':  '#2563eb' };
-              let color = statusColorMap[val] || '#3b82f6';
-              return `<td style="text-align: center; vertical-align: top;"><span class="badge" style="background:${color};">${val}</span></td>`;
-            }
-            if (h === '작업 시간') {
-              const start = row['시작 시간'] || '';
-              const end = row['종료 시간'] || '';
-              let val = start && end ? `${start} ~ ${end}` : (start || end || '-');
-              return `<td style="text-align: center; font-size: 11px; color: #94a3b8; white-space: nowrap; vertical-align: top; padding-top: 12px;">${val}</td>`;
-            }
-            if (h === '분석 데이터') {
-              let val = row[h] || '-';
-              if (val === '-') return `<td style="vertical-align: top; color: #cbd5e1;">-</td>`;
-              let lines = val.split('\n');
-              let blocks = [];
-              let currentBlock = null;
+    dataRows.forEach(row => {
+      // 2. 스마트 데이터 추출 (프로젝트 코드나 접수일이 없으면 현재 상태에서 유추)
+      const pCode = row['프로젝트 코드'] || document.getElementById('projectTitle').textContent || '-';
+      const dateVal = row['접수일'] || '-';
 
-              lines.forEach(line => {
-                let trimmed = line.trim();
-                if (!trimmed) return;
-                const bracketMatch = trimmed.match(/^\[(.*?)\](.*)/);
-                if (bracketMatch) {
-                  currentBlock = { keyword: bracketMatch[1].trim(), content: bracketMatch[2].trim() };
-                  blocks.push(currentBlock);
-                } else {
-                  if (currentBlock) { currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed; } 
-                  else { blocks.push({ keyword: null, content: trimmed }); }
-                }
-              });
-
-              let formattedHtml = '';
-              blocks.forEach(block => {
-                if (block.keyword) {
-                  formattedHtml += `<div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 12px;"><span class="badge" style="background: #312e81; border: 1px solid #4f46e5; color: #c7d2fe;">📌 ${block.keyword}</span>${block.content ? `<span style="color: #cbd5e1; line-height: 1.5;">${block.content}</span>` : ''}</div>`;
-                } else {
-                  formattedHtml += `<div style="color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">${block.content}</div>`;
-                }
-              });
-              return `<td style="min-width: 250px; max-width: 400px; white-space: normal; word-break: keep-all; overflow-wrap: break-word; vertical-align: top;">${formattedHtml}</td>`;
+      html += '<tr>' + headers.map(h => {
+        if (h === '프로젝트 코드') return `<td style="text-align: center; font-weight: bold; color: #3b82f6; vertical-align: top;">${pCode}</td>`;
+        if (h === '접수일') return `<td style="text-align: center; vertical-align: top; color: #94a3b8;">${dateVal}</td>`;
+        
+        // ... (이하 기존 로직 동일)
+        if (h === '진행상태') {
+          let val = row[h] || '-';
+          const statusColorMap = { '완료': '#059669', '지연완료': '#7c3aed', '지연중': '#dc2626', 'Issue': '#dc2626', '보류': '#475569', '임박': '#d97706', '진행중': '#2563eb' };
+          let color = statusColorMap[val] || '#3b82f6';
+          return `<td style="text-align: center; vertical-align: top;"><span class="badge" style="background:${color};">${val}</span></td>`;
+        }
+        if (h === '작업 시간') {
+          const start = row['시작 시간'] || '';
+          const end = row['종료 시간'] || '';
+          let val = start && end ? `${start} ~ ${end}` : (start || end || '-');
+          return `<td style="text-align: center; font-size: 11px; color: #94a3b8; white-space: nowrap; vertical-align: top; padding-top: 12px;">${val}</td>`;
+        }
+        if (h === '분석 데이터') {
+          let val = row[h] || '-';
+          if (val === '-') return `<td style="vertical-align: top; color: #cbd5e1;">-</td>`;
+          let lines = val.split('\n');
+          let blocks = [];
+          let currentBlock = null;
+          lines.forEach(line => {
+            let trimmed = line.trim();
+            if (!trimmed) return;
+            const bracketMatch = trimmed.match(/^\[(.*?)\](.*)/);
+            if (bracketMatch) {
+              currentBlock = { keyword: bracketMatch[1].trim(), content: bracketMatch[2].trim() };
+              blocks.push(currentBlock);
+            } else {
+              if (currentBlock) { currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed; } 
+              else { blocks.push({ keyword: null, content: trimmed }); }
             }
-            if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
-              let val = row[h] || '-';
-              return `<td style="min-width: 200px; max-width: 350px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; line-height: 1.5; vertical-align: top; color: #e2e8f0;">${val}</td>`;
+          });
+          let formattedHtml = '';
+          blocks.forEach(block => {
+            if (block.keyword) {
+              formattedHtml += `<div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 12px;"><span class="badge" style="background: #312e81; border: 1px solid #4f46e5; color: #c7d2fe;">📌 ${block.keyword}</span>${block.content ? `<span style="color: #cbd5e1; line-height: 1.5;">${block.content}</span>` : ''}</div>`;
+            } else {
+              formattedHtml += `<div style="color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">${block.content}</div>`;
             }
-            if (h === '공수(MD)' || h === '업무 구분') {
-              let val = row[h] || '-';
-              return `<td style="text-align: center; vertical-align: top;">${val}</td>`;
-            }
-            let val = row[h] || '-';
-            return `<td style="vertical-align: top;">${val}</td>`;
-          }).join('') + '</tr>';
-        });
-        detailTable.innerHTML = html;
-      }
-      detailView.style.display = 'block';
-      detailView.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+          });
+          return `<td style="min-width: 250px; max-width: 400px; white-space: normal; word-break: keep-all; overflow-wrap: break-word; vertical-align: top;">${formattedHtml}</td>`;
+        }
+        if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
+          let val = row[h] || '-';
+          return `<td style="min-width: 200px; max-width: 350px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; line-height: 1.5; vertical-align: top; color: #e2e8f0;">${val}</td>`;
+        }
+        return `<td style="vertical-align: top; text-align: center;">${row[h] || '-'}</td>`;
+      }).join('') + '</tr>';
+    });
+    detailTable.innerHTML = html;
+  }
+  detailView.style.display = 'block';
+  detailView.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
 
     window.toggleSection = function(section) {
       const content = document.getElementById(section + 'Content');
