@@ -1046,16 +1046,15 @@ rows.forEach(row => {
       }
     }
     // 💡 문서 컨트롤 타워 렌더링 함수
+// 💡 문서 컨트롤 타워 렌더링 함수 (토글 기능 적용 완료!)
     function renderDocumentHub(projectId) {
       const docPanel = document.getElementById('doc-hub-panel');
-      if (!docPanel) return; // 패널이 없으면 에러 방지
+      if (!docPanel) return;
       docPanel.style.display = 'block';
 
-      // 탭 ID를 API에서 쓰는 프로젝트 이름으로 매핑
       const map = { 'project7': 'OP7', 'project6': 'OP6', 'project3': 'OP3', 'project1cs': 'CP_All' };
       const pName = map[projectId];
       
-      // 현재 선택된 프로젝트의 문서만 필터링
       currentProjectDocs = documentLinksData.filter(d => d.project === pName);
       
       const locSlicer = document.getElementById('doc-location-slicer');
@@ -1069,18 +1068,25 @@ rows.forEach(row => {
           return;
       }
       
-      // 중복 없는 위치 목록 (회사 서버, 내 PC 등) 추출
       const locations = [...new Set(currentProjectDocs.map(d => d.location))];
       
       locations.forEach(loc => {
           const btn = document.createElement('button');
           btn.className = 'doc-loc-btn';
           btn.innerHTML = loc.includes('서버') ? `🗄️ ${loc}` : `💻 ${loc}`;
+          
+          // ✨ 여기부터가 클릭 시 열고 닫히는 토글 기능입니다!
           btn.onclick = () => {
-              document.querySelectorAll('.doc-loc-btn').forEach(b => b.classList.remove('active'));
-              btn.classList.add('active');
-              showDocItems(loc);
+              if (btn.classList.contains('active')) {
+                  btn.classList.remove('active');
+                  document.getElementById('doc-items-container').style.display = 'none';
+              } else {
+                  document.querySelectorAll('.doc-loc-btn').forEach(b => b.classList.remove('active'));
+                  btn.classList.add('active');
+                  showDocItems(loc);
+              }
           };
+          
           locSlicer.appendChild(btn);
       });
     }
