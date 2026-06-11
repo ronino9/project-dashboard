@@ -567,12 +567,10 @@ window.showIssueDetail = function(idx) {
   const issue = allData.issueRanking[idx];
   if (!issue) return;
 
-  // AI가 지은 이름에서 특수문자/공백을 기준으로 핵심 단어만 뽑아냄
-  // 예: "검사 결과/데이터 누락" -> ["검사", "결과", "데이터", "누락"]
   const issueName = (issue.name || issue['이름'] || '').trim();
   const keywords = issueName.split(/[\s/]+/); 
   
-  console.log("=== 키워드 매칭 시작 ===");
+  console.log("=== 고질 이슈 상세 분석 (필터: 업무구분='Issue') ===");
   console.log("핵심 키워드:", keywords);
 
   const matchedRows = [];
@@ -581,12 +579,13 @@ window.showIssueDetail = function(idx) {
   targetProjects.forEach(pKey => {
     if (allData[pKey] && allData[pKey].history) {
       allData[pKey].history.forEach(row => {
+        // [중요] 업무 구분이 'Issue'인 것만 통과시킴
+        if (row['업무 구분'] !== 'Issue') return;
+
         const title = (row['표준 제작 Item / Issue / 개선사항'] || row['제목'] || '').trim();
-        
-        // 데이터의 제목이 키워드를 최소 2개 이상 포함하고 있는지 확인
-        // 단어 하나만 매칭되면 너무 많은 결과가 나오므로 2개 이상으로 설정
         const matchCount = keywords.filter(k => k.length > 1 && title.includes(k)).length;
         
+        // 키워드 매칭 (이름+인터락 등도 잡히도록 키워드 검색 유지)
         if (matchCount >= 2 || (keywords.length === 1 && title.includes(keywords[0]))) {
            const pName = pKey.replace('project', 'OP');
            const rowCopy = { ...row };
@@ -597,10 +596,10 @@ window.showIssueDetail = function(idx) {
     }
   });
 
-  console.log("최종 매칭된 데이터 개수:", matchedRows.length);
+  console.log("최종 매칭된 이슈 데이터 개수:", matchedRows.length);
   
   if (matchedRows.length === 0) {
-      alert("데이터를 찾을 수 없습니다.\n\n키워드 매칭 결과:\n" + issueName);
+      alert("해당 이슈와 관련된 'Issue' 타입 데이터가 없습니다.\n대상 이슈명: " + issueName);
   } else {
       window.showDetailView('🚨 고질 이슈 상세 분석 (' + matchedRows.length + '건)', issueName, matchedRows);
   }
