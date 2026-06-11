@@ -519,29 +519,7 @@ window.renderMainDashboard = function() {
   } else {
     pendingContainer.innerHTML = `<div style="color: #64748b; font-size: 13px;">대기 중인 이슈가 없습니다.</div>`;
   }
-window.showPendingDetail = function(projCode, title) {
-  const pMap = { 'OP7': 'project7', 'OP6': 'project6', 'OP3': 'project3', 'CP_ALL': 'project1' };
-  const pKey = pMap[projCode];
-  
-  if (!pKey || !allData[pKey] || !allData[pKey].history) return;
 
-  const targetRow = allData[pKey].history.find(r => {
-      const rowTitle = (r['제목'] || r['표준 제작 Item / Issue / 개선사항'] || '').trim();
-      return rowTitle === title;
-  });
-
-  if (targetRow) {
-      const rowCopy = {
-          '프로젝트 코드': projCode,
-          '접수일': targetRow['접수일'] || '-',
-          ...targetRow
-      };
-      window.showDetailView('⏳ 처리 대기 상세', title, [rowCopy]);
-  } else {
-      alert("데이터를 찾을 수 없습니다.");
-  }
-}
-  
   // 4. MD 도넛 차트 (전체 MD 합산)
   let mdSums = { 'OP7': 0, 'OP6': 0, 'OP3': 0, 'CP': 0 };
   let totalMd = 0;
@@ -606,6 +584,28 @@ window.showPendingDetail = function(projCode, title) {
         }
      }]
   });
+}
+    window.showPendingDetail = function(projCode, title) {
+  const pMap = { 'OP7': 'project7', 'OP6': 'project6', 'OP3': 'project3', 'CP_ALL': 'project1' };
+  const pKey = pMap[projCode];
+  
+  if (!pKey || !allData[pKey] || !allData[pKey].history) return;
+
+  const targetRow = allData[pKey].history.find(r => {
+      const rowTitle = (r['제목'] || r['표준 제작 Item / Issue / 개선사항'] || '').trim();
+      return rowTitle === title;
+  });
+
+  if (targetRow) {
+      const rowCopy = {
+          '프로젝트 코드': projCode,
+          '접수일': targetRow['접수일'] || '-',
+          ...targetRow
+      };
+      window.showDetailView('⏳ 처리 대기 상세', title, [rowCopy]);
+  } else {
+      alert("데이터를 찾을 수 없습니다.");
+  }
 }
 window.showIssueDetail = function(idx) {
   const issue = allData.issueRanking[idx];
