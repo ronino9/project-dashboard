@@ -634,27 +634,35 @@ window.showIssueDetail = function(idx) {
   if (!issue) return;
 
   const issueName = (issue.name || issue['이름'] || '').trim();
-  const keywords = issueName.split(/[\s/]+/); 
-  
+
+  // 1. AI가 모아둔 진짜 원본 제목들(멤버)에서 띄어쓰기와 줄바꿈을 싹 다 지운 배열을 만듭니다.
+  const rawMembers = issue['멤버'] || '';
+  const cleanMemberTitles = rawMembers.split('|').map(t => t.replace(/\s+/g, ''));
+
   const matchedRows = [];
-  const targetProjects = ['project7', 'project6', 'project3'];
+  // CP_All(project1) 데이터도 검색할 수 있도록 대상을 추가했습니다.
+  const targetProjects = ['project7', 'project6', 'project3', 'project1'];
 
   targetProjects.forEach(pKey => {
     if (allData[pKey] && allData[pKey].history) {
       allData[pKey].history.forEach(row => {
         if (row['업무 구분'] !== 'Issue') return;
 
-        const title = (row['표준 제작 Item / Issue / 개선사항'] || row['제목'] || '').trim();
-        const matchCount = keywords.filter(k => k.length > 1 && title.includes(k)).length;
-        
-        if (matchCount >= 2 || (keywords.length === 1 && title.includes(keywords[0]))) {
-           const pName = pKey.replace('project', 'OP');
+        // 2. 현재 시트에 적힌 제목도 띄어쓰기와 줄바꿈을 싹 다 지웁니다.
+        const originalTitle = (row['표준 제작 Item / Issue / 개선사항'] || row['제목'] || '');
+        const cleanTitle = originalTitle.replace(/\s+/g, '');
+
+        // 3. 글자만 똑같으면 100% 매칭! (영어/한글 요약명 상관없이 원본끼리 대조)
+        if (cleanTitle !== '' && cleanMemberTitles.includes(cleanTitle)) {
+           let pName = pKey.replace('project', 'OP');
+           if (pKey === 'project1') pName = 'CP_All';
+
            const rowCopy = {
              '프로젝트 코드': pName,
              '접수일': row['접수일'] || '-',
              ...row
            };
-           rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${pName}] ${title}`;
+           rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${pName}] ${originalTitle.trim()}`;
            matchedRows.push(rowCopy);
         }
       });
