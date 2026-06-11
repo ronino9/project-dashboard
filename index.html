@@ -502,22 +502,52 @@ window.renderMainDashboard = function() {
 
   if (displayList.length > 0) {
     const pendingHtml = displayList.map((issue, idx) => `
-      <div class="issue-list-item" style="flex-direction: column; align-items: flex-start;">
-        <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 4px;">
-           <div style="font-size: 14px; color: #1e293b; font-weight: 700;">
-             <span style="font-weight: 700; color: #64748b; margin-right: 8px;">${idx + 1}.</span>
-             <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; display: inline-block; vertical-align: bottom;">${issue.title}</span>
-           </div>
-           <span class="badge" style="background: #fee2e2; color: #dc2626; font-weight: 700; border: 1px solid #fca5a5;">${issue.delay}일 지연</span>
-        </div>
-        <div style="font-size: 11px; color: #64748b; padding-left: 22px;">${issue.proj} / ${issue.task}</div>
-      </div>
+// ... (기존 map 로직 내부)
+// 아래 코드로 교체하세요
+<div class="issue-list-item" style="cursor: pointer; flex-direction: column; align-items: flex-start;" 
+     onclick="window.showPendingDetail('${issue.proj}', '${issue.title}')">
+  <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 4px;">
+     <div style="font-size: 14px; color: #1e293b; font-weight: 700;">
+       <span style="font-weight: 700; color: #64748b; margin-right: 8px;">${idx + 1}.</span>
+       <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; display: inline-block; vertical-align: bottom;">${issue.title}</span>
+     </div>
+     <span class="badge" style="background: #fee2e2; color: #dc2626; font-weight: 700; border: 1px solid #fca5a5;">${issue.delay}일 지연</span>
+  </div>
+  <div style="font-size: 11px; color: #64748b; padding-left: 22px;">${issue.proj} / ${issue.task}</div>
+</div>
     `).join('');
     pendingContainer.innerHTML = pendingHtml;
   } else {
     pendingContainer.innerHTML = `<div style="color: #64748b; font-size: 13px;">대기 중인 이슈가 없습니다.</div>`;
   }
+window.showPendingDetail = function(projCode, title) {
+  // 프로젝트 코드(OP7 등)를 데이터 키(project7 등)로 변환
+  const pMap = { 'OP7': 'project7', 'OP6': 'project6', 'OP3': 'project3', 'CP_ALL': 'project1' };
+  const pKey = pMap[projCode];
+  
+  if (!pKey || !allData[pKey] || !allData[pKey].history) return;
 
+  // 클릭한 제목과 정확히 일치하는 행(Row)을 히스토리에서 찾음
+  const targetRow = allData[pKey].history.find(r => {
+      const rowTitle = (r['제목'] || r['표준 제작 Item / Issue / 개선사항'] || '').trim();
+      return rowTitle === title;
+  });
+
+  if (targetRow) {
+      // 상세 내역 테이블에 띄우기 위해 데이터를 가공
+      const rowCopy = {
+          '프로젝트 코드': projCode,
+          '접수일': targetRow['접수일'] || '-',
+          ...targetRow
+      };
+      
+      // showDetailView 함수 호출 (고질 이슈 상세와 동일한 모달 사용)
+      window.showDetailView('⏳ 처리 대기 상세', title, [rowCopy]);
+  } else {
+      alert("데이터를 찾을 수 없습니다.");
+  }
+}
+  
   // 4. MD 도넛 차트 (전체 MD 합산)
   let mdSums = { 'OP7': 0, 'OP6': 0, 'OP3': 0, 'CP': 0 };
   let totalMd = 0;
