@@ -567,26 +567,27 @@ window.showIssueDetail = function(idx) {
   const issue = allData.issueRanking[idx];
   if (!issue) return;
 
+  // AI가 지은 이름에서 특수문자/공백을 기준으로 핵심 단어만 뽑아냄
+  // 예: "검사 결과/데이터 누락" -> ["검사", "결과", "데이터", "누락"]
+  const issueName = (issue.name || issue['이름'] || '').trim();
+  const keywords = issueName.split(/[\s/]+/); 
+  
+  console.log("=== 키워드 매칭 시작 ===");
+  console.log("핵심 키워드:", keywords);
+
   const matchedRows = [];
   const targetProjects = ['project7', 'project6', 'project3'];
-  const issueName = (issue.name || issue['이름'] || '').trim();
-
-  console.log("분석 대상 이슈명:", issueName);
 
   targetProjects.forEach(pKey => {
     if (allData[pKey] && allData[pKey].history) {
       allData[pKey].history.forEach(row => {
         const title = (row['표준 제작 Item / Issue / 개선사항'] || row['제목'] || '').trim();
         
-        // 1. members 정보가 있을 경우 매칭
-        if (issue.members && issue.members.some(m => m.trim() === title)) {
-           const pName = pKey.replace('project', 'OP');
-           const rowCopy = { ...row };
-           rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${pName}] ${title}`;
-           matchedRows.push(rowCopy);
-        } 
-        // 2. members가 없거나 매칭 안 될 경우, 제목 포함 여부로 강력 매칭 (폴백)
-        else if (issueName && title.includes(issueName)) {
+        // 데이터의 제목이 키워드를 최소 2개 이상 포함하고 있는지 확인
+        // 단어 하나만 매칭되면 너무 많은 결과가 나오므로 2개 이상으로 설정
+        const matchCount = keywords.filter(k => k.length > 1 && title.includes(k)).length;
+        
+        if (matchCount >= 2 || (keywords.length === 1 && title.includes(keywords[0]))) {
            const pName = pKey.replace('project', 'OP');
            const rowCopy = { ...row };
            rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${pName}] ${title}`;
@@ -599,10 +600,10 @@ window.showIssueDetail = function(idx) {
   console.log("최종 매칭된 데이터 개수:", matchedRows.length);
   
   if (matchedRows.length === 0) {
-      alert("데이터를 찾을 수 없습니다. 이슈 제목과 일치하는 항목이 히스토리에 있는지 확인해보세요.\n대상 이슈명: " + issueName);
+      alert("데이터를 찾을 수 없습니다.\n\n키워드 매칭 결과:\n" + issueName);
+  } else {
+      window.showDetailView('🚨 고질 이슈 상세 분석 (' + matchedRows.length + '건)', issueName, matchedRows);
   }
-
-  window.showDetailView('🚨 고질 이슈 분석', issueName, matchedRows);
 }
 // ✅ 여기까지 복사하세요
 
