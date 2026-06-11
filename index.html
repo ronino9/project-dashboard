@@ -570,34 +570,39 @@ window.showIssueDetail = function(idx) {
   const issueName = (issue.name || issue['이름'] || '').trim();
   const keywords = issueName.split(/[\s/]+/); 
   
-  console.log("=== 고질 이슈 상세 분석 (필터: 업무구분='Issue') ===");
-  console.log("핵심 키워드:", keywords);
-
   const matchedRows = [];
   const targetProjects = ['project7', 'project6', 'project3'];
 
   targetProjects.forEach(pKey => {
     if (allData[pKey] && allData[pKey].history) {
       allData[pKey].history.forEach(row => {
-        // [중요] 업무 구분이 'Issue'인 것만 통과시킴
+        // [필터] 업무 구분이 'Issue'인 것만 추출
         if (row['업무 구분'] !== 'Issue') return;
 
         const title = (row['표준 제작 Item / Issue / 개선사항'] || row['제목'] || '').trim();
         const matchCount = keywords.filter(k => k.length > 1 && title.includes(k)).length;
         
-        // 키워드 매칭 (이름+인터락 등도 잡히도록 키워드 검색 유지)
+        // 키워드 매칭 로직
         if (matchCount >= 2 || (keywords.length === 1 && title.includes(keywords[0]))) {
            const pName = pKey.replace('project', 'OP');
-           const rowCopy = { ...row };
-           rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${pName}] ${title}`;
+           
+           // [중요] 상세 내역에 보여줄 순서를 강제로 지정 (객체 키 순서)
+           // row에 있는 데이터를 가져오되, 프로젝트 코드와 접수일을 맨 앞으로 가져옵니다.
+           const rowCopy = {
+             '프로젝트 코드': pName, // 프로젝트명 (OP7 등)
+             '접수일': row['접수일'] || '-', // 접수일
+             '상세 내용': title, // 기존 이슈 제목
+             ...row // 나머지 데이터들
+           };
+           
+           // 필요하다면 프로젝트 코드/접수일 컬럼이 다른 이름일 경우 row['기존 컬럼명']으로 수정하세요.
+           
            matchedRows.push(rowCopy);
         }
       });
     }
   });
 
-  console.log("최종 매칭된 이슈 데이터 개수:", matchedRows.length);
-  
   if (matchedRows.length === 0) {
       alert("해당 이슈와 관련된 'Issue' 타입 데이터가 없습니다.\n대상 이슈명: " + issueName);
   } else {
