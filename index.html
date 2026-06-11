@@ -743,6 +743,7 @@ function renderTotalStats() {
 }
 
     window.switchTab = function(tabId) {
+            document.getElementById('ai-result').style.display = 'none';
       const header = document.querySelector('.header');
       const tools = document.querySelector('.dashboard-tools');
       const slicers = document.getElementById('slicers');
@@ -750,6 +751,7 @@ function renderTotalStats() {
       const detailView = document.getElementById('detailView');
       const dailyPanel = document.getElementById('daily-panel');
       const csPanel = document.getElementById('cs-view');
+
 
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
