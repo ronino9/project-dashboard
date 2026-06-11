@@ -502,8 +502,7 @@ window.renderMainDashboard = function() {
 
   if (displayList.length > 0) {
     const pendingHtml = displayList.map((issue, idx) => `
-// ... (기존 map 로직 내부)
-// 아래 코드로 교체하세요
+
 <div class="issue-list-item" style="cursor: pointer; flex-direction: column; align-items: flex-start;" 
      onclick="window.showPendingDetail('${issue.proj}', '${issue.title}')">
   <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 4px;">
