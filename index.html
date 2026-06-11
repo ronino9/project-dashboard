@@ -86,15 +86,21 @@
         <a href="#" class="link-btn"><span style="font-size:24px;">🗺️</span><span>Master Plan</span></a>
         <a href="#" class="link-btn"><span style="font-size:24px;">🔍</span><span>상세이력</span></a>
       </div>
-      <div class="kpi-panel">
+<div class="kpi-panel">
         <div class="kpi-item"><div class="kpi-title">공수 합계</div><div class="kpi-value" style="color: #e2e8f0;" id="kpi-md">0.0</div></div>
         <div class="kpi-item"><div class="kpi-title">ISSUE 합계</div><div class="kpi-value" style="color: #ef4444;" id="kpi-issue">0</div></div>
         <div class="kpi-item"><div class="kpi-title">미완료 합계</div><div class="kpi-value" style="color: #f59e0b;" id="kpi-incomp">0</div></div>
       </div>
     </div>
 
+    <div id="doc-hub-panel" style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px; display: none;">
+      <div style="font-size: 14px; font-weight: 700; color: #10b981; margin-bottom: 12px;">📂 프로젝트 산출물 (Control Tower)</div>
+      <div id="doc-location-slicer" style="display: flex; gap: 8px; margin-bottom: 12px;"></div>
+      <div id="doc-items-container" style="display: none; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 12px;"></div>
+    </div>
+
     <div class="slicer-panel" id="slicers"></div>
-<div id="ai-panel" style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px; position: relative;">
+    <div id="ai-panel" style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px; position: relative;">
       
       <span onclick="document.getElementById('ai-result').style.display='none'" 
             style="position: absolute; top: 16px; right: 20px; color: #94a3b8; font-size: 20px; font-weight: bold; cursor: pointer; line-height: 1;" 
