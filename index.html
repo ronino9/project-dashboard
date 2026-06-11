@@ -445,11 +445,11 @@ window.renderMainDashboard = function() {
   }).join('');
   document.getElementById('main-summary-cards').innerHTML = summaryCardsHtml;
 
-  // 2. 이슈 랭킹 (Top 5)
+// 2. 이슈 랭킹 (Top 5 - 클릭 시 상세 내역 팝업)
   const top5Container = document.getElementById('main-issue-top5');
   if (allData.issueRanking && allData.issueRanking.length > 0) {
     const top5Html = allData.issueRanking.slice(0, 5).map((issue, idx) => `
-      <div class="issue-list-item">
+      <div class="issue-list-item" style="cursor: pointer;" onclick="window.showIssueDetail(${idx})">
         <div style="display: flex; gap: 10px; align-items: center;">
           <span style="font-weight: 700; color: #64748b; width: 15px;">${idx + 1}.</span>
           <span style="font-size: 14px; font-weight: 600; color: #1e293b;">${issue['이름'] || issue.name || issue['제목'] || '이슈 명칭 없음'}</span>
@@ -562,6 +562,51 @@ window.renderMainDashboard = function() {
         }
      }]
   });
+}
+    window.showIssueDetail = function(idx) {
+  const issue = allData.issueRanking[idx];
+  if (!issue) return;
+
+  const matchedRows = [];
+  const targetProjects = ['project7', 'project6', 'project3']; // 이슈가 존재하는 주요 프로젝트들
+
+  targetProjects.forEach(pKey => {
+    if (allData[pKey] && allData[pKey].history) {
+      allData[pKey].history.forEach(row => {
+        const title = row['표준 제작 Item / Issue / 개선사항'] || row['제목'] || '';
+        
+        // API가 응답했던 members(원본 제목 리스트)에 이 행의 제목이 포함되어 있다면 추출
+        if (issue.members && issue.members.includes(title)) {
+           // 어느 프로젝트에서 온 이슈인지 표기하기 위해 제목 수정
+           const pName = pKey.replace('project', 'OP');
+           const rowCopy = { ...row };
+           rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${pName}] ${title}`;
+           matchedRows.push(rowCopy);
+        }
+      });
+    }
+  });
+
+  // 혹시 members 매칭이 안 될 경우를 대비한 텍스트 포함 폴백(Fallback) 검색
+  if (matchedRows.length === 0) {
+      targetProjects.forEach(pKey => {
+        if (allData[pKey] && allData[pKey].history) {
+          allData[pKey].history.forEach(row => {
+            const title = row['표준 제작 Item / Issue / 개선사항'] || row['제목'] || '';
+            const issueName = issue.name || issue['이름'] || '';
+            if (issueName && title.includes(issueName)) {
+               const pName = pKey.replace('project', 'OP');
+               const rowCopy = { ...row };
+               rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${pName}] ${title}`;
+               matchedRows.push(rowCopy);
+            }
+          });
+        }
+      });
+  }
+
+  // 기존에 만들어둔 화이트 테마 테이블 렌더링 함수 재활용
+  window.showDetailView('🚨 고질 이슈 분석', issue.name || issue['이름'], matchedRows);
 }
 // ✅ 여기까지 복사하세요
 
