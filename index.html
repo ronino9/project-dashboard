@@ -9,7 +9,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; }
     .container { max-width: 1400px; margin: 0 auto; padding: 16px; }
-    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
     .tab-btn { padding: 12px 24px; background: #1e293b; color: #94a3b8; border: 1px solid #334155; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 15px; transition: all 0.2s; }
     .tab-btn:hover { background: #2a3a55; color: #f8fafc; }
     .tab-btn.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
@@ -34,7 +34,7 @@
     .filter-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; font-weight: 600; }
     .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
     .chart-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; }
-    .chart-title { font-size: 16px; font-weight: 600; color: #f8fafc; margin-bottom: 16px; }
+    .chart-title { font-size: 16px; font-weight: 600; color: #f8fafc; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
     .canvas-container { position: relative; height: 320px; width: 100%; }
     #detailView { background: #1e293b; border: 1px solid #3b82f6; border-radius: 8px; padding: 20px; margin-top: 16px; display: none; }
     #detailTable { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -42,29 +42,70 @@
     #detailTable td { padding: 8px; border-bottom: 1px solid #1e293b; color: #e2e8f0; }
     .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
     @media(max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } .donuts-row { grid-template-columns: 1fr 1fr; } }
-  /* 문서 컨트롤 타워 버튼 스타일 */
     .doc-loc-btn { padding: 8px 16px; background: #0f172a; border: 1px solid #334155; color: #94a3b8; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
     .doc-loc-btn:hover { background: #2a3a55; color: #f8fafc; }
     .doc-loc-btn.active { background: #10b981; border-color: #10b981; color: #fff; }
     .doc-item-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: #1e293b; border: 1px solid #3b82f6; color: #cbd5e1; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.2s; margin: 4px; font-weight: 600; }
     .doc-item-btn:hover { background: #3b82f6; color: #fff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+
+    /* 메인 대시보드용 카드 스타일 */
+    .main-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; }
+    .main-card-title { font-size: 18px; font-weight: 700; color: #f8fafc; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;}
+    .main-card-subtitle { font-size: 12px; color: #94a3b8; margin-bottom: 16px; }
+    .main-progress-text { font-size: 32px; font-weight: 700; color: #3b82f6; text-align: center; margin: 10px 0; }
+    .issue-list-item { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body>
   <div class="container">
-<div class="tabs">
-  <button id="btn-project7" class="tab-btn active" onclick="window.switchTab('project7')">OP7 · Ongoing</button>
-  <button id="btn-project6" class="tab-btn" onclick="window.switchTab('project6')">OP6 · Ongoing</button>
-  <button id="btn-project3" class="tab-btn" onclick="window.switchTab('project3')">OP3 · Ongoing</button>
-  <button id="btn-project1cs" class="tab-btn" onclick="window.switchTab('project1cs')">CP_All · Complete</button>
-  <button id="btn-daily" class="tab-btn" onclick="window.switchTab('daily')">📅 기간별 업무 내역</button>
-</div>
+    <div class="tabs">
+      <button id="btn-main" class="tab-btn active" onclick="window.switchTab('main')">🎛️ 메인 대시보드</button>
+      <button id="btn-project7" class="tab-btn" onclick="window.switchTab('project7')">OP7 · Ongoing</button>
+      <button id="btn-project6" class="tab-btn" onclick="window.switchTab('project6')">OP6 · Ongoing</button>
+      <button id="btn-project3" class="tab-btn" onclick="window.switchTab('project3')">OP3 · Ongoing</button>
+      <button id="btn-project1cs" class="tab-btn" onclick="window.switchTab('project1cs')">CP_All · Complete</button>
+      <button id="btn-daily" class="tab-btn" onclick="window.switchTab('daily')">📅 기간별 업무 내역</button>
+    </div>
 
-    <div class="header">
+    <div id="main-panel">
+      <div class="donuts-row" id="main-summary-cards" style="margin-bottom: 20px;">
+        <div style="padding: 20px; color: #94a3b8;">데이터 로드 중...</div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 16px; margin-bottom: 16px;">
+        
+        <div class="chart-card">
+          <div class="chart-title">🚨 고질 이슈 Top 5 <span style="font-size: 12px; font-weight: normal; background: #0f172a; padding: 4px 8px; border-radius: 4px;">빈도순</span></div>
+          <div id="main-issue-top5">
+            <div style="color: #64748b; font-size: 13px;">이슈 데이터를 분석 중입니다...</div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title">⏳ 처리 대기 Top 3 <span style="font-size: 12px; font-weight: normal; background: #0f172a; padding: 4px 8px; border-radius: 4px;">지연일 순</span></div>
+          <div id="main-issue-pending">
+            <div style="color: #64748b; font-size: 13px;">대기 중인 이슈를 불러오고 있습니다...</div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title">📊 Master MD 분석 <span style="font-size: 12px; font-weight: normal; color: #94a3b8;">2025.01 - 현재</span></div>
+          <div style="display: flex; gap: 20px; align-items: center; height: 100%;">
+            <div style="position: relative; width: 140px; height: 140px;">
+              <canvas id="mainMdChart"></canvas>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;" id="main-md-legend">
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="header" id="project-header" style="display: none;">
       <div class="header-top">
         <div style="flex: 0 0 auto;">
-          <div class="project-no" id="projectTitle">Project 7</div>
-          <div style="font-size: 12px; color: #64748b;">Interactive Control Tower</div>
+          <div class="project-no" id="projectTitle">Project</div>
+          <div style="font-size: 12px; color: #64748b;" id="projectSubtitle">Subtitle</div>
         </div>
         <div class="donuts-row" id="donuts"><div style="opacity:0.5; padding:20px;">데이터 로드 중...</div></div>
       </div>
@@ -77,7 +118,7 @@
       </div>
     </div>
 
-    <div class="dashboard-tools">
+    <div class="dashboard-tools" id="project-tools" style="display: none;">
       <div class="quick-links">
         <a href="#" class="link-btn"><span style="font-size:24px;">💼</span><span>Works</span></a>
         <a href="#" class="link-btn"><span style="font-size:24px;">📋</span><span>PMO</span></a>
@@ -86,7 +127,7 @@
         <a href="#" class="link-btn"><span style="font-size:24px;">🗺️</span><span>Master Plan</span></a>
         <a href="#" class="link-btn"><span style="font-size:24px;">🔍</span><span>상세이력</span></a>
       </div>
-<div class="kpi-panel">
+      <div class="kpi-panel">
         <div class="kpi-item"><div class="kpi-title">공수 합계</div><div class="kpi-value" style="color: #e2e8f0;" id="kpi-md">0.0</div></div>
         <div class="kpi-item"><div class="kpi-title">ISSUE 합계</div><div class="kpi-value" style="color: #ef4444;" id="kpi-issue">0</div></div>
         <div class="kpi-item"><div class="kpi-title">미완료 합계</div><div class="kpi-value" style="color: #f59e0b;" id="kpi-incomp">0</div></div>
@@ -98,19 +139,18 @@
       <div id="doc-location-slicer" style="display: flex; gap: 8px; margin-bottom: 12px;"></div>
       <div id="doc-items-container" style="display: none; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 12px;"></div>
     </div>
- 
-    <div class="slicer-panel" id="slicers"></div>
-    <div id="ai-panel" style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px; position: relative;">
-      
+  
+    <div class="slicer-panel" id="slicers" style="display: none;"></div>
+    
+    <div id="ai-panel" style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px; position: relative; display: none;">
       <span onclick="document.getElementById('ai-result').style.display='none'" 
             style="position: absolute; top: 16px; right: 20px; color: #94a3b8; font-size: 20px; font-weight: bold; cursor: pointer; line-height: 1;" 
             onmouseover="this.style.color='#f8fafc'" 
             onmouseout="this.style.color='#94a3b8'" 
             title="결과창 닫기">✕</span>
-
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-right: 24px;">
         <div style="font-size: 16px; font-weight: 700; color: #f8fafc;">🤖 AI 현장 리스크 진단</div>
-<div style="display: flex; gap: 8px;">
+        <div style="display: flex; gap: 8px;">
           <button onclick="runAIAnalysis('flash')" id="ai-btn-flash" style="background: #10b981; color: white; border: none; width: 110px; padding: 8px 0; border-radius: 6px; font-weight: bold; cursor: pointer;">⚡ Flash 분석</button>
           <button onclick="runAIAnalysis('pro')" id="ai-btn-pro" style="background: #8b5cf6; color: white; border: none; width: 110px; padding: 8px 0; border-radius: 6px; font-weight: bold; cursor: pointer;">🧠 Pro 분석</button>
         </div>
@@ -120,14 +160,11 @@
       </div>
     </div>
 
-<div class="charts-grid">
-  <div class="chart-card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <div class="chart-title" style="margin: 0;">공수 집계</div>
-
-    </div>
-    <div class="canvas-container"><canvas id="mdChart"></canvas></div>
-  </div>
+    <div class="charts-grid" id="project-charts" style="display: none;">
+      <div class="chart-card">
+        <div class="chart-title">공수 집계</div>
+        <div class="canvas-container"><canvas id="mdChart"></canvas></div>
+      </div>
       <div class="chart-card">
         <div class="chart-title">진행 현황</div>
         <div class="canvas-container"><canvas id="statusChart"></canvas></div>
@@ -142,70 +179,60 @@
       <table id="detailTable"></table>
     </div>
 
-    <!-- C/S 리스크맵 뷰 -->
     <div id="cs-view" style="display: none; grid-template-columns: 1fr 300px; gap: 16px;">
-<!-- 좌측: C/S 리스크맵 -->
-<div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px;">
-  <div style="font-size: 16px; font-weight: 600; color: #f8fafc; margin-bottom: 12px;">C/S 프로젝트 리스크맵</div>
-  <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; padding: 12px; background: #0f172a; border-radius: 6px; border: 1px solid #334155;">
-    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #86EFAC; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">안정</span></div>
-    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #FCD34D; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">임박</span></div>
-    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #F9A8D4; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">주의</span></div>
-    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #FCA5A5; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">위험</span></div>
-    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #EF4444; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">심각</span></div>
-  </div>
-  <div style="background: #0f172a; padding: 12px; border-radius: 6px; margin-bottom: 16px; border: 1px solid #334155;">
-    <label style="color: #94a3b8; font-size: 12px; display: block; margin-bottom: 8px;">원 간격 조절</label>
-    <div style="display: flex; gap: 8px; align-items: center;">
-      <input type="range" id="spacingSlider" min="20" max="100" value="50" style="flex: 1; cursor: pointer; height: 6px;">
-      <span id="spacingValue" style="color: #e2e8f0; min-width: 40px; text-align: right; font-weight: bold; font-size: 13px;">50</span>
-    </div>
-  </div>
-  <canvas id="csBubbleCanvas" style="width: 100%; height: 500px; background: #0f172a; border-radius: 6px; display: block;"></canvas>
-</div>
+      <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px;">
+        <div style="font-size: 16px; font-weight: 600; color: #f8fafc; margin-bottom: 12px;">C/S 프로젝트 리스크맵</div>
+        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; padding: 12px; background: #0f172a; border-radius: 6px; border: 1px solid #334155;">
+          <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #86EFAC; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">안정</span></div>
+          <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #FCD34D; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">임박</span></div>
+          <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #F9A8D4; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">주의</span></div>
+          <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #FCA5A5; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">위험</span></div>
+          <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 16px; height: 16px; background: #EF4444; border-radius: 50%;"></div><span style="color: #94a3b8; font-size: 12px;">심각</span></div>
+        </div>
+        <div style="background: #0f172a; padding: 12px; border-radius: 6px; margin-bottom: 16px; border: 1px solid #334155;">
+          <label style="color: #94a3b8; font-size: 12px; display: block; margin-bottom: 8px;">원 간격 조절</label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="range" id="spacingSlider" min="20" max="100" value="50" style="flex: 1; cursor: pointer; height: 6px;">
+            <span id="spacingValue" style="color: #e2e8f0; min-width: 40px; text-align: right; font-weight: bold; font-size: 13px;">50</span>
+          </div>
+        </div>
+        <canvas id="csBubbleCanvas" style="width: 100%; height: 500px; background: #0f172a; border-radius: 6px; display: block;"></canvas>
+      </div>
 
-<!-- 우측: 전체 C/S 현황 (별도) -->
-<div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px;">
-  <div style="font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 12px; cursor: pointer;" onclick="window.toggleSection('totalStats')">▼ 전체 C/S 현황</div>
-  <div id="totalStatsContent" style="display: block;"></div>
-</div>
-
-<!-- 우측: 프로젝트 정보 + 상세 현황 (같은 박스) -->
-<div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; height: fit-content; max-height: 600px; overflow-y: auto;">
-  <div id="csProjectInfo" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #334155;">
-    <div style="font-size: 14px; font-weight: 700; color: #3b82f6; margin-bottom: 12px;">프로젝트 정보</div>
-    <div id="csDetailContent" style="color: #94a3b8; font-size: 12px;">버블을 클릭하면 상세 정보가 표시됩니다.</div>
-  </div>
-  
-  <div id="csDetailStats">
-    <div style="font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 12px; cursor: pointer;" onclick="window.toggleSection('detailStats')">▼ 상세 현황</div>
-    <div id="detailStatsContent" style="display: block;"></div>
-  </div>
-</div>
-</div>
-</div>
-        
-
-    
-
-<div id="daily-panel" style="display:none;">
-  <div style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:24px;">
-
-    <!-- 날짜 필터 -->
-    <div style="display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
-      <span style="font-size:14px; font-weight:700; color:#94a3b8;">📅 기간 선택</span>
-      <input type="date" id="daily-start" style="background:#0f172a; border:1px solid #334155; border-radius:6px; padding:8px 12px; color:#f8fafc; font-size:14px;" />
-      <span style="color:#64748b; font-size:16px;">~</span>
-      <input type="date" id="daily-end" style="background:#0f172a; border:1px solid #334155; border-radius:6px; padding:8px 12px; color:#f8fafc; font-size:14px;" />
-      <button onclick="window.renderDailyLog()" style="background:#3b82f6; color:#fff; border:none; padding:8px 20px; border-radius:6px; font-weight:700; cursor:pointer; font-size:14px;">조회</button>
-      <span id="daily-summary" style="font-size:13px; color:#94a3b8;"></span>
+      <div>
+        <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px;">
+          <div style="font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 12px; cursor: pointer;" onclick="window.toggleSection('totalStats')">▼ 전체 C/S 현황</div>
+          <div id="totalStatsContent" style="display: block;"></div>
+        </div>
+        <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; height: fit-content; max-height: 600px; overflow-y: auto;">
+          <div id="csProjectInfo" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #334155;">
+            <div style="font-size: 14px; font-weight: 700; color: #3b82f6; margin-bottom: 12px;">프로젝트 정보</div>
+            <div id="csDetailContent" style="color: #94a3b8; font-size: 12px;">버블을 클릭하면 상세 정보가 표시됩니다.</div>
+          </div>
+          <div id="csDetailStats">
+            <div style="font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 12px; cursor: pointer;" onclick="window.toggleSection('detailStats')">▼ 상세 현황</div>
+            <div id="detailStatsContent" style="display: block;"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div id="daily-log-content">
-      <div style="color:#64748b; font-size:14px;">기간을 선택하고 조회하세요.</div>
+    <div id="daily-panel" style="display:none;">
+      <div style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:24px;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
+          <span style="font-size:14px; font-weight:700; color:#94a3b8;">📅 기간 선택</span>
+          <input type="date" id="daily-start" style="background:#0f172a; border:1px solid #334155; border-radius:6px; padding:8px 12px; color:#f8fafc; font-size:14px;" />
+          <span style="color:#64748b; font-size:16px;">~</span>
+          <input type="date" id="daily-end" style="background:#0f172a; border:1px solid #334155; border-radius:6px; padding:8px 12px; color:#f8fafc; font-size:14px;" />
+          <button onclick="window.renderDailyLog()" style="background:#3b82f6; color:#fff; border:none; padding:8px 20px; border-radius:6px; font-weight:700; cursor:pointer; font-size:14px;">조회</button>
+          <span id="daily-summary" style="font-size:13px; color:#94a3b8;"></span>
+        </div>
+        <div id="daily-log-content">
+          <div style="color:#64748b; font-size:14px;">기간을 선택하고 조회하세요.</div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbxj5EAu9ZcE1bJPb6eR2WfjXWdRzbHnWDfWQCMn313sNiSUlVttLTdfY9tFPk8JBPc7GA/exec';
@@ -213,12 +240,13 @@
     let allData = {}; 
     let documentLinksData = [];
     let currentProjectDocs = [];
-    let currentProjectId = 'project7'; 
+    let currentProjectId = 'main'; 
     let csRiskData = [];
     let csStatsData = {};
     let rawData = [];
     let mdChartInstance = null;
     let statusChartInstance = null;
+    let mainMdChartInstance = null;
     let currentDates = [];
     let activeFilters = { '단계 구분': 'All', '대응 구분': 'All', '업무 구분': 'All', '유/무상': 'All', '파트 구분': 'All', '진행상태': 'All' };
 
@@ -233,12 +261,13 @@
     window.closeDetail = function() {
       document.getElementById('detailView').style.display = 'none';
     }
-window.showDetailView = function(dateLabel, typeLabel, dataRows) {
+
+    // (기존 showDetailView 함수 그대로 유지 - 생략 없이 포함)
+    window.showDetailView = function(dateLabel, typeLabel, dataRows) {
       const detailView = document.getElementById('detailView');
       const detailTitle = document.getElementById('detailTitle');
       const detailTable = document.getElementById('detailTable');
 
-      // 👇 거추장스러운 빨간 닫기 버튼 삭제하고 다시 깔끔한 텍스트로 원복!
       detailTitle.textContent = `${dateLabel} - [${typeLabel}] 상세 내역`;
 
       if (dataRows.length === 0) {
@@ -249,35 +278,21 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
 
         dataRows.forEach(row => {
           html += '<tr>' + headers.map(h => {
-            // 1. 진행상태 뱃지
-if (h === '진행상태') {
-  let val = row[h] || '-';
-  const statusColorMap = {
-    '완료':   '#059669',
-    '지연완료': '#7c3aed',
-    '지연중':  '#dc2626',
-    'Issue':  '#dc2626',
-    '보류':   '#475569',
-    '임박':   '#d97706',
-    '진행중':  '#2563eb'
-  };
-  let color = statusColorMap[val] || '#3b82f6';
+            if (h === '진행상태') {
+              let val = row[h] || '-';
+              const statusColorMap = { '완료':   '#059669', '지연완료': '#7c3aed', '지연중':  '#dc2626', 'Issue':  '#dc2626', '보류':   '#475569', '임박':   '#d97706', '진행중':  '#2563eb' };
+              let color = statusColorMap[val] || '#3b82f6';
               return `<td style="text-align: center; vertical-align: top;"><span class="badge" style="background:${color};">${val}</span></td>`;
             }
-
-            // 2. 작업 시간
             if (h === '작업 시간') {
               const start = row['시작 시간'] || '';
               const end = row['종료 시간'] || '';
               let val = start && end ? `${start} ~ ${end}` : (start || end || '-');
               return `<td style="text-align: center; font-size: 11px; color: #94a3b8; white-space: nowrap; vertical-align: top; padding-top: 12px;">${val}</td>`;
             }
-            
-            // 3. 대괄호 '[키워드]' 와 콜론 ':' 모두 인식
             if (h === '분석 데이터') {
               let val = row[h] || '-';
               if (val === '-') return `<td style="vertical-align: top; color: #cbd5e1;">-</td>`;
-              
               let lines = val.split('\n');
               let blocks = [];
               let currentBlock = null;
@@ -285,52 +300,34 @@ if (h === '진행상태') {
               lines.forEach(line => {
                 let trimmed = line.trim();
                 if (!trimmed) return;
-
                 const bracketMatch = trimmed.match(/^\[(.*?)\](.*)/);
-
                 if (bracketMatch) {
                   currentBlock = { keyword: bracketMatch[1].trim(), content: bracketMatch[2].trim() };
                   blocks.push(currentBlock);
- 
                 } else {
-                  if (currentBlock) {
-                    currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed;
-                  } else {
-                    blocks.push({ keyword: null, content: trimmed });
-                  }
+                  if (currentBlock) { currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed; } 
+                  else { blocks.push({ keyword: null, content: trimmed }); }
                 }
               });
 
               let formattedHtml = '';
               blocks.forEach(block => {
                 if (block.keyword) {
-                  formattedHtml += `
-                    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 12px;">
-                      <span class="badge" style="background: #312e81; border: 1px solid #4f46e5; color: #c7d2fe;">
-                        📌 ${block.keyword}
-                      </span>
-                      ${block.content ? `<span style="color: #cbd5e1; line-height: 1.5;">${block.content}</span>` : ''}
-                    </div>`;
+                  formattedHtml += `<div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 12px;"><span class="badge" style="background: #312e81; border: 1px solid #4f46e5; color: #c7d2fe;">📌 ${block.keyword}</span>${block.content ? `<span style="color: #cbd5e1; line-height: 1.5;">${block.content}</span>` : ''}</div>`;
                 } else {
                   formattedHtml += `<div style="color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">${block.content}</div>`;
                 }
               });
-
               return `<td style="min-width: 250px; max-width: 400px; white-space: normal; word-break: keep-all; overflow-wrap: break-word; vertical-align: top;">${formattedHtml}</td>`;
             }
-
-            // 4. 표준 제작 Item 및 진행 사항 열 줄바꿈 강제 지정
             if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
               let val = row[h] || '-';
               return `<td style="min-width: 200px; max-width: 350px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; line-height: 1.5; vertical-align: top; color: #e2e8f0;">${val}</td>`;
             }
-            
-            // 5. 정렬 디테일
             if (h === '공수(MD)' || h === '업무 구분') {
               let val = row[h] || '-';
               return `<td style="text-align: center; vertical-align: top;">${val}</td>`;
             }
-            
             let val = row[h] || '-';
             return `<td style="vertical-align: top;">${val}</td>`;
           }).join('') + '</tr>';
@@ -353,31 +350,209 @@ if (h === '진행상태') {
         const response = await fetch(API_URL, { redirect: 'follow' });
         allData = await response.json();
         
-        if (allData.project1CsRiskMap) {
-          csRiskData = allData.project1CsRiskMap;
-        }
+        if (allData.project1CsRiskMap) csRiskData = allData.project1CsRiskMap;
+        if (allData.csStatistics) { csStatsData = allData.csStatistics; renderTotalStats(); }
+        if (allData.documentLinks) documentLinksData = allData.documentLinks;
         
-        if (allData.csStatistics) {
-          csStatsData = allData.csStatistics;
-          renderTotalStats();
-        }
-        if (allData.documentLinks) {
-          documentLinksData = allData.documentLinks;
-        }
-        window.switchProject('project7');
+        // 데이터 로드 후 기본 메인 탭 렌더링
+        window.switchTab('main');
       } catch (err) {
         console.error('동기화 실패:', err);
       }
     }
 
+    // ✅ 메인 대시보드 렌더링 함수 추가
+    window.renderMainDashboard = function() {
+      if (!allData || !allData.project7) return;
+
+      // 1. 4개 프로젝트 서머리 카드 생성
+      const summaryCardsHtml = [
+        { id: 'OP7', title: 'Interactive Control Tower', d: allData.project7, color: '#3b82f6', status: '진행중' },
+        { id: 'OP6', title: 'Battery Cell Inspection', d: allData.project6, color: '#3b82f6', status: '진행중' },
+        { id: 'OP3', title: 'Rotary Indexing System', d: allData.project3, color: '#f59e0b', status: '진행중' },
+        { id: 'CP_ALL', title: 'C/S Consolidated', d: allData.project1, color: '#10b981', status: '완료' }
+      ].map(proj => {
+        const overall = proj.d.summary ? proj.d.summary.overall : '0%';
+        return `
+          <div class="main-card">
+            <div class="main-card-title">${proj.id} <span class="badge" style="background: ${proj.status==='완료' ? '#065f46' : '#1e3a8a'}; color: ${proj.status==='완료' ? '#34d399' : '#60a5fa'}; font-size: 11px;">${proj.status}</span></div>
+            <div class="main-card-subtitle">${proj.title}</div>
+            <div class="main-progress-text" style="color: ${proj.color};">${overall} <span style="font-size:12px; font-weight:normal; color:#94a3b8;">진행률</span></div>
+            <div class="progress-bar" style="height: 8px; margin-top: auto;"><div class="progress-fill" style="width: ${overall}; background: ${proj.color};"></div></div>
+          </div>
+        `;
+      }).join('');
+      document.getElementById('main-summary-cards').innerHTML = summaryCardsHtml;
+
+      // 2. 이슈 랭킹 (API에서 제공하는 경우, 없으면 임시 메시지)
+      const top5Container = document.getElementById('main-issue-top5');
+      if (allData.issueRanking && allData.issueRanking.length > 0) {
+        const top5Html = allData.issueRanking.slice(0, 5).map((issue, idx) => `
+          <div class="issue-list-item">
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <span style="font-weight: bold; color: #94a3b8; width: 15px;">${idx + 1}.</span>
+              <span style="font-size: 13px; color: #e2e8f0;">${issue['이름'] || issue.name || issue['제목'] || '이슈 명칭 없음'}</span>
+            </div>
+            <span class="badge" style="background: #1e293b; border: 1px solid #334155;">${issue['빈도'] || issue.count || 0}건</span>
+          </div>
+        `).join('');
+        top5Container.innerHTML = top5Html;
+      } else {
+        top5Container.innerHTML = `<div style="color: #64748b; font-size: 13px;">현재 집계된 고질 이슈가 없습니다.</div>`;
+      }
+
+      // 3. 지연 이슈 (일일 로그나 히스토리에서 지연상태 추출)
+      const pendingContainer = document.getElementById('main-issue-pending');
+      const allIssues = [];
+      ['project7', 'project6', 'project3'].forEach(pKey => {
+        if(allData[pKey] && allData[pKey].history) {
+          allData[pKey].history.forEach(r => {
+             if(r['진행상태'] === '지연중' || r['진행상태'] === 'Issue' || r['진행상태'] === '임박') {
+                allIssues.push({
+                   proj: pKey.replace('project', 'OP'),
+                   title: r['제목'] || r['표준 제작 Item / Issue / 개선사항'],
+                   date: r['접수일'] || r['완료예정일'] || '',
+                   status: r['진행상태']
+                });
+             }
+          });
+        }
+      });
+      if (allIssues.length > 0) {
+        const pendingHtml = allIssues.slice(0, 3).map((issue, idx) => `
+          <div class="issue-list-item">
+            <div>
+              <div style="font-size: 13px; color: #e2e8f0; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;">${issue.title}</div>
+              <div style="font-size: 11px; color: #64748b;">${issue.proj} | ${issue.date}</div>
+            </div>
+            <span class="badge" style="background: #7f1d1d; color: #fca5a5;">+지연</span>
+          </div>
+        `).join('');
+        pendingContainer.innerHTML = pendingHtml;
+      } else {
+        pendingContainer.innerHTML = `<div style="color: #64748b; font-size: 13px;">대기 중인 지연 이슈가 없습니다.</div>`;
+      }
+
+      // 4. MD 도넛 차트 (전체 MD 합산)
+      let mdSums = { 'OP7': 0, 'OP6': 0, 'OP3': 0, 'CP': 0 };
+      let totalMd = 0;
+      ['project7', 'project6', 'project3', 'project1'].forEach(pKey => {
+         const pName = pKey.replace('project1', 'CP').replace('project', 'OP');
+         if(allData[pKey] && allData[pKey].history) {
+            allData[pKey].history.forEach(r => {
+               const val = parseFloat(r['공수(MD)']) || 0;
+               mdSums[pName] += val;
+               totalMd += val;
+            });
+         }
+      });
+
+      // 레전드 생성
+      const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
+      const pKeys = ['OP7', 'OP6', 'OP3', 'CP'];
+      document.getElementById('main-md-legend').innerHTML = pKeys.map((k, i) => `
+        <div style="display: flex; justify-content: space-between; font-size: 12px; border-bottom: 1px solid #334155; padding-bottom: 4px;">
+           <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; background: ${colors[i]}; border-radius: 2px;"></span>${k}</span>
+           <span style="color: #e2e8f0; font-weight: bold;">${mdSums[k].toFixed(1)} MD</span>
+        </div>
+      `).join('');
+
+      // 차트 생성
+      if (mainMdChartInstance) mainMdChartInstance.destroy();
+      mainMdChartInstance = new Chart(document.getElementById('mainMdChart'), {
+         type: 'doughnut',
+         data: {
+            labels: pKeys,
+            datasets: [{
+               data: pKeys.map(k => mdSums[k]),
+               backgroundColor: colors,
+               borderWidth: 0
+            }]
+         },
+         options: {
+            responsive: true, maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: { 
+               legend: { display: false },
+               tooltip: { callbacks: { label: function(context) { return ' ' + context.raw.toFixed(1) + ' MD'; } } }
+            }
+         },
+         plugins: [{
+            id: 'textCenter',
+            beforeDraw: function(chart) {
+               var width = chart.width, height = chart.height, ctx = chart.ctx;
+               ctx.restore();
+               ctx.font = "bold 20px sans-serif";
+               ctx.textBaseline = "middle";
+               ctx.fillStyle = "#f8fafc";
+               var text = totalMd.toFixed(1), textX = Math.round((width - ctx.measureText(text).width) / 2), textY = height / 2 - 5;
+               ctx.fillText(text, textX, textY);
+               ctx.font = "11px sans-serif";
+               ctx.fillStyle = "#64748b";
+               var text2 = "Total MD", text2X = Math.round((width - ctx.measureText(text2).width) / 2), text2Y = height / 2 + 15;
+               ctx.fillText(text2, text2X, text2Y);
+               ctx.save();
+            }
+         }]
+      });
+    }
+
+    // 기존 탭 전환 로직 확장
+    window.switchTab = function(tabId) {
+      document.getElementById('ai-result').style.display = 'none';
+      const mainPanel = document.getElementById('main-panel');
+      const header = document.getElementById('project-header');
+      const tools = document.getElementById('project-tools');
+      const slicers = document.getElementById('slicers');
+      const charts = document.getElementById('project-charts');
+      const detailView = document.getElementById('detailView');
+      const dailyPanel = document.getElementById('daily-panel');
+      const csPanel = document.getElementById('cs-view');
+      const aiPanel = document.getElementById('ai-panel');  
+      const docPanel = document.getElementById('doc-hub-panel');
+
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+      // 모든 섹션 숨김 처리
+      mainPanel.style.display = 'none';
+      header.style.display = 'none';
+      tools.style.display = 'none';
+      slicers.style.display = 'none';
+      charts.style.display = 'none';
+      detailView.style.display = 'none';
+      csPanel.style.display = 'none';
+      dailyPanel.style.display = 'none';
+      docPanel.style.display = 'none';
+      aiPanel.style.display = 'none';
+
+      if (tabId === 'main') {
+        document.getElementById('btn-main').classList.add('active');
+        mainPanel.style.display = 'block';
+        window.renderMainDashboard();
+      } else if (tabId === 'project1cs') {
+        document.getElementById('btn-project1cs').classList.add('active');
+        csPanel.style.display = 'grid';
+        setTimeout(() => renderCsBubbleChart(), 100);
+      } else if (tabId === 'daily') {
+        document.getElementById('btn-daily').classList.add('active');
+        dailyPanel.style.display = 'block';
+      } else {
+        document.getElementById('btn-' + tabId).classList.add('active');
+        header.style.display = 'block';
+        tools.style.display = 'flex';
+        slicers.style.display = 'grid';
+        charts.style.display = 'grid';
+        aiPanel.style.display = 'block';
+        window.switchProject(tabId);
+      }
+    }
+
     window.switchProject = function(projectId) {
       currentProjectId = projectId;
-      
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(`btn-${projectId}`).className = 'tab-btn active';
-      
       const titleMap = { 'project7': 'Project 7', 'project6': 'Project 6', 'project3': 'Project 3' };
+      const subMap = { 'project7': 'Interactive Control Tower', 'project6': 'Battery Cell Inspection', 'project3': 'Rotary Indexing System' };
       document.getElementById('projectTitle').textContent = titleMap[projectId] || 'Project';
+      document.getElementById('projectSubtitle').textContent = subMap[projectId] || '';
 
       activeFilters = { '단계 구분': 'All', '대응 구분': 'All', '업무 구분': 'All', '유/무상': 'All', '파트 구분': 'All', '진행상태': 'All' };
       
@@ -387,7 +562,7 @@ if (h === '진행상태') {
         renderSlicers();
         updateCharts();
         window.closeDetail();
-        renderDocumentHub(projectId); // ⬅️ 추가! 프로젝트 바뀔 때마다 문서 링크 갱신
+        renderDocumentHub(projectId); 
       }
     }
 
@@ -434,7 +609,7 @@ if (h === '진행상태') {
       window.closeDetail();
     }
 
-function updateCharts() {
+    function updateCharts() {
       let filteredData = rawData.filter(row => {
         for (let cat in activeFilters) {
           if (activeFilters[cat] !== 'All' && row[cat] !== activeFilters[cat]) return false;
@@ -457,7 +632,6 @@ function updateCharts() {
 
       const colorMap = { '표준': '#7F8C8D', '개선': '#27AE60', 'Issue': '#C0392B', '기술지원': '#D4AC0D', '기능요구': '#3498DB', '완료': '#27AE60', '지연중': '#C0392B', '보류': '#64748b', '임박': '#D35400', '지연완료': '#a78bfa' };
 
-      // 1. 공수 집계 차트 (왼쪽)
       const mdTypes = ['표준', '개선', 'Issue', '기술지원', '기능요구'];
       if (mdChartInstance) mdChartInstance.destroy();
       mdChartInstance = new Chart(document.getElementById('mdChart'), {
@@ -480,14 +654,12 @@ function updateCharts() {
             const datasetIdx = elements[0].datasetIndex;
             const originalDate = currentDates[idx];
             const selectedType = chart.data.datasets[datasetIdx].label;
-
             const details = filteredData.filter(r => r['접수일'] === originalDate && r['업무 구분'] === selectedType);
             window.showDetailView(formatDate(originalDate), selectedType, details);
           }
         }
       });
 
-      // 2. 진행 현황 차트 (오른쪽)
       const statusTypes = ['완료', '지연중', '보류', '임박', '지연완료'];
       if (statusChartInstance) statusChartInstance.destroy();
       statusChartInstance = new Chart(document.getElementById('statusChart'), {
@@ -510,7 +682,6 @@ function updateCharts() {
             const datasetIdx = elements[0].datasetIndex;
             const originalDate = currentDates[idx];
             const selectedStatus = chart.data.datasets[datasetIdx].label;
-
             const details = filteredData.filter(r => r['접수일'] === originalDate && r['진행상태'] === selectedStatus);
             window.showDetailView(formatDate(originalDate), selectedStatus, details);
           }
@@ -518,10 +689,10 @@ function updateCharts() {
       });
     }
 
+    // (기존 C/S 및 Daily 렌더링 함수 - 생략 없이 유지)
     function renderCsBubbleChart() {
       const canvas = document.getElementById('csBubbleCanvas');
       if (!canvas) return;
-      
       const ctx = canvas.getContext('2d');
       const rect = canvas.getBoundingClientRect();
       canvas.width = rect.width;
@@ -543,38 +714,23 @@ function updateCharts() {
         return;
       }
 
-let maxX = Math.max(...csRiskData.map(p => p.x), 2) * 1.2;
-let maxY = Math.max(...csRiskData.map(p => p.y), 2) * 1.2;
-
-      // 디버그 확인용
-console.log('maxX:', maxX, 'maxY:', maxY);
+      let maxX = Math.max(...csRiskData.map(p => p.x), 2) * 1.2;
+      let maxY = Math.max(...csRiskData.map(p => p.y), 2) * 1.2;
 
       ctx.strokeStyle = '#334155';
       ctx.lineWidth = 1;
       for (let i = 0; i <= 5; i++) {
         const x = padding + (graphWidth / 5) * i;
         const y = padding + (graphHeight / 5) * i;
-        ctx.beginPath();
-        ctx.moveTo(x, padding);
-        ctx.lineTo(x, canvas.height - padding);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(padding, y);
-        ctx.lineTo(canvas.width - padding, y);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x, padding); ctx.lineTo(x, canvas.height - padding); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(padding, y); ctx.lineTo(canvas.width - padding, y); ctx.stroke();
       }
 
       ctx.strokeStyle = '#64748b';
       ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(padding, canvas.height - padding);
-      ctx.lineTo(canvas.width - padding, canvas.height - padding);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(padding, padding);
-      ctx.lineTo(padding, canvas.height - padding);
-      ctx.stroke();
-            // X축/Y축 레이블
+      ctx.beginPath(); ctx.moveTo(padding, canvas.height - padding); ctx.lineTo(canvas.width - padding, canvas.height - padding); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(padding, padding); ctx.lineTo(padding, canvas.height - padding); ctx.stroke();
+
       ctx.fillStyle = '#94a3b8';
       ctx.font = '12px sans-serif';
       ctx.textAlign = 'center';
@@ -587,42 +743,38 @@ console.log('maxX:', maxX, 'maxY:', maxY);
       ctx.textAlign = 'center';
       ctx.fillText('← 지연 수준', 0, 0);
       ctx.restore();
-      // X축 숫자 (동적)
+
       ctx.font = '11px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       ctx.fillStyle = '#94a3b8';
       for (let i = 0; i <= 5; i++) {
-        const value = (maxX / 5) * i;  // ← 추가
+        const value = (maxX / 5) * i; 
         const x = padding + (graphWidth / 5) * i;
-        ctx.fillText(value.toFixed(1), x, canvas.height - padding + 20);  // i → value로 변경
+        ctx.fillText(value.toFixed(1), x, canvas.height - padding + 20); 
       }
       
-      // Y축 숫자 (동적)
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
       for (let i = 0; i <= 5; i++) {
-        const value = (maxY / 5) * i;  // ← 이 줄 추가!
+        const value = (maxY / 5) * i; 
         const y = canvas.height - padding - (graphHeight / 5) * i;
-        ctx.fillText(value.toFixed(1), padding - 15, y);  // i → value로 변경
+        ctx.fillText(value.toFixed(1), padding - 15, y); 
       }
 
-const colorMap = { '안정': '#86EFAC', '임박': '#FCD34D', '주의': '#F9A8D4', '위험': '#FCA5A5', '심각': '#EF4444' };
+      const colorMap = { '안정': '#86EFAC', '임박': '#FCD34D', '주의': '#F9A8D4', '위험': '#FCA5A5', '심각': '#EF4444' };
+      const grouped = {};
+      csRiskData.forEach((project, idx) => {
+        const key = `${project.x.toFixed(2)},${project.y.toFixed(2)}`;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push({ ...project, originalIndex: idx });
+      });
 
-// 같은 좌표 그룹화 ← 추가!
-const grouped = {};
-csRiskData.forEach((project, idx) => {
-  const key = `${project.x.toFixed(2)},${project.y.toFixed(2)}`;
-  if (!grouped[key]) grouped[key] = [];
-  grouped[key].push({ ...project, originalIndex: idx });
-});
-
-csRiskData.forEach((project, index) => {
+      csRiskData.forEach((project, index) => {
         let x = padding + (project.x / maxX) * graphWidth;
         let y = canvas.height - padding - (project.y / maxY) * graphHeight;
-const radius = (project.size / 100) * 20 + 15;
+        const radius = (project.size / 100) * 20 + 15;
 
-        // 대각선 배치 ← 추가!
         const key = `${project.x.toFixed(2)},${project.y.toFixed(2)}`;
         const groupIndex = grouped[key].findIndex(p => p.originalIndex === index);
         const groupSize = grouped[key].length;
@@ -637,16 +789,12 @@ const radius = (project.size / 100) * 20 + 15;
 
         ctx.fillStyle = color;
         ctx.globalAlpha = 0.7;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
         ctx.globalAlpha = 1;
 
         ctx.strokeStyle = color;
         ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.stroke();
+        ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.stroke();
 
         ctx.fillStyle = '#f8fafc';
         ctx.font = 'bold 13px monospace';
@@ -666,9 +814,7 @@ const radius = (project.size / 100) * 20 + 15;
 
         csRiskData.forEach(project => {
           const dist = Math.sqrt(Math.pow(mouseX - project.x_pixel, 2) + Math.pow(mouseY - project.y_pixel, 2));
-          if (dist < project.radius) {
-            selectCsProject(project);
-          }
+          if (dist < project.radius) selectCsProject(project);
         });
       };
     }
@@ -683,28 +829,25 @@ const radius = (project.size / 100) * 20 + 15;
           <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">상태</div>
           <div style="font-size: 18px; font-weight: 700; color: #f8fafc;">${project.status}</div>
         </div>
-<div style="margin-bottom: 20px;">
-      <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">정보</div>
-      <div style="font-size: 13px; color: #e2e8f0; margin-bottom: 8px;">진행율: ${project.progress}%</div>
-      <div style="font-size: 13px; color: #e2e8f0; margin-bottom: 8px;">임박 수준: ${project.x.toFixed(1)}</div>
-      <div style="font-size: 13px; color: #e2e8f0;">지연일: ${project.y.toFixed(1)}</div>
-    </div>
+        <div style="margin-bottom: 20px;">
+          <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">정보</div>
+          <div style="font-size: 13px; color: #e2e8f0; margin-bottom: 8px;">진행율: ${project.progress}%</div>
+          <div style="font-size: 13px; color: #e2e8f0; margin-bottom: 8px;">임박 수준: ${project.x.toFixed(1)}</div>
+          <div style="font-size: 13px; color: #e2e8f0;">지연일: ${project.y.toFixed(1)}</div>
+        </div>
       `;
       document.getElementById('csDetailContent').innerHTML = html;
       renderDetailStats(project.name);
     }
 
-function renderDetailStats(projectNo) {
-  const content = document.getElementById('detailStatsContent');
-  
-  if (!csStatsData.detail || !csStatsData.detail[projectNo]) {
-    content.innerHTML = '<div style="color: #64748b; font-size: 12px;">데이터 없음</div>';
-    return;
-  }
-
-  const projectData = csStatsData.detail[projectNo];
-  let html = '<div style="display: flex; gap: 16px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 12px;"><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></span>유상</span><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #d1d5db; border-radius: 2px;"></span>무상</span></div>';
-
+    function renderDetailStats(projectNo) {
+      const content = document.getElementById('detailStatsContent');
+      if (!csStatsData.detail || !csStatsData.detail[projectNo]) {
+        content.innerHTML = '<div style="color: #64748b; font-size: 12px;">데이터 없음</div>';
+        return;
+      }
+      const projectData = csStatsData.detail[projectNo];
+      let html = '<div style="display: flex; gap: 16px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 12px;"><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></span>유상</span><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #d1d5db; border-radius: 2px;"></span>무상</span></div>';
       for (const taskType in projectData) {
         html += `<div style="margin-bottom: 12px;"><div style="color: #cbd5e1; font-size: 11px; margin-bottom: 6px; font-weight: 600;">${taskType}</div>`;
         for (const partType in projectData[taskType]) {
@@ -715,278 +858,173 @@ function renderDetailStats(projectNo) {
         }
         html += '</div>';
       }
-
       content.innerHTML = html;
     }
 
-function renderTotalStats() {
-  const content = document.getElementById('totalStatsContent');
-  
-  if (!csStatsData.detail) {
-    content.innerHTML = '<div style="color: #64748b; font-size: 12px;">데이터 없음</div>';
-    return;
-  }
-
-  let html = '<div style="display: flex; gap: 16px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 12px;"><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></span>유상</span><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #d1d5db; border-radius: 2px;"></span>무상</span></div>';
-  
-  // 모든 프로젝트의 데이터를 합산
-  const aggregated = {};
-  
-  for (const projectNo in csStatsData.detail) {
-    const projectData = csStatsData.detail[projectNo];
-    
-    for (const taskType in projectData) {
-      if (!aggregated[taskType]) aggregated[taskType] = {};
-      
-      for (const partType in projectData[taskType]) {
-        if (!aggregated[taskType][partType]) {
-          aggregated[taskType][partType] = { 유상: 0, 무상: 0 };
+    function renderTotalStats() {
+      const content = document.getElementById('totalStatsContent');
+      if (!csStatsData.detail) {
+        content.innerHTML = '<div style="color: #64748b; font-size: 12px;">데이터 없음</div>';
+        return;
+      }
+      let html = '<div style="display: flex; gap: 16px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 12px;"><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></span>유상</span><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #d1d5db; border-radius: 2px;"></span>무상</span></div>';
+      const aggregated = {};
+      for (const projectNo in csStatsData.detail) {
+        const projectData = csStatsData.detail[projectNo];
+        for (const taskType in projectData) {
+          if (!aggregated[taskType]) aggregated[taskType] = {};
+          for (const partType in projectData[taskType]) {
+            if (!aggregated[taskType][partType]) aggregated[taskType][partType] = { 유상: 0, 무상: 0 };
+            aggregated[taskType][partType].유상 += projectData[taskType][partType].유상;
+            aggregated[taskType][partType].무상 += projectData[taskType][partType].무상;
+          }
         }
-        
-        aggregated[taskType][partType].유상 += projectData[taskType][partType].유상;
-        aggregated[taskType][partType].무상 += projectData[taskType][partType].무상;
       }
-    }
-  }
-  
-  // 렌더링
-  for (const taskType in aggregated) {
-    html += `<div style="margin-bottom: 16px;"><div style="color: #cbd5e1; font-size: 12px; margin-bottom: 8px; font-weight: 600;">${taskType}</div>`;
-    
-    for (const partType in aggregated[taskType]) {
-      const data = aggregated[taskType][partType];
-      const total = data.유상 + data.무상;
-      const ratio = total > 0 ? (data.유상 / total * 100).toFixed(0) : 0;
-      
-      html += `<div style="margin-bottom: 8px;"><div style="color: #94a3b8; font-size: 11px; margin-bottom: 4px;">${partType}: ${total.toFixed(1)}MD</div><div style="display: flex; height: 20px; border-radius: 4px; overflow: hidden; background: #0f172a;"><div style="background: #3b82f6; width: ${ratio}%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 10px;">${data.유상.toFixed(1)}</div><div style="background: #d1d5db; flex: 1; display: flex; align-items: center; justify-content: center; color: var(--color-text-primary); font-weight: bold; font-size: 10px;">${data.무상.toFixed(1)}</div></div></div>`;
-    }
-    
-    html += '</div>';
-  }
-
-  content.innerHTML = html;
-}
-
-window.switchTab = function(tabId) {
-      document.getElementById('ai-result').style.display = 'none';
-      const header = document.querySelector('.header');
-      const tools = document.querySelector('.dashboard-tools');
-      const slicers = document.getElementById('slicers');
-      const charts = document.querySelector('.charts-grid');
-      const detailView = document.getElementById('detailView');
-      const dailyPanel = document.getElementById('daily-panel');
-      const csPanel = document.getElementById('cs-view');
-      const aiPanel = document.getElementById('ai-panel');  
-      const docPanel = document.getElementById('doc-hub-panel'); // ✅ 추가: 산출물 패널 요소 가져오기
-
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
-      if (tabId === 'project1cs') {
-        document.getElementById('btn-project1cs').classList.add('active');
-        aiPanel.style.display = 'none';  
-        docPanel.style.display = 'none'; // ✅ 추가: C/S 탭에서 산출물 영역 숨김
-        header.style.display = 'none';
-        tools.style.display = 'none';
-        slicers.style.display = 'none';
-        charts.style.display = 'none';
-        detailView.style.display = 'none';
-        dailyPanel.style.display = 'none';
-        csPanel.style.display = 'grid';
-        setTimeout(() => renderCsBubbleChart(), 100);
-      } else if (tabId === 'daily') {
-        document.getElementById('btn-daily').classList.add('active');
-        aiPanel.style.display = 'none';  
-        docPanel.style.display = 'none'; // ✅ 추가: 기간별 업무 내역 탭에서 산출물 영역 숨김
-        header.style.display = 'none';
-        tools.style.display = 'none';
-        slicers.style.display = 'none';
-        charts.style.display = 'none';
-        detailView.style.display = 'none';
-        csPanel.style.display = 'none';
-        dailyPanel.style.display = 'block';
-      } else {
-        document.getElementById('btn-' + tabId).classList.add('active');
-        aiPanel.style.display = 'block';  
-        // 일반 프로젝트 탭(OP7, OP6 등)을 누르면 switchProject 내부의 renderDocumentHub에서 다시 block으로 표시해줍니다.
-        header.style.display = 'block';
-        tools.style.display = 'flex';
-        slicers.style.display = 'grid';
-        charts.style.display = 'grid';
-        detailView.style.display = 'none';
-        csPanel.style.display = 'none';
-        dailyPanel.style.display = 'none';
-        window.switchProject(tabId);
+      for (const taskType in aggregated) {
+        html += `<div style="margin-bottom: 16px;"><div style="color: #cbd5e1; font-size: 12px; margin-bottom: 8px; font-weight: 600;">${taskType}</div>`;
+        for (const partType in aggregated[taskType]) {
+          const data = aggregated[taskType][partType];
+          const total = data.유상 + data.무상;
+          const ratio = total > 0 ? (data.유상 / total * 100).toFixed(0) : 0;
+          html += `<div style="margin-bottom: 8px;"><div style="color: #94a3b8; font-size: 11px; margin-bottom: 4px;">${partType}: ${total.toFixed(1)}MD</div><div style="display: flex; height: 20px; border-radius: 4px; overflow: hidden; background: #0f172a;"><div style="background: #3b82f6; width: ${ratio}%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 10px;">${data.유상.toFixed(1)}</div><div style="background: #d1d5db; flex: 1; display: flex; align-items: center; justify-content: center; color: var(--color-text-primary); font-weight: bold; font-size: 10px;">${data.무상.toFixed(1)}</div></div></div>`;
+        }
+        html += '</div>';
       }
+      content.innerHTML = html;
     }
-    
-window.renderDailyLog = function() {
-  const startVal = document.getElementById('daily-start').value;
-  const endVal   = document.getElementById('daily-end').value;
-  const content  = document.getElementById('daily-log-content');
-  const summary  = document.getElementById('daily-summary');
 
-  if (!startVal || !endVal) {
-    content.innerHTML = '<div style="color:#64748b; font-size:14px;">시작일과 종료일을 모두 선택하세요.</div>';
-    return;
-  }
-  if (startVal > endVal) {
-    content.innerHTML = '<div style="color:#ef4444; font-size:14px;">시작일이 종료일보다 늦습니다.</div>';
-    summary.textContent = '';
-    return;
-  }
+    window.renderDailyLog = function() {
+      const startVal = document.getElementById('daily-start').value;
+      const endVal   = document.getElementById('daily-end').value;
+      const content  = document.getElementById('daily-log-content');
+      const summary  = document.getElementById('daily-summary');
 
-  const logs = (allData.dailyLog || []).filter(row => row['날짜'] >= startVal && row['날짜'] <= endVal);
-
-  if (logs.length === 0) {
-    content.innerHTML = '<div style="color:#64748b; font-size:14px;">해당 기간에 데이터가 없습니다.</div>';
-    summary.textContent = '';
-    return;
-  }
-
-  // 날짜별 그룹화
-  const grouped = {};
-  logs.forEach(row => {
-    const d = row['날짜'];
-    if (!grouped[d]) grouped[d] = [];
-    grouped[d].push(row);
-  });
-
-  // 날짜 내 시간순 정렬
-  Object.keys(grouped).forEach(d => {
-    grouped[d].sort((a, b) => (a['시간'] || '').localeCompare(b['시간'] || ''));
-  });
-
-  const sortedDates = Object.keys(grouped).sort();
-  const totalMD = logs.reduce((s, r) => s + (r['공수'] || 0), 0);
-  summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD`;
-
-  const statusColor = {
-    '완료': '#059669', '지연완료': '#7c3aed', '지연중': '#dc2626',
-    'Issue': '#dc2626', '보류': '#475569', '임박': '#d97706', '진행중': '#2563eb'
-  };
-  const taskColor = {
-    'Issue': '#7f1d1d', '표준': '#374151', '개선': '#14532d',
-    '기술지원': '#713f12', '기능요구': '#1e3a5f'
-  };
-  const stageBadge = {
-    '제작': '#1e3a5f', 'FAT': '#3b1f6b', 'SET-UP': '#1a3d2b', 'SAT': '#3d1f1f', 'C/S': '#2d2d00'
-  };
-
-  let html = '';
-  sortedDates.forEach(date => {
-    const rows = grouped[date];
-    const dayMD = rows.reduce((s, r) => s + (r['공수'] || 0), 0);
-    // 2026-06-09 → 26.06.09 (화)
-    const dateObj = new Date(date);
-    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-    const dayLabel = date.substring(2).replace(/-/g, '.') + ` (${dayNames[dateObj.getDay()]})`;
-
-    html += `
-      <div style="margin-bottom:24px;">
-        <!-- 날짜 헤더 -->
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-          <div style="font-size:15px; font-weight:700; color:#3b82f6; white-space:nowrap;">${dayLabel}</div>
-          <div style="font-size:12px; color:#64748b;">${rows.length}건</div>
-          <div style="font-size:12px; color:#94a3b8; background:#0f172a; padding:2px 10px; border-radius:10px; border:1px solid #334155; white-space:nowrap;">${dayMD.toFixed(1)} MD</div>
-          <div style="flex:1; height:1px; background:#334155;"></div>
-        </div>
-        <!-- 카드 목록 -->
-        <div style="display:flex; flex-direction:column; gap:8px;">
-    `;
-
-rows.forEach(row => {
-  const sColor = statusColor[row['진행상태']] || '#334155';
-  const tColor = taskColor[row['업무구분']] || '#374151';
-  const stColor = stageBadge[row['단계']] || '#1e293b';
-
-  function parseAnalysis(val) {
-    if (!val || val.trim() === '' || val === '-') return '';
-    let lines = val.split('\n');
-    let blocks = [];
-    let currentBlock = null;
-    lines.forEach(line => {
-      let trimmed = line.trim();
-      if (!trimmed) return;
-      const bracketMatch = trimmed.match(/^\[(.*?)\](.*)/);
-      if (bracketMatch) {
-        currentBlock = { keyword: bracketMatch[1].trim(), content: bracketMatch[2].trim() };
-        blocks.push(currentBlock);
-
-      } else {
-        if (currentBlock) currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed;
-        else blocks.push({ keyword: null, content: trimmed });
+      if (!startVal || !endVal) {
+        content.innerHTML = '<div style="color:#64748b; font-size:14px;">시작일과 종료일을 모두 선택하세요.</div>';
+        return;
       }
-    });
-    let html = '';
-    blocks.forEach((block, i) => {
-      if (i > 0) html += `<div style="height:0.5px; background:#1e293b; margin:8px 0;"></div>`;
-      if (block.keyword) {
+      if (startVal > endVal) {
+        content.innerHTML = '<div style="color:#ef4444; font-size:14px;">시작일이 종료일보다 늦습니다.</div>';
+        summary.textContent = '';
+        return;
+      }
+
+      const logs = (allData.dailyLog || []).filter(row => row['날짜'] >= startVal && row['날짜'] <= endVal);
+      if (logs.length === 0) {
+        content.innerHTML = '<div style="color:#64748b; font-size:14px;">해당 기간에 데이터가 없습니다.</div>';
+        summary.textContent = '';
+        return;
+      }
+
+      const grouped = {};
+      logs.forEach(row => {
+        const d = row['날짜'];
+        if (!grouped[d]) grouped[d] = [];
+        grouped[d].push(row);
+      });
+
+      Object.keys(grouped).forEach(d => {
+        grouped[d].sort((a, b) => (a['시간'] || '').localeCompare(b['시간'] || ''));
+      });
+
+      const sortedDates = Object.keys(grouped).sort();
+      const totalMD = logs.reduce((s, r) => s + (r['공수'] || 0), 0);
+      summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD`;
+
+      const statusColor = { '완료': '#059669', '지연완료': '#7c3aed', '지연중': '#dc2626', 'Issue': '#dc2626', '보류': '#475569', '임박': '#d97706', '진행중': '#2563eb' };
+      const taskColor = { 'Issue': '#7f1d1d', '표준': '#374151', '개선': '#14532d', '기술지원': '#713f12', '기능요구': '#1e3a5f' };
+      const stageBadge = { '제작': '#1e3a5f', 'FAT': '#3b1f6b', 'SET-UP': '#1a3d2b', 'SAT': '#3d1f1f', 'C/S': '#2d2d00' };
+
+      let html = '';
+      sortedDates.forEach(date => {
+        const rows = grouped[date];
+        const dayMD = rows.reduce((s, r) => s + (r['공수'] || 0), 0);
+        const dateObj = new Date(date);
+        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+        const dayLabel = date.substring(2).replace(/-/g, '.') + ` (${dayNames[dateObj.getDay()]})`;
+
         html += `
-          <div>
-            <span style="display:inline-flex; align-items:center; gap:5px; background:#312e81; border:1px solid #4f46e5; color:#c7d2fe; font-size:11px; font-weight:600; padding:2px 10px; border-radius:4px; margin-bottom:5px;">
-              📌 ${block.keyword}
-            </span>
-            ${block.content ? `<div style="font-size:12px; color:#cbd5e1; line-height:1.6;">${block.content}</div>` : ''}
-          </div>`;
-      } else {
-        html += `<div style="font-size:12px; color:#cbd5e1; line-height:1.6;">${block.content}</div>`;
-      }
-    });
-    return html;
-  }
+          <div style="margin-bottom:24px;">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+              <div style="font-size:15px; font-weight:700; color:#3b82f6; white-space:nowrap;">${dayLabel}</div>
+              <div style="font-size:12px; color:#64748b;">${rows.length}건</div>
+              <div style="font-size:12px; color:#94a3b8; background:#0f172a; padding:2px 10px; border-radius:10px; border:1px solid #334155; white-space:nowrap;">${dayMD.toFixed(1)} MD</div>
+              <div style="flex:1; height:1px; background:#334155;"></div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+        `;
 
-  const analysisHtml = parseAnalysis(row['분석'] || '');
-  const hasAnalysis = analysisHtml !== '';
-  const hasDesc = row['설명'] && row['설명'].trim();
-  const hasDetail = hasDesc || hasAnalysis;
+        rows.forEach(row => {
+          const sColor = statusColor[row['진행상태']] || '#334155';
+          const tColor = taskColor[row['업무구분']] || '#374151';
+          const stColor = stageBadge[row['단계']] || '#1e293b';
 
-  html += `
-    <div style="background:#0f172a; border:1px solid ${hasAnalysis ? '#4f46e5' : '#1e293b'}; border-radius:6px; padding:12px 16px; display:grid; grid-template-columns:100px 1fr; gap:12px; align-items:start;">
+          function parseAnalysis(val) {
+            if (!val || val.trim() === '' || val === '-') return '';
+            let lines = val.split('\n');
+            let blocks = [];
+            let currentBlock = null;
+            lines.forEach(line => {
+              let trimmed = line.trim();
+              if (!trimmed) return;
+              const bracketMatch = trimmed.match(/^\[(.*?)\](.*)/);
+              if (bracketMatch) {
+                currentBlock = { keyword: bracketMatch[1].trim(), content: bracketMatch[2].trim() };
+                blocks.push(currentBlock);
+              } else {
+                if (currentBlock) currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed;
+                else blocks.push({ keyword: null, content: trimmed });
+              }
+            });
+            let html = '';
+            blocks.forEach((block, i) => {
+              if (i > 0) html += `<div style="height:0.5px; background:#1e293b; margin:8px 0;"></div>`;
+              if (block.keyword) {
+                html += `<div><span style="display:inline-flex; align-items:center; gap:5px; background:#312e81; border:1px solid #4f46e5; color:#c7d2fe; font-size:11px; font-weight:600; padding:2px 10px; border-radius:4px; margin-bottom:5px;">📌 ${block.keyword}</span>${block.content ? `<div style="font-size:12px; color:#cbd5e1; line-height:1.6;">${block.content}</div>` : ''}</div>`;
+              } else {
+                html += `<div style="font-size:12px; color:#cbd5e1; line-height:1.6;">${block.content}</div>`;
+              }
+            });
+            return html;
+          }
 
-      <!-- 좌: 시간 + 공수 + 프로젝트 -->
-      <div style="display:flex; flex-direction:column; gap:6px;">
-        <div style="font-size:11px; color:#475569; font-family:monospace; white-space:nowrap;">${row['시간'] || '-'}</div>
-        ${row['공수'] ? `<div style="font-size:12px; font-weight:700; color:#94a3b8;">${row['공수'].toFixed(1)} MD</div>` : ''}
-        ${row['프로젝트'] ? `<span style="background:#0f2744; color:#60a5fa; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid #1d4ed8; text-align:center;">${row['프로젝트']}</span>` : ''}
-      </div>
+          const analysisHtml = parseAnalysis(row['분석'] || '');
+          const hasAnalysis = analysisHtml !== '';
+          const hasDesc = row['설명'] && row['설명'].trim();
+          const hasDetail = hasDesc || hasAnalysis;
 
-      <!-- 우: 뱃지 + 제목 + 상세박스 -->
-      <div>
-        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
-          <span style="background:${sColor}; color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${row['진행상태'] || '-'}</span>
-          <span style="background:${tColor}; color:#e2e8f0; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${row['업무구분'] || '-'}</span>
-          ${row['단계'] ? `<span style="background:${stColor}; color:#94a3b8; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px;">${row['단계']}</span>` : ''}
-            ${row['파트'] ? `<span style="background:#1a2e1a; color:#4ade80; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid #166534;">${row['파트']}</span>` : ''}
-          ${row['유무상'] ? `<span style="background:${row['유무상']==='유상'?'#1e3a5f':'#1e293b'}; color:${row['유무상']==='유상'?'#93c5fd':'#64748b'}; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid ${row['유무상']==='유상'?'#1d4ed8':'#334155'};">${row['유무상']}</span>` : ''}
-        </div>
+          html += `
+            <div style="background:#0f172a; border:1px solid ${hasAnalysis ? '#4f46e5' : '#1e293b'}; border-radius:6px; padding:12px 16px; display:grid; grid-template-columns:100px 1fr; gap:12px; align-items:start;">
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <div style="font-size:11px; color:#475569; font-family:monospace; white-space:nowrap;">${row['시간'] || '-'}</div>
+                ${row['공수'] ? `<div style="font-size:12px; font-weight:700; color:#94a3b8;">${row['공수'].toFixed(1)} MD</div>` : ''}
+                ${row['프로젝트'] ? `<span style="background:#0f2744; color:#60a5fa; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid #1d4ed8; text-align:center;">${row['프로젝트']}</span>` : ''}
+              </div>
+              <div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
+                  <span style="background:${sColor}; color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${row['진행상태'] || '-'}</span>
+                  <span style="background:${tColor}; color:#e2e8f0; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${row['업무구분'] || '-'}</span>
+                  ${row['단계'] ? `<span style="background:${stColor}; color:#94a3b8; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px;">${row['단계']}</span>` : ''}
+                  ${row['파트'] ? `<span style="background:#1a2e1a; color:#4ade80; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid #166534;">${row['파트']}</span>` : ''}
+                  ${row['유무상'] ? `<span style="background:${row['유무상']==='유상'?'#1e3a5f':'#1e293b'}; color:${row['유무상']==='유상'?'#93c5fd':'#64748b'}; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid ${row['유무상']==='유상'?'#1d4ed8':'#334155'};">${row['유무상']}</span>` : ''}
+                </div>
+                <div style="font-size:13px; color:#f1f5f9; font-weight:600; margin-bottom:${hasDetail ? '8px' : '0'}; line-height:1.4;">${row['제목'] || '-'}</div>
+                ${hasDetail ? `
+                <div style="background:#0a0f1a; border:1px solid #1e293b; border-radius:6px; padding:10px 14px;">
+                  ${hasDesc ? `<div style="font-size:11px; color:#3b82f6; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">진행 사항</div><div style="font-size:12px; color:#94a3b8; line-height:1.6; white-space:pre-wrap; margin-bottom:${hasAnalysis ? '10px' : '0'};">${row['설명']}</div>` : ''}
+                  ${hasDesc && hasAnalysis ? `<div style="height:0.5px; background:#1e293b; margin-bottom:10px;"></div>` : ''}
+                  ${hasAnalysis ? `<div style="font-size:11px; color:#8b5cf6; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">분석 데이터</div>${analysisHtml}` : ''}
+                </div>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        });
+        html += `</div></div>`;
+      });
+      content.innerHTML = html;
+    }
 
-        <div style="font-size:13px; color:#f1f5f9; font-weight:600; margin-bottom:${hasDetail ? '8px' : '0'}; line-height:1.4;">${row['제목'] || '-'}</div>
-
-        ${hasDetail ? `
-        <div style="background:#0a0f1a; border:1px solid #1e293b; border-radius:6px; padding:10px 14px;">
-          ${hasDesc ? `
-            <div style="font-size:11px; color:#3b82f6; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">진행 사항</div>
-            <div style="font-size:12px; color:#94a3b8; line-height:1.6; white-space:pre-wrap; margin-bottom:${hasAnalysis ? '10px' : '0'};">${row['설명']}</div>
-          ` : ''}
-          ${hasDesc && hasAnalysis ? `<div style="height:0.5px; background:#1e293b; margin-bottom:10px;"></div>` : ''}
-          ${hasAnalysis ? `
-            <div style="font-size:11px; color:#8b5cf6; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">분석 데이터</div>
-            ${analysisHtml}
-          ` : ''}
-        </div>
-        ` : ''}
-      </div>
-    </div>
-  `;
-});
-
-    html += `</div></div>`;
-  });
-
-  content.innerHTML = html;
-}
-
-    window.bubbleSpacing = 50;
     document.addEventListener('DOMContentLoaded', () => {
       const slider = document.getElementById('spacingSlider');
       if (slider) {
@@ -999,11 +1037,11 @@ rows.forEach(row => {
     });
 
     window.addEventListener('load', syncDashboard);
+
     window.runAIAnalysis = async function(modelType) {
       const btnFlash = document.getElementById('ai-btn-flash');
       const btnPro = document.getElementById('ai-btn-pro');
       const resultBox = document.getElementById('ai-result');
-
       const isPro = modelType === 'pro';
       const activeBtn = isPro ? btnPro : btnFlash;
       const inactiveBtn = isPro ? btnFlash : btnPro;
@@ -1020,7 +1058,6 @@ rows.forEach(row => {
       try {
         const tableData = Array.from(document.querySelectorAll('#detailTable tr')).map(row => row.innerText);
         const projectName = document.getElementById('projectTitle').textContent;
-
         const payload = {
           projectTitle: projectName,
           modelType: modelType, 
@@ -1034,11 +1071,8 @@ rows.forEach(row => {
         });
 
         const data = await response.json();
-        if (data.report) {
-          resultBox.innerHTML = data.report;
-        } else {
-          resultBox.innerHTML = `<span style="color: #ef4444;">분석 오류: ${data.error}</span>`;
-        }
+        if (data.report) resultBox.innerHTML = data.report;
+        else resultBox.innerHTML = `<span style="color: #ef4444;">분석 오류: ${data.error}</span>`;
       } catch (error) {
         resultBox.innerHTML = `<span style="color: #ef4444;">통신 실패: Vercel 서버 연결을 확인하세요.</span>`;
       } finally {
@@ -1048,8 +1082,7 @@ rows.forEach(row => {
         inactiveBtn.style.opacity = '1';
       }
     }
-    // 💡 문서 컨트롤 타워 렌더링 함수
-// 💡 문서 컨트롤 타워 렌더링 함수 (토글 기능 적용 완료!)
+
     function renderDocumentHub(projectId) {
       const docPanel = document.getElementById('doc-hub-panel');
       if (!docPanel) return;
@@ -1078,7 +1111,6 @@ rows.forEach(row => {
           btn.className = 'doc-loc-btn';
           btn.innerHTML = loc.includes('서버') ? `🗄️ ${loc}` : `💻 ${loc}`;
           
-          // ✨ 여기부터가 클릭 시 열고 닫히는 토글 기능입니다!
           btn.onclick = () => {
               if (btn.classList.contains('active')) {
                   btn.classList.remove('active');
@@ -1089,18 +1121,14 @@ rows.forEach(row => {
                   showDocItems(loc);
               }
           };
-          
           locSlicer.appendChild(btn);
       });
     }
 
-    // 💡 2단계: 문서 아이템 보여주기
     function showDocItems(location) {
       const itemsContainer = document.getElementById('doc-items-container');
       itemsContainer.innerHTML = '';
-      
       const docs = currentProjectDocs.filter(d => d.location === location);
-      
       docs.forEach(doc => {
           const btn = document.createElement('button');
           btn.className = 'doc-item-btn';
@@ -1108,11 +1136,9 @@ rows.forEach(row => {
           btn.onclick = () => copyFilePath(doc.filePath);
           itemsContainer.appendChild(btn);
       });
-      
       itemsContainer.style.display = 'block';
     }
 
-    // 💡 3단계: 하이퍼링크(경로) 클립보드 복사
     function copyFilePath(path) {
       const cleanPath = path.replace(/^"|"$/g, ''); 
       navigator.clipboard.writeText(cleanPath).then(() => {
