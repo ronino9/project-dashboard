@@ -205,65 +205,96 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
       if (dataRows.length === 0) {
         detailTable.innerHTML = '<tr><td style="text-align:center;">데이터가 없습니다.</td></tr>';
       } else {
-        // 👇 '작업 시간'을 '공수(MD)' 왼쪽으로 이동!
         const headers = ['진행상태', '업무 구분', '작업 시간', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터'];
         let html = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
 
         dataRows.forEach(row => {
           html += '<tr>' + headers.map(h => {
-            let val = row[h] || '-';
-            
-            // 1. 진행상태 뱃지 디자인
+            // 1. 진행상태 뱃지
             if (h === '진행상태') {
+              let val = row[h] || '-';
               let color = val.includes('완료') ? '#059669' : (val.includes('지연') || val === 'Issue' ? '#dc2626' : '#3b82f6');
-              val = `<span class="badge" style="background:${color};">${val}</span>`;
+              return `<td style="text-align: center; vertical-align: top;"><span class="badge" style="background:${color};">${val}</span></td>`;
             }
 
-            // 2. 시작 시간과 종료 시간을 합친 '작업 시간' 열 
+            // 2. 작업 시간
             if (h === '작업 시간') {
               const start = row['시작 시간'] || '';
               const end = row['종료 시간'] || '';
-              if (start && end) {
-                val = `${start} ~ ${end}`;
-              } else if (start || end) {
-                val = start || end;
-              } else {
-                val = '-';
-              }
+              let val = start && end ? `${start} ~ ${end}` : (start || end || '-');
               return `<td style="text-align: center; font-size: 11px; color: #94a3b8; white-space: nowrap; vertical-align: top; padding-top: 12px;">${val}</td>`;
             }
             
-            // 3. 분석 데이터 뱃지 사이즈 완벽 일치!
+            // 👇 3. [최종 진화] 대괄호 '[키워드]' 와 콜론 ':' 모두 인식!
             if (h === '분석 데이터') {
-              let formattedVal = val;
-              if (val !== '-' && val.includes(':')) {
-                const splitIndex = val.indexOf(':');
-                const keyword = val.substring(0, splitIndex).trim();
-                const content = val.substring(splitIndex + 1).trim();
+              let val = row[h] || '-';
+              if (val === '-') return `<td style="vertical-align: top; color: #cbd5e1;">-</td>`;
+              
+              let lines = val.split('\n');
+              let blocks = [];
+              let currentBlock = null;
 
-                formattedVal = `
-                  <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px;">
-                    <span class="badge" style="background: #312e81; border: 1px solid #4f46e5; color: #c7d2fe;">
-                      📌 ${keyword}
-                    </span>
-                    <span style="color: #cbd5e1; line-height: 1.5;">${content}</span>
-                  </div>`;
-              } else {
-                formattedVal = `<span style="color: #cbd5e1; line-height: 1.5;">${val}</span>`;
-              }
-              return `<td style="min-width: 250px; max-width: 400px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; vertical-align: top;">${formattedVal}</td>`;
+              lines.forEach(line => {
+                let trimmed = line.trim();
+                if (!trimmed) return;
+
+                // 정규식: 맨 앞에 [키워드] 가 있는지 확인
+                const bracketMatch = trimmed.match(/^\[(.*?)\](.*)/);
+
+                if (bracketMatch) {
+                  // 케이스 A: [키워드] 내용
+                  currentBlock = { keyword: bracketMatch[1].trim(), content: bracketMatch[2].trim() };
+                  blocks.push(currentBlock);
+                } else if (trimmed.includes(':')) {
+                  // 케이스 B: 기존의 키워드 : 내용 방식 (호환성 유지)
+                  const splitIndex = trimmed.indexOf(':');
+                  const keyword = trimmed.substring(0, splitIndex).trim();
+                  const content = trimmed.substring(splitIndex + 1).trim();
+
+                  currentBlock = { keyword: keyword, content: content };
+                  blocks.push(currentBlock);
+                } else {
+                  // 키워드가 없는 줄은 이전 키워드 내용에 깔끔하게 이어붙이기!
+                  if (currentBlock) {
+                    currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed;
+                  } else {
+                    // 맨 처음부터 키워드가 없는 일반 텍스트일 경우
+                    blocks.push({ keyword: null, content: trimmed });
+                  }
+                }
+              });
+
+              let formattedHtml = '';
+              blocks.forEach(block => {
+                if (block.keyword) {
+                  formattedHtml += `
+                    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 12px;">
+                      <span class="badge" style="background: #312e81; border: 1px solid #4f46e5; color: #c7d2fe;">
+                        📌 ${block.keyword}
+                      </span>
+                      ${block.content ? `<span style="color: #cbd5e1; line-height: 1.5;">${block.content}</span>` : ''}
+                    </div>`;
+                } else {
+                  formattedHtml += `<div style="color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">${block.content}</div>`;
+                }
+              });
+
+              return `<td style="min-width: 250px; max-width: 400px; white-space: normal; word-break: keep-all; overflow-wrap: break-word; vertical-align: top;">${formattedHtml}</td>`;
             }
 
             // 4. 표준 제작 Item 및 진행 사항 열 줄바꿈 강제 지정
             if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
+              let val = row[h] || '-';
               return `<td style="min-width: 200px; max-width: 350px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; line-height: 1.5; vertical-align: top; color: #e2e8f0;">${val}</td>`;
             }
             
-            // 5. 정렬 디테일 (가운데 정렬)
-            if (h === '진행상태' || h === '공수(MD)' || h === '업무 구분') {
+            // 5. 정렬 디테일 (공수, 업무구분은 가운데 정렬)
+            if (h === '공수(MD)' || h === '업무 구분') {
+              let val = row[h] || '-';
               return `<td style="text-align: center; vertical-align: top;">${val}</td>`;
             }
             
+            let val = row[h] || '-';
             return `<td style="vertical-align: top;">${val}</td>`;
           }).join('') + '</tr>';
         });
