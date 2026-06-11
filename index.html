@@ -236,9 +236,18 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
         dataRows.forEach(row => {
           html += '<tr>' + headers.map(h => {
             // 1. 진행상태 뱃지
-            if (h === '진행상태') {
-              let val = row[h] || '-';
-              let color = val.includes('완료') ? '#059669' : (val.includes('지연') || val === 'Issue' ? '#dc2626' : '#3b82f6');
+if (h === '진행상태') {
+  let val = row[h] || '-';
+  const statusColorMap = {
+    '완료':   '#059669',
+    '지연완료': '#7c3aed',
+    '지연중':  '#dc2626',
+    'Issue':  '#dc2626',
+    '보류':   '#475569',
+    '임박':   '#d97706',
+    '진행중':  '#2563eb'
+  };
+  let color = statusColorMap[val] || '#3b82f6';
               return `<td style="text-align: center; vertical-align: top;"><span class="badge" style="background:${color};">${val}</span></td>`;
             }
 
