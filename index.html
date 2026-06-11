@@ -205,7 +205,6 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
       if (dataRows.length === 0) {
         detailTable.innerHTML = '<tr><td style="text-align:center;">데이터가 없습니다.</td></tr>';
       } else {
-        // 👇 요청하신 순서대로 헤더 배열 변경! ('프로젝트 코드'는 제외)
         const headers = ['진행상태', '업무 구분', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터'];
         let html = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
 
@@ -237,16 +236,20 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
               } else {
                 formattedVal = `<span style="color: #cbd5e1; line-height: 1.5;">${val}</span>`;
               }
-              return `<td style="min-width: 250px; max-width: 400px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word;">${formattedVal}</td>`;
+              return `<td style="min-width: 250px; max-width: 400px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; vertical-align: top;">${formattedVal}</td>`;
+            }
+
+            // 👇 3. 표준 제작 Item 및 진행 사항 열 줄바꿈(pre-wrap) 스타일 강제 지정!
+            if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
+              return `<td style="min-width: 200px; max-width: 350px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; line-height: 1.5; vertical-align: top; color: #e2e8f0;">${val}</td>`;
             }
             
-            // 3. 정렬 디테일 추가 (진행상태, 공수, 업무구분은 가운데 정렬)
+            // 4. 정렬 디테일 (진행상태, 공수, 업무구분은 가운데 정렬)
             if (h === '진행상태' || h === '공수(MD)' || h === '업무 구분') {
-              return `<td style="text-align: center;">${val}</td>`;
+              return `<td style="text-align: center; vertical-align: top;">${val}</td>`;
             }
             
-            // 나머지는 기본 좌측 정렬
-            return `<td>${val}</td>`;
+            return `<td style="vertical-align: top;">${val}</td>`;
           }).join('') + '</tr>';
         });
         detailTable.innerHTML = html;
