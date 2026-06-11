@@ -42,6 +42,12 @@
     #detailTable td { padding: 8px; border-bottom: 1px solid #1e293b; color: #e2e8f0; }
     .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
     @media(max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } .donuts-row { grid-template-columns: 1fr 1fr; } }
+  /* 문서 컨트롤 타워 버튼 스타일 */
+    .doc-loc-btn { padding: 8px 16px; background: #0f172a; border: 1px solid #334155; color: #94a3b8; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+    .doc-loc-btn:hover { background: #2a3a55; color: #f8fafc; }
+    .doc-loc-btn.active { background: #10b981; border-color: #10b981; color: #fff; }
+    .doc-item-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: #1e293b; border: 1px solid #3b82f6; color: #cbd5e1; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.2s; margin: 4px; font-weight: 600; }
+    .doc-item-btn:hover { background: #3b82f6; color: #fff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
   </style>
 </head>
 <body>
@@ -196,9 +202,11 @@
 </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwnw3MOUk6trPy5sfnVLpf2krFbHZZeAB7z4tx3QAkOtaoXnThY67WPe6FAG_du0_Molg/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxj5EAu9ZcE1bJPb6eR2WfjXWdRzbHnWDfWQCMn313sNiSUlVttLTdfY9tFPk8JBPc7GA/exec';
 
     let allData = {}; 
+    let documentLinksData = [];
+    let currentProjectDocs = [];
     let currentProjectId = 'project7'; 
     let csRiskData = [];
     let csStatsData = {};
@@ -347,7 +355,9 @@ if (h === '진행상태') {
           csStatsData = allData.csStatistics;
           renderTotalStats();
         }
-        
+        if (allData.documentLinks) {
+          documentLinksData = allData.documentLinks;
+        }
         window.switchProject('project7');
       } catch (err) {
         console.error('동기화 실패:', err);
@@ -371,6 +381,7 @@ if (h === '진행상태') {
         renderSlicers();
         updateCharts();
         window.closeDetail();
+        renderDocumentHub(projectId); // ⬅️ 추가! 프로젝트 바뀔 때마다 문서 링크 갱신
       }
     }
 
@@ -1027,6 +1038,74 @@ rows.forEach(row => {
         inactiveBtn.disabled = false;
         inactiveBtn.style.opacity = '1';
       }
+    }
+    // 💡 문서 컨트롤 타워 렌더링 함수
+    function renderDocumentHub(projectId) {
+      const docPanel = document.getElementById('doc-hub-panel');
+      if (!docPanel) return; // 패널이 없으면 에러 방지
+      docPanel.style.display = 'block';
+
+      // 탭 ID를 API에서 쓰는 프로젝트 이름으로 매핑
+      const map = { 'project7': 'OP7', 'project6': 'OP6', 'project3': 'OP3', 'project1cs': 'CP_All' };
+      const pName = map[projectId];
+      
+      // 현재 선택된 프로젝트의 문서만 필터링
+      currentProjectDocs = documentLinksData.filter(d => d.project === pName);
+      
+      const locSlicer = document.getElementById('doc-location-slicer');
+      const itemsContainer = document.getElementById('doc-items-container');
+      
+      locSlicer.innerHTML = '';
+      itemsContainer.style.display = 'none';
+      
+      if(currentProjectDocs.length === 0) {
+          locSlicer.innerHTML = '<span style="color:#64748b; font-size:13px;">등록된 산출물 경로가 없습니다.</span>';
+          return;
+      }
+      
+      // 중복 없는 위치 목록 (회사 서버, 내 PC 등) 추출
+      const locations = [...new Set(currentProjectDocs.map(d => d.location))];
+      
+      locations.forEach(loc => {
+          const btn = document.createElement('button');
+          btn.className = 'doc-loc-btn';
+          btn.innerHTML = loc.includes('서버') ? `🗄️ ${loc}` : `💻 ${loc}`;
+          btn.onclick = () => {
+              document.querySelectorAll('.doc-loc-btn').forEach(b => b.classList.remove('active'));
+              btn.classList.add('active');
+              showDocItems(loc);
+          };
+          locSlicer.appendChild(btn);
+      });
+    }
+
+    // 💡 2단계: 문서 아이템 보여주기
+    function showDocItems(location) {
+      const itemsContainer = document.getElementById('doc-items-container');
+      itemsContainer.innerHTML = '';
+      
+      const docs = currentProjectDocs.filter(d => d.location === location);
+      
+      docs.forEach(doc => {
+          const btn = document.createElement('button');
+          btn.className = 'doc-item-btn';
+          btn.innerHTML = `📄 ${doc.docType} <span style="color:#60a5fa; font-size:10px; margin-left:4px;">(경로 복사)</span>`;
+          btn.onclick = () => copyFilePath(doc.filePath);
+          itemsContainer.appendChild(btn);
+      });
+      
+      itemsContainer.style.display = 'block';
+    }
+
+    // 💡 3단계: 하이퍼링크(경로) 클립보드 복사
+    function copyFilePath(path) {
+      const cleanPath = path.replace(/^"|"$/g, ''); 
+      navigator.clipboard.writeText(cleanPath).then(() => {
+          alert(`✅ 경로가 복사되었습니다!\n\n${cleanPath}\n\n탐색기 주소창에 붙여넣으세요.`);
+      }).catch(err => {
+          console.error('복사 실패:', err);
+          alert('복사에 실패했습니다. 브라우저 설정이나 HTTPS 환경을 확인해주세요.');
+      });
     }
   </script>
 </body>
