@@ -388,10 +388,11 @@
     }
 
     // ✅ 메인 대시보드 렌더링 함수 추가
+// ✅ 여기서부터 복사하세요
 window.renderMainDashboard = function() {
   if (!allData || !allData.project7) return;
- 
-  // 프로젝트 리스트 (데이터 구조에 맞게 매핑)
+
+  // 1. 프로젝트 리스트 (상단 카드 생성)
   const projectList = [
     { id: 'OP7', title: 'Interactive Control Tower', d: allData.project7, color: '#8cc63f' },
     { id: 'OP6', title: 'Battery Cell Inspection', d: allData.project6, color: '#3b82f6' },
@@ -405,12 +406,9 @@ window.renderMainDashboard = function() {
     const statusText = summary.status ? (summary.status.includes('Completed') ? '완료' : '진행중') : '진행중';
     const badgeStyle = statusText === '완료' ? 'background:#d1fae5; color:#059669;' : 'background:#dbeafe; color:#2563eb;';
     
-    // 단계별 진행률 (제작, FAT, SET-UP, SAT 순서)
     const stages = ['제작', 'FAT', 'SET-UP', 'SAT'];
     const stageBarsHtml = stages.map((name, i) => {
-      // summary.complete[i] 값이 없을 경우 0으로 처리
       const val = summary.complete && summary.complete[i] !== undefined ? summary.complete[i] : 0;
-      // 이미지처럼 100%인 경우 막대 색상을 적용하고, 나머지는 기본 색상 적용
       const barColor = val >= 100 ? proj.color : (val > 0 ? proj.color + 'cc' : '#e2e8f0');
       return `
         <div class="stage-row">
@@ -445,12 +443,9 @@ window.renderMainDashboard = function() {
       </div>
     `;
   }).join('');
-
   document.getElementById('main-summary-cards').innerHTML = summaryCardsHtml;
 
-  // ... (이슈 랭킹 및 MD 도넛 차트 로직은 그대로 유지)
-}
-  // 2. 이슈 랭킹 (Top 5 - 화이트 테마)
+  // 2. 이슈 랭킹 (Top 5)
   const top5Container = document.getElementById('main-issue-top5');
   if (allData.issueRanking && allData.issueRanking.length > 0) {
     const top5Html = allData.issueRanking.slice(0, 5).map((issue, idx) => `
@@ -467,7 +462,7 @@ window.renderMainDashboard = function() {
     top5Container.innerHTML = `<div style="color: #64748b; font-size: 13px;">현재 집계된 고질 이슈가 없습니다.</div>`;
   }
 
-  // 3. 지연 이슈 (처리 대기 Top 3 - 화이트 테마)
+  // 3. 지연 이슈 (처리 대기 Top 3)
   const pendingContainer = document.getElementById('main-issue-pending');
   const allIssues = [];
   ['project7', 'project6', 'project3'].forEach(pKey => {
@@ -503,7 +498,7 @@ window.renderMainDashboard = function() {
     pendingContainer.innerHTML = `<div style="color: #64748b; font-size: 13px;">대기 중인 지연 이슈가 없습니다.</div>`;
   }
 
-  // 4. MD 도넛 차트 (전체 MD 합산 - 화이트 테마 텍스트 적용)
+  // 4. MD 도넛 차트 (전체 MD 합산)
   let mdSums = { 'OP7': 0, 'OP6': 0, 'OP3': 0, 'CP': 0 };
   let totalMd = 0;
   ['project7', 'project6', 'project3', 'project1'].forEach(pKey => {
@@ -517,7 +512,6 @@ window.renderMainDashboard = function() {
      }
   });
 
-  // 레전드 생성
   const colors = ['#8cc63f', '#3b82f6', '#f59e0b', '#64748b'];
   const pKeys = ['OP7', 'OP6', 'OP3', 'CP'];
   document.getElementById('main-md-legend').innerHTML = pKeys.map((k, i) => `
@@ -529,7 +523,6 @@ window.renderMainDashboard = function() {
     </div>
   `).join('');
 
-  // 차트 생성
   if (mainMdChartInstance) mainMdChartInstance.destroy();
   mainMdChartInstance = new Chart(document.getElementById('mainMdChart'), {
      type: 'doughnut',
@@ -570,6 +563,9 @@ window.renderMainDashboard = function() {
      }]
   });
 }
+// ✅ 여기까지 복사하세요
+
+// (이 아래에는 기존의 window.switchTab = function(tabId) { ... } 가 그대로 있어야 합니다)
 
     // 기존 탭 전환 로직 확장
     window.switchTab = function(tabId) {
