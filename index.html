@@ -277,13 +277,7 @@ if (h === '진행상태') {
                 if (bracketMatch) {
                   currentBlock = { keyword: bracketMatch[1].trim(), content: bracketMatch[2].trim() };
                   blocks.push(currentBlock);
-                } else if (trimmed.includes(':')) {
-                  const splitIndex = trimmed.indexOf(':');
-                  const keyword = trimmed.substring(0, splitIndex).trim();
-                  const content = trimmed.substring(splitIndex + 1).trim();
-
-                  currentBlock = { keyword: keyword, content: content };
-                  blocks.push(currentBlock);
+ 
                 } else {
                   if (currentBlock) {
                     currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed;
@@ -897,10 +891,7 @@ rows.forEach(row => {
       if (bracketMatch) {
         currentBlock = { keyword: bracketMatch[1].trim(), content: bracketMatch[2].trim() };
         blocks.push(currentBlock);
-      } else if (trimmed.includes(':') && !currentBlock) {
-        const splitIndex = trimmed.indexOf(':');
-        currentBlock = { keyword: trimmed.substring(0, splitIndex).trim(), content: trimmed.substring(splitIndex + 1).trim() };
-        blocks.push(currentBlock);
+
       } else {
         if (currentBlock) currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed;
         else blocks.push({ keyword: null, content: trimmed });
