@@ -195,7 +195,7 @@
     window.closeDetail = function() {
       document.getElementById('detailView').style.display = 'none';
     }
-    window.showDetailView = function(dateLabel, typeLabel, dataRows) {
+window.showDetailView = function(dateLabel, typeLabel, dataRows) {
       const detailView = document.getElementById('detailView');
       const detailTitle = document.getElementById('detailTitle');
       const detailTable = document.getElementById('detailTable');
@@ -205,16 +205,47 @@
       if (dataRows.length === 0) {
         detailTable.innerHTML = '<tr><td style="text-align:center;">데이터가 없습니다.</td></tr>';
       } else {
-        const headers = ['프로젝트 코드', '업무 구분', '표준 제작 Item / Issue / 개선사항', '진행 사항', '공수(MD)', '진행상태'];
+        // 👇 요청하신 순서대로 헤더 배열 변경! ('프로젝트 코드'는 제외)
+        const headers = ['진행상태', '업무 구분', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터'];
         let html = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
 
         dataRows.forEach(row => {
           html += '<tr>' + headers.map(h => {
             let val = row[h] || '-';
+            
+            // 1. 진행상태 뱃지 디자인
             if (h === '진행상태') {
               let color = val.includes('완료') ? '#059669' : (val.includes('지연') || val === 'Issue' ? '#dc2626' : '#3b82f6');
               val = `<span class="badge" style="background:${color};">${val}</span>`;
             }
+            
+            // 2. 분석 데이터 태그 UI 및 줄바꿈
+            if (h === '분석 데이터') {
+              let formattedVal = val;
+              if (val !== '-' && val.includes(':')) {
+                const splitIndex = val.indexOf(':');
+                const keyword = val.substring(0, splitIndex).trim();
+                const content = val.substring(splitIndex + 1).trim();
+
+                formattedVal = `
+                  <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <span style="font-size: 11px; font-weight: 700; background: #1e293b; border: 1px solid #3b82f6; color: #60a5fa; padding: 3px 8px; border-radius: 4px; align-self: flex-start;">
+                      📌 ${keyword}
+                    </span>
+                    <span style="color: #cbd5e1; line-height: 1.5;">${content}</span>
+                  </div>`;
+              } else {
+                formattedVal = `<span style="color: #cbd5e1; line-height: 1.5;">${val}</span>`;
+              }
+              return `<td style="min-width: 250px; max-width: 400px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word;">${formattedVal}</td>`;
+            }
+            
+            // 3. 정렬 디테일 추가 (진행상태, 공수, 업무구분은 가운데 정렬)
+            if (h === '진행상태' || h === '공수(MD)' || h === '업무 구분') {
+              return `<td style="text-align: center;">${val}</td>`;
+            }
+            
+            // 나머지는 기본 좌측 정렬
             return `<td>${val}</td>`;
           }).join('') + '</tr>';
         });
