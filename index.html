@@ -466,18 +466,17 @@ window.renderMainDashboard = function() {
 
   // 3. 지연 이슈 (처리 대기 Top 3)
 // 3. 지연 이슈 (처리 대기 Top 5 - 지연일 계산 및 표시)
+// 3. 지연 이슈 (처리 대기 Top 5 - 디버깅 포함)
   const pendingContainer = document.getElementById('main-issue-pending');
   const allIssues = [];
-  const today = new Date('2026-06-12'); // 현재 날짜 기준
+  const today = new Date('2026-06-12'); 
 
   ['project7', 'project6', 'project3'].forEach(pKey => {
     if(allData[pKey] && allData[pKey].history) {
       allData[pKey].history.forEach(r => {
-         // 진행중이거나 지연중인 건들만 필터링
          if(['지연중', 'Issue', '임박'].includes(r['진행상태'])) {
             const dateStr = r['접수일'] || r['완료예정일'] || '2026-01-01';
             const dDate = new Date(dateStr);
-            // 지연일 계산 (오늘 - 접수일)
             const delayDays = Math.max(0, Math.floor((today - dDate) / (1000 * 60 * 60 * 24)));
             
             allIssues.push({
@@ -493,11 +492,17 @@ window.renderMainDashboard = function() {
     }
   });
 
-  // 지연일이 긴 순서대로 정렬
+  // 데이터 확인 (콘솔창 F12에서 확인 가능)
+  console.log("전체 지연 이슈 개수:", allIssues.length);
+  
+  // 지연일이 긴 순서대로 정렬 후 5개만 추출
   allIssues.sort((a, b) => b.delay - a.delay);
+  const displayList = allIssues.slice(0, 5);
+  
+  console.log("화면에 뿌릴 이슈 개수:", displayList.length);
 
-  if (allIssues.length > 0) {
-    const pendingHtml = allIssues.slice(0, 5).map((issue, idx) => `
+  if (displayList.length > 0) {
+    const pendingHtml = displayList.map((issue, idx) => `
       <div class="issue-list-item" style="flex-direction: column; align-items: flex-start;">
         <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 4px;">
            <div style="font-size: 14px; color: #1e293b; font-weight: 700;">
