@@ -545,6 +545,7 @@ window.renderMainDashboard = function() {
     </div>
   `).join('');
 
+// --- 기존 차트 로직과 함수 경계 정리 ---
   if (mainMdChartInstance) mainMdChartInstance.destroy();
   mainMdChartInstance = new Chart(document.getElementById('mainMdChart'), {
      type: 'doughnut',
@@ -561,8 +562,8 @@ window.renderMainDashboard = function() {
         responsive: true, maintainAspectRatio: false,
         cutout: '75%',
         plugins: { 
-           legend: { display: false },
-           tooltip: { callbacks: { label: function(context) { return ' ' + context.raw.toFixed(1) + ' MD'; } } }
+            legend: { display: false },
+            tooltip: { callbacks: { label: function(context) { return ' ' + context.raw.toFixed(1) + ' MD'; } } }
         }
      },
      plugins: [{
@@ -575,7 +576,6 @@ window.renderMainDashboard = function() {
            ctx.fillStyle = "#0f172a"; 
            var text = totalMd.toFixed(1), textX = Math.round((width - ctx.measureText(text).width) / 2), textY = height / 2 - 8;
            ctx.fillText(text, textX, textY);
-           
            ctx.font = "12px -apple-system, BlinkMacSystemFont, sans-serif";
            ctx.fillStyle = "#64748b";
            var text2 = "Total MD", text2X = Math.round((width - ctx.measureText(text2).width) / 2), text2Y = height / 2 + 16;
@@ -584,8 +584,11 @@ window.renderMainDashboard = function() {
         }
      }]
   });
-}
-    window.showPendingDetail = function(projCode, title) {
+} // <--- [필수] renderMainDashboard 함수를 여기서 정확히 닫습니다.
+
+// --- 아래는 독립된 함수들입니다 ---
+
+window.showPendingDetail = function(projCode, title) {
   const pMap = { 'OP7': 'project7', 'OP6': 'project6', 'OP3': 'project3', 'CP_ALL': 'project1' };
   const pKey = pMap[projCode];
   
@@ -606,7 +609,8 @@ window.renderMainDashboard = function() {
   } else {
       alert("데이터를 찾을 수 없습니다.");
   }
-}
+};
+
 window.showIssueDetail = function(idx) {
   const issue = allData.issueRanking[idx];
   if (!issue) return;
@@ -620,27 +624,19 @@ window.showIssueDetail = function(idx) {
   targetProjects.forEach(pKey => {
     if (allData[pKey] && allData[pKey].history) {
       allData[pKey].history.forEach(row => {
-        // [필터] 업무 구분이 'Issue'인 것만 추출
         if (row['업무 구분'] !== 'Issue') return;
 
         const title = (row['표준 제작 Item / Issue / 개선사항'] || row['제목'] || '').trim();
         const matchCount = keywords.filter(k => k.length > 1 && title.includes(k)).length;
         
-        // 키워드 매칭 로직
         if (matchCount >= 2 || (keywords.length === 1 && title.includes(keywords[0]))) {
            const pName = pKey.replace('project', 'OP');
-           
-           // [중요] 상세 내역에 보여줄 순서를 강제로 지정 (객체 키 순서)
-           // row에 있는 데이터를 가져오되, 프로젝트 코드와 접수일을 맨 앞으로 가져옵니다.
            const rowCopy = {
-             '프로젝트 코드': pName, // 프로젝트명 (OP7 등)
-             '접수일': row['접수일'] || '-', // 접수일
-             '상세 내용': title, // 기존 이슈 제목
-             ...row // 나머지 데이터들
+             '프로젝트 코드': pName,
+             '접수일': row['접수일'] || '-',
+             ...row
            };
-           
-           // 필요하다면 프로젝트 코드/접수일 컬럼이 다른 이름일 경우 row['기존 컬럼명']으로 수정하세요.
-           
+           rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${pName}] ${title}`;
            matchedRows.push(rowCopy);
         }
       });
@@ -648,11 +644,11 @@ window.showIssueDetail = function(idx) {
   });
 
   if (matchedRows.length === 0) {
-      alert("해당 이슈와 관련된 'Issue' 타입 데이터가 없습니다.\n대상 이슈명: " + issueName);
+      alert("데이터를 찾을 수 없습니다.\n대상 이슈명: " + issueName);
   } else {
       window.showDetailView('🚨 고질 이슈 상세 분석 (' + matchedRows.length + '건)', issueName, matchedRows);
   }
-}
+};
 // ✅ 여기까지 복사하세요
 
 // (이 아래에는 기존의 window.switchTab = function(tabId) { ... } 가 그대로 있어야 합니다)
