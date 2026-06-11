@@ -205,7 +205,8 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
       if (dataRows.length === 0) {
         detailTable.innerHTML = '<tr><td style="text-align:center;">데이터가 없습니다.</td></tr>';
       } else {
-        const headers = ['진행상태', '업무 구분', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터'];
+        // 👇 '작업 시간'을 '공수(MD)' 왼쪽으로 이동!
+        const headers = ['진행상태', '업무 구분', '작업 시간', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터'];
         let html = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
 
         dataRows.forEach(row => {
@@ -217,8 +218,22 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
               let color = val.includes('완료') ? '#059669' : (val.includes('지연') || val === 'Issue' ? '#dc2626' : '#3b82f6');
               val = `<span class="badge" style="background:${color};">${val}</span>`;
             }
+
+            // 2. 시작 시간과 종료 시간을 합친 '작업 시간' 열 
+            if (h === '작업 시간') {
+              const start = row['시작 시간'] || '';
+              const end = row['종료 시간'] || '';
+              if (start && end) {
+                val = `${start} ~ ${end}`;
+              } else if (start || end) {
+                val = start || end;
+              } else {
+                val = '-';
+              }
+              return `<td style="text-align: center; font-size: 11px; color: #94a3b8; white-space: nowrap; vertical-align: top; padding-top: 12px;">${val}</td>`;
+            }
             
-            // 2. 분석 데이터 뱃지 사이즈 일치화 및 색상 추천
+            // 3. 분석 데이터 뱃지 사이즈 완벽 일치!
             if (h === '분석 데이터') {
               let formattedVal = val;
               if (val !== '-' && val.includes(':')) {
@@ -227,8 +242,8 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
                 const content = val.substring(splitIndex + 1).trim();
 
                 formattedVal = `
-                  <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <span class="badge" style="background: #312e81; border: 1px solid #4f46e5; color: #c7d2fe; width: fit-content;">
+                  <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px;">
+                    <span class="badge" style="background: #312e81; border: 1px solid #4f46e5; color: #c7d2fe;">
                       📌 ${keyword}
                     </span>
                     <span style="color: #cbd5e1; line-height: 1.5;">${content}</span>
@@ -239,12 +254,12 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
               return `<td style="min-width: 250px; max-width: 400px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; vertical-align: top;">${formattedVal}</td>`;
             }
 
-            // 3. 표준 제작 Item 및 진행 사항 열 줄바꿈 강제 지정
+            // 4. 표준 제작 Item 및 진행 사항 열 줄바꿈 강제 지정
             if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
               return `<td style="min-width: 200px; max-width: 350px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; line-height: 1.5; vertical-align: top; color: #e2e8f0;">${val}</td>`;
             }
             
-            // 4. 정렬 디테일 (가운데 정렬)
+            // 5. 정렬 디테일 (가운데 정렬)
             if (h === '진행상태' || h === '공수(MD)' || h === '업무 구분') {
               return `<td style="text-align: center; vertical-align: top;">${val}</td>`;
             }
