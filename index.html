@@ -101,9 +101,9 @@
       <div style="display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 16px; margin-bottom: 16px;">
         
 <div class="chart-card">
-    <div class="chart-title">🚨 고질 이슈 Top 10 <span style="font-size: 11px; font-weight: 600; color: #475569; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; border: 1px solid #e2e8f0;">빈도순</span></div>
-    <div id="main-issue-top5"> ...
-    </div>
+    <div class="chart-title">🚨 고질 이슈 Top 5 <span style="font-size: 11px; font-weight: 600; color: #475569; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; border: 1px solid #e2e8f0;">빈도순</span></div>
+    <div id="main-issue-top5">
+        </div>
 </div>
 
 <div class="chart-card">
@@ -446,10 +446,10 @@ window.renderMainDashboard = function() {
   }).join('');
   document.getElementById('main-summary-cards').innerHTML = summaryCardsHtml;
 
-// 2. 이슈 랭킹 (Top 10 - 화이트 테마)
-  const topIssuesContainer = document.getElementById('main-issue-top5'); // ID는 그대로 두셔도 됩니다
+// 2. 이슈 랭킹 (Top 5 - 화이트 테마)
+  const topIssuesContainer = document.getElementById('main-issue-top5');
   if (allData.issueRanking && allData.issueRanking.length > 0) {
-    const topIssuesHtml = allData.issueRanking.slice(0, 10).map((issue, idx) => `
+    const topIssuesHtml = allData.issueRanking.slice(0, 5).map((issue, idx) => `
       <div class="issue-list-item" style="cursor: pointer;" onclick="window.showIssueDetail(${idx})">
         <div style="display: flex; gap: 10px; align-items: center;">
           <span style="font-weight: 700; color: #64748b; width: 15px;">${idx + 1}.</span>
