@@ -392,7 +392,7 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
     function renderSlicers() {
       const container = document.getElementById('slicers');
       container.innerHTML = '';
-      const filterCategories = ['단계 구분', '대응 구분', '유/무상', '파트 구분', '진행상태'];
+      const filterCategories = ['단계 구분', '대응 구분', '업무 구분', '유/무상', '파트 구분', '진행상태'];
       filterCategories.forEach(category => {
         const uniqueValues = [...new Set(rawData.map(row => row[category]).filter(val => val && val.trim() !== ''))];
         if (uniqueValues.length === 0) return;
