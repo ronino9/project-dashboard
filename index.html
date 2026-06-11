@@ -311,20 +311,26 @@
 
       const mdTypes = ['표준', '개선', 'Issue', '기술지원', '기능요구'];
       if (mdChartInstance) mdChartInstance.destroy();
-      mdChartInstance = new Chart(document.getElementById('mdChart'), {
+// 기존 options 부분을 이렇게 덮어쓰세요
+      statusChartInstance = new Chart(document.getElementById('statusChart'), {
         type: 'bar',
-        data: {
-          labels: currentDates.map(d => formatDate(d)),
-          datasets: mdTypes.map(type => ({
-            label: type,
-            backgroundColor: colorMap[type],
-            data: currentDates.map(d => filteredData.filter(r => r['접수일'] === d && r['업무 구분'] === type).reduce((sum, r) => sum + (parseFloat(r['공수(MD)']) || 0), 0))
-          }))
-        },
+        data: { /* 기존 코드 동일 */ },
         options: {
           responsive: true, maintainAspectRatio: false,
           plugins: { legend: { position: 'top' } },
-          scales: { x: { stacked: true }, y: { stacked: true } }
+          scales: { x: { stacked: true }, y: { stacked: true, ticks: { stepSize: 1 } } },
+          // 👇 클릭 이벤트 추가
+          onClick: (e, elements, chart) => {
+            if (elements.length === 0) return;
+            const idx = elements[0].index;
+            const datasetIdx = elements[0].datasetIndex;
+            const originalDate = currentDates[idx];
+            const selectedStatus = chart.data.datasets[datasetIdx].label;
+
+            // 클릭한 막대의 날짜와 진행상태에 맞는 데이터만 필터링
+            const details = filteredData.filter(r => r['접수일'] === originalDate && r['진행상태'] === selectedStatus);
+            window.showDetailView(formatDate(originalDate), selectedStatus, details);
+          }
         }
       });
 
