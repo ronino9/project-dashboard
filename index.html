@@ -147,11 +147,12 @@
               <div style="font-size: 10px; color: #64748b; font-weight: 700; margin-bottom: 2px;">총 공수 MD</div>
               <div id="kpi-master-md" style="font-size: 18px; font-weight: 800; color: #0f172a;">0.0</div>
             </div>
-            <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 8px; padding: 10px; text-align: center;">
+<div onclick="window.showKpiDetail('unresolved')" style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#fce7f3'" onmouseout="this.style.background='#fdf2f8'">
               <div style="font-size: 10px; color: #be185d; font-weight: 700; margin-bottom: 2px;">미해결 이슈</div>
               <div id="kpi-master-unresolved" style="font-size: 18px; font-weight: 800; color: #e11d48;">0</div>
             </div>
-            <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px; text-align: center;">
+
+            <div onclick="window.showKpiDetail('delayed')" style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#fef3c7'" onmouseout="this.style.background='#fffbeb'">
               <div style="font-size: 10px; color: #b45309; font-weight: 700; margin-bottom: 2px;">지연/임박</div>
               <div id="kpi-master-delayed" style="font-size: 18px; font-weight: 800; color: #d97706;">0</div>
             </div>
@@ -796,7 +797,55 @@ window.updateMasterMdChart = function() {
       }
   });
 };
+// 💡 KPI 클릭 시 상세 내역을 팝업으로 띄워주는 함수
+window.showKpiDetail = function(type) {
+  const matchedRows = [];
+  
+  window.allMasterData.forEach(r => {
+      // 1. 현재 위쪽 슬라이서에서 선택된 필터 조건들을 먼저 통과하는지 검사
+      let pass = true;
+      for (let cat in window.masterMdFilters) {
+          const selectedSet = window.masterMdFilters[cat];
+          if (selectedSet.size > 0) {
+              const rowVal = r[cat] || r[cat.replace('/', '')] || '';
+              if (!selectedSet.has(rowVal)) { pass = false; break; }
+          }
+      }
 
+      // 2. 필터를 통과한 녀석들 중에서 해당 KPI 조건에 맞는 것만 쏙쏙 뽑아냄
+      if (pass) {
+          const status = r['진행상태'] || '';
+          const taskType = r['업무 구분'] || '';
+          
+          let isMatch = false;
+          if (type === 'unresolved' && taskType === 'Issue' && !status.includes('완료')) {
+              isMatch = true;
+          } else if (type === 'delayed' && (status === '지연중' || status === '임박')) {
+              isMatch = true;
+          }
+
+          if (isMatch) {
+              // 팝업창에 예쁘게 띄우기 위해 데이터 가공
+              const rowCopy = {
+                  '프로젝트 코드': r._pName,
+                  '접수일': r['접수일'] || '-',
+                  ...r
+              };
+              rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${r._pName}] ${r['표준 제작 Item / Issue / 개선사항'] || r['제목'] || ''}`;
+              matchedRows.push(rowCopy);
+          }
+      }
+  });
+
+  if (matchedRows.length === 0) {
+      alert("해당 조건에 맞는 데이터가 없습니다.");
+      return;
+  }
+
+  // 3. 팝업창 띄우기!
+  const title = type === 'unresolved' ? '🚨 미해결 이슈 전체' : '⏳ 지연 및 임박 항목 전체';
+  window.showDetailView(title, `총 ${matchedRows.length}건`, matchedRows);
+};
 // 👆 여기까지 복사해서 덮어쓰기 👆
 
 // --- 아래는 독립된 함수들입니다 ---
