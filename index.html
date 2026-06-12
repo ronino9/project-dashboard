@@ -133,14 +133,21 @@
     </div>
 </div>
 
-        <div class="chart-card">
-          <div class="chart-title">📊 Master MD 분석 <span style="font-size: 12px; font-weight: normal; color: #64748b;">2025.01 - 현재</span></div>
-          <div style="display: flex; gap: 20px; align-items: center; height: 100%;">
+<div class="chart-card" style="display: flex; flex-direction: column;">
+          <div class="chart-title" style="margin-bottom: 12px; border-bottom: none; padding-bottom: 0;">
+            📊 Master MD 분석 
+            <span style="font-size: 11px; font-weight: normal; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 12px; margin-left: 8px;">다중 선택 가능</span>
+          </div>
+          
+          <div id="master-slicer-container" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+             </div>
+
+          <div style="display: flex; gap: 20px; align-items: center; flex: 1;">
             <div style="position: relative; width: 140px; height: 140px;">
               <canvas id="mainMdChart"></canvas>
             </div>
             <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;" id="main-md-legend">
-              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -558,71 +565,154 @@ window.renderMainDashboard = function() {
     pendingContainer.innerHTML = `<div style="color: #64748b; font-size: 13px;">대기 중인 이슈가 없습니다.</div>`;
   }
 
-  // 4. MD 도넛 차트 (전체 MD 합산)
+// 4. 다중 선택 슬라이서 및 Master MD 차트 연동
+  // 전역 필터 객체 초기화 (Set을 사용하여 중복 선택 구현)
+  if (!window.masterMdFilters) {
+      window.masterMdFilters = { '단계 구분': new Set(), '업무 구분': new Set(), '유/무상': new Set(), '파트 구분': new Set() };
+  }
+
+  // 모든 프로젝트의 데이터를 한 곳에 모음 (필터링을 위해)
+  window.allMasterData = [];
+  ['project7', 'project6', 'project3', 'project1'].forEach(pKey => {
+      const pName = pKey === 'project1' ? 'CP' : pKey.replace('project', 'OP');
+      if(allData[pKey] && allData[pKey].history) {
+          allData[pKey].history.forEach(r => {
+              window.allMasterData.push({ ...r, _pName: pName });
+          });
+      }
+  });
+
+  // 슬라이서 및 차트 그리기 함수 최초 1회 호출
+  window.renderMasterSlicers();
+  window.updateMasterMdChart();
+
+}; // <--- 기존 window.renderMainDashboard 함수의 끝을 닫아줍니다.
+
+
+// ==========================================
+// 💡 여기서부터는 새로운 슬라이서 전용 독립 함수들입니다.
+// ==========================================
+
+window.renderMasterSlicers = function() {
+  const container = document.getElementById('master-slicer-container');
+  if (!container) return;
+  const categories = ['단계 구분', '업무 구분', '유/무상', '파트 구분'];
+  let html = '';
+
+  categories.forEach(cat => {
+      // 원본 시트에 '유무상'인지 '유/무상'인지 다를 수 있으므로 안전하게 양쪽 다 검사
+      const uniqueVals = [...new Set(window.allMasterData.map(r => r[cat] || r[cat.replace('/', '')] || '').filter(v => v.trim() !== ''))];
+      if (uniqueVals.length === 0) return;
+
+      html += `<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">`;
+      html += `<span style="font-size: 11px; font-weight: 700; color: #475569; width: 60px;">${cat}</span>`;
+
+      // '전체' 버튼 (Set이 비어있으면 무조건 전체 선택된 것으로 간주)
+      const isAllSelected = window.masterMdFilters[cat].size === 0;
+      html += `<button onclick="window.toggleMasterFilter('${cat}', 'ALL')" style="padding: 2px 10px; font-size: 11px; font-weight: 600; border-radius: 12px; border: 1px solid ${isAllSelected ? '#3b82f6' : '#cbd5e1'}; background: ${isAllSelected ? '#3b82f6' : '#f1f5f9'}; color: ${isAllSelected ? '#fff' : '#64748b'}; cursor: pointer; transition: 0.2s;">전체</button>`;
+
+      // 개별 값 버튼 (토글 버튼)
+      uniqueVals.forEach(val => {
+          const isSelected = window.masterMdFilters[cat].has(val);
+          html += `<button onclick="window.toggleMasterFilter('${cat}', '${val}')" style="padding: 2px 10px; font-size: 11px; font-weight: 600; border-radius: 12px; border: 1px solid ${isSelected ? '#3b82f6' : '#e2e8f0'}; background: ${isSelected ? '#eff6ff' : '#ffffff'}; color: ${isSelected ? '#1d4ed8' : '#475569'}; cursor: pointer; transition: 0.2s;">${val}</button>`;
+      });
+      html += `</div>`;
+  });
+  container.innerHTML = html;
+};
+
+window.toggleMasterFilter = function(cat, val) {
+  if (val === 'ALL') {
+      window.masterMdFilters[cat].clear(); // 전체를 누르면 필터 싹 초기화
+  } else {
+      if (window.masterMdFilters[cat].has(val)) {
+          window.masterMdFilters[cat].delete(val); // 이미 선택되어 있으면 빼기 (선택 취소)
+      } else {
+          window.masterMdFilters[cat].add(val); // 없으면 넣기 (중복 다중 선택!)
+      }
+  }
+  window.renderMasterSlicers(); // 버튼 색상 다시 칠하기
+  window.updateMasterMdChart(); // 바뀐 조건으로 차트 다시 그리기
+};
+
+window.updateMasterMdChart = function() {
   let mdSums = { 'OP7': 0, 'OP6': 0, 'OP3': 0, 'CP': 0 };
   let totalMd = 0;
-  ['project7', 'project6', 'project3', 'project1'].forEach(pKey => {
-     const pName = pKey.replace('project1', 'CP').replace('project', 'OP');
-     if(allData[pKey] && allData[pKey].history) {
-        allData[pKey].history.forEach(r => {
-           const val = parseFloat(r['공수(MD)']) || 0;
-           mdSums[pName] += val;
-           totalMd += val;
-        });
-     }
+
+  // 필터 조건에 맞는 데이터만 추려내어 공수(MD) 합산
+  window.allMasterData.forEach(r => {
+      let pass = true;
+      for (let cat in window.masterMdFilters) {
+          const selectedSet = window.masterMdFilters[cat];
+          if (selectedSet.size > 0) {
+              const rowVal = r[cat] || r[cat.replace('/', '')] || '';
+              if (!selectedSet.has(rowVal)) {
+                  pass = false; // 내가 클릭한 버튼 중에 이 데이터의 값이 없다면 탈락
+                  break;
+              }
+          }
+      }
+
+      if (pass) {
+          const val = parseFloat(r['공수(MD)']) || 0;
+          mdSums[r._pName] += val;
+          totalMd += val;
+      }
   });
 
   const colors = ['#8cc63f', '#3b82f6', '#f59e0b', '#64748b'];
   const pKeys = ['OP7', 'OP6', 'OP3', 'CP'];
+
+  // 우측 범례(Legend) 갱신
   document.getElementById('main-md-legend').innerHTML = pKeys.map((k, i) => `
-    <div style="display: flex; justify-content: space-between; font-size: 13px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
-       <span style="display: flex; align-items: center; gap: 8px; color: #475569;">
-         <span style="width: 10px; height: 10px; background: ${colors[i]}; border-radius: 2px;"></span>${k}
-       </span>
-       <span style="color: #1e293b; font-weight: 700;">${mdSums[k].toFixed(1)} MD</span>
-    </div>
+      <div style="display: flex; justify-content: space-between; font-size: 13px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+         <span style="display: flex; align-items: center; gap: 8px; color: #475569;">
+           <span style="width: 10px; height: 10px; background: ${colors[i]}; border-radius: 2px;"></span>${k}
+         </span>
+         <span style="color: #1e293b; font-weight: 700;">${mdSums[k].toFixed(1)} MD</span>
+      </div>
   `).join('');
 
-// --- 기존 차트 로직과 함수 경계 정리 ---
+  // 차트 다시 그리기
   if (mainMdChartInstance) mainMdChartInstance.destroy();
   mainMdChartInstance = new Chart(document.getElementById('mainMdChart'), {
-     type: 'doughnut',
-     data: {
-        labels: pKeys,
-        datasets: [{
-           data: pKeys.map(k => mdSums[k]),
-           backgroundColor: colors,
-           borderWidth: 2,
-           borderColor: '#ffffff'
-        }]
-     },
-     options: {
-        responsive: true, maintainAspectRatio: false,
-        cutout: '75%',
-        plugins: { 
-            legend: { display: false },
-            tooltip: { callbacks: { label: function(context) { return ' ' + context.raw.toFixed(1) + ' MD'; } } }
-        }
-     },
-     plugins: [{
-        id: 'textCenter',
-        beforeDraw: function(chart) {
-           var width = chart.width, height = chart.height, ctx = chart.ctx;
-           ctx.restore();
-           ctx.font = "bold 24px -apple-system, BlinkMacSystemFont, sans-serif";
-           ctx.textBaseline = "middle";
-           ctx.fillStyle = "#0f172a"; 
-           var text = totalMd.toFixed(1), textX = Math.round((width - ctx.measureText(text).width) / 2), textY = height / 2 - 8;
-           ctx.fillText(text, textX, textY);
-           ctx.font = "12px -apple-system, BlinkMacSystemFont, sans-serif";
-           ctx.fillStyle = "#64748b";
-           var text2 = "Total MD", text2X = Math.round((width - ctx.measureText(text2).width) / 2), text2Y = height / 2 + 16;
-           ctx.fillText(text2, text2X, text2Y);
-           ctx.save();
-        }
-     }]
+      type: 'doughnut',
+      data: {
+          labels: pKeys,
+          datasets: [{
+              data: pKeys.map(k => mdSums[k]),
+              backgroundColor: colors,
+              borderWidth: 2,
+              borderColor: '#ffffff'
+          }]
+      },
+      options: {
+          responsive: true, maintainAspectRatio: false,
+          cutout: '75%',
+          plugins: { 
+              legend: { display: false },
+              tooltip: { callbacks: { label: function(context) { return ' ' + context.raw.toFixed(1) + ' MD'; } } }
+          }
+      },
+      plugins: [{
+          id: 'textCenter',
+          beforeDraw: function(chart) {
+              var width = chart.width, height = chart.height, ctx = chart.ctx;
+              ctx.restore();
+              ctx.font = "bold 24px -apple-system, BlinkMacSystemFont, sans-serif";
+              ctx.textBaseline = "middle";
+              ctx.fillStyle = "#0f172a"; 
+              var text = totalMd.toFixed(1), textX = Math.round((width - ctx.measureText(text).width) / 2), textY = height / 2 - 8;
+              ctx.fillText(text, textX, textY);
+              ctx.font = "12px -apple-system, BlinkMacSystemFont, sans-serif";
+              ctx.fillStyle = "#64748b";
+              var text2 = "Total MD", text2X = Math.round((width - ctx.measureText(text2).width) / 2), text2Y = height / 2 + 16;
+              ctx.fillText(text2, text2X, text2Y);
+              ctx.save();
+          }
+      }]
   });
-} // <--- [필수] renderMainDashboard 함수를 여기서 정확히 닫습니다.
+};
 
 // --- 아래는 독립된 함수들입니다 ---
 
