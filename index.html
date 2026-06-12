@@ -98,7 +98,7 @@
         <div style="padding: 20px; color: #64748b;">데이터 로드 중...</div>
       </div>
       
-      <div style="display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 16px; margin-bottom: 16px;">
+      <div style="display: grid; grid-template-columns: 0.8fr 0.8fr 2fr; gap: 16px; margin-bottom: 16px;">
         
 <div class="chart-card">
   
@@ -133,42 +133,49 @@
     </div>
 </div>
 
-<div class="chart-card" style="display: flex; flex-direction: column;">
+<div class="chart-card" style="display: flex; flex-direction: column; min-height: 520px;">
           <div class="chart-title" style="margin-bottom: 12px; border-bottom: none; padding-bottom: 0;">
-            📊 Master MD 분석 
-            <span style="font-size: 11px; font-weight: normal; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 12px; margin-left: 8px;">다중 선택 가능</span>
+            📊 Master MD 분석 & 리스크 트렌드
+            <span style="font-size: 11px; font-weight: normal; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 12px; margin-left: 8px;">2025.01 - 현재</span>
           </div>
           
-<div id="master-slicer-container" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+          <div id="master-slicer-container" style="margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-              <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 4px;">총 공수 MD</div>
-              <div id="kpi-master-md" style="font-size: 20px; font-weight: 800; color: #0f172a;">0.0</div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+              <div style="font-size: 10px; color: #64748b; font-weight: 700; margin-bottom: 2px;">총 공수 MD</div>
+              <div id="kpi-master-md" style="font-size: 18px; font-weight: 800; color: #0f172a;">0.0</div>
             </div>
-            <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-              <div style="font-size: 11px; color: #be185d; font-weight: 700; margin-bottom: 4px;">미해결 이슈</div>
-              <div id="kpi-master-unresolved" style="font-size: 20px; font-weight: 800; color: #e11d48;">0</div>
+            <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 8px; padding: 10px; text-align: center;">
+              <div style="font-size: 10px; color: #be185d; font-weight: 700; margin-bottom: 2px;">미해결 이슈</div>
+              <div id="kpi-master-unresolved" style="font-size: 18px; font-weight: 800; color: #e11d48;">0</div>
             </div>
-            <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-              <div style="font-size: 11px; color: #b45309; font-weight: 700; margin-bottom: 4px;">지연/임박 건수</div>
-              <div id="kpi-master-delayed" style="font-size: 20px; font-weight: 800; color: #d97706;">0</div>
+            <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px; text-align: center;">
+              <div style="font-size: 10px; color: #b45309; font-weight: 700; margin-bottom: 2px;">지연/임박</div>
+              <div id="kpi-master-delayed" style="font-size: 18px; font-weight: 800; color: #d97706;">0</div>
             </div>
-            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-              <div style="font-size: 11px; color: #15803d; font-weight: 700; margin-bottom: 4px;">일정 준수율</div>
-              <div id="kpi-master-compliance" style="font-size: 20px; font-weight: 800; color: #16a34a;">0%</div>
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px; text-align: center;">
+              <div style="font-size: 10px; color: #15803d; font-weight: 700; margin-bottom: 2px;">일정 준수율</div>
+              <div id="kpi-master-compliance" style="font-size: 18px; font-weight: 800; color: #16a34a;">0%</div>
             </div>
           </div>
 
-          <div style="display: flex; gap: 20px; align-items: center; flex: 1;">
-            <div style="position: relative; width: 140px; height: 140px;">
-              <canvas id="mainMdChart"></canvas>
+          <div style="display: grid; grid-template-columns: 220px 1fr; gap: 24px; flex: 1; min-height: 250px;">
+            <div style="display: flex; flex-direction: column; gap: 16px; border-right: 1px solid #f1f5f9; padding-right: 16px;">
+              <div style="position: relative; width: 130px; height: 130px; margin: 0 auto;">
+                <canvas id="mainMdChart"></canvas>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 6px;" id="main-md-legend"></div>
             </div>
-            <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;" id="main-md-legend">
+            <div style="position: relative; width: 100%; height: 100%;">
+               <canvas id="mainTrendChart"></canvas>
             </div>
           </div>
         </div>
+        ```
+
+이 HTML 코드를 덮어쓰신 다음에, **바로 이전에 드렸던 자바스크립트(JS) 코드까지 마저 교체**해 주시면 에러 없이 한 번에 짠! 하고 나타날 겁니다. 다 하시면 어떻게 나오는지 알려주세요!
       </div>
     </div>
 
@@ -654,31 +661,32 @@ window.toggleMasterFilter = function(cat, val) {
   window.updateMasterMdChart(); // 바뀐 조건으로 차트 다시 그리기
 };
 
+// 👇 여기서부터 복사해서 기존 updateMasterMdChart 함수를 완전히 덮어쓰세요 👇
+
+// 트렌드 차트 인스턴스 전역 관리
+let mainTrendChartInstance = null;
+
 window.updateMasterMdChart = function() {
   let mdSums = { 'OP7': 0, 'OP6': 0, 'OP3': 0, 'CP': 0 };
-  
-  // 💡 KPI에 들어갈 4가지 수집 변수
   let totalMd = 0;
   let unresolvedIssues = 0;
   let delayedItems = 0;
   let totalItems = 0;
 
-  // 필터 조건에 맞는 데이터만 추려내어 계산
+  // 트렌드 데이터 수집용 객체 (월별로 데이터 적재)
+  const trendData = {};
+
   window.allMasterData.forEach(r => {
       let pass = true;
       for (let cat in window.masterMdFilters) {
           const selectedSet = window.masterMdFilters[cat];
           if (selectedSet.size > 0) {
               const rowVal = r[cat] || r[cat.replace('/', '')] || '';
-              if (!selectedSet.has(rowVal)) {
-                  pass = false; 
-                  break;
-              }
+              if (!selectedSet.has(rowVal)) { pass = false; break; }
           }
       }
 
       if (pass) {
-          // 1. 공수 합계
           const val = parseFloat(r['공수(MD)']) || 0;
           mdSums[r._pName] += val;
           totalMd += val;
@@ -686,90 +694,109 @@ window.updateMasterMdChart = function() {
 
           const status = r['진행상태'] || '';
           const taskType = r['업무 구분'] || '';
+          const rawDate = r['접수일'] || '2025-01-01';
+          
+          // "2025-01" 형태 추출 (접수일이 빈칸이거나 형식이 안 맞으면 무시)
+          if (!rawDate || typeof rawDate !== 'string' || rawDate.length < 7) return;
+          const monthKey = rawDate.substring(0, 7); 
 
-          // 2. 미해결 이슈 카운트 (업무구분이 Issue이면서 완료되지 않은 건)
-          if (taskType === 'Issue' && !status.includes('완료')) {
-              unresolvedIssues++;
+          // 월별 트렌드 데이터 초기화 및 적재
+          if (!trendData[monthKey]) trendData[monthKey] = { md: 0, risk: 0 };
+          trendData[monthKey].md += val;
+          if (taskType === 'Issue' || status === '지연중' || status === '임박') {
+              trendData[monthKey].risk += 1;
           }
 
-          // 3. 지연/임박 건수 카운트
-          if (status === '지연중' || status === '임박') {
-              delayedItems++;
-          }
+          if (taskType === 'Issue' && !status.includes('완료')) unresolvedIssues++;
+          if (status === '지연중' || status === '임박') delayedItems++;
       }
   });
 
-  // 4. 일정 준수율 계산 (전체 대비 지연이 아닌 비율)
-  let complianceRate = 100;
-  if (totalItems > 0) {
-      complianceRate = Math.round(((totalItems - delayedItems) / totalItems) * 100);
-  }
-
-  // 💡 화면의 KPI 박스에 계산된 숫자 꽂아 넣기
+  // KPI 업데이트
   document.getElementById('kpi-master-md').textContent = totalMd.toFixed(1);
   document.getElementById('kpi-master-unresolved').textContent = unresolvedIssues;
   document.getElementById('kpi-master-delayed').textContent = delayedItems;
-  document.getElementById('kpi-master-compliance').textContent = complianceRate + '%';
+  document.getElementById('kpi-master-compliance').textContent = totalItems > 0 ? Math.round(((totalItems - delayedItems) / totalItems) * 100) + '%' : '100%';
 
   const colors = ['#8cc63f', '#3b82f6', '#f59e0b', '#64748b'];
   const pKeys = ['OP7', 'OP6', 'OP3', 'CP'];
 
-  // 우측 범례(Legend) 갱신 (퍼센티지 추가)
+  // 도넛 범례 업데이트
   document.getElementById('main-md-legend').innerHTML = pKeys.map((k, i) => {
       const ratio = totalMd > 0 ? Math.round((mdSums[k] / totalMd) * 100) : 0;
       return `
-      <div style="display: flex; justify-content: space-between; font-size: 13px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
-         <span style="display: flex; align-items: center; gap: 8px; color: #475569;">
-           <span style="width: 10px; height: 10px; background: ${colors[i]}; border-radius: 2px;"></span>${k}
+      <div style="display: flex; justify-content: space-between; font-size: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 4px;">
+         <span style="display: flex; align-items: center; gap: 6px; color: #64748b;">
+           <span style="width: 8px; height: 8px; background: ${colors[i]}; border-radius: 2px;"></span>${k}
          </span>
-         <div style="display: flex; gap: 12px; align-items: center;">
-           <span style="color: #1e293b; font-weight: 700;">${mdSums[k].toFixed(1)} MD</span>
-           <span style="color: #94a3b8; font-size: 11px; width: 25px; text-align: right;">${ratio}%</span>
-         </div>
-      </div>
-      `;
+         <span style="color: #1e293b; font-weight: 700;">${ratio}%</span>
+      </div>`;
   }).join('');
 
-  // 차트 다시 그리기
+  // 1. 도넛 차트 렌더링
   if (mainMdChartInstance) mainMdChartInstance.destroy();
   mainMdChartInstance = new Chart(document.getElementById('mainMdChart'), {
       type: 'doughnut',
+      data: { labels: pKeys, datasets: [{ data: pKeys.map(k => mdSums[k]), backgroundColor: colors, borderWidth: 1 }] },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
+  });
+
+  // 2. 트렌드 차트 데이터 정렬 (날짜순)
+  const sortedMonths = Object.keys(trendData).sort();
+  
+  // 트렌드 차트 렌더링
+  if (mainTrendChartInstance) mainTrendChartInstance.destroy();
+  mainTrendChartInstance = new Chart(document.getElementById('mainTrendChart'), {
+      type: 'line',
       data: {
-          labels: pKeys,
-          datasets: [{
-              data: pKeys.map(k => mdSums[k]),
-              backgroundColor: colors,
-              borderWidth: 2,
-              borderColor: '#ffffff'
-          }]
+          labels: sortedMonths.map(m => m.substring(2)), // "25-01" 형태로 표시
+          datasets: [
+              {
+                  label: '공수(MD)',
+                  data: sortedMonths.map(m => trendData[m].md),
+                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                  borderColor: '#3b82f6',
+                  borderWidth: 2,
+                  fill: true,
+                  tension: 0.4,
+                  yAxisID: 'y'
+              },
+              {
+                  label: '리스크(이슈/지연)',
+                  data: sortedMonths.map(m => trendData[m].risk),
+                  borderColor: '#ef4444',
+                  borderWidth: 2,
+                  pointBackgroundColor: '#ef4444',
+                  fill: false,
+                  tension: 0.4,
+                  yAxisID: 'y1'
+              }
+          ]
       },
       options: {
-          responsive: true, maintainAspectRatio: false,
-          cutout: '75%',
-          plugins: { 
-              legend: { display: false },
-              tooltip: { callbacks: { label: function(context) { return ' ' + context.raw.toFixed(1) + ' MD'; } } }
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+              legend: { position: 'top', align: 'end', labels: { boxWidth: 10, font: { size: 10 } } }
+          },
+          scales: {
+              x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+              y: { 
+                  type: 'linear', display: true, position: 'left',
+                  title: { display: true, text: 'MD', font: { size: 10 } },
+                  grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } }
+              },
+              y1: {
+                  type: 'linear', display: true, position: 'right',
+                  title: { display: true, text: '건수', font: { size: 10 } },
+                  grid: { display: false }, ticks: { font: { size: 10 }, stepSize: 1 }
+              }
           }
-      },
-      plugins: [{
-          id: 'textCenter',
-          beforeDraw: function(chart) {
-              var width = chart.width, height = chart.height, ctx = chart.ctx;
-              ctx.restore();
-              ctx.font = "bold 24px -apple-system, BlinkMacSystemFont, sans-serif";
-              ctx.textBaseline = "middle";
-              ctx.fillStyle = "#0f172a"; 
-              var text = totalMd.toFixed(1), textX = Math.round((width - ctx.measureText(text).width) / 2), textY = height / 2 - 8;
-              ctx.fillText(text, textX, textY);
-              ctx.font = "12px -apple-system, BlinkMacSystemFont, sans-serif";
-              ctx.fillStyle = "#64748b";
-              var text2 = "Total MD", text2X = Math.round((width - ctx.measureText(text2).width) / 2), text2Y = height / 2 + 16;
-              ctx.fillText(text2, text2X, text2Y);
-              ctx.save();
-          }
-      }]
+      }
   });
 };
+
+// 👆 여기까지 복사해서 덮어쓰기 👆
 
 // --- 아래는 독립된 함수들입니다 ---
 
