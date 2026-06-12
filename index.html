@@ -669,25 +669,34 @@ window.showIssueDetail = function(idx) {
 
   const issueName = (issue.name || issue['이름'] || '').trim();
 
-  // 1. AI가 모아둔 진짜 원본 제목들(멤버)에서 띄어쓰기와 줄바꿈을 싹 다 지운 배열을 만듭니다.
+  // 1. AI가 모아둔 원본 제목들(멤버)에서 공백 및 하이픈, 괄호 등 모든 특수문자를 싹 제거하고 순수 글자만 남깁니다.
   const rawMembers = issue['멤버'] || '';
-  const cleanMemberTitles = rawMembers.split('|').map(t => t.replace(/\s+/g, ''));
+  const cleanMemberTitles = rawMembers.split('|').map(t => t.replace(/[^a-zA-Z0-9가-힣]/g, ''));
 
   const matchedRows = [];
-  // CP_All(project1) 데이터도 검색할 수 있도록 대상을 추가했습니다.
   const targetProjects = ['project7', 'project6', 'project3', 'project1'];
 
   targetProjects.forEach(pKey => {
     if (allData[pKey] && allData[pKey].history) {
       allData[pKey].history.forEach(row => {
-        if (row['업무 구분'] !== 'Issue') return;
+        // 💡 업무 구분이 'Issue' 외에 '개선사항' 등으로 적혀 있어도 찾을 수 있도록 조건을 완화했습니다.
+        if (row['업무 구분'] !== 'Issue' && row['업무 구분'] !== '개선사항') return;
 
-        // 2. 현재 시트에 적힌 제목도 띄어쓰기와 줄바꿈을 싹 다 지웁니다.
+        // 2. 현재 시트의 제목에서도 공백과 모든 특수문자를 싹 지우고 순수 글자만 만듭니다.
         const originalTitle = (row['표준 제작 Item / Issue / 개선사항'] || row['제목'] || '');
-        const cleanTitle = originalTitle.replace(/\s+/g, '');
+        const cleanTitle = originalTitle.replace(/[^a-zA-Z0-9가-힣]/g, '');
 
-        // 3. 글자만 똑같으면 100% 매칭! (영어/한글 요약명 상관없이 원본끼리 대조)
-        if (cleanTitle !== '' && cleanMemberTitles.includes(cleanTitle)) {
+        if (cleanTitle === '') return;
+
+        // 3. 텍스트 매칭 검사 (순수 글자가 완벽히 일치하거나, 미세한 누락이 있어도 서로 포함 관계이면 매칭)
+        const isMatch = cleanMemberTitles.some(memberTitle => {
+            if (memberTitle === cleanTitle) return true;
+            // 글자 수가 긴 경우(5글자 이상), 한쪽이 다른 한쪽을 완전히 포함하고 있다면 정답으로 인정
+            if (memberTitle.length >= 5 && (cleanTitle.includes(memberTitle) || memberTitle.includes(cleanTitle))) return true;
+            return false;
+        });
+
+        if (isMatch) {
            let pName = pKey.replace('project', 'OP');
            if (pKey === 'project1') pName = 'CP_All';
 
