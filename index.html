@@ -100,16 +100,27 @@
       
       <div style="display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 16px; margin-bottom: 16px;">
         
-<div class="chart-card">
-    <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-        <div>🚨 고질 이슈 Top 5 <span style="font-size: 11px; font-weight: 600; color: #475569; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; border: 1px solid #e2e8f0;">빈도순</span></div>
-        
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <span id="last-update-time" style="font-size: 12px; color: #64748b; font-weight: 500;">최근 갱신: 로딩중...</span>
-            <button id="rebuild-btn" onclick="triggerRebuild()" style="padding: 4px 10px; font-size: 12px; font-weight: 600; color: #ffffff; background: #3b82f6; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: background 0.2s;">
-                🔄 AI 재분석 및 갱신
-            </button>
+<div class="chart-title" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px;">
+      
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-size: 18px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+          🚨 고질 이슈 Top 5
         </div>
+        <div>
+          <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 600;">빈도순</span>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: flex-start; gap: 12px;">
+        <div style="display: flex; flex-direction: column; align-items: flex-end; font-size: 12px; color: #64748b; line-height: 1.4; margin-top: 2px;">
+          <span style="font-weight: 600;">최근 갱신 :</span>
+          <span id="last-update-time" style="font-weight: 500;">로딩중...</span>
+        </div>
+        <button id="rebuild-btn" onclick="triggerRebuild()" style="background: #3b82f6; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2); display: flex; align-items: center; gap: 6px;">
+          🔄 AI 재분석
+        </button>
+      </div>
+      
     </div>
     <div id="main-issue-top5">
         </div>
@@ -309,7 +320,10 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
   } else {
     // 1. 헤더 정의
     const headers = ['프로젝트 코드', '접수일', '진행상태', '업무 구분', '작업 시간', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터'];
-    let html = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+    let html = '<tr>' + headers.map(h => {
+  if (h === '진행상태') return `<th style="text-align: center; white-space: nowrap; min-width: 85px;">${h}</th>`;
+  return `<th>${h}</th>`;
+}).join('') + '</tr>';
 
     dataRows.forEach(row => {
       // 2. 스마트 데이터 추출 (프로젝트 코드나 접수일이 없으면 현재 상태에서 유추)
@@ -325,7 +339,7 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
           let val = row[h] || '-';
           const statusColorMap = { '완료': '#059669', '지연완료': '#7c3aed', '지연중': '#dc2626', 'Issue': '#dc2626', '보류': '#475569', '임박': '#d97706', '진행중': '#2563eb' };
           let color = statusColorMap[val] || '#3b82f6';
-          return `<td style="text-align: center; vertical-align: top;"><span class="badge" style="background:${color};">${val}</span></td>`;
+          return `<td style="text-align: center; vertical-align: top; white-space: nowrap;"><span class="badge" style="background:${color};">${val}</span></td>`;
         }
         if (h === '작업 시간') {
           const start = row['시작 시간'] || '';
