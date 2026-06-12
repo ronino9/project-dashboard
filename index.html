@@ -497,9 +497,11 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
         </div>
       </div>
     `;
-  }).join('');
+}).join('');
 
-    return `
+  // 💡 마지막 줄에 이게 빠져있었습니다! 
+  // 화면(컨테이너)에 생성된 카드들을 실제 HTML로 넣어주는 명령입니다.
+  document.getElementById('project-cards-container').innerHTML = summaryCardsHtml;
 <div class="main-card">
         <div class="main-card-header">
           <div class="main-card-title">${proj.id}</div>
