@@ -475,12 +475,11 @@ window.renderMainDashboard = function() {
     }).join('');
 
     return `
-      <div class="main-card">
+<div class="main-card">
         <div class="main-card-header">
           <div class="main-card-title">${proj.id}</div>
           <span class="badge" style="${badgeStyle}">${statusText}</span>
         </div>
-        <div class="main-card-subtitle">${proj.title}</div>
         <div class="main-card-body">
           <div class="donut-container">
             <svg viewBox="0 0 36 36" style="width:100%;height:100%;">
