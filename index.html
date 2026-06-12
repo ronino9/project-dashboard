@@ -139,8 +139,27 @@
             <span style="font-size: 11px; font-weight: normal; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 12px; margin-left: 8px;">다중 선택 가능</span>
           </div>
           
-          <div id="master-slicer-container" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-             </div>
+<div id="master-slicer-container" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+              <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 4px;">총 공수 MD</div>
+              <div id="kpi-master-md" style="font-size: 20px; font-weight: 800; color: #0f172a;">0.0</div>
+            </div>
+            <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+              <div style="font-size: 11px; color: #be185d; font-weight: 700; margin-bottom: 4px;">미해결 이슈</div>
+              <div id="kpi-master-unresolved" style="font-size: 20px; font-weight: 800; color: #e11d48;">0</div>
+            </div>
+            <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+              <div style="font-size: 11px; color: #b45309; font-weight: 700; margin-bottom: 4px;">지연/임박 건수</div>
+              <div id="kpi-master-delayed" style="font-size: 20px; font-weight: 800; color: #d97706;">0</div>
+            </div>
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+              <div style="font-size: 11px; color: #15803d; font-weight: 700; margin-bottom: 4px;">일정 준수율</div>
+              <div id="kpi-master-compliance" style="font-size: 20px; font-weight: 800; color: #16a34a;">0%</div>
+            </div>
+          </div>
 
           <div style="display: flex; gap: 20px; align-items: center; flex: 1;">
             <div style="position: relative; width: 140px; height: 140px;">
@@ -637,9 +656,14 @@ window.toggleMasterFilter = function(cat, val) {
 
 window.updateMasterMdChart = function() {
   let mdSums = { 'OP7': 0, 'OP6': 0, 'OP3': 0, 'CP': 0 };
+  
+  // 💡 KPI에 들어갈 4가지 수집 변수
   let totalMd = 0;
+  let unresolvedIssues = 0;
+  let delayedItems = 0;
+  let totalItems = 0;
 
-  // 필터 조건에 맞는 데이터만 추려내어 공수(MD) 합산
+  // 필터 조건에 맞는 데이터만 추려내어 계산
   window.allMasterData.forEach(r => {
       let pass = true;
       for (let cat in window.masterMdFilters) {
@@ -647,31 +671,64 @@ window.updateMasterMdChart = function() {
           if (selectedSet.size > 0) {
               const rowVal = r[cat] || r[cat.replace('/', '')] || '';
               if (!selectedSet.has(rowVal)) {
-                  pass = false; // 내가 클릭한 버튼 중에 이 데이터의 값이 없다면 탈락
+                  pass = false; 
                   break;
               }
           }
       }
 
       if (pass) {
+          // 1. 공수 합계
           const val = parseFloat(r['공수(MD)']) || 0;
           mdSums[r._pName] += val;
           totalMd += val;
+          totalItems++;
+
+          const status = r['진행상태'] || '';
+          const taskType = r['업무 구분'] || '';
+
+          // 2. 미해결 이슈 카운트 (업무구분이 Issue이면서 완료되지 않은 건)
+          if (taskType === 'Issue' && !status.includes('완료')) {
+              unresolvedIssues++;
+          }
+
+          // 3. 지연/임박 건수 카운트
+          if (status === '지연중' || status === '임박') {
+              delayedItems++;
+          }
       }
   });
+
+  // 4. 일정 준수율 계산 (전체 대비 지연이 아닌 비율)
+  let complianceRate = 100;
+  if (totalItems > 0) {
+      complianceRate = Math.round(((totalItems - delayedItems) / totalItems) * 100);
+  }
+
+  // 💡 화면의 KPI 박스에 계산된 숫자 꽂아 넣기
+  document.getElementById('kpi-master-md').textContent = totalMd.toFixed(1);
+  document.getElementById('kpi-master-unresolved').textContent = unresolvedIssues;
+  document.getElementById('kpi-master-delayed').textContent = delayedItems;
+  document.getElementById('kpi-master-compliance').textContent = complianceRate + '%';
 
   const colors = ['#8cc63f', '#3b82f6', '#f59e0b', '#64748b'];
   const pKeys = ['OP7', 'OP6', 'OP3', 'CP'];
 
-  // 우측 범례(Legend) 갱신
-  document.getElementById('main-md-legend').innerHTML = pKeys.map((k, i) => `
+  // 우측 범례(Legend) 갱신 (퍼센티지 추가)
+  document.getElementById('main-md-legend').innerHTML = pKeys.map((k, i) => {
+      const ratio = totalMd > 0 ? Math.round((mdSums[k] / totalMd) * 100) : 0;
+      return `
       <div style="display: flex; justify-content: space-between; font-size: 13px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
          <span style="display: flex; align-items: center; gap: 8px; color: #475569;">
            <span style="width: 10px; height: 10px; background: ${colors[i]}; border-radius: 2px;"></span>${k}
          </span>
-         <span style="color: #1e293b; font-weight: 700;">${mdSums[k].toFixed(1)} MD</span>
+         <div style="display: flex; gap: 12px; align-items: center;">
+           <span style="color: #1e293b; font-weight: 700;">${mdSums[k].toFixed(1)} MD</span>
+           <span style="color: #94a3b8; font-size: 11px; width: 25px; text-align: right;">${ratio}%</span>
+         </div>
       </div>
-  `).join('');
+      `;
+  }).join('');
 
   // 차트 다시 그리기
   if (mainMdChartInstance) mainMdChartInstance.destroy();
