@@ -102,18 +102,18 @@
         
 <div class="chart-card">
   
-  <div class="chart-title" style="display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px;">
+<div class="chart-title" style="display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px;">
     
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; justify-content: flex-start; align-items: center; width: 100%;">
       <div style="font-size: 16px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">
         🚨 고질 이슈 Top 5
-        <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600;">빈도순</span>
+        <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; flex-shrink: 0;">빈도순</span>
       </div>
     </div>
     
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <span id="last-update-time" style="font-size: 11px; color: #64748b; font-weight: 500;">최근 갱신: 로딩중...</span>
-      <button id="rebuild-btn" onclick="triggerRebuild()" style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2); display: flex; align-items: center; gap: 4px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 8px;">
+      <span id="last-update-time" style="font-size: 11px; color: #64748b; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">최근 갱신: 로딩중...</span>
+      <button id="rebuild-btn" onclick="triggerRebuild()" style="background: #3b82f6; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2); display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
         🔄 AI 재분석
       </button>
     </div>
