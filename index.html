@@ -607,32 +607,46 @@ window.renderMainDashboard = function() {
 // --- 아래는 독립된 함수들입니다 ---
 
 window.showPendingDetail = function(projCode, title) {
-  // 대소문자 구분을 없애기 위해 무조건 대문자로 변환하여 매칭합니다. (CP_All, CP_ALL 모두 안전하게 통과)
   const pMap = { 'OP7': 'project7', 'OP6': 'project6', 'OP3': 'project3', 'CP_ALL': 'project1' };
   const pKey = pMap[(projCode || '').toUpperCase()];
   
   if (!pKey || !allData[pKey] || !allData[pKey].history) return;
 
-  // 넘어온 제목의 띄어쓰기와 줄바꿈을 완벽히 제거합니다.
-  const cleanTargetTitle = (title || '').replace(/\s+/g, '');
+  // 1. 넘어온 제목에서 특수문자나 괄호를 없애고, 띄어쓰기 기준으로 쪼개서 '키워드(단어) 배열'을 만듭니다.
+  const cleanTargetTitle = (title || '').replace(/[\[\]\(\)\-\_\n]/g, ' ');
+  const keywords = cleanTargetTitle.split(/\s+/).filter(word => word.length >= 2); // 2글자 이상 단어만 추출
 
-  const targetRow = allData[pKey].history.find(r => {
-      // 원본 시트의 제목도 띄어쓰기와 줄바꿈을 완벽히 제거합니다.
-      const originalTitle = (r['제목'] || r['표준 제작 Item / Issue / 개선사항'] || '');
-      const cleanRowTitle = originalTitle.replace(/\s+/g, '');
-      
-      // 띄어쓰기를 지운 글자끼리 비교합니다.
-      return cleanRowTitle === cleanTargetTitle;
+  let bestMatchRow = null;
+  let maxScore = 0;
+
+  // 2. 원본 데이터(history)를 하나씩 돌면서 유사도를 채점합니다.
+  allData[pKey].history.forEach(r => {
+      const originalTitle = (r['제목'] || r['표준 제작 Item / Issue / 개선사항'] || '').toUpperCase();
+      let score = 0;
+
+      // 추출한 단어들이 원본 제목에 포함되어 있는지 검사 (대소문자 무시)
+      keywords.forEach(keyword => {
+          if (originalTitle.includes(keyword.toUpperCase())) {
+              score++;
+          }
+      });
+
+      // 3. 가장 점수(겹치는 단어 수)가 높은 데이터를 '정답'으로 갱신합니다.
+      if (score > maxScore) {
+          maxScore = score;
+          bestMatchRow = r;
+      }
   });
 
-  if (targetRow) {
+  // 4. 단어 일치 점수가 1점이라도 있다면 팝업창을 띄웁니다.
+  if (bestMatchRow && maxScore > 0) {
       const rowCopy = {
           '프로젝트 코드': projCode,
-          '접수일': targetRow['접수일'] || '-',
-          ...targetRow
+          '접수일': bestMatchRow['접수일'] || '-',
+          ...bestMatchRow
       };
-      // 팝업창에는 원본 시트의 깨끗한 제목(originalTitle)을 보여줍니다.
-      const displayTitle = (targetRow['제목'] || targetRow['표준 제작 Item / Issue / 개선사항'] || title);
+      
+      const displayTitle = (bestMatchRow['제목'] || bestMatchRow['표준 제작 Item / Issue / 개선사항'] || title);
       window.showDetailView('⏳ 처리 대기 상세', displayTitle, [rowCopy]);
   } else {
       alert("데이터를 찾을 수 없습니다.\n검색 시도: " + title);
