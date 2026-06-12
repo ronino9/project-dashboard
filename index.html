@@ -607,49 +607,53 @@ window.renderMainDashboard = function() {
 // --- 아래는 독립된 함수들입니다 ---
 
 window.showPendingDetail = function(projCode, title) {
-  const pMap = { 'OP7': 'project7', 'OP6': 'project6', 'OP3': 'project3', 'CP_ALL': 'project1' };
+  // 1단계: 버튼이 정상적으로 눌렸는지 확인하는 알림창
+  alert("1. 버튼 클릭 성공! \n넘어온 프로젝트: [" + projCode + "]\n넘어온 제목: [" + title + "]");
+
+  // 프로젝트 코드 매핑 (CP5도 추가했습니다)
+  const pMap = { 'OP7': 'project7', 'OP6': 'project6', 'OP3': 'project3', 'CP_ALL': 'project1', 'CP5': 'project1' };
   const pKey = pMap[(projCode || '').toUpperCase()];
   
-  if (!pKey || !allData[pKey] || !allData[pKey].history) return;
+  if (!pKey) {
+      alert("2. 에러: [" + projCode + "]에 해당하는 프로젝트 시트를 찾을 수 없습니다.");
+      return;
+  }
+  if (!allData[pKey] || !allData[pKey].history) {
+      alert("2. 에러: " + pKey + " 시트의 데이터를 불러오지 못했습니다.");
+      return;
+  }
 
-  // 1. 넘어온 제목에서 특수문자나 괄호를 없애고, 띄어쓰기 기준으로 쪼개서 '키워드(단어) 배열'을 만듭니다.
+  // 3단계: 검색 시작
   const cleanTargetTitle = (title || '').replace(/[\[\]\(\)\-\_\n]/g, ' ');
-  const keywords = cleanTargetTitle.split(/\s+/).filter(word => word.length >= 2); // 2글자 이상 단어만 추출
+  const keywords = cleanTargetTitle.split(/\s+/).filter(word => word.length >= 2);
 
   let bestMatchRow = null;
   let maxScore = 0;
 
-  // 2. 원본 데이터(history)를 하나씩 돌면서 유사도를 채점합니다.
   allData[pKey].history.forEach(r => {
       const originalTitle = (r['제목'] || r['표준 제작 Item / Issue / 개선사항'] || '').toUpperCase();
       let score = 0;
-
-      // 추출한 단어들이 원본 제목에 포함되어 있는지 검사 (대소문자 무시)
       keywords.forEach(keyword => {
-          if (originalTitle.includes(keyword.toUpperCase())) {
-              score++;
-          }
+          if (originalTitle.includes(keyword.toUpperCase())) score++;
       });
-
-      // 3. 가장 점수(겹치는 단어 수)가 높은 데이터를 '정답'으로 갱신합니다.
       if (score > maxScore) {
           maxScore = score;
           bestMatchRow = r;
       }
   });
 
-  // 4. 단어 일치 점수가 1점이라도 있다면 팝업창을 띄웁니다.
+  // 4단계: 결과 확인
   if (bestMatchRow && maxScore > 0) {
+      alert("3. 데이터 매칭 성공! 팝업을 엽니다. (유사도 점수: " + maxScore + ")");
       const rowCopy = {
           '프로젝트 코드': projCode,
           '접수일': bestMatchRow['접수일'] || '-',
           ...bestMatchRow
       };
-      
       const displayTitle = (bestMatchRow['제목'] || bestMatchRow['표준 제작 Item / Issue / 개선사항'] || title);
       window.showDetailView('⏳ 처리 대기 상세', displayTitle, [rowCopy]);
   } else {
-      alert("데이터를 찾을 수 없습니다.\n검색 시도: " + title);
+      alert("3. 실패: [" + title + "] 과 일치하는 단어를 가진 원본 데이터가 하나도 없습니다.");
   }
 };
 
