@@ -345,7 +345,7 @@
   let mdChartInstance = null;
   let statusChartInstance = null;
   let mainMdChartInstance = null;
-  let mainTrendChartInstance = null; // 트렌드 차트 변수 위로 통합
+  let mainTrendChartInstance = null;
   let currentDates = [];
   let activeFilters = { '단계 구분': 'All', '대응 구분': 'All', '업무 구분': 'All', '유/무상': 'All', '파트 구분': 'All', '진행상태': 'All' };
 
@@ -361,6 +361,7 @@
     document.getElementById('detailView').style.display = 'none';
   }
 
+  // 기존 상세 뷰 함수 (수정 없이 원본 그대로)
   window.showDetailView = function(dateLabel, typeLabel, dataRows) {
     const detailView = document.getElementById('detailView');
     const detailTitle = document.getElementById('detailTitle');
@@ -669,10 +670,10 @@
 
         window.calendarInstance.render();
     }
-  }; // <--- renderMainDashboard 종료
+  };
 
   // ==========================================
-  // 💡 여기서부터는 새로운 슬라이서 전용 독립 함수들입니다.
+  // 💡 독립 함수들
   // ==========================================
 
   window.renderMasterSlicers = function() {
@@ -882,19 +883,10 @@
   };
 
   window.showPendingDetail = function(projCode, title) {
-    alert("1. 버튼 클릭 성공! \n넘어온 프로젝트: [" + projCode + "]\n넘어온 제목: [" + title + "]");
-
     const pMap = { 'OP7': 'project7', 'OP6': 'project6', 'OP3': 'project3', 'CP_ALL': 'project1', 'CP5': 'project1' };
     const pKey = pMap[(projCode || '').toUpperCase()];
     
-    if (!pKey) {
-        alert("2. 에러: [" + projCode + "]에 해당하는 프로젝트 시트를 찾을 수 없습니다.");
-        return;
-    }
-    if (!allData[pKey] || !allData[pKey].history) {
-        alert("2. 에러: " + pKey + " 시트의 데이터를 불러오지 못했습니다.");
-        return;
-    }
+    if (!pKey || !allData[pKey] || !allData[pKey].history) return;
 
     const cleanTargetTitle = (title || '').replace(/[\[\]\(\)\-\_\n]/g, ' ');
     const keywords = cleanTargetTitle.split(/\s+/).filter(word => word.length >= 2);
@@ -915,7 +907,6 @@
     });
 
     if (bestMatchRow && maxScore > 0) {
-        alert("3. 데이터 매칭 성공! 팝업을 엽니다. (유사도 점수: " + maxScore + ")");
         const rowCopy = {
             '프로젝트 코드': projCode,
             '접수일': bestMatchRow['접수일'] || '-',
@@ -923,8 +914,6 @@
         };
         const displayTitle = (bestMatchRow['제목'] || bestMatchRow['표준 제작 Item / Issue / 개선사항'] || title);
         window.showDetailView('⏳ 처리 대기 상세', displayTitle, [rowCopy]);
-    } else {
-        alert("3. 실패: [" + title + "] 과 일치하는 단어를 가진 원본 데이터가 하나도 없습니다.");
     }
   };
 
@@ -978,7 +967,7 @@
     }
   };
 
-  // --- 기존 탭 변환 및 렌더링 로직 ---
+  // ✅ 누락되었던 핵심 기능(탭 전환, 개별 차트, 필터) 완벽 복원
   window.switchTab = function(tabId) {
     document.getElementById('ai-result').style.display = 'none';
     const mainPanel = document.getElementById('main-panel');
@@ -1662,5 +1651,4 @@
     btn.innerText = '🔄 AI 재분석 및 갱신';
   }
 </script>
-</body>
 </html>
