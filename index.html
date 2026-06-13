@@ -1594,6 +1594,7 @@ window.showIssueDetail = function(idx) {
     };
 
     window.renderCalendar = function() {
+      console.log('캘린더 데이터:', allData.calendar);   // ← 이 줄 추가
       const body = document.getElementById('cal-body');
       const titleEl = document.getElementById('cal-title');
       if (!body) return;
