@@ -1637,22 +1637,33 @@ window.showIssueDetail = function(idx) {
       }
     };
 
-    function calCellHtml(dateObj, dataMap, mode) {
+function calCellHtml(dateObj, dataMap, mode) {
       const ymd = calYMD(dateObj);
       const items = dataMap[ymd] || [];
       const isToday = ymd === calYMD(CAL_TODAY);
       const dowClass = dateObj.getDay() === 0 ? 'cal-sun' : (dateObj.getDay() === 6 ? 'cal-sat' : '');
       const minH = mode === 'day' ? 'min-height:60px;' : (mode === 'week' ? 'min-height:160px;' : '');
 
-      const maxShow = mode === 'month' ? 3 : 99;
-      let chips = items.slice(0, maxShow).map(it => {
+      // 같은 코드는 하나로 합침 (코드별 건수 집계)
+      const codeMap = {};
+      items.forEach(it => {
         const code = it.ev.projectCode || '-';
-        const midClass = it.span && !it.isStart ? 'cal-mid' : '';
-        const label = (it.span && !it.isStart) ? `↳ ${code}` : code;
-        return `<div class="cal-pcode ${midClass}" style="background:${calCodeColor(code)};" onclick="event.stopPropagation(); window.calShowEvent(${it.evIdx})">${label}</div>`;
+        if (!codeMap[code]) codeMap[code] = { code, count: 0, span: false, isStart: false };
+        codeMap[code].count++;
+        if (it.span) codeMap[code].span = true;
+        if (it.isStart) codeMap[code].isStart = true;
+      });
+      const codes = Object.values(codeMap);
+
+      const maxShow = mode === 'month' ? 3 : 99;
+      let chips = codes.slice(0, maxShow).map(c => {
+        const midClass = c.span && !c.isStart ? 'cal-mid' : '';
+        const baseLabel = (c.span && !c.isStart) ? `↳ ${c.code}` : c.code;
+        const label = c.count > 1 ? `${baseLabel} ·${c.count}` : baseLabel;
+        return `<div class="cal-pcode ${midClass}" style="background:${calCodeColor(c.code)};" onclick="event.stopPropagation(); window.calShowDetail('${ymd}','${c.code}')">${label}</div>`;
       }).join('');
-      if (items.length > maxShow) {
-        chips += `<div class="cal-more" onclick="event.stopPropagation(); window.calShowDetail('${ymd}')">+${items.length - maxShow} 더보기</div>`;
+      if (codes.length > maxShow) {
+        chips += `<div class="cal-more" onclick="event.stopPropagation(); window.calShowDetail('${ymd}')">+${codes.length - maxShow} 더보기</div>`;
       }
 
       const clickAttr = items.length ? `onclick="window.calShowDetail('${ymd}')" style="cursor:pointer;"` : '';
@@ -1689,16 +1700,17 @@ window.showIssueDetail = function(idx) {
         </div>`;
     }
 
-    window.calShowDetail = function(ymd) {
+window.calShowDetail = function(ymd, onlyCode) {
       const box = document.getElementById('cal-detail-box');
       if (!box) return;
       const dataMap = calBuildMap();
-      const items = dataMap[ymd] || [];
+      let items = dataMap[ymd] || [];
+      if (onlyCode) items = items.filter(it => (it.ev.projectCode || '-') === onlyCode);
       if (items.length === 0) { box.style.display = 'none'; return; }
       const dow = ['일','월','화','수','목','금','토'];
       const dObj = new Date(ymd);
       let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-          <div style="font-size:15px; font-weight:800; color:#3b82f6;">📅 ${ymd.substring(2).replace(/-/g,'.')} (${dow[dObj.getDay()]})</div>
+          <div style="font-size:15px; font-weight:800; color:#3b82f6;">📅 ${ymd.substring(2).replace(/-/g,'.')} (${dow[dObj.getDay()]})${onlyCode ? ` · ${onlyCode}` : ''}</div>
           <div style="display:flex; gap:10px; align-items:center;">
             <span style="font-size:12px; color:#94a3b8; background:#1e293b; padding:3px 10px; border-radius:10px;">${items.length}건</span>
             <span onclick="document.getElementById('cal-detail-box').style.display='none'" style="cursor:pointer; color:#94a3b8; font-weight:bold; font-size:18px;">✕</span>
