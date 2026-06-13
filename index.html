@@ -80,23 +80,23 @@
     .doc-loc-btn.active { background: #10b981; border-color: #10b981; color: #fff; }
     .doc-item-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: #1e293b; border: 1px solid #3b82f6; color: #cbd5e1; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.2s; margin: 4px; font-weight: 600; }
     .doc-item-btn:hover { background: #3b82f6; color: #fff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
-    .cal-mode-btn { background:transparent; border:none; color:#94a3b8; padding:5px 14px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:700; }
-    .cal-mode-btn:hover { color:#f8fafc; }
+.cal-mode-btn { background:transparent; border:none; color:#64748b; padding:5px 14px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:700; }
+    .cal-mode-btn:hover { color:#0f172a; }
     .cal-mode-active { background:#3b82f6; color:#fff !important; }
     .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
-    .cal-dow { text-align:center; font-size:12px; font-weight:700; color:#64748b; padding:6px 0; }
-    .cal-cell { background:#0f172a; border:1px solid #1e293b; border-radius:6px; min-height:96px; padding:6px; display:flex; flex-direction:column; gap:3px; overflow:hidden; }
-    .cal-cell.cal-empty { background:#0a0f1a; border-color:#0f172a; }
+    .cal-dow { text-align:center; font-size:12px; font-weight:700; color:#94a3b8; padding:6px 0; }
+    .cal-cell { background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; min-height:96px; padding:6px; display:flex; flex-direction:column; gap:3px; overflow:hidden; }
+    .cal-cell.cal-empty { background:#ffffff; border-color:#f1f5f9; }
     .cal-cell.cal-today { border-color:#3b82f6; box-shadow:0 0 0 1px #3b82f6 inset; }
-    .cal-daynum { font-size:12px; font-weight:700; color:#94a3b8; margin-bottom:2px; }
-    .cal-daynum.cal-sun { color:#f87171; }
-    .cal-daynum.cal-sat { color:#60a5fa; }
+    .cal-daynum { font-size:12px; font-weight:700; color:#475569; margin-bottom:2px; }
+    .cal-daynum.cal-sun { color:#ef4444; }
+    .cal-daynum.cal-sat { color:#3b82f6; }
     .cal-pcode { font-size:10px; font-weight:700; color:#fff; padding:2px 6px; border-radius:4px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:0.15s; }
     .cal-pcode.cal-mid { border-radius:0; opacity:0.85; }
-    .cal-pcode:hover { filter:brightness(1.2); }
-    .cal-more { font-size:10px; color:#64748b; cursor:pointer; padding:1px 6px; }
-    .cal-more:hover { color:#cbd5e1; }
-    #cal-detail-box { background:#0f172a; border:1px solid #3b82f6; border-radius:8px; padding:16px; margin-top:12px; display:none; }
+    .cal-pcode:hover { filter:brightness(1.1); }
+    .cal-more { font-size:10px; color:#94a3b8; cursor:pointer; padding:1px 6px; }
+    .cal-more:hover { color:#475569; }
+    #cal-detail-box { background:#ffffff; border:1px solid #3b82f6; border-radius:8px; padding:16px; margin-top:12px; display:none; }
   </style>
 </head>
 <body>
@@ -192,6 +192,24 @@
           </div>
         </div>
       </div>
+<!-- ▼▼▼ 메인 캘린더 (화이트 테마) ▼▼▼ -->
+        <div class="chart-card" style="margin-top:16px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+            <div style="font-size:16px; font-weight:700; color:#0f172a;">📅 프로젝트 일정 캘린더</div>
+            <button onclick="window.calMove(-1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:30px; height:30px; border-radius:6px; cursor:pointer; font-size:16px;">‹</button>
+            <button onclick="window.calToday()" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; padding:5px 14px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600;">오늘</button>
+            <button onclick="window.calMove(1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:30px; height:30px; border-radius:6px; cursor:pointer; font-size:16px;">›</button>
+            <div id="cal-title" style="font-size:17px; font-weight:800; color:#0f172a; min-width:150px;"></div>
+            <div style="flex:1;"></div>
+            <div style="display:flex; gap:4px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:3px;">
+              <button id="cal-mode-day"   onclick="window.calSetMode('day')"   class="cal-mode-btn">일</button>
+              <button id="cal-mode-week"  onclick="window.calSetMode('week')"  class="cal-mode-btn">주</button>
+              <button id="cal-mode-month" onclick="window.calSetMode('month')" class="cal-mode-btn cal-mode-active">월</button>
+            </div>
+          </div>
+          <div id="cal-body"></div>
+        </div>
+        <!-- ▲▲▲ 메인 캘린더 끝 ▲▲▲ -->
     </div>
 
     <div class="header" id="project-header" style="display: none;">
@@ -320,23 +338,7 @@
           <button onclick="window.renderDailyLog()" style="background:#3b82f6; color:#fff; border:none; padding:8px 20px; border-radius:6px; font-weight:700; cursor:pointer; font-size:14px;">조회</button>
           <span id="daily-summary" style="font-size:13px; color:#94a3b8;"></span>
         </div>
-        <!-- ▼▼▼ 캘린더 뷰 추가 ▼▼▼ -->
-        <div id="daily-calendar-wrap" style="margin-bottom:24px;">
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
-            <button onclick="window.calMove(-1)" style="background:#0f172a; border:1px solid #334155; color:#cbd5e1; width:32px; height:32px; border-radius:6px; cursor:pointer; font-size:16px;">‹</button>
-            <button onclick="window.calToday()" style="background:#0f172a; border:1px solid #334155; color:#cbd5e1; padding:6px 14px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600;">오늘</button>
-            <button onclick="window.calMove(1)" style="background:#0f172a; border:1px solid #334155; color:#cbd5e1; width:32px; height:32px; border-radius:6px; cursor:pointer; font-size:16px;">›</button>
-            <div id="cal-title" style="font-size:18px; font-weight:800; color:#f8fafc; min-width:160px;"></div>
-            <div style="flex:1;"></div>
-            <div style="display:flex; gap:4px; background:#0f172a; border:1px solid #334155; border-radius:8px; padding:3px;">
-              <button id="cal-mode-day"   onclick="window.calSetMode('day')"   class="cal-mode-btn">일</button>
-              <button id="cal-mode-week"  onclick="window.calSetMode('week')"  class="cal-mode-btn">주</button>
-              <button id="cal-mode-month" onclick="window.calSetMode('month')" class="cal-mode-btn cal-mode-active">월</button>
-            </div>
-          </div>
-          <div id="cal-body"></div>
-        </div>
-        <!-- ▲▲▲ 캘린더 뷰 끝 ▲▲▲ -->
+
         <div id="daily-log-content">
           <div style="color:#64748b; font-size:14px;">기간을 선택하고 조회하세요.</div>
         </div>
@@ -1025,6 +1027,8 @@ window.showIssueDetail = function(idx) {
         document.getElementById('btn-main').classList.add('active');
         mainPanel.style.display = 'block';
         window.renderMainDashboard();
+        window.renderCalendar();
+      }
       } else if (tabId === 'project1cs') {
         document.getElementById('btn-project1cs').classList.add('active');
         csPanel.style.display = 'grid';
