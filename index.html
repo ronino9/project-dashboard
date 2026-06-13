@@ -636,6 +636,8 @@ window.renderMainDashboard = function() {
 
 
 
+}; // <--- 이 부분이 window.renderMainDashboard 함수가 끝나는 곳입니다.
+
 // ==========================================
 // 💡 여기서부터는 새로운 슬라이서 전용 독립 함수들입니다.
 // ==========================================
@@ -647,18 +649,15 @@ window.renderMasterSlicers = function() {
   let html = '';
 
   categories.forEach(cat => {
-      // 원본 시트에 '유무상'인지 '유/무상'인지 다를 수 있으므로 안전하게 양쪽 다 검사
       const uniqueVals = [...new Set(window.allMasterData.map(r => r[cat] || r[cat.replace('/', '')] || '').filter(v => v.trim() !== ''))];
       if (uniqueVals.length === 0) return;
 
       html += `<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">`;
       html += `<span style="font-size: 11px; font-weight: 700; color: #475569; width: 60px;">${cat}</span>`;
 
-      // '전체' 버튼 (Set이 비어있으면 무조건 전체 선택된 것으로 간주)
       const isAllSelected = window.masterMdFilters[cat].size === 0;
       html += `<button onclick="window.toggleMasterFilter('${cat}', 'ALL')" style="padding: 2px 10px; font-size: 11px; font-weight: 600; border-radius: 12px; border: 1px solid ${isAllSelected ? '#3b82f6' : '#cbd5e1'}; background: ${isAllSelected ? '#3b82f6' : '#f1f5f9'}; color: ${isAllSelected ? '#fff' : '#64748b'}; cursor: pointer; transition: 0.2s;">전체</button>`;
 
-      // 개별 값 버튼 (토글 버튼)
       uniqueVals.forEach(val => {
           const isSelected = window.masterMdFilters[cat].has(val);
           html += `<button onclick="window.toggleMasterFilter('${cat}', '${val}')" style="padding: 2px 10px; font-size: 11px; font-weight: 600; border-radius: 12px; border: 1px solid ${isSelected ? '#3b82f6' : '#e2e8f0'}; background: ${isSelected ? '#eff6ff' : '#ffffff'}; color: ${isSelected ? '#1d4ed8' : '#475569'}; cursor: pointer; transition: 0.2s;">${val}</button>`;
@@ -670,17 +669,19 @@ window.renderMasterSlicers = function() {
 
 window.toggleMasterFilter = function(cat, val) {
   if (val === 'ALL') {
-      window.masterMdFilters[cat].clear(); // 전체를 누르면 필터 싹 초기화
+      window.masterMdFilters[cat].clear(); 
   } else {
       if (window.masterMdFilters[cat].has(val)) {
-          window.masterMdFilters[cat].delete(val); // 이미 선택되어 있으면 빼기 (선택 취소)
+          window.masterMdFilters[cat].delete(val); 
       } else {
-          window.masterMdFilters[cat].add(val); // 없으면 넣기 (중복 다중 선택!)
+          window.masterMdFilters[cat].add(val); 
       }
   }
-  window.renderMasterSlicers(); // 버튼 색상 다시 칠하기
-  window.updateMasterMdChart(); // 바뀐 조건으로 차트 다시 그리기
+  window.renderMasterSlicers(); 
+  window.updateMasterMdChart(); 
 };
+
+// 트렌드 차트 인스턴스 전역 관리 (이 아래로는 원래 있던 updateMasterMdChart 함수가 이어집니다)
     // 4. 다중 선택 슬라이서 및 Master MD 차트 연동
   // 전역 필터 객체 초기화 (Set을 사용하여 중복 선택 구현)
   if (!window.masterMdFilters) {
