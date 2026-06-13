@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Real-time Control Tower - Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
   <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
     /* 기본 테마는 기존 다크 모드로 복구 */
@@ -80,6 +80,20 @@
     .doc-loc-btn.active { background: #10b981; border-color: #10b981; color: #fff; }
     .doc-item-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: #1e293b; border: 1px solid #3b82f6; color: #cbd5e1; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.2s; margin: 4px; font-weight: 600; }
     .doc-item-btn:hover { background: #3b82f6; color: #fff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+.doc-loc-btn.active { background: #10b981; border-color: #10b981; color: #fff; }
+    .doc-item-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: #1e293b; border: 1px solid #3b82f6; color: #cbd5e1; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.2s; margin: 4px; font-weight: 600; }
+    .doc-item-btn:hover { background: #3b82f6; color: #fff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+    
+    /* 👇 여기에 붙여넣으시면 됩니다 👇 */
+    /* 3층 캘린더 전용 스타일 */
+    .fc { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #ffffff; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; }
+    .fc-toolbar-title { font-size: 16px !important; font-weight: 700 !important; color: #0f172a; }
+    .fc-button-primary { background-color: #3b82f6 !important; border-color: #3b82f6 !important; font-size: 12px !important; font-weight: 600 !important; text-transform: capitalize !important; }
+    .fc-button-active { background-color: #1e3a8a !important; border-color: #1e3a8a !important; }
+    .fc-event { border: none !important; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: transform 0.1s; }
+    .fc-event:hover { transform: scale(1.02); z-index: 10 !important; }
+    .fc-daygrid-day-number { font-size: 12px; color: #475569; font-weight: 500; }
+
   </style>
 </head>
 <body>
@@ -175,7 +189,14 @@
           </div>
         </div>
       </div>
-    </div>
+<div class="chart-card" style="margin-top: 16px; min-height: 600px;">
+        <div class="chart-title" style="margin-bottom: 16px; border-bottom: none; padding-bottom: 0;">
+          📅 통합 마일스톤 & 현장 스케줄 (Calendar)
+        </div>
+        <div id="main-calendar"></div>
+      </div>
+      </div> <div class="header" id="project-header" style="display: none;">
+      <div class="header-top">
 
     <div class="header" id="project-header" style="display: none;">
       <div class="header-top">
@@ -311,7 +332,7 @@
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwnofFstNzykpJ1exsbQbUFEIwShj9SX2oot7gPlHSShn3lzMHYQDi1CIx7bIBP3fvvsw/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwcjsF78zpE7fAB8ZQPCd0zAbv5xoEonCGC6X2ekUmVuoVHfETPRCmu7QWPMXunjW9ikw/exec';
 
     let allData = {}; 
     let documentLinksData = [];
@@ -661,6 +682,101 @@ window.toggleMasterFilter = function(cat, val) {
   window.renderMasterSlicers(); // 버튼 색상 다시 칠하기
   window.updateMasterMdChart(); // 바뀐 조건으로 차트 다시 그리기
 };
+    // 4. 다중 선택 슬라이서 및 Master MD 차트 연동
+  // 전역 필터 객체 초기화 (Set을 사용하여 중복 선택 구현)
+  if (!window.masterMdFilters) {
+      window.masterMdFilters = { '단계 구분': new Set(), '업무 구분': new Set(), '유/무상': new Set(), '파트 구분': new Set() };
+  }
+
+  // 모든 프로젝트의 데이터를 한 곳에 모음 (필터링을 위해)
+  window.allMasterData = [];
+  ['project7', 'project6', 'project3', 'project1'].forEach(pKey => {
+      const pName = pKey === 'project1' ? 'CP' : pKey.replace('project', 'OP');
+      if(allData[pKey] && allData[pKey].history) {
+          allData[pKey].history.forEach(r => {
+              window.allMasterData.push({ ...r, _pName: pName });
+          });
+      }
+  });
+
+  // 슬라이서 및 차트 그리기 함수 최초 1회 호출
+  window.renderMasterSlicers();
+  window.updateMasterMdChart();
+
+  // 👇👇👇 여기에 3층 캘린더 렌더링 코드를 추가합니다! 👇👇👇
+  // --- 5. 3층 캘린더 렌더링 ---
+  if (allData.calendar && allData.calendar.length > 0) {
+      const calendarEl = document.getElementById('main-calendar');
+      
+      // 구글 시트 데이터를 FullCalendar 규격으로 변환
+      const events = allData.calendar.map(item => {
+          // 중요도에 따른 색상 지정
+          let bgColor = '#3b82f6'; // 기본 파랑 (보통)
+          if (item.importance === '긴급') bgColor = '#ef4444'; // 빨강
+          if (item.importance === '낮음') bgColor = '#94a3b8'; // 회색
+
+          // 날짜 포맷팅 (YYYY/MM/DD -> YYYY-MM-DD)
+          const sDate = (item.startDate || '').replace(/\//g, '-');
+          const eDate = (item.endDate || '').replace(/\//g, '-');
+          
+          let startStr = sDate;
+          let endStr = eDate;
+          let isAllDay = true;
+
+          // 시간이 있으면 T를 붙여서 ISO 포맷으로 만듦
+          if (item.startTime && item.startTime.trim() !== '') {
+              startStr = `${sDate}T${item.startTime.padStart(5, '0')}:00`;
+              isAllDay = false;
+          }
+          if (item.endTime && item.endTime.trim() !== '') {
+              endStr = `${eDate}T${item.endTime.padStart(5, '0')}:00`;
+              isAllDay = false;
+          }
+
+          return {
+              title: `[${item.projectCode}] ${item.content || item.stage}`,
+              start: startStr,
+              end: endStr,
+              allDay: isAllDay,
+              backgroundColor: bgColor,
+              extendedProps: { ...item }
+          };
+      });
+
+      // 기존 캘린더 인스턴스가 있으면 초기화
+      if (window.calendarInstance) {
+          window.calendarInstance.destroy();
+      }
+
+      // 달력 생성 및 옵션 세팅
+      window.calendarInstance = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth',
+          headerToolbar: {
+              left: 'prev,next today',
+              center: 'title',
+              right: 'dayGridMonth,timeGridWeek,listWeek' // 월간, 주간, 리스트 뷰 토글
+          },
+          events: events,
+          height: 'auto',
+          eventClick: function(info) {
+              const p = info.event.extendedProps;
+              // 클릭 시 팝업 띄우기 (간단한 alert 대신 커스텀 모달로 확장 가능)
+              alert(`[${p.projectCode} 상세 일정]\n\n담당/단계: ${p.part} / ${p.stage}\n기간: ${p.startDate} ${p.startTime || ''} ~ ${p.endDate} ${p.endTime || ''}\n내용: ${p.content}`);
+          }
+      });
+
+      window.calendarInstance.render();
+  }
+  // 👆👆👆 여기까지 👆👆👆
+
+}; // <--- 이 부분이 window.renderMainDashboard 함수가 끝나는 곳입니다.
+
+
+// ==========================================
+// 💡 여기서부터는 새로운 슬라이서 전용 독립 함수들입니다.
+// ==========================================
+
+window.renderMasterSlicers = function() {
 
 // 👇 여기서부터 복사해서 기존 updateMasterMdChart 함수를 완전히 덮어쓰세요 👇
 
