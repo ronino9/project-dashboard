@@ -331,172 +331,167 @@
     </div>
   </div>
 
-  <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbw0tUAHdcf2t_cd-0fD0AGg0VVauXzRvbTKfqZFgMQb-GbODTrchDNmb5F73Bp3skb_Pw/exec';
+<script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwcjsF78zpE7fAB8ZQPCd0zAbv5xoEonCGC6X2ekUmVuoVHfETPRCmu7QWPMXunjW9ikw/exec';
 
-    let allData = {}; 
-    let documentLinksData = [];
-    let currentProjectDocs = [];
-    let currentProjectId = 'main'; 
-    let csRiskData = [];
-    let csStatsData = {};
-    let rawData = [];
-    let mdChartInstance = null;
-    let statusChartInstance = null;
-    let mainMdChartInstance = null;
-    let currentDates = [];
-    let activeFilters = { '단계 구분': 'All', '대응 구분': 'All', '업무 구분': 'All', '유/무상': 'All', '파트 구분': 'All', '진행상태': 'All' };
+  let allData = {}; 
+  let documentLinksData = [];
+  let currentProjectDocs = [];
+  let currentProjectId = 'main'; 
+  let csRiskData = [];
+  let csStatsData = {};
+  let rawData = [];
+  let mdChartInstance = null;
+  let statusChartInstance = null;
+  let mainMdChartInstance = null;
+  let mainTrendChartInstance = null; // 트렌드 차트 변수 위로 통합
+  let currentDates = [];
+  let activeFilters = { '단계 구분': 'All', '대응 구분': 'All', '업무 구분': 'All', '유/무상': 'All', '파트 구분': 'All', '진행상태': 'All' };
 
-    Chart.defaults.color = '#94a3b8';
-    Chart.defaults.borderColor = '#334155';
+  Chart.defaults.color = '#94a3b8';
+  Chart.defaults.borderColor = '#334155';
 
-    function formatDate(dateStr) {
-      if (!dateStr) return '-';
-      return dateStr.toString().substring(2);
-    }
-
-    window.closeDetail = function() {
-      document.getElementById('detailView').style.display = 'none';
-    }
-
-    // (기존 showDetailView 함수 그대로 유지 - 생략 없이 포함)
-window.showDetailView = function(dateLabel, typeLabel, dataRows) {
-  const detailView = document.getElementById('detailView');
-  const detailTitle = document.getElementById('detailTitle');
-  const detailTable = document.getElementById('detailTable');
-
-  detailTitle.textContent = `${dateLabel} - [${typeLabel}] 상세 내역`;
-
-  if (dataRows.length === 0) {
-    detailTable.innerHTML = '<tr><td style="text-align:center;">데이터가 없습니다.</td></tr>';
-  } else {
-    // 1. 헤더 정의
-    const headers = ['프로젝트 코드', '접수일', '진행상태', '업무 구분', '작업 시간', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터'];
-    let html = '<tr>' + headers.map(h => {
-  if (h === '진행상태') return `<th style="text-align: center; white-space: nowrap; min-width: 85px;">${h}</th>`;
-  return `<th>${h}</th>`;
-}).join('') + '</tr>';
-
-    dataRows.forEach(row => {
-      // 2. 스마트 데이터 추출 (프로젝트 코드나 접수일이 없으면 현재 상태에서 유추)
-      const pCode = row['프로젝트 코드'] || document.getElementById('projectTitle').textContent || '-';
-      const dateVal = row['접수일'] || '-';
-
-      html += '<tr>' + headers.map(h => {
-        if (h === '프로젝트 코드') return `<td style="text-align: center; font-weight: bold; color: #3b82f6; vertical-align: top;">${pCode}</td>`;
-        if (h === '접수일') return `<td style="text-align: center; vertical-align: top; color: #94a3b8;">${dateVal}</td>`;
-        
-        // ... (이하 기존 로직 동일)
-        if (h === '진행상태') {
-          let val = row[h] || '-';
-          const statusColorMap = { '완료': '#059669', '지연완료': '#7c3aed', '지연중': '#dc2626', 'Issue': '#dc2626', '보류': '#475569', '임박': '#d97706', '진행중': '#2563eb' };
-          let color = statusColorMap[val] || '#3b82f6';
-          return `<td style="text-align: center; vertical-align: top; white-space: nowrap;"><span class="badge" style="background:${color};">${val}</span></td>`;
-        }
-        if (h === '작업 시간') {
-          const start = row['시작 시간'] || '';
-          const end = row['종료 시간'] || '';
-          let val = start && end ? `${start} ~ ${end}` : (start || end || '-');
-          return `<td style="text-align: center; font-size: 11px; color: #94a3b8; white-space: nowrap; vertical-align: top; padding-top: 12px;">${val}</td>`;
-        }
-        if (h === '분석 데이터') {
-          let val = row[h] || '-';
-          if (val === '-') return `<td style="vertical-align: top; color: #cbd5e1;">-</td>`;
-          let lines = val.split('\n');
-          let blocks = [];
-          let currentBlock = null;
-          lines.forEach(line => {
-            let trimmed = line.trim();
-            if (!trimmed) return;
-            const bracketMatch = trimmed.match(/^\[(.*?)\](.*)/);
-            if (bracketMatch) {
-              currentBlock = { keyword: bracketMatch[1].trim(), content: bracketMatch[2].trim() };
-              blocks.push(currentBlock);
-            } else {
-              if (currentBlock) { currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed; } 
-              else { blocks.push({ keyword: null, content: trimmed }); }
-            }
-          });
-          let formattedHtml = '';
-          blocks.forEach(block => {
-            if (block.keyword) {
-              formattedHtml += `<div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 12px;"><span class="badge" style="background: #312e81; border: 1px solid #4f46e5; color: #c7d2fe;">📌 ${block.keyword}</span>${block.content ? `<span style="color: #cbd5e1; line-height: 1.5;">${block.content}</span>` : ''}</div>`;
-            } else {
-              formattedHtml += `<div style="color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">${block.content}</div>`;
-            }
-          });
-          return `<td style="min-width: 250px; max-width: 400px; white-space: normal; word-break: keep-all; overflow-wrap: break-word; vertical-align: top;">${formattedHtml}</td>`;
-        }
-        if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
-          let val = row[h] || '-';
-          return `<td style="min-width: 200px; max-width: 350px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; line-height: 1.5; vertical-align: top; color: #e2e8f0;">${val}</td>`;
-        }
-        return `<td style="vertical-align: top; text-align: center;">${row[h] || '-'}</td>`;
-      }).join('') + '</tr>';
-    });
-    detailTable.innerHTML = html;
+  function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    return dateStr.toString().substring(2);
   }
-  detailView.style.display = 'block';
-  detailView.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
 
-    window.toggleSection = function(section) {
-      const content = document.getElementById(section + 'Content');
-      if (content) {
-        content.style.display = content.style.display === 'none' ? 'block' : 'none';
-      }
+  window.closeDetail = function() {
+    document.getElementById('detailView').style.display = 'none';
+  }
+
+  window.showDetailView = function(dateLabel, typeLabel, dataRows) {
+    const detailView = document.getElementById('detailView');
+    const detailTitle = document.getElementById('detailTitle');
+    const detailTable = document.getElementById('detailTable');
+
+    detailTitle.textContent = `${dateLabel} - [${typeLabel}] 상세 내역`;
+
+    if (dataRows.length === 0) {
+      detailTable.innerHTML = '<tr><td style="text-align:center;">데이터가 없습니다.</td></tr>';
+    } else {
+      const headers = ['프로젝트 코드', '접수일', '진행상태', '업무 구분', '작업 시간', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터'];
+      let html = '<tr>' + headers.map(h => {
+        if (h === '진행상태') return `<th style="text-align: center; white-space: nowrap; min-width: 85px;">${h}</th>`;
+        return `<th>${h}</th>`;
+      }).join('') + '</tr>';
+
+      dataRows.forEach(row => {
+        const pCode = row['프로젝트 코드'] || document.getElementById('projectTitle').textContent || '-';
+        const dateVal = row['접수일'] || '-';
+
+        html += '<tr>' + headers.map(h => {
+          if (h === '프로젝트 코드') return `<td style="text-align: center; font-weight: bold; color: #3b82f6; vertical-align: top;">${pCode}</td>`;
+          if (h === '접수일') return `<td style="text-align: center; vertical-align: top; color: #94a3b8;">${dateVal}</td>`;
+          
+          if (h === '진행상태') {
+            let val = row[h] || '-';
+            const statusColorMap = { '완료': '#059669', '지연완료': '#7c3aed', '지연중': '#dc2626', 'Issue': '#dc2626', '보류': '#475569', '임박': '#d97706', '진행중': '#2563eb' };
+            let color = statusColorMap[val] || '#3b82f6';
+            return `<td style="text-align: center; vertical-align: top; white-space: nowrap;"><span class="badge" style="background:${color};">${val}</span></td>`;
+          }
+          if (h === '작업 시간') {
+            const start = row['시작 시간'] || '';
+            const end = row['종료 시간'] || '';
+            let val = start && end ? `${start} ~ ${end}` : (start || end || '-');
+            return `<td style="text-align: center; font-size: 11px; color: #94a3b8; white-space: nowrap; vertical-align: top; padding-top: 12px;">${val}</td>`;
+          }
+          if (h === '분석 데이터') {
+            let val = row[h] || '-';
+            if (val === '-') return `<td style="vertical-align: top; color: #cbd5e1;">-</td>`;
+            let lines = val.split('\n');
+            let blocks = [];
+            let currentBlock = null;
+            lines.forEach(line => {
+              let trimmed = line.trim();
+              if (!trimmed) return;
+              const bracketMatch = trimmed.match(/^\[(.*?)\](.*)/);
+              if (bracketMatch) {
+                currentBlock = { keyword: bracketMatch[1].trim(), content: bracketMatch[2].trim() };
+                blocks.push(currentBlock);
+              } else {
+                if (currentBlock) { currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed; } 
+                else { blocks.push({ keyword: null, content: trimmed }); }
+              }
+            });
+            let formattedHtml = '';
+            blocks.forEach(block => {
+              if (block.keyword) {
+                formattedHtml += `<div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 12px;"><span class="badge" style="background: #312e81; border: 1px solid #4f46e5; color: #c7d2fe;">📌 ${block.keyword}</span>${block.content ? `<span style="color: #cbd5e1; line-height: 1.5;">${block.content}</span>` : ''}</div>`;
+              } else {
+                formattedHtml += `<div style="color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">${block.content}</div>`;
+              }
+            });
+            return `<td style="min-width: 250px; max-width: 400px; white-space: normal; word-break: keep-all; overflow-wrap: break-word; vertical-align: top;">${formattedHtml}</td>`;
+          }
+          if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
+            let val = row[h] || '-';
+            return `<td style="min-width: 200px; max-width: 350px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; line-height: 1.5; vertical-align: top; color: #e2e8f0;">${val}</td>`;
+          }
+          return `<td style="vertical-align: top; text-align: center;">${row[h] || '-'}</td>`;
+        }).join('') + '</tr>';
+      });
+      detailTable.innerHTML = html;
     }
+    detailView.style.display = 'block';
+    detailView.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 
-    async function syncDashboard() {
-      try {
-        const response = await fetch(API_URL, { redirect: 'follow' });
-        allData = await response.json();
-        
-        if (allData.project1CsRiskMap) csRiskData = allData.project1CsRiskMap;
-        if (allData.csStatistics) { csStatsData = allData.csStatistics; renderTotalStats(); }
-        if (allData.documentLinks) documentLinksData = allData.documentLinks;
-        
-        // 데이터 로드 후 기본 메인 탭 렌더링
-        window.switchTab('main');
-      } catch (err) {
-        console.error('동기화 실패:', err);
-      }
+  window.toggleSection = function(section) {
+    const content = document.getElementById(section + 'Content');
+    if (content) {
+      content.style.display = content.style.display === 'none' ? 'block' : 'none';
     }
+  }
 
-    // ✅ 메인 대시보드 렌더링 함수 추가
-// ✅ 여기서부터 복사하세요
-window.renderMainDashboard = function() {
-  if (!allData || !allData.project7) return;
+  async function syncDashboard() {
+    try {
+      const response = await fetch(API_URL, { redirect: 'follow' });
+      allData = await response.json();
+      
+      if (allData.project1CsRiskMap) csRiskData = allData.project1CsRiskMap;
+      if (allData.csStatistics) { csStatsData = allData.csStatistics; renderTotalStats(); }
+      if (allData.documentLinks) documentLinksData = allData.documentLinks;
+      
+      window.switchTab('main');
+    } catch (err) {
+      console.error('동기화 실패:', err);
+    }
+  }
 
-  // 1. 프로젝트 리스트 (상단 카드 생성)
-  const projectList = [
-    { id: 'OP7', title: 'Interactive Control Tower', d: allData.project7, color: '#8cc63f' },
-    { id: 'OP6', title: 'Battery Cell Inspection', d: allData.project6, color: '#3b82f6' },
-    { id: 'OP3', title: 'Rotary Indexing System', d: allData.project3, color: '#f5a623' },
-    { id: 'CP_ALL', title: 'C/S Consolidated', d: allData.project1, color: '#059669' }
-  ];
+  // ✅ 메인 대시보드 렌더링 함수
+  window.renderMainDashboard = function() {
+    if (!allData || !allData.project7) return;
 
-  const summaryCardsHtml = projectList.map(proj => {
-    const summary = proj.d.summary || {};
-    const overall = summary.overall || '0%';
-    const statusText = summary.status ? (summary.status.includes('Completed') ? '완료' : '진행중') : '진행중';
-    const badgeStyle = statusText === '완료' ? 'background:#d1fae5; color:#059669;' : 'background:#dbeafe; color:#2563eb;';
-    
-    const stages = ['제작', 'FAT', 'SET-UP', 'SAT'];
-    const stageBarsHtml = stages.map((name, i) => {
-      const val = summary.complete && summary.complete[i] !== undefined ? summary.complete[i] : 0;
-      const barColor = val >= 100 ? proj.color : (val > 0 ? proj.color + 'cc' : '#e2e8f0');
+    // 1. 프로젝트 요약 도넛
+    const projectList = [
+      { id: 'OP7', title: 'Interactive Control Tower', d: allData.project7, color: '#8cc63f' },
+      { id: 'OP6', title: 'Battery Cell Inspection', d: allData.project6, color: '#3b82f6' },
+      { id: 'OP3', title: 'Rotary Indexing System', d: allData.project3, color: '#f5a623' },
+      { id: 'CP_ALL', title: 'C/S Consolidated', d: allData.project1, color: '#059669' }
+    ];
+
+    const summaryCardsHtml = projectList.map(proj => {
+      const summary = proj.d.summary || {};
+      const overall = summary.overall || '0%';
+      const statusText = summary.status ? (summary.status.includes('Completed') ? '완료' : '진행중') : '진행중';
+      const badgeStyle = statusText === '완료' ? 'background:#d1fae5; color:#059669;' : 'background:#dbeafe; color:#2563eb;';
+      
+      const stages = ['제작', 'FAT', 'SET-UP', 'SAT'];
+      const stageBarsHtml = stages.map((name, i) => {
+        const val = summary.complete && summary.complete[i] !== undefined ? summary.complete[i] : 0;
+        const barColor = val >= 100 ? proj.color : (val > 0 ? proj.color + 'cc' : '#e2e8f0');
+        return `
+          <div class="stage-row">
+            <span class="stage-label">${name}</span>
+            <div class="stage-track"><div class="stage-fill" style="width:${Math.round(val)}%; background:${barColor};"></div></div>
+            <span class="stage-val">${Math.round(val)}%</span>
+          </div>
+        `;
+      }).join('');
+
       return `
-        <div class="stage-row">
-          <span class="stage-label">${name}</span>
-          <div class="stage-track"><div class="stage-fill" style="width:${Math.round(val)}%; background:${barColor};"></div></div>
-          <span class="stage-val">${Math.round(val)}%</span>
-        </div>
-      `;
-    }).join('');
-
-    return `
-<div class="main-card">
+      <div class="main-card">
         <div class="main-card-header">
           <div class="main-card-title">${proj.id}</div>
           <span class="badge" style="${badgeStyle}">${statusText}</span>
@@ -516,1252 +511,1155 @@ window.renderMainDashboard = function() {
           </div>
         </div>
       </div>
-    `;
-  }).join('');
-  document.getElementById('main-summary-cards').innerHTML = summaryCardsHtml;
-
-// 2. 이슈 랭킹 (Top 5 - 화이트 테마)
-  const topIssuesContainer = document.getElementById('main-issue-top5');
-
-  if (allData.issueRanking && allData.issueRanking.length > 0) {
-    // 1) 데이터가 있을 때: 시간 업데이트
-    const updateTime = allData.issueRanking[0]['갱신시각'] || '-';
-    document.getElementById('last-update-time').innerText = '최근 갱신: ' + updateTime;
-
-    // 2) 데이터가 있을 때: 리스트 그리기
-// 2) 데이터가 있을 때: 리스트 그리기
-    const topIssuesHtml = allData.issueRanking.slice(0, 5).map((issue, idx) => {
-      const issueTitle = issue['이름'] || issue.name || issue['제목'] || '이슈 명칭 없음';
-      return `
-      <div class="issue-list-item" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="window.showIssueDetail(${idx})">
-        <div style="display: flex; gap: 8px; align-items: center; overflow: hidden; flex: 1; padding-right: 10px;">
-          <span style="font-weight: 700; color: #64748b; flex-shrink: 0;">${idx + 1}.</span>
-          <span style="font-size: 14px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${issueTitle}">${issueTitle}</span>
-        </div>
-        <span class="badge" style="background: #ffffff; border: 1px solid #e2e8f0; color: #334155; flex-shrink: 0;">${issue['빈도'] || issue.count || 0}건</span>
-      </div>
       `;
     }).join('');
-    topIssuesContainer.innerHTML = topIssuesHtml;
+    document.getElementById('main-summary-cards').innerHTML = summaryCardsHtml;
 
-  } else {
-    // 데이터가 아예 없을 때 (시간 표시와 리스트 모두 '없음' 처리)
-    document.getElementById('last-update-time').innerText = '최근 갱신: 데이터 없음';
-    topIssuesContainer.innerHTML = `<div style="color: #64748b; font-size: 13px; padding: 10px;">집계된 이슈 데이터가 없습니다.</div>`;
-  }
+    // 2. 이슈 랭킹
+    const topIssuesContainer = document.getElementById('main-issue-top5');
+    if (allData.issueRanking && allData.issueRanking.length > 0) {
+      const updateTime = allData.issueRanking[0]['갱신시각'] || '-';
+      document.getElementById('last-update-time').innerText = '최근 갱신: ' + updateTime;
 
-  // 3. 지연 이슈 (처리 대기 Top 3)
-// 3. 지연 이슈 (처리 대기 Top 5 - 지연일 계산 및 표시)
-// 3. 지연 이슈 (처리 대기 Top 5 - 디버깅 포함)
-  const pendingContainer = document.getElementById('main-issue-pending');
-  const allIssues = [];
-  const today = new Date('2026-06-12'); 
-
-  ['project7', 'project6', 'project3'].forEach(pKey => {
-    if(allData[pKey] && allData[pKey].history) {
-      allData[pKey].history.forEach(r => {
-         if(['지연중', 'Issue', '임박'].includes(r['진행상태'])) {
-            const dateStr = r['접수일'] || r['완료예정일'] || '2026-01-01';
-            const dDate = new Date(dateStr);
-            const delayDays = Math.max(0, Math.floor((today - dDate) / (1000 * 60 * 60 * 24)));
-            
-            allIssues.push({
-               proj: pKey.replace('project', 'OP'),
-               title: r['제목'] || r['표준 제작 Item / Issue / 개선사항'] || '제목 없음',
-               date: dateStr,
-               status: r['진행상태'],
-               task: r['업무 구분'] || '기능 요구',
-               delay: delayDays
-            });
-         }
-      });
+      const topIssuesHtml = allData.issueRanking.slice(0, 5).map((issue, idx) => {
+        const issueTitle = issue['이름'] || issue.name || issue['제목'] || '이슈 명칭 없음';
+        return `
+        <div class="issue-list-item" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="window.showIssueDetail(${idx})">
+          <div style="display: flex; gap: 8px; align-items: center; overflow: hidden; flex: 1; padding-right: 10px;">
+            <span style="font-weight: 700; color: #64748b; flex-shrink: 0;">${idx + 1}.</span>
+            <span style="font-size: 14px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${issueTitle}">${issueTitle}</span>
+          </div>
+          <span class="badge" style="background: #ffffff; border: 1px solid #e2e8f0; color: #334155; flex-shrink: 0;">${issue['빈도'] || issue.count || 0}건</span>
+        </div>
+        `;
+      }).join('');
+      topIssuesContainer.innerHTML = topIssuesHtml;
+    } else {
+      document.getElementById('last-update-time').innerText = '최근 갱신: 데이터 없음';
+      topIssuesContainer.innerHTML = `<div style="color: #64748b; font-size: 13px; padding: 10px;">집계된 이슈 데이터가 없습니다.</div>`;
     }
-  });
 
-  // 데이터 확인 (콘솔창 F12에서 확인 가능)
-  console.log("전체 지연 이슈 개수:", allIssues.length);
-  
-// 지연일이 긴 순서대로 정렬 후 5개만 추출
-  allIssues.sort((a, b) => b.delay - a.delay);
-  const displayList = allIssues.slice(0, 5);
-  
-  if (displayList.length > 0) {
-    const pendingHtml = displayList.map((issue, idx) => {
-      
-      // 💡 여기가 핵심! 제목의 따옴표와 줄바꿈을 안전하게 포장해서 에러를 막습니다.
-      const safeTitle = (issue.title || '')
-          .replace(/'/g, "\\'")     // 작은따옴표 무력화
-          .replace(/"/g, "&quot;")  // 큰따옴표 무력화
-          .replace(/[\n\r]/g, " "); // 줄바꿈 무력화
+    // 3. 지연 이슈
+    const pendingContainer = document.getElementById('main-issue-pending');
+    const allIssues = [];
+    const today = new Date('2026-06-12'); 
 
-      return `
-      <div class="issue-list-item" style="cursor: pointer; flex-direction: column; align-items: flex-start;" 
-           onclick="window.showPendingDetail('${issue.proj}', '${safeTitle}')">
-        <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 4px;">
-           <div style="font-size: 14px; color: #1e293b; font-weight: 700;">
-             <span style="font-weight: 700; color: #64748b; margin-right: 8px;">${idx + 1}.</span>
-             <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; display: inline-block; vertical-align: bottom;">${issue.title}</span>
-           </div>
-           <span class="badge" style="background: #fee2e2; color: #dc2626; font-weight: 700; border: 1px solid #fca5a5;">${issue.delay}일 지연</span>
+    ['project7', 'project6', 'project3'].forEach(pKey => {
+      if(allData[pKey] && allData[pKey].history) {
+        allData[pKey].history.forEach(r => {
+           if(['지연중', 'Issue', '임박'].includes(r['진행상태'])) {
+              const dateStr = r['접수일'] || r['완료예정일'] || '2026-01-01';
+              const dDate = new Date(dateStr);
+              const delayDays = Math.max(0, Math.floor((today - dDate) / (1000 * 60 * 60 * 24)));
+              
+              allIssues.push({
+                 proj: pKey.replace('project', 'OP'),
+                 title: r['제목'] || r['표준 제작 Item / Issue / 개선사항'] || '제목 없음',
+                 date: dateStr,
+                 status: r['진행상태'],
+                 task: r['업무 구분'] || '기능 요구',
+                 delay: delayDays
+              });
+           }
+        });
+      }
+    });
+
+    allIssues.sort((a, b) => b.delay - a.delay);
+    const displayList = allIssues.slice(0, 5);
+    
+    if (displayList.length > 0) {
+      const pendingHtml = displayList.map((issue, idx) => {
+        const safeTitle = (issue.title || '')
+            .replace(/'/g, "\\'")     
+            .replace(/"/g, "&quot;")  
+            .replace(/[\n\r]/g, " "); 
+
+        return `
+        <div class="issue-list-item" style="cursor: pointer; flex-direction: column; align-items: flex-start;" 
+             onclick="window.showPendingDetail('${issue.proj}', '${safeTitle}')">
+          <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 4px;">
+             <div style="font-size: 14px; color: #1e293b; font-weight: 700;">
+               <span style="font-weight: 700; color: #64748b; margin-right: 8px;">${idx + 1}.</span>
+               <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; display: inline-block; vertical-align: bottom;">${issue.title}</span>
+             </div>
+             <span class="badge" style="background: #fee2e2; color: #dc2626; font-weight: 700; border: 1px solid #fca5a5;">${issue.delay}일 지연</span>
+          </div>
+          <div style="font-size: 11px; color: #64748b; padding-left: 22px;">${issue.proj} / ${issue.task}</div>
         </div>
-        <div style="font-size: 11px; color: #64748b; padding-left: 22px;">${issue.proj} / ${issue.task}</div>
-      </div>
-      `;
+        `;
+      }).join('');
+      pendingContainer.innerHTML = pendingHtml;
+    } else {
+      pendingContainer.innerHTML = `<div style="color: #64748b; font-size: 13px;">대기 중인 이슈가 없습니다.</div>`;
+    }
+
+    // 4. 슬라이서 및 차트 업데이트
+    if (!window.masterMdFilters) {
+        window.masterMdFilters = { '단계 구분': new Set(), '업무 구분': new Set(), '유/무상': new Set(), '파트 구분': new Set() };
+    }
+
+    window.allMasterData = [];
+    ['project7', 'project6', 'project3', 'project1'].forEach(pKey => {
+        const pName = pKey === 'project1' ? 'CP' : pKey.replace('project', 'OP');
+        if(allData[pKey] && allData[pKey].history) {
+            allData[pKey].history.forEach(r => {
+                window.allMasterData.push({ ...r, _pName: pName });
+            });
+        }
+    });
+
+    window.renderMasterSlicers();
+    window.updateMasterMdChart();
+
+    // --- 5. 3층 캘린더 렌더링 ---
+    if (allData.calendar && allData.calendar.length > 0) {
+        const calendarEl = document.getElementById('main-calendar');
+        
+        const events = allData.calendar.map(item => {
+            let bgColor = '#3b82f6'; 
+            if (item.importance === '긴급') bgColor = '#ef4444'; 
+            if (item.importance === '낮음') bgColor = '#94a3b8'; 
+
+            const sDate = (item.startDate || '').replace(/\//g, '-');
+            const eDate = (item.endDate || '').replace(/\//g, '-');
+            
+            let startStr = sDate;
+            let endStr = eDate;
+            let isAllDay = true;
+
+            if (item.startTime && item.startTime.trim() !== '') {
+                startStr = `${sDate}T${item.startTime.padStart(5, '0')}:00`;
+                isAllDay = false;
+            }
+            if (item.endTime && item.endTime.trim() !== '') {
+                endStr = `${eDate}T${item.endTime.padStart(5, '0')}:00`;
+                isAllDay = false;
+            }
+
+            return {
+                title: `[${item.projectCode}] ${item.content || item.stage}`,
+                start: startStr,
+                end: endStr,
+                allDay: isAllDay,
+                backgroundColor: bgColor,
+                extendedProps: { ...item }
+            };
+        });
+
+        if (window.calendarInstance) {
+            window.calendarInstance.destroy();
+        }
+
+        window.calendarInstance = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listWeek' 
+            },
+            events: events,
+            height: 'auto',
+            eventClick: function(info) {
+                const p = info.event.extendedProps;
+                alert(`[${p.projectCode} 상세 일정]\n\n담당/단계: ${p.part} / ${p.stage}\n기간: ${p.startDate} ${p.startTime || ''} ~ ${p.endDate} ${p.endTime || ''}\n내용: ${p.content}`);
+            }
+        });
+
+        window.calendarInstance.render();
+    }
+  }; // <--- renderMainDashboard 종료
+
+  // ==========================================
+  // 💡 여기서부터는 새로운 슬라이서 전용 독립 함수들입니다.
+  // ==========================================
+
+  window.renderMasterSlicers = function() {
+    const container = document.getElementById('master-slicer-container');
+    if (!container) return;
+    const categories = ['단계 구분', '업무 구분', '유/무상', '파트 구분'];
+    let html = '';
+
+    categories.forEach(cat => {
+        const uniqueVals = [...new Set(window.allMasterData.map(r => r[cat] || r[cat.replace('/', '')] || '').filter(v => v.trim() !== ''))];
+        if (uniqueVals.length === 0) return;
+
+        html += `<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">`;
+        html += `<span style="font-size: 11px; font-weight: 700; color: #475569; width: 60px;">${cat}</span>`;
+
+        const isAllSelected = window.masterMdFilters[cat].size === 0;
+        html += `<button onclick="window.toggleMasterFilter('${cat}', 'ALL')" style="padding: 2px 10px; font-size: 11px; font-weight: 600; border-radius: 12px; border: 1px solid ${isAllSelected ? '#3b82f6' : '#cbd5e1'}; background: ${isAllSelected ? '#3b82f6' : '#f1f5f9'}; color: ${isAllSelected ? '#fff' : '#64748b'}; cursor: pointer; transition: 0.2s;">전체</button>`;
+
+        uniqueVals.forEach(val => {
+            const isSelected = window.masterMdFilters[cat].has(val);
+            html += `<button onclick="window.toggleMasterFilter('${cat}', '${val}')" style="padding: 2px 10px; font-size: 11px; font-weight: 600; border-radius: 12px; border: 1px solid ${isSelected ? '#3b82f6' : '#e2e8f0'}; background: ${isSelected ? '#eff6ff' : '#ffffff'}; color: ${isSelected ? '#1d4ed8' : '#475569'}; cursor: pointer; transition: 0.2s;">${val}</button>`;
+        });
+        html += `</div>`;
+    });
+    container.innerHTML = html;
+  };
+
+  window.toggleMasterFilter = function(cat, val) {
+    if (val === 'ALL') {
+        window.masterMdFilters[cat].clear(); 
+    } else {
+        if (window.masterMdFilters[cat].has(val)) {
+            window.masterMdFilters[cat].delete(val); 
+        } else {
+            window.masterMdFilters[cat].add(val); 
+        }
+    }
+    window.renderMasterSlicers(); 
+    window.updateMasterMdChart(); 
+  };
+
+  window.updateMasterMdChart = function() {
+    let mdSums = { 'OP7': 0, 'OP6': 0, 'OP3': 0, 'CP': 0 };
+    let totalMd = 0;
+    let unresolvedIssues = 0;
+    let delayedItems = 0;
+    let totalItems = 0;
+
+    const trendData = {};
+
+    window.allMasterData.forEach(r => {
+        let pass = true;
+        for (let cat in window.masterMdFilters) {
+            const selectedSet = window.masterMdFilters[cat];
+            if (selectedSet.size > 0) {
+                const rowVal = r[cat] || r[cat.replace('/', '')] || '';
+                if (!selectedSet.has(rowVal)) { pass = false; break; }
+            }
+        }
+
+        if (pass) {
+            const val = parseFloat(r['공수(MD)']) || 0;
+            mdSums[r._pName] += val;
+            totalMd += val;
+            totalItems++;
+
+            const status = r['진행상태'] || '';
+            const taskType = r['업무 구분'] || '';
+            const rawDate = r['접수일'] || '2025-01-01';
+            
+            if (!rawDate || typeof rawDate !== 'string' || rawDate.length < 7) return;
+            const monthKey = rawDate.substring(0, 7); 
+
+            if (!trendData[monthKey]) trendData[monthKey] = { md: 0, risk: 0 };
+            trendData[monthKey].md += val;
+            if (taskType === 'Issue' || status === '지연중' || status === '임박') {
+                trendData[monthKey].risk += 1;
+            }
+
+            if (taskType === 'Issue' && !status.includes('완료')) unresolvedIssues++;
+            if (status === '지연중' || status === '임박') delayedItems++;
+        }
+    });
+
+    document.getElementById('kpi-master-md').textContent = totalMd.toFixed(1);
+    document.getElementById('kpi-master-unresolved').textContent = unresolvedIssues;
+    document.getElementById('kpi-master-delayed').textContent = delayedItems;
+    document.getElementById('kpi-master-compliance').textContent = totalItems > 0 ? Math.round(((totalItems - delayedItems) / totalItems) * 100) + '%' : '100%';
+
+    const colors = ['#8cc63f', '#3b82f6', '#f59e0b', '#64748b'];
+    const pKeys = ['OP7', 'OP6', 'OP3', 'CP'];
+
+    document.getElementById('main-md-legend').innerHTML = pKeys.map((k, i) => {
+        const ratio = totalMd > 0 ? Math.round((mdSums[k] / totalMd) * 100) : 0;
+        return `
+        <div style="display: flex; justify-content: space-between; font-size: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 4px;">
+           <span style="display: flex; align-items: center; gap: 6px; color: #64748b;">
+             <span style="width: 8px; height: 8px; background: ${colors[i]}; border-radius: 2px;"></span>${k}
+           </span>
+           <span style="color: #1e293b; font-weight: 700;">${ratio}%</span>
+        </div>`;
     }).join('');
-    pendingContainer.innerHTML = pendingHtml;
-  } else {
-    pendingContainer.innerHTML = `<div style="color: #64748b; font-size: 13px;">대기 중인 이슈가 없습니다.</div>`;
-  }
 
-// 4. 다중 선택 슬라이서 및 Master MD 차트 연동
-  // 전역 필터 객체 초기화 (Set을 사용하여 중복 선택 구현)
-  if (!window.masterMdFilters) {
-      window.masterMdFilters = { '단계 구분': new Set(), '업무 구분': new Set(), '유/무상': new Set(), '파트 구분': new Set() };
-  }
+    if (mainMdChartInstance) mainMdChartInstance.destroy();
+    mainMdChartInstance = new Chart(document.getElementById('mainMdChart'), {
+        type: 'doughnut',
+        data: { labels: pKeys, datasets: [{ data: pKeys.map(k => mdSums[k]), backgroundColor: colors, borderWidth: 1 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
+    });
 
-  // 모든 프로젝트의 데이터를 한 곳에 모음 (필터링을 위해)
-  window.allMasterData = [];
-  ['project7', 'project6', 'project3', 'project1'].forEach(pKey => {
-      const pName = pKey === 'project1' ? 'CP' : pKey.replace('project', 'OP');
-      if(allData[pKey] && allData[pKey].history) {
-          allData[pKey].history.forEach(r => {
-              window.allMasterData.push({ ...r, _pName: pName });
+    const sortedMonths = Object.keys(trendData).sort();
+    
+    if (mainTrendChartInstance) mainTrendChartInstance.destroy();
+    mainTrendChartInstance = new Chart(document.getElementById('mainTrendChart'), {
+        type: 'line',
+        data: {
+            labels: sortedMonths.map(m => m.substring(2)), 
+            datasets: [
+                {
+                    label: '공수(MD)',
+                    data: sortedMonths.map(m => trendData[m].md),
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderColor: '#3b82f6',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y'
+                },
+                {
+                    label: '리스크(이슈/지연)',
+                    data: sortedMonths.map(m => trendData[m].risk),
+                    borderColor: '#ef4444',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#ef4444',
+                    fill: false,
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', align: 'end', labels: { boxWidth: 10, font: { size: 10 } } }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                y: { 
+                    type: 'linear', display: true, position: 'left',
+                    title: { display: true, text: 'MD', font: { size: 10 } },
+                    grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } }
+                },
+                y1: {
+                    type: 'linear', display: true, position: 'right',
+                    title: { display: true, text: '건수', font: { size: 10 } },
+                    grid: { display: false }, ticks: { font: { size: 10 }, stepSize: 1 }
+                }
+            }
+        }
+    });
+  };
+
+  window.showKpiDetail = function(type) {
+    const matchedRows = [];
+    
+    window.allMasterData.forEach(r => {
+        let pass = true;
+        for (let cat in window.masterMdFilters) {
+            const selectedSet = window.masterMdFilters[cat];
+            if (selectedSet.size > 0) {
+                const rowVal = r[cat] || r[cat.replace('/', '')] || '';
+                if (!selectedSet.has(rowVal)) { pass = false; break; }
+            }
+        }
+
+        if (pass) {
+            const status = r['진행상태'] || '';
+            const taskType = r['업무 구분'] || '';
+            
+            let isMatch = false;
+            if (type === 'unresolved' && taskType === 'Issue' && !status.includes('완료')) {
+                isMatch = true;
+            } else if (type === 'delayed' && (status === '지연중' || status === '임박')) {
+                isMatch = true;
+            }
+
+            if (isMatch) {
+                const rowCopy = {
+                    '프로젝트 코드': r._pName,
+                    '접수일': r['접수일'] || '-',
+                    ...r
+                };
+                rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${r._pName}] ${r['표준 제작 Item / Issue / 개선사항'] || r['제목'] || ''}`;
+                matchedRows.push(rowCopy);
+            }
+        }
+    });
+
+    if (matchedRows.length === 0) {
+        alert("해당 조건에 맞는 데이터가 없습니다.");
+        return;
+    }
+
+    const title = type === 'unresolved' ? '🚨 미해결 이슈 전체' : '⏳ 지연 및 임박 항목 전체';
+    window.showDetailView(title, `총 ${matchedRows.length}건`, matchedRows);
+  };
+
+  window.showPendingDetail = function(projCode, title) {
+    alert("1. 버튼 클릭 성공! \n넘어온 프로젝트: [" + projCode + "]\n넘어온 제목: [" + title + "]");
+
+    const pMap = { 'OP7': 'project7', 'OP6': 'project6', 'OP3': 'project3', 'CP_ALL': 'project1', 'CP5': 'project1' };
+    const pKey = pMap[(projCode || '').toUpperCase()];
+    
+    if (!pKey) {
+        alert("2. 에러: [" + projCode + "]에 해당하는 프로젝트 시트를 찾을 수 없습니다.");
+        return;
+    }
+    if (!allData[pKey] || !allData[pKey].history) {
+        alert("2. 에러: " + pKey + " 시트의 데이터를 불러오지 못했습니다.");
+        return;
+    }
+
+    const cleanTargetTitle = (title || '').replace(/[\[\]\(\)\-\_\n]/g, ' ');
+    const keywords = cleanTargetTitle.split(/\s+/).filter(word => word.length >= 2);
+
+    let bestMatchRow = null;
+    let maxScore = 0;
+
+    allData[pKey].history.forEach(r => {
+        const originalTitle = (r['제목'] || r['표준 제작 Item / Issue / 개선사항'] || '').toUpperCase();
+        let score = 0;
+        keywords.forEach(keyword => {
+            if (originalTitle.includes(keyword.toUpperCase())) score++;
+        });
+        if (score > maxScore) {
+            maxScore = score;
+            bestMatchRow = r;
+        }
+    });
+
+    if (bestMatchRow && maxScore > 0) {
+        alert("3. 데이터 매칭 성공! 팝업을 엽니다. (유사도 점수: " + maxScore + ")");
+        const rowCopy = {
+            '프로젝트 코드': projCode,
+            '접수일': bestMatchRow['접수일'] || '-',
+            ...bestMatchRow
+        };
+        const displayTitle = (bestMatchRow['제목'] || bestMatchRow['표준 제작 Item / Issue / 개선사항'] || title);
+        window.showDetailView('⏳ 처리 대기 상세', displayTitle, [rowCopy]);
+    } else {
+        alert("3. 실패: [" + title + "] 과 일치하는 단어를 가진 원본 데이터가 하나도 없습니다.");
+    }
+  };
+
+  window.showIssueDetail = function(idx) {
+    const issue = allData.issueRanking[idx];
+    if (!issue) return;
+
+    const issueName = (issue.name || issue['이름'] || '').trim();
+    const rawMembers = issue['멤버'] || '';
+    const cleanMemberTitles = rawMembers.split('|').map(t => t.replace(/[^a-zA-Z0-9가-힣]/g, ''));
+
+    const matchedRows = [];
+    const targetProjects = ['project7', 'project6', 'project3', 'project1'];
+
+    targetProjects.forEach(pKey => {
+      if (allData[pKey] && allData[pKey].history) {
+        allData[pKey].history.forEach(row => {
+          if (row['업무 구분'] !== 'Issue' && row['업무 구분'] !== '개선사항') return;
+
+          const originalTitle = (row['표준 제작 Item / Issue / 개선사항'] || row['제목'] || '');
+          const cleanTitle = originalTitle.replace(/[^a-zA-Z0-9가-힣]/g, '');
+
+          if (cleanTitle === '') return;
+
+          const isMatch = cleanMemberTitles.some(memberTitle => {
+              if (memberTitle === cleanTitle) return true;
+              if (memberTitle.length >= 5 && (cleanTitle.includes(memberTitle) || memberTitle.includes(cleanTitle))) return true;
+              return false;
           });
-      }
-  });
-
-  // 슬라이서 및 차트 그리기 함수 최초 1회 호출
-  window.renderMasterSlicers();
-  window.updateMasterMdChart();
-
-
-
-}; // <--- 이 부분이 window.renderMainDashboard 함수가 끝나는 곳입니다.
-
-// ==========================================
-// 💡 여기서부터는 새로운 슬라이서 전용 독립 함수들입니다.
-// ==========================================
-
-window.renderMasterSlicers = function() {
-  const container = document.getElementById('master-slicer-container');
-  if (!container) return;
-  const categories = ['단계 구분', '업무 구분', '유/무상', '파트 구분'];
-  let html = '';
-
-  categories.forEach(cat => {
-      const uniqueVals = [...new Set(window.allMasterData.map(r => r[cat] || r[cat.replace('/', '')] || '').filter(v => v.trim() !== ''))];
-      if (uniqueVals.length === 0) return;
-
-      html += `<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">`;
-      html += `<span style="font-size: 11px; font-weight: 700; color: #475569; width: 60px;">${cat}</span>`;
-
-      const isAllSelected = window.masterMdFilters[cat].size === 0;
-      html += `<button onclick="window.toggleMasterFilter('${cat}', 'ALL')" style="padding: 2px 10px; font-size: 11px; font-weight: 600; border-radius: 12px; border: 1px solid ${isAllSelected ? '#3b82f6' : '#cbd5e1'}; background: ${isAllSelected ? '#3b82f6' : '#f1f5f9'}; color: ${isAllSelected ? '#fff' : '#64748b'}; cursor: pointer; transition: 0.2s;">전체</button>`;
-
-      uniqueVals.forEach(val => {
-          const isSelected = window.masterMdFilters[cat].has(val);
-          html += `<button onclick="window.toggleMasterFilter('${cat}', '${val}')" style="padding: 2px 10px; font-size: 11px; font-weight: 600; border-radius: 12px; border: 1px solid ${isSelected ? '#3b82f6' : '#e2e8f0'}; background: ${isSelected ? '#eff6ff' : '#ffffff'}; color: ${isSelected ? '#1d4ed8' : '#475569'}; cursor: pointer; transition: 0.2s;">${val}</button>`;
-      });
-      html += `</div>`;
-  });
-  container.innerHTML = html;
-};
-
-window.toggleMasterFilter = function(cat, val) {
-  if (val === 'ALL') {
-      window.masterMdFilters[cat].clear(); 
-  } else {
-      if (window.masterMdFilters[cat].has(val)) {
-          window.masterMdFilters[cat].delete(val); 
-      } else {
-          window.masterMdFilters[cat].add(val); 
-      }
-  }
-  window.renderMasterSlicers(); 
-  window.updateMasterMdChart(); 
-};
-
-// 트렌드 차트 인스턴스 전역 관리 (이 아래로는 원래 있던 updateMasterMdChart 함수가 이어집니다)
-    // 4. 다중 선택 슬라이서 및 Master MD 차트 연동
-  // 전역 필터 객체 초기화 (Set을 사용하여 중복 선택 구현)
-  if (!window.masterMdFilters) {
-      window.masterMdFilters = { '단계 구분': new Set(), '업무 구분': new Set(), '유/무상': new Set(), '파트 구분': new Set() };
-  }
-
-  // 모든 프로젝트의 데이터를 한 곳에 모음 (필터링을 위해)
-  window.allMasterData = [];
-  ['project7', 'project6', 'project3', 'project1'].forEach(pKey => {
-      const pName = pKey === 'project1' ? 'CP' : pKey.replace('project', 'OP');
-      if(allData[pKey] && allData[pKey].history) {
-          allData[pKey].history.forEach(r => {
-              window.allMasterData.push({ ...r, _pName: pName });
-          });
-      }
-  });
-
-  // 슬라이서 및 차트 그리기 함수 최초 1회 호출
-  window.renderMasterSlicers();
-  window.updateMasterMdChart();
-
-  // 👇👇👇 여기에 3층 캘린더 렌더링 코드를 추가합니다! 👇👇👇
-  // --- 5. 3층 캘린더 렌더링 ---
-  if (allData.calendar && allData.calendar.length > 0) {
-      const calendarEl = document.getElementById('main-calendar');
-      
-      // 구글 시트 데이터를 FullCalendar 규격으로 변환
-      const events = allData.calendar.map(item => {
-          // 중요도에 따른 색상 지정
-          let bgColor = '#3b82f6'; // 기본 파랑 (보통)
-          if (item.importance === '긴급') bgColor = '#ef4444'; // 빨강
-          if (item.importance === '낮음') bgColor = '#94a3b8'; // 회색
-
-          // 날짜 포맷팅 (YYYY/MM/DD -> YYYY-MM-DD)
-          const sDate = (item.startDate || '').replace(/\//g, '-');
-          const eDate = (item.endDate || '').replace(/\//g, '-');
-          
-          let startStr = sDate;
-          let endStr = eDate;
-          let isAllDay = true;
-
-          // 시간이 있으면 T를 붙여서 ISO 포맷으로 만듦
-          if (item.startTime && item.startTime.trim() !== '') {
-              startStr = `${sDate}T${item.startTime.padStart(5, '0')}:00`;
-              isAllDay = false;
-          }
-          if (item.endTime && item.endTime.trim() !== '') {
-              endStr = `${eDate}T${item.endTime.padStart(5, '0')}:00`;
-              isAllDay = false;
-          }
-
-          return {
-              title: `[${item.projectCode}] ${item.content || item.stage}`,
-              start: startStr,
-              end: endStr,
-              allDay: isAllDay,
-              backgroundColor: bgColor,
-              extendedProps: { ...item }
-          };
-      });
-
-      // 기존 캘린더 인스턴스가 있으면 초기화
-      if (window.calendarInstance) {
-          window.calendarInstance.destroy();
-      }
-
-      // 달력 생성 및 옵션 세팅
-      window.calendarInstance = new FullCalendar.Calendar(calendarEl, {
-          initialView: 'dayGridMonth',
-          headerToolbar: {
-              left: 'prev,next today',
-              center: 'title',
-              right: 'dayGridMonth,timeGridWeek,listWeek' // 월간, 주간, 리스트 뷰 토글
-          },
-          events: events,
-          height: 'auto',
-          eventClick: function(info) {
-              const p = info.event.extendedProps;
-              // 클릭 시 팝업 띄우기 (간단한 alert 대신 커스텀 모달로 확장 가능)
-              alert(`[${p.projectCode} 상세 일정]\n\n담당/단계: ${p.part} / ${p.stage}\n기간: ${p.startDate} ${p.startTime || ''} ~ ${p.endDate} ${p.endTime || ''}\n내용: ${p.content}`);
-          }
-      });
-
-      window.calendarInstance.render();
-  }
-  // 👆👆👆 여기까지 👆👆👆
-
-}; // <--- 이 부분이 window.renderMainDashboard 함수가 끝나는 곳입니다.
-
-
-// ==========================================
-// 💡 여기서부터는 새로운 슬라이서 전용 독립 함수들입니다.
-// ==========================================
-
-window.renderMasterSlicers = function() {
-
-// 👇 여기서부터 복사해서 기존 updateMasterMdChart 함수를 완전히 덮어쓰세요 👇
-
-// 트렌드 차트 인스턴스 전역 관리
-let mainTrendChartInstance = null;
-
-window.updateMasterMdChart = function() {
-  let mdSums = { 'OP7': 0, 'OP6': 0, 'OP3': 0, 'CP': 0 };
-  let totalMd = 0;
-  let unresolvedIssues = 0;
-  let delayedItems = 0;
-  let totalItems = 0;
-
-  // 트렌드 데이터 수집용 객체 (월별로 데이터 적재)
-  const trendData = {};
-
-  window.allMasterData.forEach(r => {
-      let pass = true;
-      for (let cat in window.masterMdFilters) {
-          const selectedSet = window.masterMdFilters[cat];
-          if (selectedSet.size > 0) {
-              const rowVal = r[cat] || r[cat.replace('/', '')] || '';
-              if (!selectedSet.has(rowVal)) { pass = false; break; }
-          }
-      }
-
-      if (pass) {
-          const val = parseFloat(r['공수(MD)']) || 0;
-          mdSums[r._pName] += val;
-          totalMd += val;
-          totalItems++;
-
-          const status = r['진행상태'] || '';
-          const taskType = r['업무 구분'] || '';
-          const rawDate = r['접수일'] || '2025-01-01';
-          
-          // "2025-01" 형태 추출 (접수일이 빈칸이거나 형식이 안 맞으면 무시)
-          if (!rawDate || typeof rawDate !== 'string' || rawDate.length < 7) return;
-          const monthKey = rawDate.substring(0, 7); 
-
-          // 월별 트렌드 데이터 초기화 및 적재
-          if (!trendData[monthKey]) trendData[monthKey] = { md: 0, risk: 0 };
-          trendData[monthKey].md += val;
-          if (taskType === 'Issue' || status === '지연중' || status === '임박') {
-              trendData[monthKey].risk += 1;
-          }
-
-          if (taskType === 'Issue' && !status.includes('완료')) unresolvedIssues++;
-          if (status === '지연중' || status === '임박') delayedItems++;
-      }
-  });
-
-  // KPI 업데이트
-  document.getElementById('kpi-master-md').textContent = totalMd.toFixed(1);
-  document.getElementById('kpi-master-unresolved').textContent = unresolvedIssues;
-  document.getElementById('kpi-master-delayed').textContent = delayedItems;
-  document.getElementById('kpi-master-compliance').textContent = totalItems > 0 ? Math.round(((totalItems - delayedItems) / totalItems) * 100) + '%' : '100%';
-
-  const colors = ['#8cc63f', '#3b82f6', '#f59e0b', '#64748b'];
-  const pKeys = ['OP7', 'OP6', 'OP3', 'CP'];
-
-  // 도넛 범례 업데이트
-  document.getElementById('main-md-legend').innerHTML = pKeys.map((k, i) => {
-      const ratio = totalMd > 0 ? Math.round((mdSums[k] / totalMd) * 100) : 0;
-      return `
-      <div style="display: flex; justify-content: space-between; font-size: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 4px;">
-         <span style="display: flex; align-items: center; gap: 6px; color: #64748b;">
-           <span style="width: 8px; height: 8px; background: ${colors[i]}; border-radius: 2px;"></span>${k}
-         </span>
-         <span style="color: #1e293b; font-weight: 700;">${ratio}%</span>
-      </div>`;
-  }).join('');
-
-  // 1. 도넛 차트 렌더링
-  if (mainMdChartInstance) mainMdChartInstance.destroy();
-  mainMdChartInstance = new Chart(document.getElementById('mainMdChart'), {
-      type: 'doughnut',
-      data: { labels: pKeys, datasets: [{ data: pKeys.map(k => mdSums[k]), backgroundColor: colors, borderWidth: 1 }] },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
-  });
-
-  // 2. 트렌드 차트 데이터 정렬 (날짜순)
-  const sortedMonths = Object.keys(trendData).sort();
-  
-  // 트렌드 차트 렌더링
-  if (mainTrendChartInstance) mainTrendChartInstance.destroy();
-  mainTrendChartInstance = new Chart(document.getElementById('mainTrendChart'), {
-      type: 'line',
-      data: {
-          labels: sortedMonths.map(m => m.substring(2)), // "25-01" 형태로 표시
-          datasets: [
-              {
-                  label: '공수(MD)',
-                  data: sortedMonths.map(m => trendData[m].md),
-                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                  borderColor: '#3b82f6',
-                  borderWidth: 2,
-                  fill: true,
-                  tension: 0.4,
-                  yAxisID: 'y'
-              },
-              {
-                  label: '리스크(이슈/지연)',
-                  data: sortedMonths.map(m => trendData[m].risk),
-                  borderColor: '#ef4444',
-                  borderWidth: 2,
-                  pointBackgroundColor: '#ef4444',
-                  fill: false,
-                  tension: 0.4,
-                  yAxisID: 'y1'
-              }
-          ]
-      },
-      options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-              legend: { position: 'top', align: 'end', labels: { boxWidth: 10, font: { size: 10 } } }
-          },
-          scales: {
-              x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-              y: { 
-                  type: 'linear', display: true, position: 'left',
-                  title: { display: true, text: 'MD', font: { size: 10 } },
-                  grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } }
-              },
-              y1: {
-                  type: 'linear', display: true, position: 'right',
-                  title: { display: true, text: '건수', font: { size: 10 } },
-                  grid: { display: false }, ticks: { font: { size: 10 }, stepSize: 1 }
-              }
-          }
-      }
-  });
-};
-// 💡 KPI 클릭 시 상세 내역을 팝업으로 띄워주는 함수
-window.showKpiDetail = function(type) {
-  const matchedRows = [];
-  
-  window.allMasterData.forEach(r => {
-      // 1. 현재 위쪽 슬라이서에서 선택된 필터 조건들을 먼저 통과하는지 검사
-      let pass = true;
-      for (let cat in window.masterMdFilters) {
-          const selectedSet = window.masterMdFilters[cat];
-          if (selectedSet.size > 0) {
-              const rowVal = r[cat] || r[cat.replace('/', '')] || '';
-              if (!selectedSet.has(rowVal)) { pass = false; break; }
-          }
-      }
-
-      // 2. 필터를 통과한 녀석들 중에서 해당 KPI 조건에 맞는 것만 쏙쏙 뽑아냄
-      if (pass) {
-          const status = r['진행상태'] || '';
-          const taskType = r['업무 구분'] || '';
-          
-          let isMatch = false;
-          if (type === 'unresolved' && taskType === 'Issue' && !status.includes('완료')) {
-              isMatch = true;
-          } else if (type === 'delayed' && (status === '지연중' || status === '임박')) {
-              isMatch = true;
-          }
 
           if (isMatch) {
-              // 팝업창에 예쁘게 띄우기 위해 데이터 가공
-              const rowCopy = {
-                  '프로젝트 코드': r._pName,
-                  '접수일': r['접수일'] || '-',
-                  ...r
-              };
-              rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${r._pName}] ${r['표준 제작 Item / Issue / 개선사항'] || r['제목'] || ''}`;
-              matchedRows.push(rowCopy);
+             let pName = pKey.replace('project', 'OP');
+             if (pKey === 'project1') pName = 'CP_All';
+
+             const rowCopy = {
+               '프로젝트 코드': pName,
+               '접수일': row['접수일'] || '-',
+               ...row
+             };
+             rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${pName}] ${originalTitle.trim()}`;
+             matchedRows.push(rowCopy);
           }
-      }
-  });
-
-  if (matchedRows.length === 0) {
-      alert("해당 조건에 맞는 데이터가 없습니다.");
-      return;
-  }
-
-  // 3. 팝업창 띄우기!
-  const title = type === 'unresolved' ? '🚨 미해결 이슈 전체' : '⏳ 지연 및 임박 항목 전체';
-  window.showDetailView(title, `총 ${matchedRows.length}건`, matchedRows);
-};
-// 👆 여기까지 복사해서 덮어쓰기 👆
-
-// --- 아래는 독립된 함수들입니다 ---
-
-window.showPendingDetail = function(projCode, title) {
-  // 1단계: 버튼이 정상적으로 눌렸는지 확인하는 알림창
-  alert("1. 버튼 클릭 성공! \n넘어온 프로젝트: [" + projCode + "]\n넘어온 제목: [" + title + "]");
-
-  // 프로젝트 코드 매핑 (CP5도 추가했습니다)
-  const pMap = { 'OP7': 'project7', 'OP6': 'project6', 'OP3': 'project3', 'CP_ALL': 'project1', 'CP5': 'project1' };
-  const pKey = pMap[(projCode || '').toUpperCase()];
-  
-  if (!pKey) {
-      alert("2. 에러: [" + projCode + "]에 해당하는 프로젝트 시트를 찾을 수 없습니다.");
-      return;
-  }
-  if (!allData[pKey] || !allData[pKey].history) {
-      alert("2. 에러: " + pKey + " 시트의 데이터를 불러오지 못했습니다.");
-      return;
-  }
-
-  // 3단계: 검색 시작
-  const cleanTargetTitle = (title || '').replace(/[\[\]\(\)\-\_\n]/g, ' ');
-  const keywords = cleanTargetTitle.split(/\s+/).filter(word => word.length >= 2);
-
-  let bestMatchRow = null;
-  let maxScore = 0;
-
-  allData[pKey].history.forEach(r => {
-      const originalTitle = (r['제목'] || r['표준 제작 Item / Issue / 개선사항'] || '').toUpperCase();
-      let score = 0;
-      keywords.forEach(keyword => {
-          if (originalTitle.includes(keyword.toUpperCase())) score++;
-      });
-      if (score > maxScore) {
-          maxScore = score;
-          bestMatchRow = r;
-      }
-  });
-
-  // 4단계: 결과 확인
-  if (bestMatchRow && maxScore > 0) {
-      alert("3. 데이터 매칭 성공! 팝업을 엽니다. (유사도 점수: " + maxScore + ")");
-      const rowCopy = {
-          '프로젝트 코드': projCode,
-          '접수일': bestMatchRow['접수일'] || '-',
-          ...bestMatchRow
-      };
-      const displayTitle = (bestMatchRow['제목'] || bestMatchRow['표준 제작 Item / Issue / 개선사항'] || title);
-      window.showDetailView('⏳ 처리 대기 상세', displayTitle, [rowCopy]);
-  } else {
-      alert("3. 실패: [" + title + "] 과 일치하는 단어를 가진 원본 데이터가 하나도 없습니다.");
-  }
-};
-
-window.showIssueDetail = function(idx) {
-  const issue = allData.issueRanking[idx];
-  if (!issue) return;
-
-  const issueName = (issue.name || issue['이름'] || '').trim();
-
-  // 1. AI가 모아둔 원본 제목들(멤버)에서 공백 및 하이픈, 괄호 등 모든 특수문자를 싹 제거하고 순수 글자만 남깁니다.
-  const rawMembers = issue['멤버'] || '';
-  const cleanMemberTitles = rawMembers.split('|').map(t => t.replace(/[^a-zA-Z0-9가-힣]/g, ''));
-
-  const matchedRows = [];
-  const targetProjects = ['project7', 'project6', 'project3', 'project1'];
-
-  targetProjects.forEach(pKey => {
-    if (allData[pKey] && allData[pKey].history) {
-      allData[pKey].history.forEach(row => {
-        // 💡 업무 구분이 'Issue' 외에 '개선사항' 등으로 적혀 있어도 찾을 수 있도록 조건을 완화했습니다.
-        if (row['업무 구분'] !== 'Issue' && row['업무 구분'] !== '개선사항') return;
-
-        // 2. 현재 시트의 제목에서도 공백과 모든 특수문자를 싹 지우고 순수 글자만 만듭니다.
-        const originalTitle = (row['표준 제작 Item / Issue / 개선사항'] || row['제목'] || '');
-        const cleanTitle = originalTitle.replace(/[^a-zA-Z0-9가-힣]/g, '');
-
-        if (cleanTitle === '') return;
-
-        // 3. 텍스트 매칭 검사 (순수 글자가 완벽히 일치하거나, 미세한 누락이 있어도 서로 포함 관계이면 매칭)
-        const isMatch = cleanMemberTitles.some(memberTitle => {
-            if (memberTitle === cleanTitle) return true;
-            // 글자 수가 긴 경우(5글자 이상), 한쪽이 다른 한쪽을 완전히 포함하고 있다면 정답으로 인정
-            if (memberTitle.length >= 5 && (cleanTitle.includes(memberTitle) || memberTitle.includes(cleanTitle))) return true;
-            return false;
         });
+      }
+    });
 
-        if (isMatch) {
-           let pName = pKey.replace('project', 'OP');
-           if (pKey === 'project1') pName = 'CP_All';
-
-           const rowCopy = {
-             '프로젝트 코드': pName,
-             '접수일': row['접수일'] || '-',
-             ...row
-           };
-           rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${pName}] ${originalTitle.trim()}`;
-           matchedRows.push(rowCopy);
-        }
-      });
+    if (matchedRows.length === 0) {
+        alert("데이터를 찾을 수 없습니다.\n대상 이슈명: " + issueName);
+    } else {
+        window.showDetailView('🚨 고질 이슈 상세 분석 (' + matchedRows.length + '건)', issueName, matchedRows);
     }
-  });
+  };
 
-  if (matchedRows.length === 0) {
-      alert("데이터를 찾을 수 없습니다.\n대상 이슈명: " + issueName);
-  } else {
-      window.showDetailView('🚨 고질 이슈 상세 분석 (' + matchedRows.length + '건)', issueName, matchedRows);
+  // --- 기존 탭 변환 및 렌더링 로직 ---
+  window.switchTab = function(tabId) {
+    document.getElementById('ai-result').style.display = 'none';
+    const mainPanel = document.getElementById('main-panel');
+    const header = document.getElementById('project-header');
+    const tools = document.getElementById('project-tools');
+    const slicers = document.getElementById('slicers');
+    const charts = document.getElementById('project-charts');
+    const detailView = document.getElementById('detailView');
+    const dailyPanel = document.getElementById('daily-panel');
+    const csPanel = document.getElementById('cs-view');
+    const aiPanel = document.getElementById('ai-panel');  
+    const docPanel = document.getElementById('doc-hub-panel');
+
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+    mainPanel.style.display = 'none';
+    header.style.display = 'none';
+    tools.style.display = 'none';
+    slicers.style.display = 'none';
+    charts.style.display = 'none';
+    detailView.style.display = 'none';
+    csPanel.style.display = 'none';
+    dailyPanel.style.display = 'none';
+    docPanel.style.display = 'none';
+    aiPanel.style.display = 'none';
+
+    if (tabId === 'main') {
+      document.getElementById('btn-main').classList.add('active');
+      mainPanel.style.display = 'block';
+      window.renderMainDashboard();
+    } else if (tabId === 'project1cs') {
+      document.getElementById('btn-project1cs').classList.add('active');
+      csPanel.style.display = 'grid';
+      setTimeout(() => renderCsBubbleChart(), 100);
+    } else if (tabId === 'daily') {
+      document.getElementById('btn-daily').classList.add('active');
+      dailyPanel.style.display = 'block';
+    } else {
+      document.getElementById('btn-' + tabId).classList.add('active');
+      header.style.display = 'block';
+      tools.style.display = 'flex';
+      slicers.style.display = 'grid';
+      charts.style.display = 'grid';
+      aiPanel.style.display = 'block';
+      window.switchProject(tabId);
+    }
   }
-};
-// ✅ 여기까지 복사하세요
 
-// (이 아래에는 기존의 window.switchTab = function(tabId) { ... } 가 그대로 있어야 합니다)
+  window.switchProject = function(projectId) {
+    currentProjectId = projectId;
+    const titleMap = { 'project7': 'Project 7', 'project6': 'Project 6', 'project3': 'Project 3' };
+    const subMap = { 'project7': 'Interactive Control Tower', 'project6': 'Battery Cell Inspection', 'project3': 'Rotary Indexing System' };
+    document.getElementById('projectTitle').textContent = titleMap[projectId] || 'Project';
+    document.getElementById('projectSubtitle').textContent = subMap[projectId] || '';
 
-    // 기존 탭 전환 로직 확장
-    window.switchTab = function(tabId) {
-      document.getElementById('ai-result').style.display = 'none';
-      const mainPanel = document.getElementById('main-panel');
-      const header = document.getElementById('project-header');
-      const tools = document.getElementById('project-tools');
-      const slicers = document.getElementById('slicers');
-      const charts = document.getElementById('project-charts');
-      const detailView = document.getElementById('detailView');
-      const dailyPanel = document.getElementById('daily-panel');
-      const csPanel = document.getElementById('cs-view');
-      const aiPanel = document.getElementById('ai-panel');  
-      const docPanel = document.getElementById('doc-hub-panel');
-
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
-      // 모든 섹션 숨김 처리
-      mainPanel.style.display = 'none';
-      header.style.display = 'none';
-      tools.style.display = 'none';
-      slicers.style.display = 'none';
-      charts.style.display = 'none';
-      detailView.style.display = 'none';
-      csPanel.style.display = 'none';
-      dailyPanel.style.display = 'none';
-      docPanel.style.display = 'none';
-      aiPanel.style.display = 'none';
-
-      if (tabId === 'main') {
-        document.getElementById('btn-main').classList.add('active');
-        mainPanel.style.display = 'block';
-        window.renderMainDashboard();
-      } else if (tabId === 'project1cs') {
-        document.getElementById('btn-project1cs').classList.add('active');
-        csPanel.style.display = 'grid';
-        setTimeout(() => renderCsBubbleChart(), 100);
-      } else if (tabId === 'daily') {
-        document.getElementById('btn-daily').classList.add('active');
-        dailyPanel.style.display = 'block';
-      } else {
-        document.getElementById('btn-' + tabId).classList.add('active');
-        header.style.display = 'block';
-        tools.style.display = 'flex';
-        slicers.style.display = 'grid';
-        charts.style.display = 'grid';
-        aiPanel.style.display = 'block';
-        window.switchProject(tabId);
-      }
-    }
-
-    window.switchProject = function(projectId) {
-      currentProjectId = projectId;
-      const titleMap = { 'project7': 'Project 7', 'project6': 'Project 6', 'project3': 'Project 3' };
-      const subMap = { 'project7': 'Interactive Control Tower', 'project6': 'Battery Cell Inspection', 'project3': 'Rotary Indexing System' };
-      document.getElementById('projectTitle').textContent = titleMap[projectId] || 'Project';
-      document.getElementById('projectSubtitle').textContent = subMap[projectId] || '';
-
-      activeFilters = { '단계 구분': 'All', '대응 구분': 'All', '업무 구분': 'All', '유/무상': 'All', '파트 구분': 'All', '진행상태': 'All' };
-      
-      if(allData[projectId]) {
-        rawData = allData[projectId].history || [];
-        renderDonuts(allData[projectId].summary);
-        renderSlicers();
-        updateCharts();
-        window.closeDetail();
-        renderDocumentHub(projectId); 
-      }
-    }
-
-    function renderDonuts(summaryData) {
-      const labels = ['제작', 'FAT', 'SET-UP', 'SAT'];
-      const donutHTML = labels.map((label, i) => {
-        const comp = summaryData.complete[i] || 0;
-        const incomp = summaryData.incomplete[i] || 0;
-        const total = comp + incomp;
-        const percent = total === 0 ? 0 : Math.round((comp / total) * 100);
-        const statusText = summaryData.status[i] || 'Waiting';
-        let themeColor = '#fbbf24';
-        if (statusText.toLowerCase().includes('completed')) themeColor = '#34d399';
-        else if (statusText.toLowerCase().includes('progress')) themeColor = '#3b82f6';
-        return `<div style="text-align: center;"><div style="font-size: 13px; color: #94a3b8; margin-bottom: 10px;">${label}</div><div style="position:relative;width:90px;height:90px;margin:0 auto;"><svg viewBox="0 0 36 36" style="width:100%;height:100%;"><circle cx="18" cy="18" r="15.9155" fill="none" stroke="#0f172a" stroke-width="3"/><circle cx="18" cy="18" r="15.9155" fill="none" stroke="${themeColor}" stroke-width="3.5" stroke-dasharray="${percent}, 100" style="stroke-linecap:round;"/></svg><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:19px;font-weight:700;color:${themeColor};">${percent}%</div></div><div style="margin-top: 12px; color:${themeColor}; font-weight: 700;">${statusText}</div></div>`;
-      }).join('');
-      document.getElementById('donuts').innerHTML = donutHTML;
-      document.getElementById('progressFill').style.width = summaryData.overall || '0%';
-      document.getElementById('progressText').textContent = summaryData.overall || '0%';
-    }
-
-    function renderSlicers() {
-      const container = document.getElementById('slicers');
-      container.innerHTML = '';
-      const filterCategories = ['단계 구분', '대응 구분', '업무 구분', '유/무상', '파트 구분', '진행상태'];
-      filterCategories.forEach(category => {
-        const uniqueValues = [...new Set(rawData.map(row => row[category]).filter(val => val && val.trim() !== ''))];
-        if (uniqueValues.length === 0) return;
-        const groupDiv = document.createElement('div');
-        groupDiv.className = 'filter-group';
-        let buttonsHTML = `<button class="filter-btn ${activeFilters[category] === 'All' ? 'active' : ''}" onclick="window.applyFilter('${category}', 'All')">All</button>`;
-        uniqueValues.forEach(val => {
-          buttonsHTML += `<button class="filter-btn ${activeFilters[category] === val ? 'active' : ''}" onclick="window.applyFilter('${category}', '${val}')">${val}</button>`;
-        });
-        groupDiv.innerHTML = `<div class="filter-title">${category}</div><div class="filter-buttons">${buttonsHTML}</div>`;
-        container.appendChild(groupDiv);
-      });
-    }
-
-    window.applyFilter = function(category, value) {
-      activeFilters[category] = value;
+    activeFilters = { '단계 구분': 'All', '대응 구분': 'All', '업무 구분': 'All', '유/무상': 'All', '파트 구분': 'All', '진행상태': 'All' };
+    
+    if(allData[projectId]) {
+      rawData = allData[projectId].history || [];
+      renderDonuts(allData[projectId].summary);
       renderSlicers();
       updateCharts();
       window.closeDetail();
+      renderDocumentHub(projectId); 
     }
+  }
 
-    function updateCharts() {
-      let filteredData = rawData.filter(row => {
-        for (let cat in activeFilters) {
-          if (activeFilters[cat] !== 'All' && row[cat] !== activeFilters[cat]) return false;
-        }
-        return true;
+  function renderDonuts(summaryData) {
+    const labels = ['제작', 'FAT', 'SET-UP', 'SAT'];
+    const donutHTML = labels.map((label, i) => {
+      const comp = summaryData.complete[i] || 0;
+      const incomp = summaryData.incomplete[i] || 0;
+      const total = comp + incomp;
+      const percent = total === 0 ? 0 : Math.round((comp / total) * 100);
+      const statusText = summaryData.status[i] || 'Waiting';
+      let themeColor = '#fbbf24';
+      if (statusText.toLowerCase().includes('completed')) themeColor = '#34d399';
+      else if (statusText.toLowerCase().includes('progress')) themeColor = '#3b82f6';
+      return `<div style="text-align: center;"><div style="font-size: 13px; color: #94a3b8; margin-bottom: 10px;">${label}</div><div style="position:relative;width:90px;height:90px;margin:0 auto;"><svg viewBox="0 0 36 36" style="width:100%;height:100%;"><circle cx="18" cy="18" r="15.9155" fill="none" stroke="#0f172a" stroke-width="3"/><circle cx="18" cy="18" r="15.9155" fill="none" stroke="${themeColor}" stroke-width="3.5" stroke-dasharray="${percent}, 100" style="stroke-linecap:round;"/></svg><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:19px;font-weight:700;color:${themeColor};">${percent}%</div></div><div style="margin-top: 12px; color:${themeColor}; font-weight: 700;">${statusText}</div></div>`;
+    }).join('');
+    document.getElementById('donuts').innerHTML = donutHTML;
+    document.getElementById('progressFill').style.width = summaryData.overall || '0%';
+    document.getElementById('progressText').textContent = summaryData.overall || '0%';
+  }
+
+  function renderSlicers() {
+    const container = document.getElementById('slicers');
+    container.innerHTML = '';
+    const filterCategories = ['단계 구분', '대응 구분', '업무 구분', '유/무상', '파트 구분', '진행상태'];
+    filterCategories.forEach(category => {
+      const uniqueValues = [...new Set(rawData.map(row => row[category]).filter(val => val && val.trim() !== ''))];
+      if (uniqueValues.length === 0) return;
+      const groupDiv = document.createElement('div');
+      groupDiv.className = 'filter-group';
+      let buttonsHTML = `<button class="filter-btn ${activeFilters[category] === 'All' ? 'active' : ''}" onclick="window.applyFilter('${category}', 'All')">All</button>`;
+      uniqueValues.forEach(val => {
+        buttonsHTML += `<button class="filter-btn ${activeFilters[category] === val ? 'active' : ''}" onclick="window.applyFilter('${category}', '${val}')">${val}</button>`;
       });
+      groupDiv.innerHTML = `<div class="filter-title">${category}</div><div class="filter-buttons">${buttonsHTML}</div>`;
+      container.appendChild(groupDiv);
+    });
+  }
 
-      let sumMD = 0, countIssue = 0, countIncomplete = 0;
-      filteredData.forEach(r => {
-        sumMD += parseFloat(r['공수(MD)']) || 0;
-        if (r['업무 구분'] === 'Issue') countIssue++;
-        const status = r['진행상태'] || '';
-        if (status && !status.includes('완료')) countIncomplete++;
-      });
-      document.getElementById('kpi-md').textContent = sumMD.toFixed(1);
-      document.getElementById('kpi-issue').textContent = countIssue;
-      document.getElementById('kpi-incomp').textContent = countIncomplete;
+  window.applyFilter = function(category, value) {
+    activeFilters[category] = value;
+    renderSlicers();
+    updateCharts();
+    window.closeDetail();
+  }
 
-      currentDates = [...new Set(filteredData.map(r => r['접수일']).filter(v => v && v.toString().trim() !== ''))].sort();
-
-      const colorMap = { '표준': '#7F8C8D', '개선': '#27AE60', 'Issue': '#C0392B', '기술지원': '#D4AC0D', '기능요구': '#3498DB', '완료': '#27AE60', '지연중': '#C0392B', '보류': '#64748b', '임박': '#D35400', '지연완료': '#a78bfa' };
-
-      const mdTypes = ['표준', '개선', 'Issue', '기술지원', '기능요구'];
-      if (mdChartInstance) mdChartInstance.destroy();
-      mdChartInstance = new Chart(document.getElementById('mdChart'), {
-        type: 'bar',
-        data: {
-          labels: currentDates.map(d => formatDate(d)),
-          datasets: mdTypes.map(type => ({
-            label: type,
-            backgroundColor: colorMap[type],
-            data: currentDates.map(d => filteredData.filter(r => r['접수일'] === d && r['업무 구분'] === type).reduce((sum, r) => sum + (parseFloat(r['공수(MD)']) || 0), 0))
-          }))
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { position: 'top' } },
-          scales: { x: { stacked: true }, y: { stacked: true } },
-          onClick: (e, elements, chart) => {
-            if (elements.length === 0) return;
-            const idx = elements[0].index;
-            const datasetIdx = elements[0].datasetIndex;
-            const originalDate = currentDates[idx];
-            const selectedType = chart.data.datasets[datasetIdx].label;
-            const details = filteredData.filter(r => r['접수일'] === originalDate && r['업무 구분'] === selectedType);
-            window.showDetailView(formatDate(originalDate), selectedType, details);
-          }
-        }
-      });
-
-      const statusTypes = ['완료', '지연중', '보류', '임박', '지연완료'];
-      if (statusChartInstance) statusChartInstance.destroy();
-      statusChartInstance = new Chart(document.getElementById('statusChart'), {
-        type: 'bar',
-        data: {
-          labels: currentDates.map(d => formatDate(d)),
-          datasets: statusTypes.map(type => ({
-            label: type,
-            backgroundColor: colorMap[type],
-            data: currentDates.map(d => filteredData.filter(r => r['접수일'] === d && r['진행상태'] === type).length)
-          }))
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { position: 'top' } },
-          scales: { x: { stacked: true }, y: { stacked: true, ticks: { stepSize: 1 } } },
-          onClick: (e, elements, chart) => {
-            if (elements.length === 0) return;
-            const idx = elements[0].index;
-            const datasetIdx = elements[0].datasetIndex;
-            const originalDate = currentDates[idx];
-            const selectedStatus = chart.data.datasets[datasetIdx].label;
-            const details = filteredData.filter(r => r['접수일'] === originalDate && r['진행상태'] === selectedStatus);
-            window.showDetailView(formatDate(originalDate), selectedStatus, details);
-          }
-        }
-      });
-    }
-
-    // (기존 C/S 및 Daily 렌더링 함수 - 생략 없이 유지)
-    function renderCsBubbleChart() {
-      const canvas = document.getElementById('csBubbleCanvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-
-      const padding = 80;
-      const graphWidth = canvas.width - padding * 2;
-      const graphHeight = canvas.height - padding * 2;
-
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      if (csRiskData.length === 0) {
-        ctx.fillStyle = '#64748b';
-        ctx.font = '14px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('데이터 없음', canvas.width / 2, canvas.height / 2);
-        return;
+  function updateCharts() {
+    let filteredData = rawData.filter(row => {
+      for (let cat in activeFilters) {
+        if (activeFilters[cat] !== 'All' && row[cat] !== activeFilters[cat]) return false;
       }
+      return true;
+    });
 
-      let maxX = Math.max(...csRiskData.map(p => p.x), 2) * 1.2;
-      let maxY = Math.max(...csRiskData.map(p => p.y), 2) * 1.2;
+    let sumMD = 0, countIssue = 0, countIncomplete = 0;
+    filteredData.forEach(r => {
+      sumMD += parseFloat(r['공수(MD)']) || 0;
+      if (r['업무 구분'] === 'Issue') countIssue++;
+      const status = r['진행상태'] || '';
+      if (status && !status.includes('완료')) countIncomplete++;
+    });
+    document.getElementById('kpi-md').textContent = sumMD.toFixed(1);
+    document.getElementById('kpi-issue').textContent = countIssue;
+    document.getElementById('kpi-incomp').textContent = countIncomplete;
 
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 1;
-      for (let i = 0; i <= 5; i++) {
-        const x = padding + (graphWidth / 5) * i;
-        const y = padding + (graphHeight / 5) * i;
-        ctx.beginPath(); ctx.moveTo(x, padding); ctx.lineTo(x, canvas.height - padding); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(padding, y); ctx.lineTo(canvas.width - padding, y); ctx.stroke();
+    currentDates = [...new Set(filteredData.map(r => r['접수일']).filter(v => v && v.toString().trim() !== ''))].sort();
+
+    const colorMap = { '표준': '#7F8C8D', '개선': '#27AE60', 'Issue': '#C0392B', '기술지원': '#D4AC0D', '기능요구': '#3498DB', '완료': '#27AE60', '지연중': '#C0392B', '보류': '#64748b', '임박': '#D35400', '지연완료': '#a78bfa' };
+
+    const mdTypes = ['표준', '개선', 'Issue', '기술지원', '기능요구'];
+    if (mdChartInstance) mdChartInstance.destroy();
+    mdChartInstance = new Chart(document.getElementById('mdChart'), {
+      type: 'bar',
+      data: {
+        labels: currentDates.map(d => formatDate(d)),
+        datasets: mdTypes.map(type => ({
+          label: type,
+          backgroundColor: colorMap[type],
+          data: currentDates.map(d => filteredData.filter(r => r['접수일'] === d && r['업무 구분'] === type).reduce((sum, r) => sum + (parseFloat(r['공수(MD)']) || 0), 0))
+        }))
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top' } },
+        scales: { x: { stacked: true }, y: { stacked: true } },
+        onClick: (e, elements, chart) => {
+          if (elements.length === 0) return;
+          const idx = elements[0].index;
+          const datasetIdx = elements[0].datasetIndex;
+          const originalDate = currentDates[idx];
+          const selectedType = chart.data.datasets[datasetIdx].label;
+          const details = filteredData.filter(r => r['접수일'] === originalDate && r['업무 구분'] === selectedType);
+          window.showDetailView(formatDate(originalDate), selectedType, details);
+        }
       }
+    });
 
-      ctx.strokeStyle = '#64748b';
-      ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(padding, canvas.height - padding); ctx.lineTo(canvas.width - padding, canvas.height - padding); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(padding, padding); ctx.lineTo(padding, canvas.height - padding); ctx.stroke();
-
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '12px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.fillText('임박 수준 →', canvas.width / 2, canvas.height - 20);
-      
-      ctx.save();
-      ctx.translate(20, canvas.height / 2);
-      ctx.rotate(-Math.PI / 2);
-      ctx.textAlign = 'center';
-      ctx.fillText('← 지연 수준', 0, 0);
-      ctx.restore();
-
-      ctx.font = '11px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.fillStyle = '#94a3b8';
-      for (let i = 0; i <= 5; i++) {
-        const value = (maxX / 5) * i; 
-        const x = padding + (graphWidth / 5) * i;
-        ctx.fillText(value.toFixed(1), x, canvas.height - padding + 20); 
+    const statusTypes = ['완료', '지연중', '보류', '임박', '지연완료'];
+    if (statusChartInstance) statusChartInstance.destroy();
+    statusChartInstance = new Chart(document.getElementById('statusChart'), {
+      type: 'bar',
+      data: {
+        labels: currentDates.map(d => formatDate(d)),
+        datasets: statusTypes.map(type => ({
+          label: type,
+          backgroundColor: colorMap[type],
+          data: currentDates.map(d => filteredData.filter(r => r['접수일'] === d && r['진행상태'] === type).length)
+        }))
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top' } },
+        scales: { x: { stacked: true }, y: { stacked: true, ticks: { stepSize: 1 } } },
+        onClick: (e, elements, chart) => {
+          if (elements.length === 0) return;
+          const idx = elements[0].index;
+          const datasetIdx = elements[0].datasetIndex;
+          const originalDate = currentDates[idx];
+          const selectedStatus = chart.data.datasets[datasetIdx].label;
+          const details = filteredData.filter(r => r['접수일'] === originalDate && r['진행상태'] === selectedStatus);
+          window.showDetailView(formatDate(originalDate), selectedStatus, details);
+        }
       }
-      
-      ctx.textAlign = 'right';
+    });
+  }
+
+  function renderCsBubbleChart() {
+    const canvas = document.getElementById('csBubbleCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
+    const padding = 80;
+    const graphWidth = canvas.width - padding * 2;
+    const graphHeight = canvas.height - padding * 2;
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (csRiskData.length === 0) {
+      ctx.fillStyle = '#64748b';
+      ctx.font = '14px sans-serif';
+      ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      for (let i = 0; i <= 5; i++) {
-        const value = (maxY / 5) * i; 
-        const y = canvas.height - padding - (graphHeight / 5) * i;
-        ctx.fillText(value.toFixed(1), padding - 15, y); 
-      }
-
-      const colorMap = { '안정': '#86EFAC', '임박': '#FCD34D', '주의': '#F9A8D4', '위험': '#FCA5A5', '심각': '#EF4444' };
-      const grouped = {};
-      csRiskData.forEach((project, idx) => {
-        const key = `${project.x.toFixed(2)},${project.y.toFixed(2)}`;
-        if (!grouped[key]) grouped[key] = [];
-        grouped[key].push({ ...project, originalIndex: idx });
-      });
-
-      csRiskData.forEach((project, index) => {
-        let x = padding + (project.x / maxX) * graphWidth;
-        let y = canvas.height - padding - (project.y / maxY) * graphHeight;
-        const radius = (project.size / 100) * 20 + 15;
-
-        const key = `${project.x.toFixed(2)},${project.y.toFixed(2)}`;
-        const groupIndex = grouped[key].findIndex(p => p.originalIndex === index);
-        const groupSize = grouped[key].length;
-
-        if (groupSize > 1) {
-          const spacing = window.bubbleSpacing || 50;
-          x += groupIndex * spacing;
-          y -= groupIndex * spacing;
-        }
-
-        let color = colorMap[project.status] || '#86EFAC';
-
-        ctx.fillStyle = color;
-        ctx.globalAlpha = 0.7;
-        ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
-        ctx.globalAlpha = 1;
-
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.stroke();
-
-        ctx.fillStyle = '#f8fafc';
-        ctx.font = 'bold 13px monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(project.name, x, y);
-
-        project.x_pixel = x;
-        project.y_pixel = y;
-        project.radius = radius;
-      });
-
-      canvas.onclick = (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-
-        csRiskData.forEach(project => {
-          const dist = Math.sqrt(Math.pow(mouseX - project.x_pixel, 2) + Math.pow(mouseY - project.y_pixel, 2));
-          if (dist < project.radius) selectCsProject(project);
-        });
-      };
+      ctx.fillText('데이터 없음', canvas.width / 2, canvas.height / 2);
+      return;
     }
 
-    function selectCsProject(project) {
-      const html = `
-        <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #334155;">
-          <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">프로젝트명</div>
-          <div style="font-size: 18px; font-weight: 700; color: #f8fafc; font-family: monospace;">${project.name}</div>
-        </div>
-        <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #334155;">
-          <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">상태</div>
-          <div style="font-size: 18px; font-weight: 700; color: #f8fafc;">${project.status}</div>
-        </div>
-        <div style="margin-bottom: 20px;">
-          <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">정보</div>
-          <div style="font-size: 13px; color: #e2e8f0; margin-bottom: 8px;">진행율: ${project.progress}%</div>
-          <div style="font-size: 13px; color: #e2e8f0; margin-bottom: 8px;">임박 수준: ${project.x.toFixed(1)}</div>
-          <div style="font-size: 13px; color: #e2e8f0;">지연일: ${project.y.toFixed(1)}</div>
-        </div>
-      `;
-      document.getElementById('csDetailContent').innerHTML = html;
-      renderDetailStats(project.name);
+    let maxX = Math.max(...csRiskData.map(p => p.x), 2) * 1.2;
+    let maxY = Math.max(...csRiskData.map(p => p.y), 2) * 1.2;
+
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 5; i++) {
+      const x = padding + (graphWidth / 5) * i;
+      const y = padding + (graphHeight / 5) * i;
+      ctx.beginPath(); ctx.moveTo(x, padding); ctx.lineTo(x, canvas.height - padding); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(padding, y); ctx.lineTo(canvas.width - padding, y); ctx.stroke();
     }
 
-    function renderDetailStats(projectNo) {
-      const content = document.getElementById('detailStatsContent');
-      if (!csStatsData.detail || !csStatsData.detail[projectNo]) {
-        content.innerHTML = '<div style="color: #64748b; font-size: 12px;">데이터 없음</div>';
-        return;
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(padding, canvas.height - padding); ctx.lineTo(canvas.width - padding, canvas.height - padding); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padding, padding); ctx.lineTo(padding, canvas.height - padding); ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('임박 수준 →', canvas.width / 2, canvas.height - 20);
+    
+    ctx.save();
+    ctx.translate(20, canvas.height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText('← 지연 수준', 0, 0);
+    ctx.restore();
+
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = '#94a3b8';
+    for (let i = 0; i <= 5; i++) {
+      const value = (maxX / 5) * i; 
+      const x = padding + (graphWidth / 5) * i;
+      ctx.fillText(value.toFixed(1), x, canvas.height - padding + 20); 
+    }
+    
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i <= 5; i++) {
+      const value = (maxY / 5) * i; 
+      const y = canvas.height - padding - (graphHeight / 5) * i;
+      ctx.fillText(value.toFixed(1), padding - 15, y); 
+    }
+
+    const colorMap = { '안정': '#86EFAC', '임박': '#FCD34D', '주의': '#F9A8D4', '위험': '#FCA5A5', '심각': '#EF4444' };
+    const grouped = {};
+    csRiskData.forEach((project, idx) => {
+      const key = `${project.x.toFixed(2)},${project.y.toFixed(2)}`;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push({ ...project, originalIndex: idx });
+    });
+
+    csRiskData.forEach((project, index) => {
+      let x = padding + (project.x / maxX) * graphWidth;
+      let y = canvas.height - padding - (project.y / maxY) * graphHeight;
+      const radius = (project.size / 100) * 20 + 15;
+
+      const key = `${project.x.toFixed(2)},${project.y.toFixed(2)}`;
+      const groupIndex = grouped[key].findIndex(p => p.originalIndex === index);
+      const groupSize = grouped[key].length;
+
+      if (groupSize > 1) {
+        const spacing = window.bubbleSpacing || 50;
+        x += groupIndex * spacing;
+        y -= groupIndex * spacing;
       }
+
+      let color = colorMap[project.status] || '#86EFAC';
+
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.7;
+      ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.stroke();
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 13px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(project.name, x, y);
+
+      project.x_pixel = x;
+      project.y_pixel = y;
+      project.radius = radius;
+    });
+
+    canvas.onclick = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      csRiskData.forEach(project => {
+        const dist = Math.sqrt(Math.pow(mouseX - project.x_pixel, 2) + Math.pow(mouseY - project.y_pixel, 2));
+        if (dist < project.radius) selectCsProject(project);
+      });
+    };
+  }
+
+  function selectCsProject(project) {
+    const html = `
+      <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #334155;">
+        <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">프로젝트명</div>
+        <div style="font-size: 18px; font-weight: 700; color: #f8fafc; font-family: monospace;">${project.name}</div>
+      </div>
+      <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #334155;">
+        <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">상태</div>
+        <div style="font-size: 18px; font-weight: 700; color: #f8fafc;">${project.status}</div>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">정보</div>
+        <div style="font-size: 13px; color: #e2e8f0; margin-bottom: 8px;">진행율: ${project.progress}%</div>
+        <div style="font-size: 13px; color: #e2e8f0; margin-bottom: 8px;">임박 수준: ${project.x.toFixed(1)}</div>
+        <div style="font-size: 13px; color: #e2e8f0;">지연일: ${project.y.toFixed(1)}</div>
+      </div>
+    `;
+    document.getElementById('csDetailContent').innerHTML = html;
+    renderDetailStats(project.name);
+  }
+
+  function renderDetailStats(projectNo) {
+    const content = document.getElementById('detailStatsContent');
+    if (!csStatsData.detail || !csStatsData.detail[projectNo]) {
+      content.innerHTML = '<div style="color: #64748b; font-size: 12px;">데이터 없음</div>';
+      return;
+    }
+    const projectData = csStatsData.detail[projectNo];
+    let html = '<div style="display: flex; gap: 16px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 12px;"><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></span>유상</span><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #d1d5db; border-radius: 2px;"></span>무상</span></div>';
+    for (const taskType in projectData) {
+      html += `<div style="margin-bottom: 12px;"><div style="color: #cbd5e1; font-size: 11px; margin-bottom: 6px; font-weight: 600;">${taskType}</div>`;
+      for (const partType in projectData[taskType]) {
+        const data = projectData[taskType][partType];
+        const total = data.유상 + data.무상;
+        const ratio = total > 0 ? (data.유상 / total * 100).toFixed(0) : 0;
+        html += `<div style="margin-bottom: 6px; font-size: 11px;"><div style="color: #94a3b8; margin-bottom: 4px;">${partType}</div><div style="display: flex; height: 20px; border-radius: 4px; overflow: hidden; background: #0f172a;"><div style="background: #3b82f6; width: ${ratio}%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 10px;">${data.유상.toFixed(1)}</div><div style="background: #6b7280; flex: 1; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 10px;">${data.무상.toFixed(1)}</div></div></div>`;
+      }
+      html += '</div>';
+    }
+    content.innerHTML = html;
+  }
+
+  function renderTotalStats() {
+    const content = document.getElementById('totalStatsContent');
+    if (!csStatsData.detail) {
+      content.innerHTML = '<div style="color: #64748b; font-size: 12px;">데이터 없음</div>';
+      return;
+    }
+    let html = '<div style="display: flex; gap: 16px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 12px;"><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></span>유상</span><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #d1d5db; border-radius: 2px;"></span>무상</span></div>';
+    const aggregated = {};
+    for (const projectNo in csStatsData.detail) {
       const projectData = csStatsData.detail[projectNo];
-      let html = '<div style="display: flex; gap: 16px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 12px;"><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></span>유상</span><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #d1d5db; border-radius: 2px;"></span>무상</span></div>';
       for (const taskType in projectData) {
-        html += `<div style="margin-bottom: 12px;"><div style="color: #cbd5e1; font-size: 11px; margin-bottom: 6px; font-weight: 600;">${taskType}</div>`;
+        if (!aggregated[taskType]) aggregated[taskType] = {};
         for (const partType in projectData[taskType]) {
-          const data = projectData[taskType][partType];
-          const total = data.유상 + data.무상;
-          const ratio = total > 0 ? (data.유상 / total * 100).toFixed(0) : 0;
-          html += `<div style="margin-bottom: 6px; font-size: 11px;"><div style="color: #94a3b8; margin-bottom: 4px;">${partType}</div><div style="display: flex; height: 20px; border-radius: 4px; overflow: hidden; background: #0f172a;"><div style="background: #3b82f6; width: ${ratio}%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 10px;">${data.유상.toFixed(1)}</div><div style="background: #6b7280; flex: 1; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 10px;">${data.무상.toFixed(1)}</div></div></div>`;
+          if (!aggregated[taskType][partType]) aggregated[taskType][partType] = { 유상: 0, 무상: 0 };
+          aggregated[taskType][partType].유상 += projectData[taskType][partType].유상;
+          aggregated[taskType][partType].무상 += projectData[taskType][partType].무상;
         }
-        html += '</div>';
       }
-      content.innerHTML = html;
+    }
+    for (const taskType in aggregated) {
+      html += `<div style="margin-bottom: 16px;"><div style="color: #cbd5e1; font-size: 12px; margin-bottom: 8px; font-weight: 600;">${taskType}</div>`;
+      for (const partType in aggregated[taskType]) {
+        const data = aggregated[taskType][partType];
+        const total = data.유상 + data.무상;
+        const ratio = total > 0 ? (data.유상 / total * 100).toFixed(0) : 0;
+        html += `<div style="margin-bottom: 8px;"><div style="color: #94a3b8; font-size: 11px; margin-bottom: 4px;">${partType}: ${total.toFixed(1)}MD</div><div style="display: flex; height: 20px; border-radius: 4px; overflow: hidden; background: #0f172a;"><div style="background: #3b82f6; width: ${ratio}%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 10px;">${data.유상.toFixed(1)}</div><div style="background: #d1d5db; flex: 1; display: flex; align-items: center; justify-content: center; color: var(--color-text-primary); font-weight: bold; font-size: 10px;">${data.무상.toFixed(1)}</div></div></div>`;
+      }
+      html += '</div>';
+    }
+    content.innerHTML = html;
+  }
+
+  window.renderDailyLog = function() {
+    const startVal = document.getElementById('daily-start').value;
+    const endVal   = document.getElementById('daily-end').value;
+    const content  = document.getElementById('daily-log-content');
+    const summary  = document.getElementById('daily-summary');
+
+    if (!startVal || !endVal) {
+      content.innerHTML = '<div style="color:#64748b; font-size:14px;">시작일과 종료일을 모두 선택하세요.</div>';
+      return;
+    }
+    if (startVal > endVal) {
+      content.innerHTML = '<div style="color:#ef4444; font-size:14px;">시작일이 종료일보다 늦습니다.</div>';
+      summary.textContent = '';
+      return;
     }
 
-    function renderTotalStats() {
-      const content = document.getElementById('totalStatsContent');
-      if (!csStatsData.detail) {
-        content.innerHTML = '<div style="color: #64748b; font-size: 12px;">데이터 없음</div>';
-        return;
-      }
-      let html = '<div style="display: flex; gap: 16px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 12px;"><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></span>유상</span><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #d1d5db; border-radius: 2px;"></span>무상</span></div>';
-      const aggregated = {};
-      for (const projectNo in csStatsData.detail) {
-        const projectData = csStatsData.detail[projectNo];
-        for (const taskType in projectData) {
-          if (!aggregated[taskType]) aggregated[taskType] = {};
-          for (const partType in projectData[taskType]) {
-            if (!aggregated[taskType][partType]) aggregated[taskType][partType] = { 유상: 0, 무상: 0 };
-            aggregated[taskType][partType].유상 += projectData[taskType][partType].유상;
-            aggregated[taskType][partType].무상 += projectData[taskType][partType].무상;
-          }
-        }
-      }
-      for (const taskType in aggregated) {
-        html += `<div style="margin-bottom: 16px;"><div style="color: #cbd5e1; font-size: 12px; margin-bottom: 8px; font-weight: 600;">${taskType}</div>`;
-        for (const partType in aggregated[taskType]) {
-          const data = aggregated[taskType][partType];
-          const total = data.유상 + data.무상;
-          const ratio = total > 0 ? (data.유상 / total * 100).toFixed(0) : 0;
-          html += `<div style="margin-bottom: 8px;"><div style="color: #94a3b8; font-size: 11px; margin-bottom: 4px;">${partType}: ${total.toFixed(1)}MD</div><div style="display: flex; height: 20px; border-radius: 4px; overflow: hidden; background: #0f172a;"><div style="background: #3b82f6; width: ${ratio}%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 10px;">${data.유상.toFixed(1)}</div><div style="background: #d1d5db; flex: 1; display: flex; align-items: center; justify-content: center; color: var(--color-text-primary); font-weight: bold; font-size: 10px;">${data.무상.toFixed(1)}</div></div></div>`;
-        }
-        html += '</div>';
-      }
-      content.innerHTML = html;
+    const logs = (allData.dailyLog || []).filter(row => row['날짜'] >= startVal && row['날짜'] <= endVal);
+    if (logs.length === 0) {
+      content.innerHTML = '<div style="color:#64748b; font-size:14px;">해당 기간에 데이터가 없습니다.</div>';
+      summary.textContent = '';
+      return;
     }
 
-    window.renderDailyLog = function() {
-      const startVal = document.getElementById('daily-start').value;
-      const endVal   = document.getElementById('daily-end').value;
-      const content  = document.getElementById('daily-log-content');
-      const summary  = document.getElementById('daily-summary');
+    const grouped = {};
+    logs.forEach(row => {
+      const d = row['날짜'];
+      if (!grouped[d]) grouped[d] = [];
+      grouped[d].push(row);
+    });
 
-      if (!startVal || !endVal) {
-        content.innerHTML = '<div style="color:#64748b; font-size:14px;">시작일과 종료일을 모두 선택하세요.</div>';
-        return;
-      }
-      if (startVal > endVal) {
-        content.innerHTML = '<div style="color:#ef4444; font-size:14px;">시작일이 종료일보다 늦습니다.</div>';
-        summary.textContent = '';
-        return;
-      }
+    Object.keys(grouped).forEach(d => {
+      grouped[d].sort((a, b) => (a['시간'] || '').localeCompare(b['시간'] || ''));
+    });
 
-      const logs = (allData.dailyLog || []).filter(row => row['날짜'] >= startVal && row['날짜'] <= endVal);
-      if (logs.length === 0) {
-        content.innerHTML = '<div style="color:#64748b; font-size:14px;">해당 기간에 데이터가 없습니다.</div>';
-        summary.textContent = '';
-        return;
-      }
+    const sortedDates = Object.keys(grouped).sort();
+    const totalMD = logs.reduce((s, r) => s + (r['공수'] || 0), 0);
+    summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD`;
 
-      const grouped = {};
-      logs.forEach(row => {
-        const d = row['날짜'];
-        if (!grouped[d]) grouped[d] = [];
-        grouped[d].push(row);
-      });
+    const statusColor = { '완료': '#059669', '지연완료': '#7c3aed', '지연중': '#dc2626', 'Issue': '#dc2626', '보류': '#475569', '임박': '#d97706', '진행중': '#2563eb' };
+    const taskColor = { 'Issue': '#7f1d1d', '표준': '#374151', '개선': '#14532d', '기술지원': '#713f12', '기능요구': '#1e3a5f' };
+    const stageBadge = { '제작': '#1e3a5f', 'FAT': '#3b1f6b', 'SET-UP': '#1a3d2b', 'SAT': '#3d1f1f', 'C/S': '#2d2d00' };
 
-      Object.keys(grouped).forEach(d => {
-        grouped[d].sort((a, b) => (a['시간'] || '').localeCompare(b['시간'] || ''));
-      });
+    let html = '';
+    sortedDates.forEach(date => {
+      const rows = grouped[date];
+      const dayMD = rows.reduce((s, r) => s + (r['공수'] || 0), 0);
+      const dateObj = new Date(date);
+      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+      const dayLabel = date.substring(2).replace(/-/g, '.') + ` (${dayNames[dateObj.getDay()]})`;
 
-      const sortedDates = Object.keys(grouped).sort();
-      const totalMD = logs.reduce((s, r) => s + (r['공수'] || 0), 0);
-      summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD`;
+      html += `
+        <div style="margin-bottom:24px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+            <div style="font-size:15px; font-weight:700; color:#3b82f6; white-space:nowrap;">${dayLabel}</div>
+            <div style="font-size:12px; color:#64748b;">${rows.length}건</div>
+            <div style="font-size:12px; color:#94a3b8; background:#0f172a; padding:2px 10px; border-radius:10px; border:1px solid #334155; white-space:nowrap;">${dayMD.toFixed(1)} MD</div>
+            <div style="flex:1; height:1px; background:#334155;"></div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+      `;
 
-      const statusColor = { '완료': '#059669', '지연완료': '#7c3aed', '지연중': '#dc2626', 'Issue': '#dc2626', '보류': '#475569', '임박': '#d97706', '진행중': '#2563eb' };
-      const taskColor = { 'Issue': '#7f1d1d', '표준': '#374151', '개선': '#14532d', '기술지원': '#713f12', '기능요구': '#1e3a5f' };
-      const stageBadge = { '제작': '#1e3a5f', 'FAT': '#3b1f6b', 'SET-UP': '#1a3d2b', 'SAT': '#3d1f1f', 'C/S': '#2d2d00' };
+      rows.forEach(row => {
+        const sColor = statusColor[row['진행상태']] || '#334155';
+        const tColor = taskColor[row['업무구분']] || '#374151';
+        const stColor = stageBadge[row['단계']] || '#1e293b';
 
-      let html = '';
-      sortedDates.forEach(date => {
-        const rows = grouped[date];
-        const dayMD = rows.reduce((s, r) => s + (r['공수'] || 0), 0);
-        const dateObj = new Date(date);
-        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-        const dayLabel = date.substring(2).replace(/-/g, '.') + ` (${dayNames[dateObj.getDay()]})`;
+        function parseAnalysis(val) {
+          if (!val || val.trim() === '' || val === '-') return '';
+          let lines = val.split('\n');
+          let blocks = [];
+          let currentBlock = null;
+          lines.forEach(line => {
+            let trimmed = line.trim();
+            if (!trimmed) return;
+            const bracketMatch = trimmed.match(/^\[(.*?)\](.*)/);
+            if (bracketMatch) {
+              currentBlock = { keyword: bracketMatch[1].trim(), content: bracketMatch[2].trim() };
+              blocks.push(currentBlock);
+            } else {
+              if (currentBlock) currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed;
+              else blocks.push({ keyword: null, content: trimmed });
+            }
+          });
+          let html = '';
+          blocks.forEach((block, i) => {
+            if (i > 0) html += `<div style="height:0.5px; background:#1e293b; margin:8px 0;"></div>`;
+            if (block.keyword) {
+              html += `<div><span style="display:inline-flex; align-items:center; gap:5px; background:#312e81; border:1px solid #4f46e5; color:#c7d2fe; font-size:11px; font-weight:600; padding:2px 10px; border-radius:4px; margin-bottom:5px;">📌 ${block.keyword}</span>${block.content ? `<div style="font-size:12px; color:#cbd5e1; line-height:1.6;">${block.content}</div>` : ''}</div>`;
+            } else {
+              html += `<div style="font-size:12px; color:#cbd5e1; line-height:1.6;">${block.content}</div>`;
+            }
+          });
+          return html;
+        }
+
+        const analysisHtml = parseAnalysis(row['분석'] || '');
+        const hasAnalysis = analysisHtml !== '';
+        const hasDesc = row['설명'] && row['설명'].trim();
+        const hasDetail = hasDesc || hasAnalysis;
 
         html += `
-          <div style="margin-bottom:24px;">
-            <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-              <div style="font-size:15px; font-weight:700; color:#3b82f6; white-space:nowrap;">${dayLabel}</div>
-              <div style="font-size:12px; color:#64748b;">${rows.length}건</div>
-              <div style="font-size:12px; color:#94a3b8; background:#0f172a; padding:2px 10px; border-radius:10px; border:1px solid #334155; white-space:nowrap;">${dayMD.toFixed(1)} MD</div>
-              <div style="flex:1; height:1px; background:#334155;"></div>
+          <div style="background:#0f172a; border:1px solid ${hasAnalysis ? '#4f46e5' : '#1e293b'}; border-radius:6px; padding:12px 16px; display:grid; grid-template-columns:100px 1fr; gap:12px; align-items:start;">
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <div style="font-size:11px; color:#475569; font-family:monospace; white-space:nowrap;">${row['시간'] || '-'}</div>
+              ${row['공수'] ? `<div style="font-size:12px; font-weight:700; color:#94a3b8;">${row['공수'].toFixed(1)} MD</div>` : ''}
+              ${row['프로젝트'] ? `<span style="background:#0f2744; color:#60a5fa; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid #1d4ed8; text-align:center;">${row['프로젝트']}</span>` : ''}
             </div>
-            <div style="display:flex; flex-direction:column; gap:8px;">
+            <div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
+                <span style="background:${sColor}; color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${row['진행상태'] || '-'}</span>
+                <span style="background:${tColor}; color:#e2e8f0; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${row['업무구분'] || '-'}</span>
+                ${row['단계'] ? `<span style="background:${stColor}; color:#94a3b8; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px;">${row['단계']}</span>` : ''}
+                ${row['파트'] ? `<span style="background:#1a2e1a; color:#4ade80; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid #166534;">${row['파트']}</span>` : ''}
+                ${row['유무상'] ? `<span style="background:${row['유무상']==='유상'?'#1e3a5f':'#1e293b'}; color:${row['유무상']==='유상'?'#93c5fd':'#64748b'}; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid ${row['유무상']==='유상'?'#1d4ed8':'#334155'};">${row['유무상']}</span>` : ''}
+              </div>
+              <div style="font-size:13px; color:#f1f5f9; font-weight:600; margin-bottom:${hasDetail ? '8px' : '0'}; line-height:1.4;">${row['제목'] || '-'}</div>
+              ${hasDetail ? `
+              <div style="background:#0a0f1a; border:1px solid #1e293b; border-radius:6px; padding:10px 14px;">
+                ${hasDesc ? `<div style="font-size:11px; color:#3b82f6; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">진행 사항</div><div style="font-size:12px; color:#94a3b8; line-height:1.6; white-space:pre-wrap; margin-bottom:${hasAnalysis ? '10px' : '0'};">${row['설명']}</div>` : ''}
+                ${hasDesc && hasAnalysis ? `<div style="height:0.5px; background:#1e293b; margin-bottom:10px;"></div>` : ''}
+                ${hasAnalysis ? `<div style="font-size:11px; color:#8b5cf6; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">분석 데이터</div>${analysisHtml}` : ''}
+              </div>
+              ` : ''}
+            </div>
+          </div>
         `;
-
-        rows.forEach(row => {
-          const sColor = statusColor[row['진행상태']] || '#334155';
-          const tColor = taskColor[row['업무구분']] || '#374151';
-          const stColor = stageBadge[row['단계']] || '#1e293b';
-
-          function parseAnalysis(val) {
-            if (!val || val.trim() === '' || val === '-') return '';
-            let lines = val.split('\n');
-            let blocks = [];
-            let currentBlock = null;
-            lines.forEach(line => {
-              let trimmed = line.trim();
-              if (!trimmed) return;
-              const bracketMatch = trimmed.match(/^\[(.*?)\](.*)/);
-              if (bracketMatch) {
-                currentBlock = { keyword: bracketMatch[1].trim(), content: bracketMatch[2].trim() };
-                blocks.push(currentBlock);
-              } else {
-                if (currentBlock) currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed;
-                else blocks.push({ keyword: null, content: trimmed });
-              }
-            });
-            let html = '';
-            blocks.forEach((block, i) => {
-              if (i > 0) html += `<div style="height:0.5px; background:#1e293b; margin:8px 0;"></div>`;
-              if (block.keyword) {
-                html += `<div><span style="display:inline-flex; align-items:center; gap:5px; background:#312e81; border:1px solid #4f46e5; color:#c7d2fe; font-size:11px; font-weight:600; padding:2px 10px; border-radius:4px; margin-bottom:5px;">📌 ${block.keyword}</span>${block.content ? `<div style="font-size:12px; color:#cbd5e1; line-height:1.6;">${block.content}</div>` : ''}</div>`;
-              } else {
-                html += `<div style="font-size:12px; color:#cbd5e1; line-height:1.6;">${block.content}</div>`;
-              }
-            });
-            return html;
-          }
-
-          const analysisHtml = parseAnalysis(row['분석'] || '');
-          const hasAnalysis = analysisHtml !== '';
-          const hasDesc = row['설명'] && row['설명'].trim();
-          const hasDetail = hasDesc || hasAnalysis;
-
-          html += `
-            <div style="background:#0f172a; border:1px solid ${hasAnalysis ? '#4f46e5' : '#1e293b'}; border-radius:6px; padding:12px 16px; display:grid; grid-template-columns:100px 1fr; gap:12px; align-items:start;">
-              <div style="display:flex; flex-direction:column; gap:6px;">
-                <div style="font-size:11px; color:#475569; font-family:monospace; white-space:nowrap;">${row['시간'] || '-'}</div>
-                ${row['공수'] ? `<div style="font-size:12px; font-weight:700; color:#94a3b8;">${row['공수'].toFixed(1)} MD</div>` : ''}
-                ${row['프로젝트'] ? `<span style="background:#0f2744; color:#60a5fa; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid #1d4ed8; text-align:center;">${row['프로젝트']}</span>` : ''}
-              </div>
-              <div>
-                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
-                  <span style="background:${sColor}; color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${row['진행상태'] || '-'}</span>
-                  <span style="background:${tColor}; color:#e2e8f0; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${row['업무구분'] || '-'}</span>
-                  ${row['단계'] ? `<span style="background:${stColor}; color:#94a3b8; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px;">${row['단계']}</span>` : ''}
-                  ${row['파트'] ? `<span style="background:#1a2e1a; color:#4ade80; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid #166534;">${row['파트']}</span>` : ''}
-                  ${row['유무상'] ? `<span style="background:${row['유무상']==='유상'?'#1e3a5f':'#1e293b'}; color:${row['유무상']==='유상'?'#93c5fd':'#64748b'}; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid ${row['유무상']==='유상'?'#1d4ed8':'#334155'};">${row['유무상']}</span>` : ''}
-                </div>
-                <div style="font-size:13px; color:#f1f5f9; font-weight:600; margin-bottom:${hasDetail ? '8px' : '0'}; line-height:1.4;">${row['제목'] || '-'}</div>
-                ${hasDetail ? `
-                <div style="background:#0a0f1a; border:1px solid #1e293b; border-radius:6px; padding:10px 14px;">
-                  ${hasDesc ? `<div style="font-size:11px; color:#3b82f6; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">진행 사항</div><div style="font-size:12px; color:#94a3b8; line-height:1.6; white-space:pre-wrap; margin-bottom:${hasAnalysis ? '10px' : '0'};">${row['설명']}</div>` : ''}
-                  ${hasDesc && hasAnalysis ? `<div style="height:0.5px; background:#1e293b; margin-bottom:10px;"></div>` : ''}
-                  ${hasAnalysis ? `<div style="font-size:11px; color:#8b5cf6; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">분석 데이터</div>${analysisHtml}` : ''}
-                </div>
-                ` : ''}
-              </div>
-            </div>
-          `;
-        });
-        html += `</div></div>`;
       });
-      content.innerHTML = html;
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const slider = document.getElementById('spacingSlider');
-      if (slider) {
-        slider.addEventListener('input', (e) => {
-          window.bubbleSpacing = parseInt(e.target.value);
-          document.getElementById('spacingValue').textContent = window.bubbleSpacing;
-          renderCsBubbleChart();
-        });
-      }
+      html += `</div></div>`;
     });
+    content.innerHTML = html;
+  }
 
-    window.addEventListener('load', syncDashboard);
+  document.addEventListener('DOMContentLoaded', () => {
+    const slider = document.getElementById('spacingSlider');
+    if (slider) {
+      slider.addEventListener('input', (e) => {
+        window.bubbleSpacing = parseInt(e.target.value);
+        document.getElementById('spacingValue').textContent = window.bubbleSpacing;
+        renderCsBubbleChart();
+      });
+    }
+  });
 
-    window.runAIAnalysis = async function(modelType) {
-      const btnFlash = document.getElementById('ai-btn-flash');
-      const btnPro = document.getElementById('ai-btn-pro');
-      const resultBox = document.getElementById('ai-result');
-      const isPro = modelType === 'pro';
-      const activeBtn = isPro ? btnPro : btnFlash;
-      const inactiveBtn = isPro ? btnFlash : btnPro;
-      const originalText = activeBtn.innerHTML;
+  window.addEventListener('load', syncDashboard);
 
-      activeBtn.innerHTML = '분석 중... ⏳';
-      activeBtn.disabled = true;
-      inactiveBtn.disabled = true;
-      inactiveBtn.style.opacity = '0.5';
+  window.runAIAnalysis = async function(modelType) {
+    const btnFlash = document.getElementById('ai-btn-flash');
+    const btnPro = document.getElementById('ai-btn-pro');
+    const resultBox = document.getElementById('ai-result');
+    const isPro = modelType === 'pro';
+    const activeBtn = isPro ? btnPro : btnFlash;
+    const inactiveBtn = isPro ? btnFlash : btnPro;
+    const originalText = activeBtn.innerHTML;
 
-      resultBox.style.display = 'block';
-      resultBox.innerHTML = `<span style="color: ${isPro ? '#a78bfa' : '#34d399'}; font-weight: bold;">Gemini 1.5 ${isPro ? 'Pro' : 'Flash'} 모델이 상세 데이터를 긁어 분석하고 있습니다...</span>`;
+    activeBtn.innerHTML = '분석 중... ⏳';
+    activeBtn.disabled = true;
+    inactiveBtn.disabled = true;
+    inactiveBtn.style.opacity = '0.5';
 
-      try {
-        const tableData = Array.from(document.querySelectorAll('#detailTable tr')).map(row => row.innerText);
-        const projectName = document.getElementById('projectTitle').textContent;
-        const payload = {
-          projectTitle: projectName,
-          modelType: modelType, 
-          historyData: tableData.length > 1 ? tableData : ["현재 선택된 세부 공정 데이터가 없습니다."]
+    resultBox.style.display = 'block';
+    resultBox.innerHTML = `<span style="color: ${isPro ? '#a78bfa' : '#34d399'}; font-weight: bold;">Gemini 1.5 ${isPro ? 'Pro' : 'Flash'} 모델이 상세 데이터를 긁어 분석하고 있습니다...</span>`;
+
+    try {
+      const tableData = Array.from(document.querySelectorAll('#detailTable tr')).map(row => row.innerText);
+      const projectName = document.getElementById('projectTitle').textContent;
+      const payload = {
+        projectTitle: projectName,
+        modelType: modelType, 
+        historyData: tableData.length > 1 ? tableData : ["현재 선택된 세부 공정 데이터가 없습니다."]
+      };
+
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      if (data.report) resultBox.innerHTML = data.report;
+      else resultBox.innerHTML = `<span style="color: #ef4444;">분석 오류: ${data.error}</span>`;
+    } catch (error) {
+      resultBox.innerHTML = `<span style="color: #ef4444;">통신 실패: Vercel 서버 연결을 확인하세요.</span>`;
+    } finally {
+      activeBtn.innerHTML = originalText;
+      activeBtn.disabled = false;
+      inactiveBtn.disabled = false;
+      inactiveBtn.style.opacity = '1';
+    }
+  }
+
+  function renderDocumentHub(projectId) {
+    const docPanel = document.getElementById('doc-hub-panel');
+    if (!docPanel) return;
+    docPanel.style.display = 'block';
+
+    const map = { 'project7': 'OP7', 'project6': 'OP6', 'project3': 'OP3', 'project1cs': 'CP_All' };
+    const pName = map[projectId];
+    
+    currentProjectDocs = documentLinksData.filter(d => d.project === pName);
+    
+    const locSlicer = document.getElementById('doc-location-slicer');
+    const itemsContainer = document.getElementById('doc-items-container');
+    
+    locSlicer.innerHTML = '';
+    itemsContainer.style.display = 'none';
+    
+    if(currentProjectDocs.length === 0) {
+        locSlicer.innerHTML = '<span style="color:#64748b; font-size:13px;">등록된 산출물 경로가 없습니다.</span>';
+        return;
+    }
+    
+    const locations = [...new Set(currentProjectDocs.map(d => d.location))];
+    
+    locations.forEach(loc => {
+        const btn = document.createElement('button');
+        btn.className = 'doc-loc-btn';
+        btn.innerHTML = loc.includes('서버') ? `🗄️ ${loc}` : `💻 ${loc}`;
+        
+        btn.onclick = () => {
+            if (btn.classList.contains('active')) {
+                btn.classList.remove('active');
+                document.getElementById('doc-items-container').style.display = 'none';
+            } else {
+                document.querySelectorAll('.doc-loc-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                showDocItems(loc);
+            }
         };
-
-        const response = await fetch('/api/gemini', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await response.json();
-        if (data.report) resultBox.innerHTML = data.report;
-        else resultBox.innerHTML = `<span style="color: #ef4444;">분석 오류: ${data.error}</span>`;
-      } catch (error) {
-        resultBox.innerHTML = `<span style="color: #ef4444;">통신 실패: Vercel 서버 연결을 확인하세요.</span>`;
-      } finally {
-        activeBtn.innerHTML = originalText;
-        activeBtn.disabled = false;
-        inactiveBtn.disabled = false;
-        inactiveBtn.style.opacity = '1';
-      }
-    }
-
-    function renderDocumentHub(projectId) {
-      const docPanel = document.getElementById('doc-hub-panel');
-      if (!docPanel) return;
-      docPanel.style.display = 'block';
-
-      const map = { 'project7': 'OP7', 'project6': 'OP6', 'project3': 'OP3', 'project1cs': 'CP_All' };
-      const pName = map[projectId];
-      
-      currentProjectDocs = documentLinksData.filter(d => d.project === pName);
-      
-      const locSlicer = document.getElementById('doc-location-slicer');
-      const itemsContainer = document.getElementById('doc-items-container');
-      
-      locSlicer.innerHTML = '';
-      itemsContainer.style.display = 'none';
-      
-      if(currentProjectDocs.length === 0) {
-          locSlicer.innerHTML = '<span style="color:#64748b; font-size:13px;">등록된 산출물 경로가 없습니다.</span>';
-          return;
-      }
-      
-      const locations = [...new Set(currentProjectDocs.map(d => d.location))];
-      
-      locations.forEach(loc => {
-          const btn = document.createElement('button');
-          btn.className = 'doc-loc-btn';
-          btn.innerHTML = loc.includes('서버') ? `🗄️ ${loc}` : `💻 ${loc}`;
-          
-          btn.onclick = () => {
-              if (btn.classList.contains('active')) {
-                  btn.classList.remove('active');
-                  document.getElementById('doc-items-container').style.display = 'none';
-              } else {
-                  document.querySelectorAll('.doc-loc-btn').forEach(b => b.classList.remove('active'));
-                  btn.classList.add('active');
-                  showDocItems(loc);
-              }
-          };
-          locSlicer.appendChild(btn);
-      });
-    }
-
-    function showDocItems(location) {
-      const itemsContainer = document.getElementById('doc-items-container');
-      itemsContainer.innerHTML = '';
-      const docs = currentProjectDocs.filter(d => d.location === location);
-      docs.forEach(doc => {
-          const btn = document.createElement('button');
-          btn.className = 'doc-item-btn';
-          btn.innerHTML = `📄 ${doc.docType} <span style="color:#60a5fa; font-size:10px; margin-left:4px;">(경로 복사)</span>`;
-          btn.onclick = () => copyFilePath(doc.filePath);
-          itemsContainer.appendChild(btn);
-      });
-      itemsContainer.style.display = 'block';
-    }
-
-    function copyFilePath(path) {
-      const cleanPath = path.replace(/^"|"$/g, ''); 
-      navigator.clipboard.writeText(cleanPath).then(() => {
-          alert(`✅ 경로가 복사되었습니다!\n\n${cleanPath}\n\n탐색기 주소창에 붙여넣으세요.`);
-      }).catch(err => {
-          console.error('복사 실패:', err);
-          alert('복사에 실패했습니다. 브라우저 설정이나 HTTPS 환경을 확인해주세요.');
-      });
-    }
-    function triggerRebuild() {
-  const btn = document.getElementById('rebuild-btn');
-  if (!confirm('현재 기준 원본 데이터를 수집하여 AI 고질 이슈 재집계를 진행하시겠습니까?\n(약 5~10초 소요됩니다.)')) return;
-
-  // 버튼 비활성화 및 로딩 표시
-  btn.disabled = true;
-  btn.style.background = '#94a3b8';
-  btn.innerText = '⏳ AI 분석 중...';
-
-  // 💡 본인의 구글 웹앱 URL 뒤에 '?action=rebuild'를 붙여서 호출합니다.
-  // 기존에 대시보드 데이터 로드할 때 쓰시는 GAS 웹앱 주소를 넣어주세요.
-  const gasUrl = 'https://script.google.com/macros/s/AKfycbwnofFstNzykpJ1exsbQbUFEIwShj9SX2oot7gPlHSShn3lzMHYQDi1CIx7bIBP3fvvsw/exec?action=rebuild'; 
-
-  fetch(gasUrl)
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === 'success') {
-        alert('✅ AI 고질 이슈 재집계가 완료되었습니다!\n최신 데이터를 반영하기 위해 대시보드를 새로고침합니다.');
-        location.reload(); // 페이지 새로고침으로 최신 데이터 로드
-      } else {
-        alert('❌ 갱신 실패: ' + data.message);
-        resetRebuildBtn(btn);
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      alert('✅ 시스템 사양상 호출 요청 후 제한시간 초과 오류가 날 수 있습니다.\n잠시 후 대시보드를 새로고침(F5)하여 갱신 시각을 확인해 보세요.');
-      resetRebuildBtn(btn);
+        locSlicer.appendChild(btn);
     });
-}
+  }
 
-function resetRebuildBtn(btn) {
-  btn.disabled = false;
-  btn.style.background = '#3b82f6';
-  btn.innerText = '🔄 AI 재분석 및 갱신';
-}
-  </script>
+  function showDocItems(location) {
+    const itemsContainer = document.getElementById('doc-items-container');
+    itemsContainer.innerHTML = '';
+    const docs = currentProjectDocs.filter(d => d.location === location);
+    docs.forEach(doc => {
+        const btn = document.createElement('button');
+        btn.className = 'doc-item-btn';
+        btn.innerHTML = `📄 ${doc.docType} <span style="color:#60a5fa; font-size:10px; margin-left:4px;">(경로 복사)</span>`;
+        btn.onclick = () => copyFilePath(doc.filePath);
+        itemsContainer.appendChild(btn);
+    });
+    itemsContainer.style.display = 'block';
+  }
+
+  function copyFilePath(path) {
+    const cleanPath = path.replace(/^"|"$/g, ''); 
+    navigator.clipboard.writeText(cleanPath).then(() => {
+        alert(`✅ 경로가 복사되었습니다!\n\n${cleanPath}\n\n탐색기 주소창에 붙여넣으세요.`);
+    }).catch(err => {
+        console.error('복사 실패:', err);
+        alert('복사에 실패했습니다. 브라우저 설정이나 HTTPS 환경을 확인해주세요.');
+    });
+  }
+
+  function triggerRebuild() {
+    const btn = document.getElementById('rebuild-btn');
+    if (!confirm('현재 기준 원본 데이터를 수집하여 AI 고질 이슈 재집계를 진행하시겠습니까?\n(약 5~10초 소요됩니다.)')) return;
+
+    btn.disabled = true;
+    btn.style.background = '#94a3b8';
+    btn.innerText = '⏳ AI 분석 중...';
+
+    const gasUrl = 'https://script.google.com/macros/s/AKfycbwcjsF78zpE7fAB8ZQPCd0zAbv5xoEonCGC6X2ekUmVuoVHfETPRCmu7QWPMXunjW9ikw/exec?action=rebuild'; 
+
+    fetch(gasUrl)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          alert('✅ AI 고질 이슈 재집계가 완료되었습니다!\n최신 데이터를 반영하기 위해 대시보드를 새로고침합니다.');
+          location.reload(); 
+        } else {
+          alert('❌ 갱신 실패: ' + data.message);
+          resetRebuildBtn(btn);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('✅ 시스템 사양상 호출 요청 후 제한시간 초과 오류가 날 수 있습니다.\n잠시 후 대시보드를 새로고침(F5)하여 갱신 시각을 확인해 보세요.');
+        resetRebuildBtn(btn);
+      });
+  }
+
+  function resetRebuildBtn(btn) {
+    btn.disabled = false;
+    btn.style.background = '#3b82f6';
+    btn.innerText = '🔄 AI 재분석 및 갱신';
+  }
+</script>
 </body>
 </html>
