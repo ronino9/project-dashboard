@@ -500,7 +500,8 @@ window.renderMainDashboard = function() {
   const summaryCardsHtml = projectList.map(proj => {
     const summary = proj.d.summary || {};
     const overall = summary.overall || '0%';
-    const statusText = summary.status ? (summary.status.includes('Completed') ? '완료' : '진행중') : '진행중';
+    const satVal = (summary.complete && summary.complete[3] !== undefined) ? parseFloat(summary.complete[3]) : 0;
+    const statusText = satVal >= 100 ? '완료' : '진행중';
     const badgeStyle = statusText === '완료' ? 'background:#d1fae5; color:#059669;' : 'background:#dbeafe; color:#2563eb;';
     
     const stages = ['제작', 'FAT', 'SET-UP', 'SAT'];
