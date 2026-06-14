@@ -1526,8 +1526,8 @@ window.showIssueDetail = function(idx) {
     }
 // ===== 캘린더 뷰 (calendar 시트 / 기간형) =====
     let calMode = 'month';
-    let calCursor = new Date('2026-06-12');
-    const CAL_TODAY = new Date('2026-06-12');
+const CAL_TODAY = new Date(); 
+let calCursor = new Date(CAL_TODAY);
 
     function calCodeColor(code) {
       const c = (code || '').toUpperCase();
