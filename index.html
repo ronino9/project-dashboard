@@ -1393,137 +1393,144 @@ window.showIssueDetail = function(idx) {
       content.innerHTML = html;
     }
 
-    window.renderDailyLog = function() {
-      const startVal = document.getElementById('daily-start').value;
-      const endVal   = document.getElementById('daily-end').value;
-      const content  = document.getElementById('daily-log-content');
-      const summary  = document.getElementById('daily-summary');
+window.renderDailyLog = function() {
+    const startVal = document.getElementById('daily-start').value;
+    const endVal   = document.getElementById('daily-end').value;
+    const content  = document.getElementById('daily-log-content');
+    const summary  = document.getElementById('daily-summary');
 
-      if (!startVal || !endVal) {
-        content.innerHTML = '<div style="color:#64748b; font-size:14px;">시작일과 종료일을 모두 선택하세요.</div>';
-        return;
-      }
-      if (startVal > endVal) {
-        content.innerHTML = '<div style="color:#ef4444; font-size:14px;">시작일이 종료일보다 늦습니다.</div>';
-        summary.textContent = '';
-        return;
-      }
+    if (!startVal || !endVal) {
+      content.innerHTML = '<div style="color:#64748b; font-size:14px;">시작일과 종료일을 모두 선택하세요.</div>';
+      return;
+    }
+    if (startVal > endVal) {
+      content.innerHTML = '<div style="color:#ef4444; font-size:14px;">시작일이 종료일보다 늦습니다.</div>';
+      summary.textContent = '';
+      return;
+    }
 
-      const logs = (allData.dailyLog || []).filter(row => row['날짜'] >= startVal && row['날짜'] <= endVal);
-      if (logs.length === 0) {
-        content.innerHTML = '<div style="color:#64748b; font-size:14px;">해당 기간에 데이터가 없습니다.</div>';
-        summary.textContent = '';
-        return;
-      }
+    // 💡 핵심 수정: 시트 데이터의 날짜 형태(슬래시 등)를 하이픈(-)으로 강제 통일하여 비교합니다.
+    const logs = (allData.dailyLog || []).filter(row => {
+      if (!row['날짜']) return false;
+      const rowDate = row['날짜'].toString().replace(/\//g, '-').substring(0, 10);
+      return rowDate >= startVal && rowDate <= endVal;
+    });
 
-      const grouped = {};
-      logs.forEach(row => {
-        const d = row['날짜'];
-        if (!grouped[d]) grouped[d] = [];
-        grouped[d].push(row);
-      });
+    if (logs.length === 0) {
+      content.innerHTML = '<div style="color:#64748b; font-size:14px;">해당 기간에 데이터가 없습니다.</div>';
+      summary.textContent = '';
+      return;
+    }
 
-      Object.keys(grouped).forEach(d => {
-        grouped[d].sort((a, b) => (a['시간'] || '').localeCompare(b['시간'] || ''));
-      });
+    const grouped = {};
+    logs.forEach(row => {
+      // 💡 여기서도 날짜 포맷 통일
+      const d = row['날짜'].toString().replace(/\//g, '-').substring(0, 10);
+      if (!grouped[d]) grouped[d] = [];
+      grouped[d].push(row);
+    });
 
-      const sortedDates = Object.keys(grouped).sort();
-      const totalMD = logs.reduce((s, r) => s + (r['공수'] || 0), 0);
-      summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD`;
+    Object.keys(grouped).forEach(d => {
+      grouped[d].sort((a, b) => (a['시간'] || '').localeCompare(b['시간'] || ''));
+    });
 
-      const statusColor = { '완료': '#059669', '지연완료': '#7c3aed', '지연중': '#dc2626', 'Issue': '#dc2626', '보류': '#475569', '임박': '#d97706', '진행중': '#2563eb' };
-      const taskColor = { 'Issue': '#7f1d1d', '표준': '#374151', '개선': '#14532d', '기술지원': '#713f12', '기능요구': '#1e3a5f' };
-      const stageBadge = { '제작': '#1e3a5f', 'FAT': '#3b1f6b', 'SET-UP': '#1a3d2b', 'SAT': '#3d1f1f', 'C/S': '#2d2d00' };
+    const sortedDates = Object.keys(grouped).sort();
+    const totalMD = logs.reduce((s, r) => s + (r['공수'] || 0), 0);
+    summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD`;
 
-      let html = '';
-      sortedDates.forEach(date => {
-        const rows = grouped[date];
-        const dayMD = rows.reduce((s, r) => s + (r['공수'] || 0), 0);
-        const dateObj = new Date(date);
-        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-        const dayLabel = date.substring(2).replace(/-/g, '.') + ` (${dayNames[dateObj.getDay()]})`;
+    const statusColor = { '완료': '#059669', '지연완료': '#7c3aed', '지연중': '#dc2626', 'Issue': '#dc2626', '보류': '#475569', '임박': '#d97706', '진행중': '#2563eb' };
+    const taskColor = { 'Issue': '#7f1d1d', '표준': '#374151', '개선': '#14532d', '기술지원': '#713f12', '기능요구': '#1e3a5f' };
+    const stageBadge = { '제작': '#1e3a5f', 'FAT': '#3b1f6b', 'SET-UP': '#1a3d2b', 'SAT': '#3d1f1f', 'C/S': '#2d2d00' };
+
+    let html = '';
+    sortedDates.forEach(date => {
+      const rows = grouped[date];
+      const dayMD = rows.reduce((s, r) => s + (r['공수'] || 0), 0);
+      const dateObj = new Date(date);
+      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+      const dayLabel = date.replace(/-/g, '.').substring(2) + ` (${dayNames[dateObj.getDay()]})`;
+
+      html += `
+        <div style="margin-bottom:24px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+            <div style="font-size:15px; font-weight:700; color:#3b82f6; white-space:nowrap;">${dayLabel}</div>
+            <div style="font-size:12px; color:#64748b;">${rows.length}건</div>
+            <div style="font-size:12px; color:#94a3b8; background:#0f172a; padding:2px 10px; border-radius:10px; border:1px solid #334155; white-space:nowrap;">${dayMD.toFixed(1)} MD</div>
+            <div style="flex:1; height:1px; background:#334155;"></div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+      `;
+
+      rows.forEach(row => {
+        const sColor = statusColor[row['진행상태']] || '#334155';
+        const tColor = taskColor[row['업무구분']] || '#374151';
+        const stColor = stageBadge[row['단계']] || '#1e293b';
+
+        function parseAnalysis(val) {
+          if (!val || val.trim() === '' || val === '-') return '';
+          let lines = val.split('\n');
+          let blocks = [];
+          let currentBlock = null;
+          lines.forEach(line => {
+            let trimmed = line.trim();
+            if (!trimmed) return;
+            const bracketMatch = trimmed.match(/^\[(.*?)\](.*)/);
+            if (bracketMatch) {
+              currentBlock = { keyword: bracketMatch[1].trim(), content: bracketMatch[2].trim() };
+              blocks.push(currentBlock);
+            } else {
+              if (currentBlock) currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed;
+              else blocks.push({ keyword: null, content: trimmed });
+            }
+          });
+          let html = '';
+          blocks.forEach((block, i) => {
+            if (i > 0) html += `<div style="height:0.5px; background:#1e293b; margin:8px 0;"></div>`;
+            if (block.keyword) {
+              html += `<div><span style="display:inline-flex; align-items:center; gap:5px; background:#312e81; border:1px solid #4f46e5; color:#c7d2fe; font-size:11px; font-weight:600; padding:2px 10px; border-radius:4px; margin-bottom:5px;">📌 ${block.keyword}</span>${block.content ? `<div style="font-size:12px; color:#cbd5e1; line-height:1.6;">${block.content}</div>` : ''}</div>`;
+            } else {
+              html += `<div style="font-size:12px; color:#cbd5e1; line-height:1.6;">${block.content}</div>`;
+            }
+          });
+          return html;
+        }
+
+        const analysisHtml = parseAnalysis(row['분석'] || '');
+        const hasAnalysis = analysisHtml !== '';
+        const hasDesc = row['설명'] && row['설명'].trim();
+        const hasDetail = hasDesc || hasAnalysis;
 
         html += `
-          <div style="margin-bottom:24px;">
-            <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-              <div style="font-size:15px; font-weight:700; color:#3b82f6; white-space:nowrap;">${dayLabel}</div>
-              <div style="font-size:12px; color:#64748b;">${rows.length}건</div>
-              <div style="font-size:12px; color:#94a3b8; background:#0f172a; padding:2px 10px; border-radius:10px; border:1px solid #334155; white-space:nowrap;">${dayMD.toFixed(1)} MD</div>
-              <div style="flex:1; height:1px; background:#334155;"></div>
+          <div style="background:#0f172a; border:1px solid ${hasAnalysis ? '#4f46e5' : '#1e293b'}; border-radius:6px; padding:12px 16px; display:grid; grid-template-columns:100px 1fr; gap:12px; align-items:start;">
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <div style="font-size:11px; color:#475569; font-family:monospace; white-space:nowrap;">${row['시간'] || '-'}</div>
+              ${row['공수'] ? `<div style="font-size:12px; font-weight:700; color:#94a3b8;">${row['공수'].toFixed(1)} MD</div>` : ''}
+              ${row['프로젝트'] ? `<span style="background:#0f2744; color:#60a5fa; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid #1d4ed8; text-align:center;">${row['프로젝트']}</span>` : ''}
             </div>
-            <div style="display:flex; flex-direction:column; gap:8px;">
+            <div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
+                <span style="background:${sColor}; color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${row['진행상태'] || '-'}</span>
+                <span style="background:${tColor}; color:#e2e8f0; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${row['업무구분'] || '-'}</span>
+                ${row['단계'] ? `<span style="background:${stColor}; color:#94a3b8; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px;">${row['단계']}</span>` : ''}
+                ${row['파트'] ? `<span style="background:#1a2e1a; color:#4ade80; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid #166534;">${row['파트']}</span>` : ''}
+                ${row['유무상'] ? `<span style="background:${row['유무상']==='유상'?'#1e3a5f':'#1e293b'}; color:${row['유무상']==='유상'?'#93c5fd':'#64748b'}; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid ${row['유무상']==='유상'?'#1d4ed8':'#334155'};">${row['유무상']}</span>` : ''}
+              </div>
+              <div style="font-size:13px; color:#f1f5f9; font-weight:600; margin-bottom:${hasDetail ? '8px' : '0'}; line-height:1.4;">${row['제목'] || '-'}</div>
+              ${hasDetail ? `
+              <div style="background:#0a0f1a; border:1px solid #1e293b; border-radius:6px; padding:10px 14px;">
+                ${hasDesc ? `<div style="font-size:11px; color:#3b82f6; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">진행 사항</div><div style="font-size:12px; color:#94a3b8; line-height:1.6; white-space:pre-wrap; margin-bottom:${hasAnalysis ? '10px' : '0'};">${row['설명']}</div>` : ''}
+                ${hasDesc && hasAnalysis ? `<div style="height:0.5px; background:#1e293b; margin-bottom:10px;"></div>` : ''}
+                ${hasAnalysis ? `<div style="font-size:11px; color:#8b5cf6; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">분석 데이터</div>${analysisHtml}` : ''}
+              </div>
+              ` : ''}
+            </div>
+          </div>
         `;
-
-        rows.forEach(row => {
-          const sColor = statusColor[row['진행상태']] || '#334155';
-          const tColor = taskColor[row['업무구분']] || '#374151';
-          const stColor = stageBadge[row['단계']] || '#1e293b';
-
-          function parseAnalysis(val) {
-            if (!val || val.trim() === '' || val === '-') return '';
-            let lines = val.split('\n');
-            let blocks = [];
-            let currentBlock = null;
-            lines.forEach(line => {
-              let trimmed = line.trim();
-              if (!trimmed) return;
-              const bracketMatch = trimmed.match(/^\[(.*?)\](.*)/);
-              if (bracketMatch) {
-                currentBlock = { keyword: bracketMatch[1].trim(), content: bracketMatch[2].trim() };
-                blocks.push(currentBlock);
-              } else {
-                if (currentBlock) currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed;
-                else blocks.push({ keyword: null, content: trimmed });
-              }
-            });
-            let html = '';
-            blocks.forEach((block, i) => {
-              if (i > 0) html += `<div style="height:0.5px; background:#1e293b; margin:8px 0;"></div>`;
-              if (block.keyword) {
-                html += `<div><span style="display:inline-flex; align-items:center; gap:5px; background:#312e81; border:1px solid #4f46e5; color:#c7d2fe; font-size:11px; font-weight:600; padding:2px 10px; border-radius:4px; margin-bottom:5px;">📌 ${block.keyword}</span>${block.content ? `<div style="font-size:12px; color:#cbd5e1; line-height:1.6;">${block.content}</div>` : ''}</div>`;
-              } else {
-                html += `<div style="font-size:12px; color:#cbd5e1; line-height:1.6;">${block.content}</div>`;
-              }
-            });
-            return html;
-          }
-
-          const analysisHtml = parseAnalysis(row['분석'] || '');
-          const hasAnalysis = analysisHtml !== '';
-          const hasDesc = row['설명'] && row['설명'].trim();
-          const hasDetail = hasDesc || hasAnalysis;
-
-          html += `
-            <div style="background:#0f172a; border:1px solid ${hasAnalysis ? '#4f46e5' : '#1e293b'}; border-radius:6px; padding:12px 16px; display:grid; grid-template-columns:100px 1fr; gap:12px; align-items:start;">
-              <div style="display:flex; flex-direction:column; gap:6px;">
-                <div style="font-size:11px; color:#475569; font-family:monospace; white-space:nowrap;">${row['시간'] || '-'}</div>
-                ${row['공수'] ? `<div style="font-size:12px; font-weight:700; color:#94a3b8;">${row['공수'].toFixed(1)} MD</div>` : ''}
-                ${row['프로젝트'] ? `<span style="background:#0f2744; color:#60a5fa; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid #1d4ed8; text-align:center;">${row['프로젝트']}</span>` : ''}
-              </div>
-              <div>
-                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
-                  <span style="background:${sColor}; color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${row['진행상태'] || '-'}</span>
-                  <span style="background:${tColor}; color:#e2e8f0; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${row['업무구분'] || '-'}</span>
-                  ${row['단계'] ? `<span style="background:${stColor}; color:#94a3b8; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px;">${row['단계']}</span>` : ''}
-                  ${row['파트'] ? `<span style="background:#1a2e1a; color:#4ade80; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid #166534;">${row['파트']}</span>` : ''}
-                  ${row['유무상'] ? `<span style="background:${row['유무상']==='유상'?'#1e3a5f':'#1e293b'}; color:${row['유무상']==='유상'?'#93c5fd':'#64748b'}; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid ${row['유무상']==='유상'?'#1d4ed8':'#334155'};">${row['유무상']}</span>` : ''}
-                </div>
-                <div style="font-size:13px; color:#f1f5f9; font-weight:600; margin-bottom:${hasDetail ? '8px' : '0'}; line-height:1.4;">${row['제목'] || '-'}</div>
-                ${hasDetail ? `
-                <div style="background:#0a0f1a; border:1px solid #1e293b; border-radius:6px; padding:10px 14px;">
-                  ${hasDesc ? `<div style="font-size:11px; color:#3b82f6; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">진행 사항</div><div style="font-size:12px; color:#94a3b8; line-height:1.6; white-space:pre-wrap; margin-bottom:${hasAnalysis ? '10px' : '0'};">${row['설명']}</div>` : ''}
-                  ${hasDesc && hasAnalysis ? `<div style="height:0.5px; background:#1e293b; margin-bottom:10px;"></div>` : ''}
-                  ${hasAnalysis ? `<div style="font-size:11px; color:#8b5cf6; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">분석 데이터</div>${analysisHtml}` : ''}
-                </div>
-                ` : ''}
-              </div>
-            </div>
-          `;
-        });
-        html += `</div></div>`;
       });
-      content.innerHTML = html;
-    }
+      html += `</div></div>`;
+    });
+    content.innerHTML = html;
+  }
 // ===== 캘린더 뷰 (calendar 시트 / 기간형) =====
     let calMode = 'month';
 const CAL_TODAY = new Date(); 
