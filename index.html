@@ -97,6 +97,20 @@
     .cal-more { font-size:10px; color:#94a3b8; cursor:pointer; padding:1px 6px; }
     .cal-more:hover { color:#475569; }
     #cal-detail-box { background:#ffffff; border:1px solid #3b82f6; border-radius:8px; padding:16px; margin-top:12px; display:none; }
+    @keyframes pulse {
+      0%, 100% { 
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.5);
+        transform: scale(1);
+      }
+      50% { 
+        box-shadow: 0 6px 20px rgba(220, 38, 38, 0.8), 0 0 30px rgba(245, 158, 11, 0.4);
+        transform: scale(1.05);
+      }
+    }
+    #roast-btn:hover {
+      transform: scale(1.1) !important;
+      box-shadow: 0 8px 24px rgba(220, 38, 38, 0.9), 0 0 40px rgba(245, 158, 11, 0.6) !important;
+    }
   </style>
 </head>
 <body>
@@ -111,6 +125,18 @@
     </div>
 
     <div id="main-panel">
+            <!-- 🔥 AI 팩폭 결과창 -->
+      <div id="roast-result-panel" style="display:none; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 2px solid #dc2626; border-radius: 12px; padding: 24px; margin-bottom: 20px; position: relative; box-shadow: 0 10px 40px rgba(220, 38, 38, 0.3);">
+        <span onclick="document.getElementById('roast-result-panel').style.display='none'" style="position: absolute; top: 12px; right: 16px; color: #94a3b8; font-size: 22px; font-weight: bold; cursor: pointer; line-height: 1;" onmouseover="this.style.color='#f8fafc'" onmouseout="this.style.color='#94a3b8'">✕</span>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+          <span style="font-size: 24px;">🔥</span>
+          <div style="font-size: 18px; font-weight: 800; color: #f8fafc; letter-spacing: 0.5px;">AI 종합 팩폭 리포트</div>
+          <span style="font-size: 10px; color: #f59e0b; background: rgba(245, 158, 11, 0.15); padding: 3px 8px; border-radius: 10px; font-weight: 700;">PRO 모델</span>
+        </div>
+        <div id="roast-result" style="font-size: 14px; color: #e2e8f0; white-space: pre-line; line-height: 1.7;">
+          분석 대기 중...
+        </div>
+      </div>
       <div class="donuts-row" id="main-summary-cards" style="margin-bottom: 20px;">
         <div style="padding: 20px; color: #64748b;">데이터 로드 중...</div>
       </div>
@@ -131,9 +157,15 @@
     
     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 8px;">
       <span id="last-update-time" style="font-size: 11px; color: #64748b; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">최근 갱신: 로딩중...</span>
-      <button id="rebuild-btn" onclick="triggerRebuild()" style="background: #3b82f6; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2); display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
-        🔄 AI 재분석
-      </button>
+<span id="last-update-time" style="font-size: 11px; color: #64748b; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">최근 갱신: 로딩중...</span>
+      <div style="display: flex; flex-direction: column; gap: 4px; flex-shrink: 0;">
+        <button id="roast-btn" onclick="runRoastAnalysis()" style="background: linear-gradient(135deg, #dc2626 0%, #f59e0b 100%); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 11px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.5); display: flex; align-items: center; gap: 4px; animation: pulse 2s infinite; letter-spacing: 0.5px;">
+          🔥 AI 팩폭
+        </button>
+        <button id="rebuild-btn" onclick="triggerRebuild()" style="background: #3b82f6; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2); display: flex; align-items: center; gap: 4px;">
+          🔄 AI 재분석
+        </button>
+      </div>
     </div>
 
   </div>
@@ -1910,7 +1942,75 @@ window.calShowDetail = function(ymd, onlyCode) {
       resetRebuildBtn(btn);
     });
 }
-
+window.runRoastAnalysis = async function() {
+  const btn = document.getElementById('roast-btn');
+  const panel = document.getElementById('roast-result-panel');
+  const resultBox = document.getElementById('roast-result');
+  
+  if (!window.allMasterData || window.allMasterData.length === 0) {
+    alert('데이터가 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
+    return;
+  }
+  
+  // 버튼 비활성화 및 로딩 표시
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.style.animation = 'none';
+  btn.style.opacity = '0.6';
+  btn.innerHTML = '⏳ 팩폭 준비중...';
+  
+  // 결과 패널 표시
+  panel.style.display = 'block';
+  resultBox.innerHTML = `<span style="color: #f59e0b; font-weight: bold;">🔥 Gemini Pro가 당신의 전체 업무 데이터를 분석하고 있습니다...<br>잠시만 기다려주세요 (10~20초 소요)</span>`;
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  
+  try {
+    // 전체 마스터 데이터 가공 (Gemini로 보낼 형태로)
+    const summaryData = window.allMasterData.map(r => ({
+      프로젝트: r._pName,
+      접수일: r['접수일'] || '',
+      단계: r['단계 구분'] || '',
+      업무: r['업무 구분'] || '',
+      유무상: r['유/무상'] || r['유무상'] || '',
+      파트: r['파트 구분'] || '',
+      진행상태: r['진행상태'] || '',
+      공수: parseFloat(r['공수(MD)']) || 0,
+      제목: r['표준 제작 Item / Issue / 개선사항'] || r['제목'] || '',
+      분석데이터: r['분석 데이터'] || r['분석데이터'] || ''
+    }));
+    
+    const payload = {
+      projectTitle: '전체 프로젝트 (OP7/OP6/OP3/CP)',
+      mode: 'roast',
+      historyData: summaryData
+    };
+    
+    const response = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    const data = await response.json();
+    
+    if (data.report) {
+      // 마크다운 굵게(**텍스트**)를 HTML로 변환
+      const formatted = data.report
+        .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fbbf24;">$1</strong>')
+        .replace(/\n/g, '<br>');
+      resultBox.innerHTML = formatted;
+    } else {
+      resultBox.innerHTML = `<span style="color: #ef4444;">분석 오류: ${data.error || '알 수 없는 에러'}</span>`;
+    }
+  } catch (error) {
+    resultBox.innerHTML = `<span style="color: #ef4444;">통신 실패: Vercel 서버 연결을 확인하세요.<br>${error.message}</span>`;
+  } finally {
+    btn.disabled = false;
+    btn.style.animation = 'pulse 2s infinite';
+    btn.style.opacity = '1';
+    btn.innerHTML = originalText;
+  }
+};
 function resetRebuildBtn(btn) {
   btn.disabled = false;
   btn.style.background = '#3b82f6';
