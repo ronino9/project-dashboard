@@ -1489,7 +1489,7 @@ window.renderDailyLog = function() {
 
     const sortedDates = Object.keys(grouped).sort();
 const totalMD = logs.reduce((s, r) => s + (r['공수'] || 0), 0);
-const totalHour = logs.reduce((s, r) => s + (parseFloat(r['작업 시간']) || 0), 0);
+const totalHour = logs.reduce((s, r) => s + (parseFloat(r['작업시간']) || 0), 0);
 summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD · ${formatHour(totalHour)}`;
 
     const statusColor = { '완료': '#059669', '지연완료': '#7c3aed', '지연중': '#dc2626', 'Issue': '#dc2626', '보류': '#475569', '임박': '#d97706', '진행중': '#2563eb' };
@@ -1500,7 +1500,7 @@ summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD · ${fo
     sortedDates.forEach(date => {
       const rows = grouped[date];
       const dayMD = rows.reduce((s, r) => s + (r['공수'] || 0), 0);
-      const dayHour = rows.reduce((s, r) => s + (parseFloat(r['작업 시간']) || 0), 0);
+      const dayHour = rows.reduce((s, r) => s + (parseFloat(r['작업시간']) || 0), 0);
       const dateObj = new Date(date);
       const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
       const dayLabel = date.replace(/-/g, '.').substring(2) + ` (${dayNames[dateObj.getDay()]})`;
@@ -1559,7 +1559,7 @@ summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD · ${fo
           <div style="background:#0f172a; border:1px solid ${hasAnalysis ? '#4f46e5' : '#1e293b'}; border-radius:6px; padding:12px 16px; display:grid; grid-template-columns:100px 1fr; gap:12px; align-items:start;">
             <div style="display:flex; flex-direction:column; gap:6px;">
               <div style="font-size:11px; color:#475569; font-family:monospace; white-space:nowrap;">${row['시간'] || '-'}</div>
-              ${row['작업 시간'] ? `<div style="font-size:12px; font-weight:700; color:#94a3b8;">${formatHour(parseFloat(row['작업 시간']))}</div>` : ''}
+              ${row['작업시간'] ? `<div style="font-size:12px; font-weight:700; color:#94a3b8;">${formatHour(parseFloat(row['작업 시간']))}</div>` : ''}
               ${row['프로젝트'] ? `<span style="background:#0f2744; color:#60a5fa; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid #1d4ed8; text-align:center;">${row['프로젝트']}</span>` : ''}
             </div>
             <div>
