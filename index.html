@@ -1437,7 +1437,15 @@ window.showIssueDetail = function(idx) {
       }
       content.innerHTML = html;
     }
-
+// 시간(H) → "X시간 Y분" 표시
+function formatHour(h) {
+  if (!h || h <= 0) return '';
+  const totalMin = Math.round(h * 60);
+  if (totalMin < 60) return `${totalMin}분`;
+  const hours = Math.floor(totalMin / 60);
+  const mins = totalMin % 60;
+  return mins > 0 ? `${hours}시간 ${mins}분` : `${hours}시간`;
+}
 window.renderDailyLog = function() {
     const startVal = document.getElementById('daily-start').value;
     const endVal   = document.getElementById('daily-end').value;
@@ -1480,8 +1488,9 @@ window.renderDailyLog = function() {
     });
 
     const sortedDates = Object.keys(grouped).sort();
-    const totalMD = logs.reduce((s, r) => s + (r['공수'] || 0), 0);
-    summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD`;
+const totalMD = logs.reduce((s, r) => s + (r['공수'] || 0), 0);
+const totalHour = logs.reduce((s, r) => s + (parseFloat(r['작업 시간']) || 0), 0);
+summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD · ${formatHour(totalHour)}`;
 
     const statusColor = { '완료': '#059669', '지연완료': '#7c3aed', '지연중': '#dc2626', 'Issue': '#dc2626', '보류': '#475569', '임박': '#d97706', '진행중': '#2563eb' };
     const taskColor = { 'Issue': '#7f1d1d', '표준': '#374151', '개선': '#14532d', '기술지원': '#713f12', '기능요구': '#1e3a5f' };
@@ -1491,6 +1500,7 @@ window.renderDailyLog = function() {
     sortedDates.forEach(date => {
       const rows = grouped[date];
       const dayMD = rows.reduce((s, r) => s + (r['공수'] || 0), 0);
+      const dayHour = rows.reduce((s, r) => s + (parseFloat(r['작업 시간']) || 0), 0);
       const dateObj = new Date(date);
       const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
       const dayLabel = date.replace(/-/g, '.').substring(2) + ` (${dayNames[dateObj.getDay()]})`;
@@ -1500,7 +1510,7 @@ window.renderDailyLog = function() {
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
             <div style="font-size:15px; font-weight:700; color:#3b82f6; white-space:nowrap;">${dayLabel}</div>
             <div style="font-size:12px; color:#64748b;">${rows.length}건</div>
-            <div style="font-size:12px; color:#94a3b8; background:#0f172a; padding:2px 10px; border-radius:10px; border:1px solid #334155; white-space:nowrap;">${dayMD.toFixed(1)} MD</div>
+<div style="font-size:12px; color:#94a3b8; background:#0f172a; padding:2px 10px; border-radius:10px; border:1px solid #334155; white-space:nowrap;">${dayMD.toFixed(1)} MD · ${formatHour(dayHour)}</div>
             <div style="flex:1; height:1px; background:#334155;"></div>
           </div>
           <div style="display:flex; flex-direction:column; gap:8px;">
@@ -1549,7 +1559,7 @@ window.renderDailyLog = function() {
           <div style="background:#0f172a; border:1px solid ${hasAnalysis ? '#4f46e5' : '#1e293b'}; border-radius:6px; padding:12px 16px; display:grid; grid-template-columns:100px 1fr; gap:12px; align-items:start;">
             <div style="display:flex; flex-direction:column; gap:6px;">
               <div style="font-size:11px; color:#475569; font-family:monospace; white-space:nowrap;">${row['시간'] || '-'}</div>
-              ${row['공수'] ? `<div style="font-size:12px; font-weight:700; color:#94a3b8;">${row['공수'].toFixed(1)} MD</div>` : ''}
+              ${row['작업 시간'] ? `<div style="font-size:12px; font-weight:700; color:#94a3b8;">${formatHour(parseFloat(row['작업 시간']))}</div>` : ''}
               ${row['프로젝트'] ? `<span style="background:#0f2744; color:#60a5fa; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid #1d4ed8; text-align:center;">${row['프로젝트']}</span>` : ''}
             </div>
             <div>
