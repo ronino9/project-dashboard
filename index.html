@@ -1916,14 +1916,149 @@ function resetRebuildBtn(btn) {
   btn.style.background = '#3b82f6';
   btn.innerText = '🔄 AI 재분석 및 갱신';
 }
-    <details id="review-panel" style="cursor: pointer;">
-  <summary style="font-size: 14px; color: #475569; font-weight: 700; user-select: none; padding: 8px 0;">📋 단계별 리뷰</summary>
-  <div style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;" id="review-stage-buttons"></div>
-  <div id="review-content" style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; display: none; color: #e2e8f0;"></div>
-</details>
-</div>  <!-- progress-bar 감싼 div 종료
-    </div>  <!-- project-header 감싼 div 종료
-    <div class="dashboard-tools" id="project-tools" style="display: none;">
+// ✅ 단계별 리뷰 JS 함수
+window.renderReviewPanel = function(projectId) {
+  const stageButtons = document.getElementById('review-stage-buttons');
+  if (!stageButtons) return;
+  
+  const stages = ['제작', 'FAT', 'SET-UP', 'SAT'];
+  const colors = ['#1e3a5f', '#3b1f6b', '#1a3d2b', '#3d1f1f'];
+  
+  let html = '';
+  stages.forEach((stage, idx) => {
+    html += `<button onclick="window.showReviewStage('${projectId}', '${stage}')" 
+             style="padding: 8px 16px; background: ${colors[idx]}; color: #e2e8f0; border: 1px solid #334155; 
+             border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s;"
+             onmouseover="this.style.background='#334155'" onmouseout="this.style.background='${colors[idx]}'">${stage}</button>`;
+  });
+  
+  stageButtons.innerHTML = html;
+};
+
+window.showReviewStage = function(projectId, stageName) {
+  const contentDiv = document.getElementById('review-content');
+  if (!contentDiv) return;
+  
+  if (!rawData || rawData.length === 0) {
+    contentDiv.innerHTML = '<div style="color: #64748b; font-size: 13px;">데이터를 불러올 수 없습니다.</div>';
+    contentDiv.style.display = 'block';
+    return;
+  }
+  
+  const stageData = rawData.filter(r => r['단계 구분'] === stageName);
+  
+  if (stageData.length === 0) {
+    contentDiv.innerHTML = '<div style="color: #64748b; font-size: 13px;">해당 단계의 데이터가 없습니다.</div>';
+    contentDiv.style.display = 'block';
+    return;
+  }
+  
+  const meetings = stageData.filter(r => r['업무 구분'] === '미팅');
+  const schedules = stageData.filter(r => r['업무 구분'] === '일정');
+  const issues = stageData.filter(r => r['업무 구분'] === 'Issue');
+  
+  let totalMd = 0;
+  stageData.forEach(r => {
+    totalMd += parseFloat(r['공수(MD)']) || 0;
+  });
+  
+  const completed = stageData.filter(r => (r['진행상태'] || '').includes('완료')).length;
+  const progressRate = stageData.length > 0 ? Math.round((completed / stageData.length) * 100) : 0;
+  
+  const dates = stageData.map(r => r['접수일']).filter(d => d && d.toString().trim() !== '');
+  const minDate = dates.length > 0 ? dates.sort()[0] : '-';
+  const maxDate = dates.length > 0 ? dates.sort()[dates.length - 1] : '-';
+  const period = dates.length > 0 ? `${minDate} ~ ${maxDate}` : '-';
+  
+  let html = `<div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #334155;">
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px;">
+      <div style="background: #1e293b; padding: 12px; border-radius: 6px; border: 1px solid #334155;">
+        <div style="font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">기간</div>
+        <div style="font-size: 12px; color: #f1f5f9; word-break: break-all;">${period}</div>
+      </div>
+      <div style="background: #1e293b; padding: 12px; border-radius: 6px; border: 1px solid #334155;">
+        <div style="font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">진행률</div>
+        <div style="font-size: 18px; color: #3b82f6; font-weight: 800;">${progressRate}%</div>
+      </div>
+      <div style="background: #1e293b; padding: 12px; border-radius: 6px; border: 1px solid #334155;">
+        <div style="font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">투입공수</div>
+        <div style="font-size: 18px; color: #10b981; font-weight: 800;">${totalMd.toFixed(1)} MD</div>
+      </div>
+      <div style="background: #1e293b; padding: 12px; border-radius: 6px; border: 1px solid #334155;">
+        <div style="font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">항목 수</div>
+        <div style="font-size: 18px; color: #f59e0b; font-weight: 800;">${stageData.length}</div>
+      </div>
+    </div>
+  </div>`;
+  
+  if (meetings.length > 0) {
+    html += `<div style="margin-bottom: 16px;">
+      <div style="font-size: 12px; color: #60a5fa; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">📞 미팅 (${meetings.length}건)</div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">`;
+    
+    meetings.forEach(m => {
+      const date = (m['접수일'] || '').toString().replace(/\//g, '.').substring(0, 10);
+      const title = m['표준 제작 Item / Issue / 개선사항'] || m['제목'] || '제목 없음';
+      const analysis = m['분석데이터'] || '-';
+      
+      html += `<div style="background: #0a0f1a; border: 1px solid #1e293b; border-radius: 6px; padding: 10px 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px;">
+          <div style="font-size: 12px; font-weight: 600; color: #f1f5f9; flex: 1; word-break: break-word;">${title}</div>
+          <span style="font-size: 11px; color: #94a3b8; white-space: nowrap;">${date}</span>
+        </div>
+        ${analysis && analysis !== '-' ? `<div style="font-size: 11px; color: #cbd5e1; line-height: 1.5; white-space: pre-wrap;">${analysis}</div>` : ''}
+      </div>`;
+    });
+    
+    html += `</div></div>`;
+  }
+  
+  if (schedules.length > 0) {
+    html += `<div style="margin-bottom: 16px;">
+      <div style="font-size: 12px; color: #34d399; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">📅 일정 (${schedules.length}건)</div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">`;
+    
+    schedules.forEach(s => {
+      const startDate = (s['접수일'] || '').toString().replace(/\//g, '.').substring(0, 10);
+      const endDate = (s['완료예정일'] || '').toString().replace(/\//g, '.').substring(0, 10);
+      const period = startDate && endDate && startDate !== endDate ? `${startDate} ~ ${endDate}` : startDate;
+      const title = s['표준 제작 Item / Issue / 개선사항'] || s['제목'] || '제목 없음';
+      const analysis = s['분석데이터'] || '-';
+      
+      html += `<div style="background: #0a0f1a; border: 1px solid #1e293b; border-radius: 6px; padding: 10px 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px;">
+          <div style="font-size: 12px; font-weight: 600; color: #f1f5f9; flex: 1; word-break: break-word;">${title}</div>
+          <span style="font-size: 11px; color: #94a3b8; white-space: nowrap;">${period}</span>
+        </div>
+        ${analysis && analysis !== '-' ? `<div style="font-size: 11px; color: #cbd5e1; line-height: 1.5; white-space: pre-wrap;">${analysis}</div>` : ''}
+      </div>`;
+    });
+    
+    html += `</div></div>`;
+  }
+  
+  if (issues.length > 0) {
+    html += `<div>
+      <div style="font-size: 12px; color: #f87171; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">🚨 이슈 (${issues.length}건)</div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">`;
+    
+    issues.forEach(iss => {
+      const title = iss['표준 제작 Item / Issue / 개선사항'] || iss['제목'] || '제목 없음';
+      const status = iss['진행상태'] || '상태 미정';
+      const statusColor = status.includes('완료') ? '#10b981' : (status === '지연중' ? '#ef4444' : '#f59e0b');
+      
+      html += `<div style="background: #0a0f1a; border: 1px solid #1e293b; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+        <div style="font-size: 12px; font-weight: 600; color: #f1f5f9; flex: 1; word-break: break-word;">${title}</div>
+        <span style="background: ${statusColor}; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">${status}</span>
+      </div>`;
+    });
+    
+    html += `</div></div>`;
+  }
+  
+  contentDiv.innerHTML = html;
+  contentDiv.style.display = 'block';
+};
   </script>
 </body>
 </html>
