@@ -1559,7 +1559,7 @@ summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD · ${fo
           <div style="background:#0f172a; border:1px solid ${hasAnalysis ? '#4f46e5' : '#1e293b'}; border-radius:6px; padding:12px 16px; display:grid; grid-template-columns:100px 1fr; gap:12px; align-items:start;">
             <div style="display:flex; flex-direction:column; gap:6px;">
               <div style="font-size:11px; color:#475569; font-family:monospace; white-space:nowrap;">${row['시간'] || '-'}</div>
-              ${row['작업시간'] ? `<div style="font-size:12px; font-weight:700; color:#94a3b8;">${formatHour(parseFloat(row['작업 시간']))}</div>` : ''}
+              ${row['작업시간'] ? `<div style="font-size:12px; font-weight:700; color:#94a3b8;">${formatHour(parseFloat(row['작업시간']))}</div>` : ''}
               ${row['프로젝트'] ? `<span style="background:#0f2744; color:#60a5fa; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid #1d4ed8; text-align:center;">${row['프로젝트']}</span>` : ''}
             </div>
             <div>
