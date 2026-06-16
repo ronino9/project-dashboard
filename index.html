@@ -582,15 +582,13 @@ window.renderMainDashboard = function() {
   ['project7', 'project6', 'project3'].forEach(pKey => {
     if(allData[pKey] && allData[pKey].history) {
       allData[pKey].history.forEach(r => {
-         if(['지연중', 'Issue', '임박'].includes(r['진행상태'])) {
-            const dateStr = r['접수일'] || r['완료예정일'] || '2026-01-01';
-            const dDate = new Date(dateStr);
-            const delayDays = Math.max(0, Math.floor((today - dDate) / (1000 * 60 * 60 * 24)));
+if(['지연중', 'Issue', '임박'].includes(r['진행상태'])) {
+            const delayDays = parseInt(r['지연일']) || 0;
             
             allIssues.push({
                proj: pKey.replace('project', 'OP'),
                title: r['제목'] || r['표준 제작 Item / Issue / 개선사항'] || '제목 없음',
-               date: dateStr,
+               date: r['접수일'] || '',
                status: r['진행상태'],
                task: r['업무 구분'] || '기능 요구',
                delay: delayDays
