@@ -7,9 +7,11 @@ export default async function handler(req, res) {
     const { projectTitle, historyData, mode } = req.body;
     
     // 모델 분기 (roast는 pro 모델 사용 - 풍자/유머 잘함)
-    const model = (mode === 'pro' || mode === 'roast')
-      ? 'gemini-2.5-pro' 
-      : 'gemini-2.5-flash-lite';
+const model = mode === 'pro'
+  ? 'gemini-2.5-pro' 
+  : (mode === 'roast' 
+    ? 'gemini-2.5-flash'   // 팩폭은 Flash로
+    : 'gemini-2.5-flash-lite');
     
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     
