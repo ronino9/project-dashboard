@@ -161,10 +161,14 @@
             <option value="SAT">SAT</option>
             <option value="C/S">C/S</option>
           </select>
-          <button id="stage-roast-btn" onclick="runStageRoast()" style="background: linear-gradient(135deg, #dc2626 0%, #f59e0b 100%); color: white; border: none; padding: 7px 16px; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 13px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4); display: flex; align-items: center; gap: 4px; letter-spacing: 0.5px;">
+<button id="stage-roast-btn" onclick="runStageRoast()" style="background: linear-gradient(135deg, #dc2626 0%, #f59e0b 100%); color: white; border: none; padding: 7px 16px; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 13px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4); display: flex; align-items: center; gap: 4px; letter-spacing: 0.5px;">
             🔥 단계 팩폭
           </button>
           <span id="stage-roast-count" style="font-size: 12px; color: #64748b; font-weight: 600;"></span>
+          <div style="width: 1px; height: 24px; background: #e2e8f0; margin: 0 4px;"></div>
+          <button id="roast-btn" onclick="runRoastAnalysis()" style="background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%); color: white; border: none; padding: 7px 16px; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 13px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4); display: flex; align-items: center; gap: 4px; letter-spacing: 0.5px;">
+            🔥 통합 팩폭
+          </button>
         </div>
       </div>
       <!-- 🎯 단계별 AI 팩폭 끝 -->
@@ -186,9 +190,6 @@
       <span id="last-update-time" style="font-size: 11px; color: #64748b; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">최근 갱신: 로딩중...</span>
 <span id="last-update-time" style="font-size: 11px; color: #64748b; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">최근 갱신: 로딩중...</span>
       <div style="display: flex; flex-direction: column; gap: 4px; flex-shrink: 0;">
-        <button id="roast-btn" onclick="runRoastAnalysis()" style="background: linear-gradient(135deg, #dc2626 0%, #f59e0b 100%); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 11px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.5); display: flex; align-items: center; gap: 4px; animation: pulse 2s infinite; letter-spacing: 0.5px;">
-          🔥 AI 팩폭
-        </button>
         <button id="rebuild-btn" onclick="triggerRebuild()" style="background: #3b82f6; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2); display: flex; align-items: center; gap: 4px;">
           🔄 AI 재분석
         </button>
