@@ -141,7 +141,32 @@
       <div class="donuts-row" id="main-summary-cards" style="margin-bottom: 20px;">
         <div style="padding: 20px; color: #64748b;">데이터 로드 중...</div>
       </div>
-      
+      <!-- 🎯 단계별 AI 팩폭 영역 -->
+      <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <div style="font-size: 15px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+            🎯 단계별 AI 팩폭
+          </div>
+          <select id="stage-roast-project" style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: 600; color: #334155; background: #f8fafc; cursor: pointer;">
+            <option value="OP7">OP7</option>
+            <option value="OP6">OP6</option>
+            <option value="OP3">OP3</option>
+            <option value="CP">CP_All</option>
+          </select>
+          <select id="stage-roast-stage" style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: 600; color: #334155; background: #f8fafc; cursor: pointer;">
+            <option value="제작">제작</option>
+            <option value="FAT">FAT</option>
+            <option value="SET-UP">SET-UP</option>
+            <option value="SAT">SAT</option>
+            <option value="C/S">C/S</option>
+          </select>
+          <button id="stage-roast-btn" onclick="runStageRoast()" style="background: linear-gradient(135deg, #dc2626 0%, #f59e0b 100%); color: white; border: none; padding: 7px 16px; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 13px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4); display: flex; align-items: center; gap: 4px; letter-spacing: 0.5px;">
+            🔥 단계 팩폭
+          </button>
+          <span id="stage-roast-count" style="font-size: 12px; color: #64748b; font-weight: 600;"></span>
+        </div>
+      </div>
+      <!-- 🎯 단계별 AI 팩폭 끝 -->
 <div style="display: grid; grid-template-columns: 380px 1fr; gap: 16px; margin-bottom: 16px;">
         <div style="display: flex; flex-direction: column; gap: 24px;">
         
