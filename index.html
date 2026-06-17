@@ -837,6 +837,7 @@ let mainTrendChartInstance = null;
 
 window.updateMasterMdChart = function() {
   let mdSums = { 'OP7': 0, 'OP6': 0, 'OP3': 0, 'CP': 0 };
+  let cntSums = { 'OP7': 0, 'OP6': 0, 'OP3': 0, 'CP': 0 };
   let totalMd = 0;
   let unresolvedIssues = 0;
   let delayedItems = 0;
@@ -858,6 +859,7 @@ window.updateMasterMdChart = function() {
       if (pass) {
           const val = parseFloat(r['공수(MD)']) || 0;
           mdSums[r._pName] += val;
+          cntSums[r._pName] += 1;
           totalMd += val;
           totalItems++;
 
@@ -890,15 +892,15 @@ window.updateMasterMdChart = function() {
   const colors = ['#8cc63f', '#3b82f6', '#f59e0b', '#64748b'];
   const pKeys = ['OP7', 'OP6', 'OP3', 'CP'];
 
-  // 도넛 범례 업데이트
+// 도넛 범례 업데이트
   document.getElementById('main-md-legend').innerHTML = pKeys.map((k, i) => {
       const ratio = totalMd > 0 ? Math.round((mdSums[k] / totalMd) * 100) : 0;
       return `
-      <div style="display: flex; justify-content: space-between; font-size: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 4px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 4px;">
          <span style="display: flex; align-items: center; gap: 6px; color: #64748b;">
            <span style="width: 8px; height: 8px; background: ${colors[i]}; border-radius: 2px;"></span>${k}
          </span>
-         <span style="color: #1e293b; font-weight: 700;">${ratio}%</span>
+         <span style="color: #1e293b; font-weight: 700; font-size: 11px;">${cntSums[k]}건·${mdSums[k].toFixed(1)}MD <span style="color:#94a3b8;">(${ratio}%)</span></span>
       </div>`;
   }).join('');
 
