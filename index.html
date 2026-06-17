@@ -849,6 +849,8 @@ window.updateMasterMdChart = function() {
       options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
   });
 
+    // 2. 트렌드 차트 데이터 정렬 (날짜순)
+  const sortedMonths = Object.keys(trendData).sort();
 // 기간 범위 표시 업데이트 (가장 빠른 접수월 ~ 현재)
   const periodEl = document.getElementById('md-period-range');
   if (periodEl && sortedMonths.length > 0) {
