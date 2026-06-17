@@ -562,7 +562,69 @@ window.renderMainDashboard = function() {
     { id: 'CP_ALL', title: 'C/S Consolidated', d: allData.project1, color: '#059669' }
   ];
 
-  const summaryCardsHtml = projectList.map(proj => {
+const summaryCardsHtml = projectList.map(proj => {
+    // ===== CP_ALL은 C/S 전용 카드 (완료율 + 유무상 막대) =====
+    if (proj.id === 'CP_ALL') {
+      const history = (proj.d && proj.d.history) ? proj.d.history : [];
+      const total = history.length;
+      const done = history.filter(r => (r['진행상태'] || '').includes('완료')).length;
+      const rate = total > 0 ? Math.round((done / total) * 100) : 0;
+
+      // 유무상 건수 & MD 집계
+      let paidCnt = 0, freeCnt = 0, paidMd = 0, freeMd = 0;
+      history.forEach(r => {
+        const yn = r['유/무상'] || '';
+        const md = parseFloat(r['공수(MD)']) || 0;
+        if (yn === '유상') { paidCnt++; paidMd += md; }
+        else if (yn === '무상') { freeCnt++; freeMd += md; }
+      });
+
+      // 막대 길이: 건수 높은 쪽 100%
+      const maxCnt = Math.max(paidCnt, freeCnt, 1);
+      const paidW = Math.round((paidCnt / maxCnt) * 100);
+      const freeW = Math.round((freeCnt / maxCnt) * 100);
+
+      const statusText = rate >= 100 ? '완료' : '진행중';
+      const badgeStyle = rate >= 100 ? 'background:#d1fae5; color:#059669;' : 'background:#dbeafe; color:#2563eb;';
+
+      return `
+<div class="main-card">
+        <div class="main-card-header">
+          <div class="main-card-title">${proj.id}</div>
+          <span class="badge" style="${badgeStyle}">${statusText}</span>
+        </div>
+        <div class="main-card-body">
+          <div class="donut-container">
+            <svg viewBox="0 0 36 36" style="width:100%;height:100%;">
+              <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#f1f5f9" stroke-width="3"/>
+              <circle cx="18" cy="18" r="15.9155" fill="none" stroke="${proj.color}" stroke-width="3" stroke-dasharray="${rate}, 100" style="stroke-linecap:round;"/>
+            </svg>
+            <div class="donut-text" style="color: #1e293b;">
+              ${rate}%<br><span style="font-size:9px; color:#64748b; font-weight:normal;">완료율</span>
+            </div>
+          </div>
+          <div class="stage-bars">
+            <div class="stage-row">
+              <span class="stage-label" style="width:35px; color:#1d4ed8;">유상</span>
+              <div class="stage-track"><div class="stage-fill" style="width:${paidW}%; background:#3b82f6;"></div></div>
+              <span class="stage-val" style="width:auto; white-space:nowrap; font-size:10px;">${paidCnt}건·${paidMd.toFixed(1)}MD</span>
+            </div>
+            <div class="stage-row">
+              <span class="stage-label" style="width:35px; color:#64748b;">무상</span>
+              <div class="stage-track"><div class="stage-fill" style="width:${freeW}%; background:#94a3b8;"></div></div>
+              <span class="stage-val" style="width:auto; white-space:nowrap; font-size:10px;">${freeCnt}건·${freeMd.toFixed(1)}MD</span>
+            </div>
+            <div class="stage-row" style="margin-top:4px; padding-top:4px; border-top:1px solid #f1f5f9;">
+              <span class="stage-label" style="width:35px; color:#475569;">전체</span>
+              <span style="font-size:10px; color:#475569; font-weight:700;">${total}건 · 완료 ${done}건</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      `;
+    }
+
+    // ===== OP 프로젝트는 기존 단계별 카드 =====
     const summary = proj.d.summary || {};
     const overall = summary.overall || '0%';
     const satVal = (summary.complete && summary.complete[3] !== undefined) ? parseFloat(summary.complete[3]) : 0;
