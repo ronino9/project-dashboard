@@ -900,7 +900,12 @@ window.updateMasterMdChart = function() {
          <span style="display: flex; align-items: center; gap: 6px; color: #64748b;">
            <span style="width: 8px; height: 8px; background: ${colors[i]}; border-radius: 2px;"></span>${k}
          </span>
-         <span style="color: #1e293b; font-weight: 700; font-size: 11px;">${cntSums[k]}건·${mdSums[k].toFixed(1)}MD <span style="color:#94a3b8;">(${ratio}%)</span></span>
+        <span style="display: flex; gap: 4px; align-items: center; font-size: 11px;">
+           <span style="display:inline-block; width: 42px; text-align: right; color: #1e293b; font-weight: 700;">${cntSums[k]}건</span>
+           <span style="color:#cbd5e1;">·</span>
+           <span style="display:inline-block; width: 58px; text-align: right; color: #1e293b; font-weight: 700;">${mdSums[k].toFixed(1)}MD</span>
+           <span style="display:inline-block; width: 42px; text-align: right; color:#94a3b8;">(${ratio}%)</span>
+         </span>
       </div>`;
   }).join('');
 
