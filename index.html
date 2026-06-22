@@ -1859,9 +1859,9 @@ function calCellHtml(dateObj, dataMap, mode) {
       const period = (eStr && eStr !== sStr) ? `${sStr.substring(2)} ~ ${eStr.substring(2)}` : sStr.substring(2);
       const timeStr = (ev.startTime || ev.endTime) ? `${ev.startTime || ''}${ev.endTime ? ' ~ ' + ev.endTime : ''}` : '';
       const tColor = taskColor[ev.taskType] || '#374151';
-      return `<div style="background:#0a0f1a; border:1px solid #1e293b; border-radius:6px; padding:12px 16px; display:grid; grid-template-columns:110px 1fr; gap:12px; align-items:start;">
+return `<div style="background:#0a0f1a; border:1px solid #1e293b; border-radius:6px; padding:12px 16px; display:grid; grid-template-columns:135px 1fr; gap:12px; align-items:start;">
           <div style="display:flex; flex-direction:column; gap:6px;">
-            <div style="font-size:11px; color:#94a3b8; font-family:monospace;">${period}</div>
+            <div style="font-size:11px; color:#94a3b8; font-family:monospace; white-space:nowrap;">${period}</div>
             ${timeStr ? `<div style="font-size:11px; color:#475569; font-family:monospace;">${timeStr}</div>` : ''}
             ${ev.estimatedTime ? `<div style="font-size:12px; font-weight:700; color:#94a3b8;">${Number(ev.estimatedTime).toFixed(1)} MD</div>` : ''}
             ${ev.projectCode ? `<span style="background:${calCodeColor(ev.projectCode)}; color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px; text-align:center;">${ev.projectCode}</span>` : ''}
