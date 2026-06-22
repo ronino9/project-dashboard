@@ -554,8 +554,24 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
 window.renderMainDashboard = function() {
   if (!allData || !allData.project7) return;
 
-  // 1. 프로젝트 리스트 (상단 카드 생성)
-  const projectList = [
+  // 1. 프로젝트 리스트 (상단 카드 생성) — 순서는 window.cardOrder에 저장(드래그로 변경 가능)
+if (!window.cardOrder) {
+    window.cardOrder = [
+      { id: 'OP7', title: 'Interactive Control Tower', d: allData.project7, color: '#8cc63f' },
+      { id: 'OP6', title: 'Battery Cell Inspection', d: allData.project6, color: '#3b82f6' },
+      { id: 'OP3', title: 'Rotary Indexing System', d: allData.project3, color: '#f5a623' },
+      { id: 'CP_ALL', title: 'C/S Consolidated', d: allData.project1, color: '#059669' }
+    ];
+    // 저장된 순서가 있으면 복원
+    const saved = localStorage.getItem('cardOrder');
+    if (saved) {
+      try {
+        const order = JSON.parse(saved);
+        window.cardOrder.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+      } catch (e) { /* 저장값 깨졌으면 기본 순서 유지 */ }
+    }
+  }
+  const projectList = window.cardOrder;
     { id: 'OP7', title: 'Interactive Control Tower', d: allData.project7, color: '#8cc63f' },
     { id: 'OP6', title: 'Battery Cell Inspection', d: allData.project6, color: '#3b82f6' },
     { id: 'OP3', title: 'Rotary Indexing System', d: allData.project3, color: '#f5a623' },
@@ -563,7 +579,7 @@ window.renderMainDashboard = function() {
   ];
 
   const selectedSet = (window.masterMdFilters && window.masterMdFilters['프로젝트']) || new Set();
-const summaryCardsHtml = projectList.map(proj => {
+const summaryCardsHtml = projectList.map((proj, cardIdx) => {
     // ===== CP_ALL은 C/S 전용 카드 (완료율 + 유무상 막대) =====
     if (proj.id === 'CP_ALL') {
       const history = (proj.d && proj.d.history) ? proj.d.history : [];
@@ -589,7 +605,7 @@ const summaryCardsHtml = projectList.map(proj => {
       const badgeStyle = rate >= 100 ? 'background:#d1fae5; color:#059669;' : 'background:#dbeafe; color:#2563eb;';
 
 return `
-<div class="main-card" onclick="window.selectMasterProject('CP')" style="cursor: pointer; ${selectedSet.has('CP') ? 'border: 2px solid #059669; box-shadow: 0 0 0 3px rgba(5,150,105,0.15);' : ''}">
+<div class="main-card" draggable="true" data-card-idx="${cardIdx}" ondragstart="window.cardDragStart(event,${cardIdx})" ondragover="window.cardDragOver(event)" ondrop="window.cardDrop(event,${cardIdx})" ondragend="window.cardDragEnd(event)" onclick="window.cardClick('CP')" style="cursor: pointer; ${selectedSet.has('CP') ? 'border: 2px solid #059669; box-shadow: 0 0 0 3px rgba(5,150,105,0.15);' : ''}">
         <div class="main-card-header">
           <div class="main-card-title">${proj.id}</div>
           <span class="badge" style="${badgeStyle}">${statusText}</span>
@@ -646,7 +662,7 @@ return `
     }).join('');
 
 return `
-<div class="main-card" onclick="window.selectMasterProject('${proj.id}')" style="cursor: pointer; ${selectedSet.has(proj.id) ? 'border: 2px solid ' + proj.color + '; box-shadow: 0 0 0 3px ' + proj.color + '33;' : ''}">
+<div class="main-card" draggable="true" data-card-idx="${cardIdx}" ondragstart="window.cardDragStart(event,${cardIdx})" ondragover="window.cardDragOver(event)" ondrop="window.cardDrop(event,${cardIdx})" ondragend="window.cardDragEnd(event)" onclick="window.cardClick('${proj.id}')" style="cursor: pointer; ${selectedSet.has(proj.id) ? 'border: 2px solid ' + proj.color + '; box-shadow: 0 0 0 3px ' + proj.color + '33;' : ''}">
 
         <div class="main-card-header">
           <div class="main-card-title">${proj.id}</div>
@@ -846,6 +862,41 @@ window.selectMasterProject = function(pName) {
   }
   window.renderMainDashboard();   // ← 카드까지 다시 그려서 테두리 반영
   document.getElementById('master-slicer-container').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+};
+    // === 카드 드래그 재배치 (새로고침 시 초기화) ===
+window._cardDragFrom = null;
+window._cardDidDrag = false;
+
+window.cardDragStart = function(e, idx) {
+  window._cardDragFrom = idx;
+  window._cardDidDrag = false;
+  e.dataTransfer.effectAllowed = 'move';
+};
+window.cardDragOver = function(e) {
+  e.preventDefault();              // drop 허용
+  window._cardDidDrag = true;      // 드래그 중임을 표시(클릭 무시용)
+  e.dataTransfer.dropEffect = 'move';
+};
+window.cardDrop = function(e, idx) {
+  e.preventDefault();
+  const from = window._cardDragFrom;
+  if (from === null || from === idx) return;
+  const arr = window.cardOrder;
+  const moved = arr.splice(from, 1)[0];  // 끌어온 카드 빼고
+  arr.splice(idx, 0, moved);             // 놓은 위치에 삽입
+  window._cardDragFrom = null;
+  window.renderMainDashboard();          // 새 순서로 다시 그림
+};
+window.cardDragEnd = function(e) {
+  window._cardDragFrom = null;
+  // 드래그 직후 발생하는 click 무시를 위해 잠깐 플래그 유지
+  setTimeout(() => { window._cardDidDrag = false; }, 50);
+};
+
+// 클릭 래퍼: 드래그였으면 선택 동작 무시
+window.cardClick = function(pName) {
+  if (window._cardDidDrag) return;   // 방금 드래그한 거면 클릭 무시
+  window.selectMasterProject(pName);
 };
 // 👇 여기서부터 복사해서 기존 updateMasterMdChart 함수를 완전히 덮어쓰세요 👇
 
