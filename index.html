@@ -562,6 +562,7 @@ window.renderMainDashboard = function() {
     { id: 'CP_ALL', title: 'C/S Consolidated', d: allData.project1, color: '#059669' }
   ];
 
+  const selectedSet = (window.masterMdFilters && window.masterMdFilters['프로젝트']) || new Set();
 const summaryCardsHtml = projectList.map(proj => {
     // ===== CP_ALL은 C/S 전용 카드 (완료율 + 유무상 막대) =====
     if (proj.id === 'CP_ALL') {
@@ -588,7 +589,7 @@ const summaryCardsHtml = projectList.map(proj => {
       const badgeStyle = rate >= 100 ? 'background:#d1fae5; color:#059669;' : 'background:#dbeafe; color:#2563eb;';
 
 return `
-<div class="main-card" onclick="window.selectMasterProject('CP')" style="cursor: pointer;">
+<div class="main-card" onclick="window.selectMasterProject('CP')" style="cursor: pointer; ${selectedSet.has('CP') ? 'border: 2px solid #059669; box-shadow: 0 0 0 3px rgba(5,150,105,0.15);' : ''}">
         <div class="main-card-header">
           <div class="main-card-title">${proj.id}</div>
           <span class="badge" style="${badgeStyle}">${statusText}</span>
@@ -645,7 +646,7 @@ return `
     }).join('');
 
 return `
-<div class="main-card" onclick="window.selectMasterProject('${proj.id}')" style="cursor: pointer;">
+<div class="main-card" onclick="window.selectMasterProject('${proj.id}')" style="cursor: pointer; ${selectedSet.has(proj.id) ? 'border: 2px solid ' + proj.color + '; box-shadow: 0 0 0 3px ' + proj.color + '33;' : ''}">
 
         <div class="main-card-header">
           <div class="main-card-title">${proj.id}</div>
@@ -838,13 +839,12 @@ window.toggleMasterFilter = function(cat, val) {
 window.selectMasterProject = function(pName) {
   const set = window.masterMdFilters['프로젝트'];
   if (set.size === 1 && set.has(pName)) {
-      set.clear();  // 이미 단독 선택된 프로젝트면 해제(전체로)
+      set.clear();
   } else {
       set.clear();
-      set.add(pName);  // 아니면 이 프로젝트만 단독 선택
+      set.add(pName);
   }
-  window.renderMasterSlicers();
-  window.updateMasterMdChart();
+  window.renderMainDashboard();   // ← 카드까지 다시 그려서 테두리 반영
   document.getElementById('master-slicer-container').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 };
 // 👇 여기서부터 복사해서 기존 updateMasterMdChart 함수를 완전히 덮어쓰세요 👇
