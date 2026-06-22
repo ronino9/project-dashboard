@@ -572,12 +572,6 @@ if (!window.cardOrder) {
     }
   }
   const projectList = window.cardOrder;
-    { id: 'OP7', title: 'Interactive Control Tower', d: allData.project7, color: '#8cc63f' },
-    { id: 'OP6', title: 'Battery Cell Inspection', d: allData.project6, color: '#3b82f6' },
-    { id: 'OP3', title: 'Rotary Indexing System', d: allData.project3, color: '#f5a623' },
-    { id: 'CP_ALL', title: 'C/S Consolidated', d: allData.project1, color: '#059669' }
-  ];
-
   const selectedSet = (window.masterMdFilters && window.masterMdFilters['프로젝트']) || new Set();
 const summaryCardsHtml = projectList.map((proj, cardIdx) => {
     // ===== CP_ALL은 C/S 전용 카드 (완료율 + 유무상 막대) =====
