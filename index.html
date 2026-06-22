@@ -876,10 +876,11 @@ window.cardDrop = function(e, idx) {
   const from = window._cardDragFrom;
   if (from === null || from === idx) return;
   const arr = window.cardOrder;
-  const moved = arr.splice(from, 1)[0];  // 끌어온 카드 빼고
-  arr.splice(idx, 0, moved);             // 놓은 위치에 삽입
+  const moved = arr.splice(from, 1)[0];
+  arr.splice(idx, 0, moved);
   window._cardDragFrom = null;
-  window.renderMainDashboard();          // 새 순서로 다시 그림
+  localStorage.setItem('cardOrder', JSON.stringify(arr.map(c => c.id)));  // ← 이 줄 있는지 확인
+  window.renderMainDashboard();
 };
 window.cardDragEnd = function(e) {
   window._cardDragFrom = null;
