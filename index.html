@@ -1289,24 +1289,23 @@ const subMap = { 'project7': 'Interactive Control Tower', 'project6': 'Battery C
         let themeColor = '#fbbf24';
         if (statusText.toLowerCase().includes('completed')) themeColor = '#34d399';
         else if (statusText.toLowerCase().includes('progress')) themeColor = '#3b82f6';
-        // details 행 매칭 (C13:H16 → 제작/FAT/SET-UP/SAT 순서)
-        const detailRow = (summaryData.details && summaryData.details[i]) ? summaryData.details[i] : [];
-        const startDate = detailRow[0] || '-';   // 시작일
-        const targetVal = detailRow[1] || '-';   // 목표값
-        const currentVal = detailRow[2] || '-';  // 현재값
-        const resultVal = detailRow[4] || '-';   // 결과값 (D+38, 10MD 등)
-        const burnRate = detailRow[5] || '-';    // 소진율
 
-        // 제작(i=0)은 날짜 기준, 나머지는 공수(MD) 기준
-        const isDateRow = (i === 0);
+        // === 도넛 아래 수치 (C13:H16 → details) ===
+        const detailRow = (summaryData.details && summaryData.details[i]) ? summaryData.details[i] : [];
+        const startDate  = detailRow[0] || '-';  // 시작일
+        const targetVal  = detailRow[1] || '-';  // 목표값
+        const currentVal = detailRow[2] || '-';  // 현재값
+        const resultVal  = detailRow[4] || '-';  // 결과값 (D+38, -3.5MD 등)
+        const burnRate   = detailRow[5] || '-';  // 소진율
+
+        const isDateRow = (i === 0); // 제작은 날짜 기준
         const label1 = isDateRow ? '시작일' : '계획 공수(MD)';
         const label2 = isDateRow ? '완료일' : '소요 공수(MD)';
         const val1 = isDateRow ? startDate : targetVal;
         const val2 = isDateRow ? currentVal : currentVal;
-        const label3 = isDateRow ? '기한 대비율(%)' : '소진율(%)';
+        const label3 = isDateRow ? '기한 대비율' : '소진율';
         const val3 = burnRate;
 
-        // 소진율 100% 넘으면 빨강
         let rateColor = '#94a3b8';
         const rateNum = parseFloat((val3 || '').toString().replace('%', ''));
         if (!isNaN(rateNum) && rateNum > 100) rateColor = '#ef4444';
