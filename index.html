@@ -1289,7 +1289,44 @@ const subMap = { 'project7': 'Interactive Control Tower', 'project6': 'Battery C
         let themeColor = '#fbbf24';
         if (statusText.toLowerCase().includes('completed')) themeColor = '#34d399';
         else if (statusText.toLowerCase().includes('progress')) themeColor = '#3b82f6';
-        return `<div style="text-align: center;"><div style="font-size: 13px; color: #94a3b8; margin-bottom: 10px;">${label}</div><div style="position:relative;width:90px;height:90px;margin:0 auto;"><svg viewBox="0 0 36 36" style="width:100%;height:100%;"><circle cx="18" cy="18" r="15.9155" fill="none" stroke="#0f172a" stroke-width="3"/><circle cx="18" cy="18" r="15.9155" fill="none" stroke="${themeColor}" stroke-width="3.5" stroke-dasharray="${percent}, 100" style="stroke-linecap:round;"/></svg><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:19px;font-weight:700;color:${themeColor};">${percent}%</div></div><div style="margin-top: 12px; color:${themeColor}; font-weight: 700;">${statusText}</div></div>`;
+        // details 행 매칭 (C13:H16 → 제작/FAT/SET-UP/SAT 순서)
+        const detailRow = (summaryData.details && summaryData.details[i]) ? summaryData.details[i] : [];
+        const startDate = detailRow[0] || '-';   // 시작일
+        const targetVal = detailRow[1] || '-';   // 목표값
+        const currentVal = detailRow[2] || '-';  // 현재값
+        const resultVal = detailRow[4] || '-';   // 결과값 (D+38, 10MD 등)
+        const burnRate = detailRow[5] || '-';    // 소진율
+
+        // 제작(i=0)은 날짜 기준, 나머지는 공수(MD) 기준
+        const isDateRow = (i === 0);
+        const label1 = isDateRow ? '시작일' : '계획 공수(MD)';
+        const label2 = isDateRow ? '완료일' : '소요 공수(MD)';
+        const val1 = isDateRow ? startDate : targetVal;
+        const val2 = isDateRow ? currentVal : currentVal;
+        const label3 = isDateRow ? '기한 대비율(%)' : '소진율(%)';
+        const val3 = burnRate;
+
+        // 소진율 100% 넘으면 빨강
+        let rateColor = '#94a3b8';
+        const rateNum = parseFloat((val3 || '').toString().replace('%', ''));
+        if (!isNaN(rateNum) && rateNum > 100) rateColor = '#ef4444';
+
+        return `<div style="text-align: center;">
+          <div style="font-size: 13px; color: #94a3b8; margin-bottom: 10px;">${label}</div>
+          <div style="position:relative;width:90px;height:90px;margin:0 auto;">
+            <svg viewBox="0 0 36 36" style="width:100%;height:100%;">
+              <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#0f172a" stroke-width="3"/>
+              <circle cx="18" cy="18" r="15.9155" fill="none" stroke="${themeColor}" stroke-width="3.5" stroke-dasharray="${percent}, 100" style="stroke-linecap:round;"/>
+            </svg>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:19px;font-weight:700;color:${themeColor};">${percent}%</div>
+          </div>
+          <div style="margin-top: 12px; color:${themeColor}; font-weight: 700;">${statusText}</div>
+          <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #334155; font-size: 11px; text-align: left; display: flex; flex-direction: column; gap: 4px;">
+            <div style="display: flex; justify-content: space-between;"><span style="color:#64748b;">${label1}</span><span style="color:#cbd5e1; font-weight:600;">${val1}</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color:#64748b;">${label2}</span><span style="color:#cbd5e1; font-weight:600;">${val2}</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color:#64748b;">${label3}</span><span style="color:${rateColor}; font-weight:700;">${val3}</span></div>
+          </div>
+        </div>`;
       }).join('');
       document.getElementById('donuts').innerHTML = donutHTML;
       document.getElementById('progressFill').style.width = summaryData.overall || '0%';
