@@ -955,8 +955,8 @@ window.allMasterData.forEach(r => {
   document.getElementById('kpi-master-delayed').textContent = delayedItems;
   document.getElementById('kpi-master-compliance').textContent = totalItems > 0 ? Math.round(((totalItems - delayedItems) / totalItems) * 100) + '%' : '100%';
 
-  const colors = ['#8cc63f', '#3b82f6', '#f59e0b', '#64748b'];
-  const pKeys  = ['OP7', 'OP6', 'OP3', 'OP5', 'CP'];
+const colors = ['#8cc63f', '#3b82f6', '#f59e0b', '#06b6d4', '#64748b'];
+const pKeys  = ['OP7', 'OP6', 'OP3', 'OP5', 'CP'];
 
 // 도넛 범례 업데이트
   document.getElementById('main-md-legend').innerHTML = pKeys.map((k, i) => {
