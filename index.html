@@ -1120,7 +1120,7 @@ window.showPendingDetail = function(projCode, title) {
   alert("1. 버튼 클릭 성공! \n넘어온 프로젝트: [" + projCode + "]\n넘어온 제목: [" + title + "]");
 
   // 프로젝트 코드 매핑 (CP5도 추가했습니다)
-  const pMap = { 'OP7': 'project7', 'OP6': 'project6', 'OP3': 'project3', 'CP_ALL': 'project1', 'CP5': 'project1' };
+  const pMap = { 'OP7': 'project7', 'OP6': 'project6', 'OP3': 'project3', 'CP_ALL': 'project1', 'CP5': 'project5' };
   const pKey = pMap[(projCode || '').toUpperCase()];
   
   if (!pKey) {
