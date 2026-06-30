@@ -420,7 +420,7 @@
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyxYUnREQ_kiwtxYnUye3v1x6Re2bs2p8t1fyWlDqOXEjp8y59bTSenOw60wi1nitNvKw/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzcPG7TAz2H7bZ_TcKCWjnljxnJE389820aBewt6rtCmCqI0WBDDVF3kuyXlTvf864gag/exec';
 
     let allData = {}; 
     let documentLinksData = [];
@@ -535,21 +535,46 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
       }
     }
 
-    async function syncDashboard() {
+async function syncDashboard() {
       try {
-        const response = await fetch(API_URL, { redirect: 'follow' });
+        let id  = localStorage.getItem('auth_id');
+        let pin = localStorage.getItem('auth_pin');
+
+        if (!id || !pin) {
+          id  = prompt('ID를 입력하세요');
+          pin = prompt('Pin No를 입력하세요');
+          if (!id || !pin) { document.body.innerHTML = '<div style="color:#fff;padding:40px;">인증 정보가 필요합니다.</div>'; return; }
+        }
+
+        const url = `${API_URL}?id=${encodeURIComponent(id)}&pin=${encodeURIComponent(pin)}`;
+        const response = await fetch(url, { redirect: 'follow' });
         allData = await response.json();
-        
+
+        if (allData.status === 'fail') {
+          localStorage.removeItem('auth_id');
+          localStorage.removeItem('auth_pin');
+          alert('인증 실패: ' + allData.error);
+          document.body.innerHTML = '<div style="color:#fff;padding:40px;">접근 권한이 없습니다.</div>';
+          return;
+        }
+
+        localStorage.setItem('auth_id', id);
+        localStorage.setItem('auth_pin', pin);
+
         if (allData.project1CsRiskMap) csRiskData = allData.project1CsRiskMap;
         if (allData.csStatistics) { csStatsData = allData.csStatistics; renderTotalStats(); }
         if (allData.documentLinks) documentLinksData = allData.documentLinks;
-        
-        // 데이터 로드 후 기본 메인 탭 렌더링
+
         window.switchTab('main');
       } catch (err) {
         console.error('동기화 실패:', err);
       }
     }
+
+    // ✅ 메인 대시보드 렌더링 함수
+    window.renderMainDashboard = function() {
+      if (!allData || !allData.project7) return;
+      ...
 
     // ✅ 메인 대시보드 렌더링 함수 추가
 // ✅ 여기서부터 복사하세요
