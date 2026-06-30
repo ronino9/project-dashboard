@@ -597,7 +597,8 @@ if (!window.cardOrder) {
     window.cardOrder = [
       { id: 'OP7', title: 'OP7 프로젝트명', d: allData.project7, color: '#8cc63f' },
       { id: 'OP6', title: 'OP6 프로젝트명', d: allData.project6, color: '#3b82f6' },
-      { id: 'OP5', title: 'OP5 프로젝트명', d: allData.project5, color: '#06b6d4' },
+{ id: 'OP5', title: 'OP5 프로젝트명', d: allData.project5, color: '#06b6d4' },
+      { id: 'OP4', title: 'OP4 프로젝트명', d: allData.project4, color: '#a855f7' },
       { id: 'OP3', title: 'OP3 프로젝트명', d: allData.project3, color: '#f5a623' },
       { id: 'CP_ALL', title: 'C/S Consolidated', d: allData.project1, color: '#059669' }
     ];
@@ -957,8 +958,8 @@ window.cardClick = function(pName) {
 let mainTrendChartInstance = null;
 
 window.updateMasterMdChart = function() {
-  let mdSums = { 'OP7': 0, 'OP6': 0, 'OP3': 0, 'OP5': 0, 'CP': 0 };
-  let cntSums = { 'OP7': 0, 'OP6': 0, 'OP3': 0, 'OP5': 0, 'CP': 0 };
+  let mdSums = { 'OP7': 0, 'OP6': 0, 'OP5': 0, 'OP4': 0, 'OP3': 0, 'CP': 0 };
+  let cntSums = { 'OP7': 0, 'OP6': 0, 'OP5': 0, 'OP4': 0, 'OP3': 0, 'CP': 0 };
   let totalMd = 0;
   let unresolvedIssues = 0;
   let delayedItems = 0;
@@ -1010,8 +1011,8 @@ window.allMasterData.forEach(r => {
   document.getElementById('kpi-master-delayed').textContent = delayedItems;
   document.getElementById('kpi-master-compliance').textContent = totalItems > 0 ? Math.round(((totalItems - delayedItems) / totalItems) * 100) + '%' : '100%';
 
-const colors = ['#8cc63f', '#3b82f6', '#f59e0b', '#06b6d4', '#64748b'];
-const pKeys  = ['OP7', 'OP6', 'OP3', 'OP5', 'CP'];
+const colors = ['#8cc63f', '#3b82f6', '#06b6d4', '#a855f7', '#f59e0b', '#64748b'];
+const pKeys  = ['OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'CP'];
 
 // 도넛 범례 업데이트
   document.getElementById('main-md-legend').innerHTML = pKeys.map((k, i) => {
