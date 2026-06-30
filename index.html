@@ -134,8 +134,10 @@
       <button id="btn-main" class="tab-btn active" onclick="window.switchTab('main')">🎛️ 메인 대시보드</button>
       <button id="btn-project7" class="tab-btn" onclick="window.switchTab('project7')">OP7 · Ongoing</button>
       <button id="btn-project6" class="tab-btn" onclick="window.switchTab('project6')">OP6 · Ongoing</button>
-      <button id="btn-project3" class="tab-btn" onclick="window.switchTab('project3')">OP3 · Ongoing</button>
+      
 <button id="btn-project5" class="tab-btn" onclick="window.switchTab('project5')">OP5 · Ongoing</button>
+      <button id="btn-project4" class="tab-btn" onclick="window.switchTab('project4')">OP4 · Ongoing</button>
+      <button id="btn-project3" class="tab-btn" onclick="window.switchTab('project3')">OP3 · Ongoing</button>
       <button id="btn-project1cs" class="tab-btn" onclick="window.switchTab('project1cs')">CP_All · Complete</button>
       <button id="btn-daily" class="tab-btn" onclick="window.switchTab('daily')">📅 기간별 업무 내역</button>
     </div>
@@ -435,7 +437,7 @@
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzcPG7TAz2H7bZ_TcKCWjnljxnJE389820aBewt6rtCmCqI0WBDDVF3kuyXlTvf864gag/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbx7D2MoNFmra1nMYs9kmMMNlW7_pd3-QcKHFIIxb7BiYJ4gyLa2uq1EmwLU1AhzCrvl_g/exec';
 
     let allData = {}; 
     let documentLinksData = [];
@@ -774,7 +776,7 @@ const summary = proj.d.summary || {};
   const allIssues = [];
   const today = new Date('2026-06-12'); 
 
-  ['project7', 'project6', 'project3', 'project5'].forEach(pKey => {
+  ['project7', 'project6', 'project5', 'project4', 'project3'].forEach(pKey => {
     if(allData[pKey] && allData[pKey].history) {
       allData[pKey].history.forEach(r => {
 if(['지연중', 'Issue', '임박'].includes(r['진행상태'])) {
@@ -836,7 +838,7 @@ if (!window.masterMdFilters) {
 
   // 모든 프로젝트의 데이터를 한 곳에 모음 (필터링을 위해)
   window.allMasterData = [];
-['project7', 'project6', 'project3', 'project5', 'project1'].forEach(pKey => {
+['project7', 'project6', 'project5', 'project4', 'project3', 'project1'].forEach(pKey => {
     const pName = pKey === 'project1' ? 'CP' : pKey.replace('project', 'OP');
       if(allData[pKey] && allData[pKey].history) {
           allData[pKey].history.forEach(r => {
@@ -1154,7 +1156,7 @@ window.showPendingDetail = function(projCode, title) {
   alert("1. 버튼 클릭 성공! \n넘어온 프로젝트: [" + projCode + "]\n넘어온 제목: [" + title + "]");
 
   // 프로젝트 코드 매핑 (CP5도 추가했습니다)
-  const pMap = { 'OP7': 'project7', 'OP6': 'project6', 'OP3': 'project3', 'CP_ALL': 'project1', 'OP5': 'project5' };
+  const pMap = { 'OP7': 'project7', 'OP6': 'project6', 'OP5': 'project5', 'OP4': 'project4', 'OP3': 'project3'  , 'CP_ALL': 'project1' };
   const pKey = pMap[(projCode || '').toUpperCase()];
   
   if (!pKey) {
@@ -1211,7 +1213,7 @@ window.showIssueDetail = function(idx) {
   const cleanMemberTitles = rawMembers.split('|').map(t => t.replace(/[^a-zA-Z0-9가-힣]/g, ''));
 
   const matchedRows = [];
-  const targetProjects = ['project7', 'project6', 'project3', 'project5', 'project1'];
+  const targetProjects = ['project7', 'project6', 'project5', 'project4', 'project3', 'project1'];
 
   targetProjects.forEach(pKey => {
     if (allData[pKey] && allData[pKey].history) {
@@ -1313,8 +1315,8 @@ window.showIssueDetail = function(idx) {
 
     window.switchProject = function(projectId) {
       currentProjectId = projectId;
-const titleMap = { 'project7': 'Project 7', 'project6': 'Project 6', 'project3': 'Project 3', 'project5': 'Project 5' };
-const subMap = { 'project7': '', 'project6': '', 'project3': '', 'project5': '' };
+const titleMap = { 'project7': 'Project 7', 'project6': 'Project 6', 'project5': 'Project 5', 'project4': 'Project 4', 'project3': 'Project 3' };
+const subMap = { 'project7': '', 'project6': '', 'project5': '', 'project4': '', 'project3': ''  };
       document.getElementById('projectTitle').textContent = titleMap[projectId] || 'Project';
       document.getElementById('projectSubtitle').textContent = subMap[projectId] || '';
 
