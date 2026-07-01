@@ -455,7 +455,7 @@
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzUw0Nh87ULWjnGchX27rERtE52Alj4vM4-dhl33AN6sAfj551rD2JVfFBW8s0h5iF7/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwejauGPX_0BEdYhmr1i86Emgr6kWN3EngwaUBTVmhHLgJ7Ocwrs1brdlMSccryQ5SXmQ/exec';
 
     let allData = {}; 
     let documentLinksData = [];
@@ -494,13 +494,13 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
     detailTable.innerHTML = '<tr><td style="text-align:center;">데이터가 없습니다.</td></tr>';
   } else {
     // 1. 헤더 정의
-    const headers = ['프로젝트 코드', '접수일', '진행상태', '업무 구분', '작업 시간', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터'];
+    const headers = ['프로젝트 코드', '접수일', '진행상태', '업무 구분', '작업 시간', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터', '로그'];
     let html = '<tr>' + headers.map(h => {
   if (h === '진행상태') return `<th style="text-align: center; white-space: nowrap; min-width: 85px;">${h}</th>`;
   return `<th>${h}</th>`;
 }).join('') + '</tr>';
 
-    dataRows.forEach(row => {
+    dataRows.forEach((row, rowIdx) => {
       // 2. 스마트 데이터 추출 (프로젝트 코드나 접수일이 없으면 현재 상태에서 유추)
       const pCode = row['프로젝트 코드'] || document.getElementById('projectTitle').textContent || '-';
       const dateVal = row['접수일'] || '-';
@@ -550,6 +550,20 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
           });
           return `<td style="min-width: 250px; max-width: 400px; white-space: normal; word-break: keep-all; overflow-wrap: break-word; vertical-align: top;">${formattedHtml}</td>`;
         }
+        if (h === '로그사진') {
+  const photos = row['로그사진경로'] || [];
+  if (!photos.length) return `<td style="text-align:center; color:#475569;">-</td>`;
+  const listHtml = photos.map(p => {
+    const safePc = encodeURIComponent(p.pc);
+    const safeServer = encodeURIComponent(p.server);
+    return `<div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; font-size:11px;">
+      <span style="color:#cbd5e1;">📷 ${p.file}</span>
+      <button class="log-photo-copy-btn" data-path="${safePc}" style="background:#1e293b; border:1px solid #334155; color:#93c5fd; padding:2px 8px; border-radius:4px; cursor:pointer; font-size:10px;">PC</button>
+      <button class="log-photo-copy-btn" data-path="${safeServer}" style="background:#1e293b; border:1px solid #334155; color:#6ee7b7; padding:2px 8px; border-radius:4px; cursor:pointer; font-size:10px;">서버</button>
+    </div>`;
+  }).join('');
+  return `<td style="min-width:220px; vertical-align:top;">${listHtml}</td>`;
+}
         if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
           let val = row[h] || '-';
           return `<td style="min-width: 200px; max-width: 350px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; line-height: 1.5; vertical-align: top; color: #e2e8f0;">${val}</td>`;
@@ -558,6 +572,10 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
       }).join('') + '</tr>';
     });
     detailTable.innerHTML = html;
+    // ✅ 로그사진 복사 버튼 이벤트 연결
+detailTable.querySelectorAll('.log-photo-copy-btn').forEach(btn => {
+  btn.onclick = () => copyFilePath(decodeURIComponent(btn.dataset.path));
+});
   }
   detailView.style.display = 'block';
   detailView.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
