@@ -613,12 +613,12 @@ window.renderMainDashboard = function() {
   // 1. 프로젝트 리스트 (상단 카드 생성) — 순서는 window.cardOrder에 저장(드래그로 변경 가능)
 if (!window.cardOrder) {
     window.cardOrder = [
-      { id: 'OP8', title: 'OP8 프로젝트명', d: allData.project8, color: '#f59e0b' },
+      { id: 'OP8', title: 'OP8 프로젝트명', d: allData.project8, color: '#d97757' },
       { id: 'OP7', title: 'OP7 프로젝트명', d: allData.project7, color: '#8cc63f' },
       { id: 'OP6', title: 'OP6 프로젝트명', d: allData.project6, color: '#3b82f6' },
       { id: 'OP5', title: 'OP5 프로젝트명', d: allData.project5, color: '#06b6d4' },
       { id: 'OP4', title: 'OP4 프로젝트명', d: allData.project4, color: '#a855f7' },
-      { id: 'OP3', title: 'OP3 프로젝트명', d: allData.project3, color: '#f5a623' },
+      { id: 'OP3', title: 'OP3 프로젝트명', d: allData.project3, color: '#f59e0b' },
       { id: 'OP2', title: 'OP2 프로젝트명', d: allData.project2, color: '#db2777' },
       { id: 'CP_ALL', title: 'C/S Consolidated', d: allData.project1, color: '#059669' }
     ];
@@ -1052,7 +1052,7 @@ document.getElementById('kpi-master-md').textContent = totalMd.toFixed(1);
   document.getElementById('kpi-master-hold').textContent = holdCount;
   document.getElementById('kpi-master-compliance').textContent = totalItems > 0 ? Math.round(((totalItems - delayCount - imminentCount) / totalItems) * 100) + '%' : '100%';
 
-const colors = ['#f59e0b', '#8cc63f', '#3b82f6', '#06b6d4', '#a855f7', '#92400e', '#db2777', '#64748b'];
+const colors = ['#d97757', '#8cc63f', '#3b82f6', '#06b6d4', '#a855f7', '#f59e0b', '#db2777', '#64748b'];
 const pKeys  = ['OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2', 'CP'];
 
 // 도넛 범례 업데이트
@@ -1896,13 +1896,13 @@ let calCursor = new Date(CAL_TODAY);
 
     function calCodeColor(code) {
       const c = (code || '').toUpperCase();
-      if (c.includes('OP8')) return '#f59e0b';
+      if (c.includes('OP8')) return '#d97757';
       if (c.includes('OP7')) return '#8cc63f';
       if (c.includes('OP6')) return '#3b82f6';
       if (c.includes('OP5')) return '#06b6d4';
       if (c.includes('OP4')) return '#a855f7';
       if (c.includes('OP3')) return '#92400e';
-      if (c.includes('OP2')) return '#db2777';
+      if (c.includes('OP2')) return '#f59e0b';
       if (c.includes('CP'))  return '#059669';
       return '#64748b';
     }
