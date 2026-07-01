@@ -550,7 +550,7 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
           });
           return `<td style="min-width: 250px; max-width: 400px; white-space: normal; word-break: keep-all; overflow-wrap: break-word; vertical-align: top;">${formattedHtml}</td>`;
         }
-        if (h === '로그사진') {
+        if (h === '로그') {
   const photos = row['로그사진경로'] || [];
   if (!photos.length) return `<td style="text-align:center; color:#475569;">-</td>`;
   const listHtml = photos.map(p => {
