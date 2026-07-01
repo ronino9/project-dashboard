@@ -630,15 +630,17 @@ if (!window.cardOrder) {
   const projectList = window.cardOrder;
   const selectedSet = (window.masterMdFilters && window.masterMdFilters['프로젝트']) || new Set();
 const summaryCardsHtml = projectList.map((proj, cardIdx) => {
-    // 💡 위험도 계산 (지연중 > 임박 > 안정 순 우선순위)
+    // 💡 램프식 위험도 계산 (지연/임박/안정 각각 존재 여부 판단)
     const _history = (proj.d && proj.d.history) ? proj.d.history : [];
     const _hasDelay = _history.some(r => (r['진행상태'] || '') === '지연중');
     const _hasImminent = _history.some(r => (r['진행상태'] || '') === '임박');
-    const riskInfo = _hasDelay
-      ? { label: '지연', bg: '#fee2e2', color: '#dc2626', dot: '#ef4444' }
-      : _hasImminent
-      ? { label: '임박', bg: '#fef3c7', color: '#b45309', dot: '#f59e0b' }
-      : { label: '안정', bg: '#d1fae5', color: '#059669', dot: '#10b981' };
+    const _isStable = !_hasDelay && !_hasImminent;
+    const riskLampHtml = `
+      <div style="display:flex; gap:3px; align-items:center;">
+        <span title="지연" style="width:8px; height:8px; border-radius:50%; background:${_hasDelay ? '#ef4444' : '#e2e8f0'}; box-shadow:${_hasDelay ? '0 0 4px #ef4444' : 'none'};"></span>
+        <span title="임박" style="width:8px; height:8px; border-radius:50%; background:${_hasImminent ? '#f59e0b' : '#e2e8f0'}; box-shadow:${_hasImminent ? '0 0 4px #f59e0b' : 'none'};"></span>
+        <span title="안정" style="width:8px; height:8px; border-radius:50%; background:${_isStable ? '#10b981' : '#e2e8f0'}; box-shadow:${_isStable ? '0 0 4px #10b981' : 'none'};"></span>
+      </div>`;
 
     // ===== CP_ALL은 C/S 전용 카드 (완료율 + 유무상 막대) =====
     if (proj.id === 'CP_ALL') {
@@ -666,12 +668,12 @@ const summaryCardsHtml = projectList.map((proj, cardIdx) => {
 
 return `
 <div class="main-card" draggable="true" data-card-idx="${cardIdx}" ondragstart="window.cardDragStart(event,${cardIdx})" ondragover="window.cardDragOver(event)" ondrop="window.cardDrop(event,${cardIdx})" ondragend="window.cardDragEnd(event)" onclick="window.cardClick('CP')" style="cursor: pointer; ${selectedSet.has('CP') ? 'border: 2px solid #059669; box-shadow: 0 0 0 3px rgba(5,150,105,0.15);' : ''}">
-        <div class="main-card-header">
-          <div class="main-card-title">${proj.id}</div>
-          <div style="display:flex; gap:4px; align-items:center;">
-            <span class="badge" style="background:${riskInfo.bg}; color:${riskInfo.color};">${riskInfo.label}</span>
-            <span class="badge" style="${badgeStyle}">${statusText}</span>
+<div class="main-card-header">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="main-card-title">${proj.id}</div>
+            ${riskLampHtml}
           </div>
+          <span class="badge" style="${badgeStyle}">${statusText}</span>
         </div>
         <div class="main-card-body">
           <div class="donut-container">
@@ -746,12 +748,12 @@ const summary = proj.d.summary || {};
 
     return `
       <div class="main-card" draggable="true" data-card-idx="${cardIdx}" ondragstart="window.cardDragStart(event,${cardIdx})" ondragover="window.cardDragOver(event)" ondrop="window.cardDrop(event,${cardIdx})" ondragend="window.cardDragEnd(event)" onclick="window.cardClick('${proj.id}')" style="cursor: pointer; ${selectedSet.has(proj.id) ? 'border: 2px solid ' + proj.color + '; box-shadow: 0 0 0 3px ' + proj.color + '33;' : ''}">
-        <div class="main-card-header">
-          <div class="main-card-title">${proj.id}</div>
-          <div style="display:flex; gap:4px; align-items:center;">
-            <span class="badge" style="background:${riskInfo.bg}; color:${riskInfo.color};">${riskInfo.label}</span>
-            <span class="badge" style="${badgeStyle}">${statusText}</span>
+<div class="main-card-header">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="main-card-title">${proj.id}</div>
+            ${riskLampHtml}
           </div>
+          <span class="badge" style="${badgeStyle}">${statusText}</span>
         </div>
         <div class="main-card-body">
           <div class="donut-container">
