@@ -2670,9 +2670,118 @@ window.runGlobalSearch = function() {
 
   window.showDetailView('🔍 검색 결과', `총 ${matched.length}건`, rowsForDisplay);
 };
-    window.renderPdca = function() {
-  document.getElementById('pdca-content').innerHTML =
-    '<div style="padding:40px; text-align:center; color:#16a34a; font-weight:700;">✅ PDCA 탭 정상 작동! (2단계에서 지표 채웁니다)</div>';
+window.renderPdca = function() {
+  const rows = window.allMasterData || [];
+  if (rows.length === 0) {
+    document.getElementById('pdca-content').innerHTML =
+      '<div style="padding:40px; text-align:center; color:#64748b;">데이터를 먼저 불러와주세요. (메인 대시보드 한 번 방문 후 재시도)</div>';
+    return;
+  }
+
+  // ===== To-Be 목표치 (코드 상수로 관리) =====
+  const TARGET = { exec: 100, compliance: 100, rework: 5.0, improve: 100 };
+
+  const total = rows.length;
+
+  // ── 1) 계획 대비 실행률: 예상시간 있는 건만 (공란 제외) ──
+  let planSum = 0, actualSum = 0, execN = 0;
+  rows.forEach(r => {
+    const plan = parseFloat(r['예상 작업 시간(H)']) || 0;
+    const actual = parseFloat(r['작업 시간']) || 0;
+    if (plan > 0) { planSum += plan; actualSum += actual; execN++; }
+  });
+  const execRate = planSum > 0 ? Math.round((actualSum / planSum) * 100) : null;
+
+  // ── 2) 일정 준수율: 지연일=0(또는 공란) → 준수 ──
+  let compliant = 0;
+  rows.forEach(r => {
+    const delay = parseInt(r['지연일']) || 0;
+    if (delay <= 0) compliant++;
+  });
+  const complianceRate = total > 0 ? Math.round((compliant / total) * 100) : 0;
+
+  // ── 3) 재작업률: 재작업 여부(Y/N)='Y' ──
+  let reworkCnt = 0;
+  rows.forEach(r => {
+    const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
+    if (yn === 'Y') reworkCnt++;
+  });
+  const reworkRate = total > 0 ? (reworkCnt / total * 100) : 0;
+
+  // ── 4) 개선책 작성률 + 유형 분포: 분석데이터의 [개선-*] 태그 ──
+  const IMPROVE_TYPES = ['일정', '품질', '효율', '동료기여', '기타'];
+  const improveDist = { '일정':0, '품질':0, '효율':0, '동료기여':0, '기타':0 };
+  let improveTagged = 0;
+  const improveRows = rows.filter(r => (r['업무 구분'] || '') === '개선');
+  improveRows.forEach(r => {
+    const analysis = r['분석 데이터'] || r['분석데이터'] || '';
+    const m = analysis.match(/\[개선-([^\]]+)\]/g);
+    if (m && m.length > 0) {
+      improveTagged++;
+      m.forEach(tag => {
+        const name = tag.replace(/\[개선-|\]/g, '').trim();
+        if (improveDist[name] !== undefined) improveDist[name]++;
+        else improveDist['기타']++;
+      });
+    }
+  });
+  const improveRate = improveRows.length > 0 ? Math.round((improveTagged / improveRows.length) * 100) : 0;
+
+  // ===== 카드 렌더링 =====
+  // 각 카드: P/D/C/A 뱃지, 지표명, 큰 수치, To-Be, 한줄 코멘트
+  const card = (phase, phaseColor, title, valueHtml, target, comment, commentColor) => `
+    <div style="flex:1; min-width:230px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:8px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="background:${phaseColor}1a; color:${phaseColor}; font-size:11px; font-weight:800; padding:2px 8px; border-radius:6px; letter-spacing:0.5px;">${phase}</span>
+        <span style="font-size:14px; font-weight:700; color:#334155;">${title}</span>
+      </div>
+      <div style="display:flex; align-items:baseline; gap:8px;">
+        <div style="font-size:38px; font-weight:800; color:#0f172a; line-height:1;">${valueHtml}</div>
+        <span style="font-size:12px; font-weight:700; color:#3b82f6; background:#eff6ff; padding:2px 8px; border-radius:8px; white-space:nowrap;">To-Be: ${target}</span>
+      </div>
+      <div style="font-size:12px; color:${commentColor}; font-weight:600; margin-top:auto;">${comment}</div>
+    </div>`;
+
+  // 실행률 코멘트
+  let execVal, execComment, execCommentColor;
+  if (execRate === null) {
+    execVal = '<span style="color:#94a3b8;">—</span>';
+    execComment = '⚪ 예상시간 데이터 축적 중';
+    execCommentColor = '#94a3b8';
+  } else {
+    execVal = `${execRate}<span style="font-size:20px;">%</span>`;
+    if (execRate <= 105) { execComment = `📊 ${execN}건 기준 · 계획 근접`; execCommentColor = '#16a34a'; }
+    else { execComment = `📊 ${execN}건 기준 · 계획 대비 초과`; execCommentColor = '#dc2626'; }
+  }
+
+  // 준수율 코멘트
+  const compComment = complianceRate >= 95 ? '✔ 전원 수준 안정적 유지' : (complianceRate >= 80 ? '⚠ 일부 지연 발생' : '🔴 지연 다수 발생');
+  const compColor = complianceRate >= 95 ? '#16a34a' : (complianceRate >= 80 ? '#d97706' : '#dc2626');
+
+  // 재작업률 코멘트 (낮을수록 좋음)
+  const reworkGood = reworkRate <= TARGET.rework;
+  const reworkComment = reworkGood ? `✅ 목표(${TARGET.rework}%) 이내` : `⬇ 목표(${TARGET.rework}%) 대비 초과`;
+  const reworkColor = reworkGood ? '#16a34a' : '#dc2626';
+
+  // 개선책 코멘트
+  const improveComment = `📝 개선 ${improveRows.length}건 중 ${improveTagged}건 태그`;
+
+  const cardsHtml = `
+    <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px;">
+      ${card('P→D', '#3b82f6', '계획 대비 실행률', execVal, TARGET.exec + '%', execComment, execCommentColor)}
+      ${card('C', '#10b981', '일정 준수율', complianceRate + '<span style="font-size:20px;">%</span>', TARGET.compliance + '%', compComment, compColor)}
+      ${card('A', '#a855f7', '재작업률 (핵심 지표)', reworkRate.toFixed(1) + '<span style="font-size:20px;">%</span>', TARGET.rework + '%', reworkComment, reworkColor)}
+      ${card('A', '#a855f7', '개선책 작성률', improveRate + '<span style="font-size:20px;">%</span>', TARGET.improve + '%', improveComment, '#64748b')}
+    </div>
+    <div id="pdca-charts-area" style="color:#94a3b8; font-size:13px; padding:20px; text-align:center; background:#fff; border:1px dashed #cbd5e1; border-radius:12px;">
+      📈 3단계에서 재작업률 추이 차트 + 개선 유형 분포 + 자동 액션 리스트가 여기 들어갑니다
+    </div>`;
+
+  document.getElementById('pdca-content').innerHTML = cardsHtml;
+
+  // 3단계에서 쓸 계산 결과를 잠깐 보관 (콘솔 확인용)
+  window._pdcaCalc = { total, execRate, execN, complianceRate, reworkRate, reworkCnt, improveRate, improveDist, improveRows: improveRows.length };
+  console.log('PDCA 집계:', window._pdcaCalc);
 };
   </script>
 </body>
