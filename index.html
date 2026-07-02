@@ -202,6 +202,15 @@
           <button id="roast-btn" onclick="runRoastAnalysis()" style="background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%); color: white; border: none; padding: 7px 16px; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 13px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4); display: flex; align-items: center; gap: 4px; letter-spacing: 0.5px;">
             🔥 통합 팩폭
           </button>
+          <div style="margin-left: auto; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <input type="text" id="gs-keyword" placeholder="🔍 검색어" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; width: 140px;" onkeydown="if(event.key==='Enter') window.runGlobalSearch()">
+            <select id="gs-stage" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">단계 전체</option></select>
+            <select id="gs-response" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">대응 전체</option></select>
+            <select id="gs-task" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">업무 전체</option></select>
+            <select id="gs-paid" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">유/무상 전체</option></select>
+            <select id="gs-part" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">파트 전체</option></select>
+            <button onclick="window.runGlobalSearch()" style="background: #3b82f6; color: #fff; border: none; padding: 7px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px;">검색</button>
+          </div>
         </div>
       </div>
       <!-- 🎯 단계별 AI 팩폭 끝 -->
@@ -907,6 +916,7 @@ if (!window.masterMdFilters) {
   // 슬라이서 및 차트 그리기 함수 최초 1회 호출
   window.renderMasterSlicers();
   window.updateMasterMdChart();
+  window.populateGlobalSearchFilters();
 
 }; // <--- 기존 window.renderMainDashboard 함수의 끝을 닫아줍니다.
 
@@ -2578,6 +2588,66 @@ window.showReviewStage = function(projectId, stageName) {
   
   contentDiv.innerHTML = html;
   contentDiv.style.display = 'block';
+  window.populateGlobalSearchFilters = function() {
+  if (!window.allMasterData) return;
+  const map = {
+    'gs-stage': '단계 구분', 'gs-response': '대응 구분',
+    'gs-task': '업무 구분', 'gs-paid': '유/무상', 'gs-part': '파트 구분'
+  };
+  Object.entries(map).forEach(([elId, col]) => {
+    const sel = document.getElementById(elId);
+    if (!sel) return;
+    const current = sel.value;
+    const uniqueVals = [...new Set(window.allMasterData.map(r => r[col] || r[col.replace('/', '')] || '').filter(v => v.trim() !== ''))];
+    sel.innerHTML = `<option value="">${col} 전체</option>` + uniqueVals.map(v => `<option value="${v}">${v}</option>`).join('');
+    if (uniqueVals.includes(current)) sel.value = current;
+  });
+};
+
+window.runGlobalSearch = function() {
+  if (!window.allMasterData || window.allMasterData.length === 0) {
+    alert('데이터가 아직 로드되지 않았습니다.');
+    return;
+  }
+  const keyword = (document.getElementById('gs-keyword').value || '').trim().toLowerCase();
+  const stage = document.getElementById('gs-stage').value;
+  const response = document.getElementById('gs-response').value;
+  const task = document.getElementById('gs-task').value;
+  const paid = document.getElementById('gs-paid').value;
+  const part = document.getElementById('gs-part').value;
+
+  if (!keyword && !stage && !response && !task && !paid && !part) {
+    alert('검색어 또는 필터 조건을 하나 이상 입력해주세요.');
+    return;
+  }
+
+  const matched = window.allMasterData.filter(r => {
+    if (stage && r['단계 구분'] !== stage) return false;
+    if (response && r['대응 구분'] !== response) return false;
+    if (task && r['업무 구분'] !== task) return false;
+    if (paid && (r['유/무상'] || r['유무상']) !== paid) return false;
+    if (part && r['파트 구분'] !== part) return false;
+    if (keyword) {
+      const text = [
+        r['표준 제작 Item / Issue / 개선사항'], r['제목'], r['진행 사항'], r['분석 데이터']
+      ].filter(Boolean).join(' ').toLowerCase();
+      if (!text.includes(keyword)) return false;
+    }
+    return true;
+  });
+
+  if (matched.length === 0) {
+    alert('검색 결과가 없습니다.');
+    return;
+  }
+
+  const rowsForDisplay = matched.map(r => ({
+    '프로젝트 코드': r._pName,
+    '접수일': r['접수일'] || '-',
+    ...r
+  }));
+
+  window.showDetailView('🔍 검색 결과', `총 ${matched.length}건`, rowsForDisplay);
 };
   </script>
 </body>
