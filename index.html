@@ -551,9 +551,10 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
           let val = start && end ? `${start} ~ ${end}` : (start || end || '-');
           return `<td style="text-align: center; font-size: 11px; color: #94a3b8; white-space: nowrap; vertical-align: top; padding-top: 12px;">${val}</td>`;
         }
-        if (h === '분석 데이터') {
+if (h === '분석 데이터') {
           let val = row[h] || '-';
-          if (val === '-') return `<td style="vertical-align: top; color: #cbd5e1;">-</td>`;
+          return `<td style="min-width: 250px; max-width: 400px; vertical-align: top;">${window.makeExpandable(val)}</td>`;
+        }
           let lines = val.split('\n');
           let blocks = [];
           let currentBlock = null;
@@ -593,9 +594,9 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
   }).join('');
   return `<td style="min-width:220px; vertical-align:top;">${listHtml}</td>`;
 }
-        if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
+if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
           let val = row[h] || '-';
-          return `<td style="min-width: 200px; max-width: 350px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; line-height: 1.5; vertical-align: top; color: #e2e8f0;">${val}</td>`;
+          return `<td style="min-width: 200px; max-width: 350px; vertical-align: top; color: #e2e8f0;">${window.makeExpandable(val)}</td>`;
         }
         return `<td style="vertical-align: top; text-align: center;">${row[h] || '-'}</td>`;
       }).join('') + '</tr>';
@@ -3022,6 +3023,25 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
   document.getElementById('pdca-action-list').innerHTML = actionHtml ||
     '<div style="padding:20px; text-align:center; color:#16a34a; font-weight:600;">✅ 재작업이 집중된 파트·단계가 없습니다. 양호합니다.</div>';
   
+};
+    // 코드의 가장 맨 마지막, </script> 태그 바로 직전에 이 함수를 넣어주세요.
+window.makeExpandable = function(text) {
+    if (typeof text !== 'string') text = String(text || '');
+    const lines = text.split('\n');
+    if (lines.length <= 5) return `<div style="white-space: pre-wrap; word-break: keep-all;">${text}</div>`;
+    
+    return `
+        <div class="exp-wrapper">
+            <div class="exp-content" style="max-height: 120px; overflow: hidden; white-space: pre-wrap; word-break: keep-all; transition: max-height 0.3s;">${text}</div>
+            <button onclick="
+                const cont = this.parentElement.querySelector('.exp-content');
+                const isExpanded = cont.style.maxHeight === 'none';
+                cont.style.maxHeight = isExpanded ? '120px' : 'none';
+                this.textContent = isExpanded ? '더보기 ▼' : '접기 ▲';
+            " style="background:none; border:none; color:#3b82f6; font-size:11px; cursor:pointer; padding:5px 0; font-weight:700;">
+                더보기 ▼
+            </button>
+        </div>`;
 };
   </script>
 </body>
