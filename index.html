@@ -2827,12 +2827,19 @@ window.renderPdca = function() {
   document.getElementById('pdca-content').innerHTML = cardsHtml;
 
   // 3단계에서 쓸 계산 결과를 잠깐 보관 (콘솔 확인용)
-  window._pdcaCalc = { total, execRate, execN, complianceRate, reworkRate, reworkCnt, improveRate, improveDist, improveRows: improveRows.length };
-console.log('PDCA 집계:', window._pdcaCalc);
+window._pdcaCalc = { total, execRate, execN, complianceRate, reworkRate, reworkCnt, improveRate, problemCnt, problemImproved, activeImproveCnt, improveDist };
+  console.log('PDCA 집계:', window._pdcaCalc);
 
   // 3단계: 차트 & 액션 리스트 그리기
+  window.renderPdcaCharts(rows, improveDist, TARGET, isProblem, hasImproveTag);
+};   // ← renderPdca 함수 닫기
+
+// ===== PDCA 차트 & 액션 리스트 (renderPdca와 분리된 독립 함수) =====
+let pdcaReworkChartInstance = null;
+let pdcaImproveChartInstance = null;
+
 window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImproveTag) {
-  // 능동 개선 월별 추이 (문제 아닌 건의 개선 태그)
+  // ── 능동 개선 월별 추이 (문제 아닌 건의 개선 태그) ──
   const activeMonthMap = {};
   rows.forEach(r => {
     if (isProblem(r) || !hasImproveTag(r)) return;
@@ -2841,12 +2848,9 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
     const mk = raw.substring(0, 7);
     activeMonthMap[mk] = (activeMonthMap[mk] || 0) + 1;
   });
-    let pdcaReworkChartInstance = null;
-let pdcaImproveChartInstance = null;
 
-window.renderPdcaCharts = function(rows, improveDist, TARGET) {
   // ── 재작업률 월별 추이 (접수일 기준) ──
-  const monthMap = {};  // { '2026-01': { total: n, rework: n } }
+  const monthMap = {};
   rows.forEach(r => {
     const raw = (r['접수일'] || '').toString().replace(/\//g, '-');
     if (raw.length < 7) return;
@@ -2920,7 +2924,8 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET) {
           <span style="color:#0f172a; font-weight:700;">${impData[i]}건 <span style="color:#94a3b8; font-weight:500;">(${pct}%)</span></span>
         </div>`;
       }).join('');
-// 능동 개선 월별 추이 텍스트 (범례 아래 간단 표기)
+
+  // 능동 개선 월별 추이 텍스트 (범례 아래)
   const actMonths = Object.keys(activeMonthMap).sort();
   if (actMonths.length > 0) {
     const last = actMonths[actMonths.length - 1];
@@ -2930,15 +2935,15 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET) {
     const diff = lastN - prevN;
     const arrow = diff > 0 ? `▲${diff}` : (diff < 0 ? `▼${Math.abs(diff)}` : '=');
     const arrowColor = diff > 0 ? '#16a34a' : (diff < 0 ? '#dc2626' : '#94a3b8');
-    const legendEl = document.getElementById('pdca-improve-legend');
-    legendEl.innerHTML += `<div style="margin-top:8px; padding-top:8px; border-top:1px solid #f1f5f9; font-size:12px; color:#475569; display:flex; justify-content:space-between;">
+    document.getElementById('pdca-improve-legend').innerHTML += `<div style="margin-top:8px; padding-top:8px; border-top:1px solid #f1f5f9; font-size:12px; color:#475569; display:flex; justify-content:space-between;">
       <span>💡 능동 개선 (이번달)</span>
       <span style="font-weight:700; color:#0f172a;">${lastN}건 <span style="color:${arrowColor};">${arrow}</span></span>
     </div>`;
   }
+
   // ── 자동 액션 리스트: 재작업 몰린 파트/단계 지목 ──
   const groupRework = (colName) => {
-    const g = {};  // { key: { total, rework } }
+    const g = {};
     rows.forEach(r => {
       const key = (r[colName] || '').toString().trim();
       if (!key) return;
@@ -2949,8 +2954,8 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET) {
     });
     return Object.entries(g)
       .map(([key, v]) => ({ key, ...v, rate: v.total > 0 ? v.rework / v.total * 100 : 0 }))
-      .filter(x => x.rework > 0)          // 재작업 발생한 것만
-      .sort((a, b) => b.rate - a.rate);   // 재작업률 높은 순
+      .filter(x => x.rework > 0)
+      .sort((a, b) => b.rate - a.rate);
   };
 
   const byStage = groupRework('단계 구분');
