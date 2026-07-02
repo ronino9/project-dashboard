@@ -2708,24 +2708,44 @@ window.renderPdca = function() {
   });
   const reworkRate = total > 0 ? (reworkCnt / total * 100) : 0;
 
-  // ── 4) 개선책 작성률 + 유형 분포: 분석데이터의 [개선-*] 태그 ──
-  const IMPROVE_TYPES = ['일정', '품질', '효율', '동료기여', '기타'];
+// ── 4) 개선 분석: 문제 건 대응(개선책 반영률) + 능동 개선(건수) ──
   const improveDist = { '일정':0, '품질':0, '효율':0, '동료기여':0, '기타':0 };
-  let improveTagged = 0;
-  const improveRows = rows.filter(r => (r['업무 구분'] || '') === '개선');
-  improveRows.forEach(r => {
-    const analysis = r['분석 데이터'] || r['분석데이터'] || '';
-    const m = analysis.match(/\[개선-([^\]]+)\]/g);
-    if (m && m.length > 0) {
-      improveTagged++;
-      m.forEach(tag => {
-        const name = tag.replace(/\[개선-|\]/g, '').trim();
-        if (improveDist[name] !== undefined) improveDist[name]++;
-        else improveDist['기타']++;
-      });
+
+  // 문제 건 판별: 진행상태 지연중/지연완료/Issue 또는 재작업='Y'
+  const isProblem = (r) => {
+    const st = (r['진행상태'] || '').toString().trim();
+    const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
+    return st === '지연중' || st === '지연완료' || st === 'Issue' || yn === 'Y';
+  };
+  const hasImproveTag = (r) => {
+    const a = r['분석 데이터'] || r['분석데이터'] || '';
+    return /\[개선-[^\]]+\]/.test(a);
+  };
+  const countTags = (r) => {
+    const a = r['분석 데이터'] || r['분석데이터'] || '';
+    const m = a.match(/\[개선-([^\]]+)\]/g) || [];
+    m.forEach(tag => {
+      const name = tag.replace(/\[개선-|\]/g, '').trim();
+      if (improveDist[name] !== undefined) improveDist[name]++;
+      else improveDist['기타']++;
+    });
+  };
+
+  let problemCnt = 0, problemImproved = 0, activeImproveCnt = 0;
+  rows.forEach(r => {
+    const prob = isProblem(r);
+    const tagged = hasImproveTag(r);
+    if (prob) {
+      problemCnt++;
+      if (tagged) problemImproved++;
+    } else {
+      if (tagged) activeImproveCnt++;
     }
+    if (tagged) countTags(r);  // 유형 분포는 문제/능동 구분 없이 전체 집계
   });
-  const improveRate = improveRows.length > 0 ? Math.round((improveTagged / improveRows.length) * 100) : 0;
+
+  // 개선책 반영률 = 문제 건 중 개선 태그 달린 비율
+  const improveRate = problemCnt > 0 ? Math.round((problemImproved / problemCnt) * 100) : null;
 
   // ===== 카드 렌더링 =====
   // 각 카드: P/D/C/A 뱃지, 지표명, 큰 수치, To-Be, 한줄 코멘트
@@ -2763,15 +2783,28 @@ window.renderPdca = function() {
   const reworkComment = reworkGood ? `✅ 목표(${TARGET.rework}%) 이내` : `⬇ 목표(${TARGET.rework}%) 대비 초과`;
   const reworkColor = reworkGood ? '#16a34a' : '#dc2626';
 
-  // 개선책 코멘트
-  const improveComment = `📝 개선 ${improveRows.length}건 중 ${improveTagged}건 태그`;
+// 개선책 반영률 코멘트
+  let improveVal, improveComment, improveCommentColor;
+  if (improveRate === null) {
+    improveVal = '<span style="color:#94a3b8;">—</span>';
+    improveComment = '⚪ 아직 문제 건이 없습니다';
+    improveCommentColor = '#94a3b8';
+  } else {
+    improveVal = `${improveRate}<span style="font-size:20px;">%</span>`;
+    improveComment = `📝 문제 ${problemCnt}건 중 ${problemImproved}건 개선책 반영`;
+    improveCommentColor = improveRate >= 70 ? '#16a34a' : (improveRate >= 40 ? '#d97706' : '#dc2626');
+  }
+
+  // 능동 개선 코멘트
+  const activeComment = `💡 문제 없이 자발적으로 도출한 개선`;
 
   const cardsHtml = `
     <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px;">
       ${card('P→D', '#3b82f6', '계획 대비 실행률', execVal, TARGET.exec + '%', execComment, execCommentColor)}
       ${card('C', '#10b981', '일정 준수율', complianceRate + '<span style="font-size:20px;">%</span>', TARGET.compliance + '%', compComment, compColor)}
       ${card('A', '#a855f7', '재작업률 (핵심 지표)', reworkRate.toFixed(1) + '<span style="font-size:20px;">%</span>', TARGET.rework + '%', reworkComment, reworkColor)}
-      ${card('A', '#a855f7', '개선책 작성률', improveRate + '<span style="font-size:20px;">%</span>', TARGET.improve + '%', improveComment, '#64748b')}
+      ${card('A', '#a855f7', '개선책 반영률', improveVal, TARGET.improve + '%', improveComment, improveCommentColor)}
+      ${card('A', '#0ea5e9', '능동 개선', activeImproveCnt + '<span style="font-size:20px;">건</span>', '추이↗', activeComment, '#0284c7')}
     </div>
 <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-bottom:16px;">
       <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
@@ -2798,8 +2831,16 @@ window.renderPdca = function() {
 console.log('PDCA 집계:', window._pdcaCalc);
 
   // 3단계: 차트 & 액션 리스트 그리기
-  window.renderPdcaCharts(rows, improveDist, TARGET);
-};
+window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImproveTag) {
+  // 능동 개선 월별 추이 (문제 아닌 건의 개선 태그)
+  const activeMonthMap = {};
+  rows.forEach(r => {
+    if (isProblem(r) || !hasImproveTag(r)) return;
+    const raw = (r['접수일'] || '').toString().replace(/\//g, '-');
+    if (raw.length < 7) return;
+    const mk = raw.substring(0, 7);
+    activeMonthMap[mk] = (activeMonthMap[mk] || 0) + 1;
+  });
     let pdcaReworkChartInstance = null;
 let pdcaImproveChartInstance = null;
 
@@ -2879,7 +2920,22 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET) {
           <span style="color:#0f172a; font-weight:700;">${impData[i]}건 <span style="color:#94a3b8; font-weight:500;">(${pct}%)</span></span>
         </div>`;
       }).join('');
-
+// 능동 개선 월별 추이 텍스트 (범례 아래 간단 표기)
+  const actMonths = Object.keys(activeMonthMap).sort();
+  if (actMonths.length > 0) {
+    const last = actMonths[actMonths.length - 1];
+    const prev = actMonths.length > 1 ? actMonths[actMonths.length - 2] : null;
+    const lastN = activeMonthMap[last];
+    const prevN = prev ? activeMonthMap[prev] : 0;
+    const diff = lastN - prevN;
+    const arrow = diff > 0 ? `▲${diff}` : (diff < 0 ? `▼${Math.abs(diff)}` : '=');
+    const arrowColor = diff > 0 ? '#16a34a' : (diff < 0 ? '#dc2626' : '#94a3b8');
+    const legendEl = document.getElementById('pdca-improve-legend');
+    legendEl.innerHTML += `<div style="margin-top:8px; padding-top:8px; border-top:1px solid #f1f5f9; font-size:12px; color:#475569; display:flex; justify-content:space-between;">
+      <span>💡 능동 개선 (이번달)</span>
+      <span style="font-weight:700; color:#0f172a;">${lastN}건 <span style="color:${arrowColor};">${arrow}</span></span>
+    </div>`;
+  }
   // ── 자동 액션 리스트: 재작업 몰린 파트/단계 지목 ──
   const groupRework = (colName) => {
     const g = {};  // { key: { total, rework } }
