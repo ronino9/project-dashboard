@@ -482,7 +482,7 @@
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycby3fT3Rz_FAJTZiGdC9pD07kizmZ-J-0BVyubRu-y_qJ9oqqNUTPGHORcF271tq36gCIg/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxg25RTAAZIhdaVOLqu7ESmYTzSKzrunMK3j3lPIUXZbAv8OGM46w9ebnQitoTgXfBk9A/exec';
 
     let allData = {}; 
     let documentLinksData = [];
@@ -921,9 +921,9 @@ if (!window.masterMdFilters) {
 }
 
   // 모든 프로젝트의 데이터를 한 곳에 모음 (필터링을 위해)
-  window.allMasterData = [];
-['project8', 'project7', 'project6', 'project5', 'project4', 'project3', 'project2', 'project1'].forEach(pKey => {
-    const pName = pKey === 'project1' ? 'CP' : pKey.replace('project', 'OP');
+window.allMasterData = [];
+['project8', 'project7', 'project6', 'project5', 'project4', 'project3', 'project2', 'project1', 'projectEtc'].forEach(pKey => {
+    const pName = pKey === 'project1' ? 'CP' : (pKey === 'projectEtc' ? 'ETC' : pKey.replace('project', 'OP'));
       if(allData[pKey] && allData[pKey].history) {
           allData[pKey].history.forEach(r => {
               window.allMasterData.push({ ...r, _pName: pName });
