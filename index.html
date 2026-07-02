@@ -2586,9 +2586,11 @@ window.showReviewStage = function(projectId, stageName) {
     html += `</div></div>`;
   }
   
-  contentDiv.innerHTML = html;
+contentDiv.innerHTML = html;
   contentDiv.style.display = 'block';
-  window.populateGlobalSearchFilters = function() {
+};
+
+window.populateGlobalSearchFilters = function() {
   if (!window.allMasterData) return;
   const map = {
     'gs-stage': '단계 구분', 'gs-response': '대응 구분',
