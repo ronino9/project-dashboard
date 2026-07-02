@@ -7,6 +7,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
+/* 👇 여기에 한 줄만 딱 추가해 주시면 됩니다 👇 */
+    .hide-scroll::-webkit-scrollbar { display: none; }
     /* 기본 테마는 기존 다크 모드로 복구 */
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; }
     .container { max-width: 1780px; margin: 0 auto; padding: 16px; }
@@ -950,7 +952,6 @@ window.renderMasterSlicers = function() {
   let html = '';
 
   categories.forEach(cat => {
-      // '프로젝트'는 원본 컬럼이 아니라 _pName에 들어있으므로 분기 처리
       let uniqueVals;
       if (cat === '프로젝트') {
           uniqueVals = ['OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2', 'CP'].filter(p =>
@@ -961,18 +962,32 @@ window.renderMasterSlicers = function() {
       }
       if (uniqueVals.length === 0) return;
 
-      html += `<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">`;
-      html += `<span style="font-size: 11px; font-weight: 700; color: #475569; width: 60px;">${cat}</span>`;
+      // 1. 전체 줄을 감싸는 컨테이너 (상대 위치)
+      html += `<div style="position: relative; display: flex; align-items: center; width: 100%; overflow: hidden;">`;
+      
+      // 2. 좌측 카테고리명 (위치 고정)
+      html += `<span style="font-size: 11px; font-weight: 700; color: #475569; width: 60px; flex-shrink: 0;">${cat}</span>`;
+
+      // 3. 실제 스크롤되는 버튼 영역 (스크롤바 숨김 적용)
+      html += `<div class="hide-scroll" style="display: flex; align-items: center; gap: 6px; overflow-x: auto; flex-wrap: nowrap; flex: 1; padding-right: 30px; scrollbar-width: none; -ms-overflow-style: none;">`;
 
       const isAllSelected = window.masterMdFilters[cat].size === 0;
-      html += `<button onclick="window.toggleMasterFilter('${cat}', 'ALL')" style="padding: 2px 10px; font-size: 11px; font-weight: 600; border-radius: 12px; border: 1px solid ${isAllSelected ? '#3b82f6' : '#cbd5e1'}; background: ${isAllSelected ? '#3b82f6' : '#f1f5f9'}; color: ${isAllSelected ? '#fff' : '#64748b'}; cursor: pointer; transition: 0.2s;">전체</button>`;
+      
+      // 주의: 모든 버튼에 'flex-shrink: 0'을 추가하여 버튼이 찌그러지지 않게 방어
+      html += `<button onclick="window.toggleMasterFilter('${cat}', 'ALL')" style="flex-shrink: 0; padding: 2px 10px; font-size: 11px; font-weight: 600; border-radius: 12px; border: 1px solid ${isAllSelected ? '#3b82f6' : '#cbd5e1'}; background: ${isAllSelected ? '#3b82f6' : '#f1f5f9'}; color: ${isAllSelected ? '#fff' : '#64748b'}; cursor: pointer; transition: 0.2s;">전체</button>`;
 
       uniqueVals.forEach(val => {
           const isSelected = window.masterMdFilters[cat].has(val);
-          html += `<button onclick="window.toggleMasterFilter('${cat}', '${val}')" style="padding: 2px 10px; font-size: 11px; font-weight: 600; border-radius: 12px; border: 1px solid ${isSelected ? '#3b82f6' : '#e2e8f0'}; background: ${isSelected ? '#eff6ff' : '#ffffff'}; color: ${isSelected ? '#1d4ed8' : '#475569'}; cursor: pointer; transition: 0.2s;">${val}</button>`;
+          html += `<button onclick="window.toggleMasterFilter('${cat}', '${val}')" style="flex-shrink: 0; padding: 2px 10px; font-size: 11px; font-weight: 600; border-radius: 12px; border: 1px solid ${isSelected ? '#3b82f6' : '#e2e8f0'}; background: ${isSelected ? '#eff6ff' : '#ffffff'}; color: ${isSelected ? '#1d4ed8' : '#475569'}; cursor: pointer; transition: 0.2s;">${val}</button>`;
       });
-      html += `</div>`;
+      html += `</div>`; // 스크롤 영역 종료
+
+      // 4. 우측 끝 페이드 아웃 효과 (배경색인 #f8fafc로 자연스럽게 흐려짐)
+      html += `<div style="position: absolute; right: 0; top: 0; bottom: 0; width: 40px; background: linear-gradient(to right, transparent, #f8fafc); pointer-events: none;"></div>`;
+      
+      html += `</div>`; // 전체 줄 컨테이너 종료
   });
+  
   container.innerHTML = html;
 };
 
