@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Real-time Control Tower - Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
     /* 기본 테마는 기존 다크 모드로 복구 */
@@ -152,6 +152,8 @@
       <button id="btn-project1cs" class="tab-btn" onclick="window.switchTab('project1cs')">CP_All · Complete</button>
       <button id="btn-daily" class="tab-btn" onclick="window.switchTab('daily')">📅 기간별 업무 내역</button>
     </div>
+
+    <div id="main-panel">          <!-- ★ 이 줄 추가 -->
 <!-- 내부 탭: PDCA / 프로젝트 현황 -->
     <div style="display:flex; gap:8px; margin-bottom:20px;">
       <button id="btn-main-pdca" class="tab-btn" onclick="window.switchMainTab('pdca')">📊 PDCA 현황</button>
@@ -169,10 +171,6 @@
 
     <!-- 프로젝트 현황 콘텐츠 (기존 메인 내용 전체를 감쌈) -->
     <div id="project-content">
-    <div style="padding:40px; text-align:center; color:#64748b;">PDCA 데이터 집계 중...</div>
-  </div>
-</div>
-    <div id="main-panel">
             <!-- 🔥 AI 팩폭 결과창 -->
       <div id="roast-result-panel" style="display:none; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 2px solid #dc2626; border-radius: 12px; padding: 24px; margin-bottom: 20px; position: relative; box-shadow: 0 10px 40px rgba(220, 38, 38, 0.3);">
         <span onclick="document.getElementById('roast-result-panel').style.display='none'" style="position: absolute; top: 12px; right: 16px; color: #94a3b8; font-size: 22px; font-weight: bold; cursor: pointer; line-height: 1;" onmouseover="this.style.color='#f8fafc'" onmouseout="this.style.color='#94a3b8'">✕</span>
