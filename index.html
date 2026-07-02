@@ -552,34 +552,53 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
           return `<td style="text-align: center; font-size: 11px; color: #94a3b8; white-space: nowrap; vertical-align: top; padding-top: 12px;">${val}</td>`;
         }
 if (h === '분석 데이터') {
-          let val = row[h] || '-';
-          return `<td style="min-width: 250px; max-width: 400px; vertical-align: top;">${window.makeExpandable(val)}</td>`;
-        }
-          let lines = val.split('\n');
-          let blocks = [];
-          let currentBlock = null;
-          lines.forEach(line => {
-            let trimmed = line.trim();
-            if (!trimmed) return;
-            const bracketMatch = trimmed.match(/^\[(.*?)\](.*)/);
-            if (bracketMatch) {
-              currentBlock = { keyword: bracketMatch[1].trim(), content: bracketMatch[2].trim() };
-              blocks.push(currentBlock);
+    let val = row[h] || '-';
+
+    let lines = val.split('\n');
+    let blocks = [];
+    let currentBlock = null;
+
+    lines.forEach(line => {
+        let trimmed = line.trim();
+        if (!trimmed) return;
+
+        const bracketMatch = trimmed.match(/^\[(.*?)\](.*)/);
+
+        if (bracketMatch) {
+            currentBlock = {
+                keyword: bracketMatch[1].trim(),
+                content: bracketMatch[2].trim()
+            };
+            blocks.push(currentBlock);
+        } else {
+            if (currentBlock) {
+                currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed;
             } else {
-              if (currentBlock) { currentBlock.content += (currentBlock.content ? '<br>' : '') + trimmed; } 
-              else { blocks.push({ keyword: null, content: trimmed }); }
+                blocks.push({
+                    keyword: null,
+                    content: trimmed
+                });
             }
-          });
-          let formattedHtml = '';
-          blocks.forEach(block => {
-            if (block.keyword) {
-              formattedHtml += `<div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 12px;"><span class="badge" style="background: #312e81; border: 1px solid #4f46e5; color: #c7d2fe;">📌 ${block.keyword}</span>${block.content ? `<span style="color: #cbd5e1; line-height: 1.5;">${block.content}</span>` : ''}</div>`;
-            } else {
-              formattedHtml += `<div style="color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">${block.content}</div>`;
-            }
-          });
-          return `<td style="min-width: 250px; max-width: 400px; white-space: normal; word-break: keep-all; overflow-wrap: break-word; vertical-align: top;">${formattedHtml}</td>`;
         }
+    });
+
+    let formattedHtml = '';
+
+    blocks.forEach(block => {
+        if (block.keyword) {
+            formattedHtml += `<div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;margin-bottom:12px;">
+                <span class="badge" style="background:#312e81;border:1px solid #4f46e5;color:#c7d2fe;">📌 ${block.keyword}</span>
+                ${block.content ? `<span style="color:#cbd5e1;line-height:1.5;">${block.content}</span>` : ''}
+            </div>`;
+        } else {
+            formattedHtml += `<div style="color:#cbd5e1;line-height:1.5;margin-bottom:12px;">${block.content}</div>`;
+        }
+    });
+
+    return `<td style="min-width:250px;max-width:400px;white-space:normal;word-break:keep-all;overflow-wrap:break-word;vertical-align:top;">
+        ${window.makeExpandable(formattedHtml, true)}
+    </td>`;
+}
         if (h === '로그') {
   const photos = row['로그사진경로'] || [];
   if (!photos.length) return `<td style="text-align:center; color:#475569;">-</td>`;
@@ -3025,28 +3044,49 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
   
 };
     // 코드의 가장 맨 마지막, </script> 태그 바로 직전에 이 함수를 넣어주세요.
-window.makeExpandable = function(jsonText) {
-    let text = "";
-    try {
-        text = JSON.parse(jsonText);
-    } catch(e) {
-        text = jsonText;
+window.makeExpandable = function(content, isHtml = false) {
+
+    if (content == null) content = '';
+
+    const lineCount = String(content).split(/\r?\n/).length;
+
+    // HTML인 경우 줄 수 대신 <div> 개수로 대략 판단
+    const needExpand = isHtml
+        ? (String(content).match(/<div/gi) || []).length > 5
+        : lineCount > 5;
+
+    if (!needExpand) {
+        return isHtml
+            ? `<div>${content}</div>`
+            : `<div style="white-space:pre-wrap;word-break:keep-all;">${content}</div>`;
     }
-    
-    if (typeof text !== 'string') text = String(text || '');
-    const lines = text.split('\n');
-    if (lines.length <= 5) return `<div style="white-space: pre-wrap; word-break: keep-all;">${text}</div>`;
-    
-    // 유니크한 ID 생성 (버튼과 내용을 연결하기 위해)
-    const uid = 'exp_' + Math.random().toString(36).substr(2, 9);
-    
+
+    const uid = 'exp_' + Math.random().toString(36).slice(2,11);
+
     return `
-        <div class="exp-wrapper">
-            <div id="${uid}" style="max-height: 120px; overflow: hidden; white-space: pre-wrap; word-break: keep-all; transition: max-height 0.3s;">${text}</div>
-            <button onclick="window.toggleExp('${uid}', this)" style="background:none; border:none; color:#3b82f6; font-size:11px; cursor:pointer; padding:5px 0; font-weight:700;">
-                더보기 ▼
-            </button>
-        </div>`;
+    <div class="exp-wrapper">
+        <div id="${uid}" style="max-height:120px;overflow:hidden;transition:max-height .3s;">
+            ${content}
+        </div>
+
+        <button
+            onclick="window.toggleExp('${uid}',this)"
+            style="background:none;border:none;color:#3b82f6;font-size:11px;cursor:pointer;padding-top:5px;font-weight:700;">
+            더보기 ▼
+        </button>
+    </div>`;
+};
+          window.toggleExp = function(id, btn) {
+
+    const el = document.getElementById(id);
+
+    if (el.style.maxHeight === 'none') {
+        el.style.maxHeight = '120px';
+        btn.innerHTML = '더보기 ▼';
+    } else {
+        el.style.maxHeight = 'none';
+        btn.innerHTML = '접기 ▲';
+    }
 };
   </script>
 </body>
