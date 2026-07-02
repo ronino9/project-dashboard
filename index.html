@@ -141,7 +141,6 @@
 <body>
   <div class="container">
     <div class="tabs">
-      <button id="btn-pdca" class="tab-btn" onclick="window.switchTab('pdca')">📊 PDCA 현황</button>
       <button id="btn-main" class="tab-btn active" onclick="window.switchTab('main')">🎛️ 메인 대시보드</button>
       <button id="btn-project8" class="tab-btn" onclick="window.switchTab('project8')">OP8 · Ongoing</button>
       <button id="btn-project7" class="tab-btn" onclick="window.switchTab('project7')">OP7 · Ongoing</button>
@@ -153,14 +152,23 @@
       <button id="btn-project1cs" class="tab-btn" onclick="window.switchTab('project1cs')">CP_All · Complete</button>
       <button id="btn-daily" class="tab-btn" onclick="window.switchTab('daily')">📅 기간별 업무 내역</button>
     </div>
-<div id="pdca-panel" style="display:none; background:#f8fafc; padding:24px; border-radius:12px; color:#334155; margin-bottom:20px;">
-  <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
-    <div style="font-size:22px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">
-      🔄 전사 PDCA 현황
+<!-- 내부 탭: PDCA / 프로젝트 현황 -->
+    <div style="display:flex; gap:8px; margin-bottom:20px;">
+      <button id="btn-main-pdca" class="tab-btn" onclick="window.switchMainTab('pdca')">📊 PDCA 현황</button>
+      <button id="btn-main-project" class="tab-btn active" onclick="window.switchMainTab('project')">📋 프로젝트 현황</button>
     </div>
-    <span class="badge" style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe;">전체 프로젝트</span>
-  </div>
-  <div id="pdca-content">
+
+    <!-- PDCA 콘텐츠 (내부 탭) -->
+    <div id="pdca-panel" style="display:none;">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+        <div style="font-size:22px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">🔄 전사 PDCA 현황</div>
+        <span class="badge" style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe;">전체 프로젝트</span>
+      </div>
+      <div id="pdca-content"><div style="padding:40px; text-align:center; color:#64748b;">PDCA 데이터 집계 중...</div></div>
+    </div>
+
+    <!-- 프로젝트 현황 콘텐츠 (기존 메인 내용 전체를 감쌈) -->
+    <div id="project-content">
     <div style="padding:40px; text-align:center; color:#64748b;">PDCA 데이터 집계 중...</div>
   </div>
 </div>
@@ -332,7 +340,8 @@
         <!-- ▲▲▲ 메인 캘린더 끝 ▲▲▲ -->
         </div>
       </div>
-    </div>
+    </div>    
+    </div>   
 
     <div class="header" id="project-header" style="display: none;">
       <div class="header-top">
@@ -1375,11 +1384,10 @@ window.showIssueDetail = function(idx) {
       aiPanel.style.display = 'none';
       pdcaPanel.style.display = 'none';
 
-      if (tabId === 'pdca') {
-        document.getElementById('btn-pdca').classList.add('active');
-        pdcaPanel.style.display = 'block';
-        window.renderPdca();
-        return;
+if (tabId === 'main') {
+        document.getElementById('btn-main').classList.add('active');
+        mainPanel.style.display = 'block';
+        window.switchMainTab(window._mainTab || 'project');
       }
       if (tabId === 'main') {
         document.getElementById('btn-main').classList.add('active');
@@ -2670,6 +2678,29 @@ window.runGlobalSearch = function() {
 
   window.showDetailView('🔍 검색 결과', `총 ${matched.length}건`, rowsForDisplay);
 };
+    window._mainTab = 'project';
+window.switchMainTab = function(which) {
+  window._mainTab = which;
+  const pdcaPanel = document.getElementById('pdca-panel');
+  const projContent = document.getElementById('project-content');
+  const btnPdca = document.getElementById('btn-main-pdca');
+  const btnProj = document.getElementById('btn-main-project');
+
+  if (which === 'pdca') {
+    pdcaPanel.style.display = 'block';
+    projContent.style.display = 'none';
+    btnPdca.classList.add('active');
+    btnProj.classList.remove('active');
+    window.renderPdca();
+  } else {
+    pdcaPanel.style.display = 'none';
+    projContent.style.display = 'block';
+    btnPdca.classList.remove('active');
+    btnProj.classList.add('active');
+    window.renderMainDashboard();
+    window.renderCalendar();
+  }
+};
 window.renderPdca = function() {
   const rows = window.allMasterData || [];
   if (rows.length === 0) {
@@ -2977,6 +3008,7 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
 
   document.getElementById('pdca-action-list').innerHTML = actionHtml ||
     '<div style="padding:20px; text-align:center; color:#16a34a; font-weight:600;">✅ 재작업이 집중된 파트·단계가 없습니다. 양호합니다.</div>';
+  
 };
   </script>
 </body>
