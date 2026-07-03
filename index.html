@@ -667,20 +667,22 @@ if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') 
     });
     detailTable.innerHTML = html;
 
-    // ✅ 5줄 넘는 항목만 더보기 버튼 표시
-    detailTable.querySelectorAll('.clamp-text').forEach(el => {
-      const btn = document.getElementById(el.id + '-btn');
-      if (!btn) return;
-      if (el.scrollHeight > el.clientHeight + 2) {
-        btn.classList.add('clamp-show');
-      }
-    });
-    // ✅ 로그사진 복사 버튼 이벤트 연결
+// ✅ 로그사진 복사 버튼 이벤트 연결
 detailTable.querySelectorAll('.log-photo-copy-btn').forEach(btn => {
   btn.onclick = () => copyFilePath(decodeURIComponent(btn.dataset.path));
 });
   }
   detailView.style.display = 'block';
+
+  // ✅ 5줄 넘는 항목만 더보기 버튼 표시 (반드시 화면에 보인 뒤에 높이 측정)
+  detailTable.querySelectorAll('.clamp-text').forEach(el => {
+    const btn = document.getElementById(el.id + '-btn');
+    if (!btn) return;
+    if (el.scrollHeight > el.clientHeight + 2) {
+      btn.classList.add('clamp-show');
+    }
+  });
+
   detailView.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
