@@ -653,7 +653,14 @@ const analysisCellId = `clamp-analysis-${rowIdx}`;
 }
 if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
   let val = row[h] || '-';
-  return `<td style="min-width: 200px; max-width: 350px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; line-height: 1.5; vertical-align: top; color: #e2e8f0;">${val}</td>`;
+  const colKey = (h === '진행 사항') ? 'prog' : 'item';
+  const cellId = `clamp-${colKey}-${rowIdx}`;
+  return `<td style="min-width: 200px; max-width: 350px; vertical-align: top; color: #e2e8f0;">
+    <div class="clamp-wrap">
+      <div class="clamp-text" id="${cellId}" style="white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word;">${val}</div>
+      <span class="clamp-more-btn" id="${cellId}-btn" onclick="window.toggleClamp('${cellId}')">더보기 ▾</span>
+    </div>
+  </td>`;
 }
         return `<td style="vertical-align: top; text-align: center;">${row[h] || '-'}</td>`;
       }).join('') + '</tr>';
