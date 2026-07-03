@@ -2236,8 +2236,12 @@ if (!ticksEl || !rowsEl || !dateTicksEl) return;
   rowsEl.innerHTML = '';
 
   // 매크로 모드: 헤더 왼쪽 칸 폭 원복 (56px)
+// 매크로 모드: 헤더 왼쪽 칸 폭 원복 (56px) + 텍스트 제거
   const headerLeft = document.querySelector('#gantt-header > div > div:first-child');
-  if (headerLeft) headerLeft.style.width = '56px';
+  if (headerLeft) {
+    headerLeft.style.width = '56px';
+    headerLeft.textContent = '';
+  }
   const dateHeaderLeft = document.querySelector('#gantt-date-ticks-row > div:first-child');
   if (dateHeaderLeft) dateHeaderLeft.style.width = '56px';
 
@@ -2426,9 +2430,13 @@ window.renderMacroGanttAsIndiv = function(code) {
   const rowsEl = document.getElementById('gantt-rows');
   if (!ticksEl || !rowsEl) return;
   ticksEl.innerHTML = '';
-  // 세부 모드: 헤더 왼쪽 sticky 칸 폭을 라벨과 맞춤 (120px)
+// 세부 모드: 헤더 왼쪽 sticky 칸 폭을 라벨과 맞춤 + 년월 표시
   const headerLeft = document.querySelector('#gantt-header > div > div:first-child');
-  if (headerLeft) headerLeft.style.width = '120px';
+  if (headerLeft) {
+    headerLeft.style.width = '120px';
+    headerLeft.style.cssText += 'display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#0f172a;';
+    headerLeft.textContent = `${y}년 ${m + 1}월`;
+  }
   const dateHeaderLeft = document.querySelector('#gantt-date-ticks-row > div:first-child');
   if (dateHeaderLeft) dateHeaderLeft.style.width = '120px';
   if (dateTicksEl) dateTicksEl.innerHTML = '';
