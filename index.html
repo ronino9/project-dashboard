@@ -528,7 +528,7 @@
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwhBZUACIO57p07_OZ5Ixs4tqy7HFZuCRNagY-_4YZNjzuGDHsizR8BG3OE7EONpXNvMA/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwhf0oSxAyiBlhUba7Z4p5eGQxXbnq7iHznFjNjyMmHilYgGXEjcRffL24wFCyG0apbRQ/exec';
 
     let allData = {}; 
     let documentLinksData = [];
@@ -2053,167 +2053,86 @@ let calCursor = new Date(CAL_TODAY);
       return '#64748b';
     }
 
-    function calNorm(s) {
-      if (!s) return '';
-      return s.toString().trim().replace(/\//g, '-').substring(0, 10);
-    }
-    function calYMD(d) {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${dd}`;
-    }
+function calNorm(s) {
+  if (!s) return '';
+  return s.toString().trim().replace(/\//g, '-').substring(0, 10);
+}
 
-    function calBuildMap() {
-      const map = {};
-      const events = allData.calendar || [];
-      events.forEach((ev, evIdx) => {
-        const sStr = calNorm(ev.startDate);
-        if (!sStr) return;
-        const eStr = calNorm(ev.endDate) || sStr;
-        const sd = new Date(sStr);
-        const ed = new Date(eStr);
-        if (isNaN(sd) || isNaN(ed)) return;
-        let cur = new Date(sd);
-        let guard = 0;
-        while (cur <= ed && guard < 400) {
-          const key = calYMD(cur);
-          if (!map[key]) map[key] = [];
-          const isStart = key === sStr;
-          const isEnd = key === eStr;
-          map[key].push({ ev, evIdx, isStart, isEnd, span: sStr !== eStr });
-          cur.setDate(cur.getDate() + 1);
-          guard++;
-        }
-      });
-      return map;
-    }
-
-    window.calSetMode = function(mode) {
-      calMode = mode;
-      ['day', 'week', 'month'].forEach(m => {
-        const btn = document.getElementById('cal-mode-' + m);
-        if (btn) btn.classList.toggle('cal-mode-active', m === mode);
-      });
-      window.renderCalendar();
-    };
-    window.calMove = function(dir) {
-      if (calMode === 'month') calCursor.setMonth(calCursor.getMonth() + dir);
-      else if (calMode === 'week') calCursor.setDate(calCursor.getDate() + dir * 7);
-      else calCursor.setDate(calCursor.getDate() + dir);
-      window.renderCalendar();
-    };
-    window.calToday = function() {
-      calCursor = new Date(CAL_TODAY);
-      window.renderCalendar();
-    };
-
-    window.renderCalendar = function() {
-      console.log('캘린더 데이터:', allData.calendar);   // ← 이 줄 추가
-      const body = document.getElementById('cal-body');
-      const titleEl = document.getElementById('cal-title');
-      if (!body) return;
-      const dataMap = calBuildMap();
-      const dow = ['일', '월', '화', '수', '목', '금', '토'];
-
-      if (calMode === 'month') {
-        titleEl.textContent = `${calCursor.getFullYear()}년 ${calCursor.getMonth() + 1}월`;
-        const first = new Date(calCursor.getFullYear(), calCursor.getMonth(), 1);
-        const startOffset = first.getDay();
-        const daysInMonth = new Date(calCursor.getFullYear(), calCursor.getMonth() + 1, 0).getDate();
-        let html = '<div class="cal-grid">' + dow.map(d => `<div class="cal-dow">${d}</div>`).join('');
-        for (let i = 0; i < startOffset; i++) html += '<div class="cal-cell cal-empty"></div>';
-        for (let day = 1; day <= daysInMonth; day++) {
-          html += calCellHtml(new Date(calCursor.getFullYear(), calCursor.getMonth(), day), dataMap, 'month');
-        }
-        html += '</div>';
-        body.innerHTML = html + `<div id="cal-detail-box"></div>`;
-
-      } else if (calMode === 'week') {
-        const ws = new Date(calCursor); ws.setDate(ws.getDate() - ws.getDay());
-        const we = new Date(ws); we.setDate(we.getDate() + 6);
-        titleEl.textContent = `${calYMD(ws).substring(2)} ~ ${calYMD(we).substring(5)}`;
-        let html = '<div class="cal-grid">' + dow.map(d => `<div class="cal-dow">${d}</div>`).join('');
-        for (let i = 0; i < 7; i++) {
-          const cd = new Date(ws); cd.setDate(ws.getDate() + i);
-          html += calCellHtml(cd, dataMap, 'week');
-        }
-        html += '</div>';
-        body.innerHTML = html + `<div id="cal-detail-box"></div>`;
-
-      } else {
-        titleEl.textContent = `${calYMD(calCursor)} (${dow[calCursor.getDay()]})`;
-        let html = '<div class="cal-grid" style="grid-template-columns:1fr;">';
-        html += calCellHtml(calCursor, dataMap, 'day');
-        html += '</div>';
-        body.innerHTML = html + `<div id="cal-detail-box"></div>`;
-        const ymd = calYMD(calCursor);
-        if (dataMap[ymd]) window.calShowDetail(ymd);
-      }
-    };
+function calBuildMap() {
+  const map = {};
+  const events = allData.calendar || [];
+  events.forEach((ev, evIdx) => {
+    const key = calNorm(ev.날짜);
+    if (!key) return;
+    if (!map[key]) map[key] = [];
+    map[key].push({ ev, evIdx });
+  });
+  return map;
+}
 
 function calCellHtml(dateObj, dataMap, mode) {
-      const ymd = calYMD(dateObj);
-      const items = dataMap[ymd] || [];
-      const isToday = ymd === calYMD(CAL_TODAY);
-      const dowClass = dateObj.getDay() === 0 ? 'cal-sun' : (dateObj.getDay() === 6 ? 'cal-sat' : '');
-      const minH = mode === 'day' ? 'min-height:60px;' : (mode === 'week' ? 'min-height:160px;' : '');
+  const ymd = calYMD(dateObj);
+  const items = dataMap[ymd] || [];
+  const isToday = ymd === calYMD(CAL_TODAY);
+  const dowClass = dateObj.getDay() === 0 ? 'cal-sun' : (dateObj.getDay() === 6 ? 'cal-sat' : '');
+  const minH = mode === 'day' ? 'min-height:60px;' : (mode === 'week' ? 'min-height:160px;' : '');
 
-      // 같은 코드는 하나로 합침 (코드별 건수 집계)
-      const codeMap = {};
-      items.forEach(it => {
-        const code = it.ev.projectCode || '-';
-        if (!codeMap[code]) codeMap[code] = { code, count: 0, span: false, isStart: false };
-        codeMap[code].count++;
-        if (it.span) codeMap[code].span = true;
-        if (it.isStart) codeMap[code].isStart = true;
-      });
-      const codes = Object.values(codeMap);
+  // 프로젝트+유형(예정/실적) 별로 묶어서 건수 집계
+  const codeMap = {};
+  items.forEach(it => {
+    const code = it.ev.프로젝트 || '-';
+    const type = it.ev.유형 || '실적';
+    const key = code + '_' + type;
+    if (!codeMap[key]) codeMap[key] = { code, type, count: 0 };
+    codeMap[key].count++;
+  });
+  const codes = Object.values(codeMap);
 
-      const maxShow = mode === 'month' ? 3 : 99;
-      let chips = codes.slice(0, maxShow).map(c => {
-        const midClass = c.span && !c.isStart ? 'cal-mid' : '';
-        const baseLabel = (c.span && !c.isStart) ? `↳ ${c.code}` : c.code;
-        const label = c.count > 1 ? `${baseLabel} ·${c.count}` : baseLabel;
-        return `<div class="cal-pcode ${midClass}" style="background:${calCodeColor(c.code)};" onclick="event.stopPropagation(); window.calShowDetail('${ymd}','${c.code}')">${label}</div>`;
-      }).join('');
-      if (codes.length > maxShow) {
-        chips += `<div class="cal-more" onclick="event.stopPropagation(); window.calShowDetail('${ymd}')">+${codes.length - maxShow} 더보기</div>`;
-      }
+  const maxShow = mode === 'month' ? 3 : 99;
+  let chips = codes.slice(0, maxShow).map(c => {
+    const isPlan = c.type === '예정';
+    const borderStyle = isPlan ? 'border:1.5px dashed rgba(255,255,255,0.8);' : 'border:1.5px solid transparent;';
+    const label = c.count > 1 ? `${c.code} ·${c.count}` : c.code;
+    return `<div class="cal-pcode" style="background:${calCodeColor(c.code)}; ${borderStyle}" onclick="event.stopPropagation(); window.calShowDetail('${ymd}','${c.code}')">${label}</div>`;
+  }).join('');
+  if (codes.length > maxShow) {
+    chips += `<div class="cal-more" onclick="event.stopPropagation(); window.calShowDetail('${ymd}')">+${codes.length - maxShow} 더보기</div>`;
+  }
 
-      const clickAttr = items.length ? `onclick="window.calShowDetail('${ymd}')" style="cursor:pointer;"` : '';
-      return `<div class="cal-cell ${isToday ? 'cal-today' : ''}" style="${minH}" ${clickAttr}>
-                <div class="cal-daynum ${dowClass}">${dateObj.getDate()}일 ${items.length ? `<span style="color:#475569; font-weight:500;">(${items.length})</span>` : ''}</div>
-                ${chips}
-              </div>`;
-    }
+  const clickAttr = items.length ? `onclick="window.calShowDetail('${ymd}')" style="cursor:pointer;"` : '';
+  return `<div class="cal-cell ${isToday ? 'cal-today' : ''}" style="${minH}" ${clickAttr}>
+            <div class="cal-daynum ${dowClass}">${dateObj.getDate()}일 ${items.length ? `<span style="color:#475569; font-weight:500;">(${items.length})</span>` : ''}</div>
+            ${chips}
+          </div>`;
+}
 
-    function calEventCard(ev) {
-      const taskColor = { 'Issue':'#7f1d1d','표준':'#374151','개선':'#14532d','기술지원':'#713f12','기능요구':'#1e3a5f' };
-      const sStr = calNorm(ev.startDate), eStr = calNorm(ev.endDate);
-      const period = (eStr && eStr !== sStr) ? `${sStr.substring(2)} ~ ${eStr.substring(2)}` : sStr.substring(2);
-      const timeStr = (ev.startTime || ev.endTime) ? `${ev.startTime || ''}${ev.endTime ? ' ~ ' + ev.endTime : ''}` : '';
-      const tColor = taskColor[ev.taskType] || '#374151';
-return `<div style="background:#0a0f1a; border:1px solid #1e293b; border-radius:6px; padding:12px 16px; display:grid; grid-template-columns:135px 1fr; gap:12px; align-items:start;">
-          <div style="display:flex; flex-direction:column; gap:6px;">
-            <div style="font-size:11px; color:#94a3b8; font-family:monospace; white-space:nowrap;">${period}</div>
-            ${timeStr ? `<div style="font-size:11px; color:#475569; font-family:monospace;">${timeStr}</div>` : ''}
-            ${ev.estimatedTime ? `<div style="font-size:12px; font-weight:700; color:#94a3b8;">${Number(ev.estimatedTime).toFixed(1)} MD</div>` : ''}
-            ${ev.projectCode ? `<span style="background:${calCodeColor(ev.projectCode)}; color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px; text-align:center;">${ev.projectCode}</span>` : ''}
+function calEventCard(ev) {
+  const taskColor = { 'Issue':'#7f1d1d','표준':'#374151','개선':'#14532d','기술지원':'#713f12','기능요구':'#1e3a5f' };
+  const isPlan = ev.유형 === '예정';
+  const tColor = taskColor[ev.업무구분] || '#374151';
+  const typeBadge = isPlan
+    ? `<span style="background:#0f2744; color:#93c5fd; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px; border:1px dashed #3b82f6;">📌 예정</span>`
+    : `<span style="background:#0f2744; color:#6ee7b7; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">✅ 실적</span>`;
+
+  return `<div style="background:#0a0f1a; border:1px solid #1e293b; border-radius:6px; padding:12px 16px; display:grid; grid-template-columns:110px 1fr; gap:12px; align-items:start;">
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          ${typeBadge}
+          ${ev.예상작업시간 ? `<div style="font-size:12px; font-weight:700; color:#94a3b8;">${Number(ev.예상작업시간).toFixed(1)}H 예상</div>` : ''}
+          ${ev.프로젝트 ? `<span style="background:${calCodeColor(ev.프로젝트)}; color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px; text-align:center;">${ev.프로젝트}</span>` : ''}
+        </div>
+        <div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
+            ${ev.업무구분 ? `<span style="background:${tColor}; color:#e2e8f0; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${ev.업무구분}</span>` : ''}
+            ${ev.단계 ? `<span style="background:#1e293b; color:#94a3b8; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px;">${ev.단계}</span>` : ''}
+            ${ev.파트 ? `<span style="background:#1a2e1a; color:#4ade80; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px;">${ev.파트}</span>` : ''}
+            ${ev.대응구분 ? `<span style="background:#1e293b; color:#cbd5e1; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px;">${ev.대응구분}</span>` : ''}
+            ${ev.유무상 ? `<span style="background:${ev.유무상==='유상'?'#1e3a5f':'#1e293b'}; color:${ev.유무상==='유상'?'#93c5fd':'#64748b'}; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid ${ev.유무상==='유상'?'#1d4ed8':'#334155'};">${ev.유무상}</span>` : ''}
+            ${ev.진행상태 ? `<span style="background:#3d1f1f; color:#fca5a5; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px;">${ev.진행상태}</span>` : ''}
           </div>
-          <div>
-            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
-              ${ev.taskType ? `<span style="background:${tColor}; color:#e2e8f0; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${ev.taskType}</span>` : ''}
-              ${ev.stage ? `<span style="background:#1e293b; color:#94a3b8; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px;">${ev.stage}</span>` : ''}
-              ${ev.part ? `<span style="background:#1a2e1a; color:#4ade80; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px;">${ev.part}</span>` : ''}
-              ${ev.responseType ? `<span style="background:#1e293b; color:#cbd5e1; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px;">${ev.responseType}</span>` : ''}
-              ${ev.isPaid ? `<span style="background:${ev.isPaid==='유상'?'#1e3a5f':'#1e293b'}; color:${ev.isPaid==='유상'?'#93c5fd':'#64748b'}; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid ${ev.isPaid==='유상'?'#1d4ed8':'#334155'};">${ev.isPaid}</span>` : ''}
-              ${ev.importance ? `<span style="background:#3d1f1f; color:#fca5a5; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px;">${ev.importance}</span>` : ''}
-            </div>
-            <div style="font-size:13px; color:#f1f5f9; font-weight:600; line-height:1.5; white-space:pre-wrap;">${ev.content || '-'}</div>
-          </div>
-        </div>`;
-    }
+          <div style="font-size:13px; color:#f1f5f9; font-weight:600; line-height:1.5; white-space:pre-wrap;">${ev.제목 || '-'}</div>
+        </div>
+      </div>`;
+}
 
 window.calShowDetail = function(ymd, onlyCode) {
       const box = document.getElementById('cal-detail-box');
