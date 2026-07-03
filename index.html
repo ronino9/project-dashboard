@@ -292,7 +292,7 @@
     </div>
     <div style="margin-left:auto; display:flex; gap:4px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:3px;">
       <button id="gantt-mode-year" onclick="window.ganttSetMode('year')" class="cal-mode-btn">연간</button>
-      <button id="gantt-mode-zoom" onclick="window.ganttSetMode('zoom')" class="cal-mode-btn cal-mode-active">확대</button>
+      <button id="gantt-mode-zoom" onclick="window.ganttSetMode('zoom')" class="cal-mode-btn cal-mode-active">최근</button>
     </div>
   </div>
   <div id="gantt-scroll" style="overflow-x:auto; border:1px solid #e2e8f0; border-radius:8px;">
@@ -2138,7 +2138,7 @@ let ganttInstanceBuilt = false;
 
 let ganttCursor = new Date();
 let ganttMode = 'zoom';
-const GANTT_WINDOW_MONTHS = 3;
+const GANTT_ZOOM_DAYS = 30;
 
 function ganttClamp(dateStr, min, max) {
   if (dateStr < min) return min;
@@ -2154,7 +2154,7 @@ window.ganttSetMode = function(mode) {
 };
 window.ganttMove = function(dir) {
   if (ganttMode === 'year') ganttCursor.setFullYear(ganttCursor.getFullYear() + dir);
-  else ganttCursor.setMonth(ganttCursor.getMonth() + dir * GANTT_WINDOW_MONTHS);
+  else ganttCursor.setDate(ganttCursor.getDate() + dir * GANTT_ZOOM_DAYS);
   window.renderProjectGantt();
 };
 window.ganttToday = function() {
@@ -2169,17 +2169,17 @@ window.renderProjectGantt = function() {
   const todayStr = calYMD(CAL_TODAY);
   let windowStart, windowEnd, labelText;
 
-  if (ganttMode === 'year') {
+if (ganttMode === 'year') {
     const y = ganttCursor.getFullYear();
     windowStart = `${y}-01-01`;
     windowEnd = `${y}-12-31`;
     labelText = `${y}년`;
   } else {
-    const ws = new Date(ganttCursor.getFullYear(), ganttCursor.getMonth(), 1);
-    const we = new Date(ganttCursor.getFullYear(), ganttCursor.getMonth() + GANTT_WINDOW_MONTHS, 0);
+    const ws = new Date(ganttCursor); ws.setDate(ws.getDate() - GANTT_ZOOM_DAYS);
+    const we = new Date(ganttCursor); we.setDate(we.getDate() + GANTT_ZOOM_DAYS);
     windowStart = calYMD(ws);
     windowEnd = calYMD(we);
-    labelText = `${windowStart.substring(0,7).replace('-','.')} ~ ${windowEnd.substring(0,7).replace('-','.')}`;
+    labelText = `${windowStart.substring(2).replace(/-/g,'.')} ~ ${windowEnd.substring(2).replace(/-/g,'.')}`;
   }
 
   const totalDays = Math.max(ganttDaysBetween(windowStart, windowEnd), 1);
