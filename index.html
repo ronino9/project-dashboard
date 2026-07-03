@@ -284,28 +284,29 @@
     <button onclick="window.ganttToday()" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; padding:4px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;">오늘</button>
     <button onclick="window.ganttMove(1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:15px;">›</button>
     <div id="gantt-period-label" style="font-size:14px; font-weight:700; color:#0f172a;"></div>
+    
     <div style="display:flex; gap:14px; margin-left:8px; font-size:11px; color:#64748b;">
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#93c5fd; margin-right:4px;"></span>계획</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#3b82f6; margin-right:4px;"></span>실행중</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#dc2626; margin-right:4px;"></span>지연중</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#0f766e; margin-right:4px;"></span>완료</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#94a3b8; margin-right:4px;"></span>보류</span>
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#93c5fd; margin-right:4px;"></span>계획 (Plan)</span>
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#10b981; margin-right:4px;"></span>현장 실행 (Site)</span>
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#f59e0b; margin-right:4px;"></span>원격 대응 (Remote)</span>
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#ef4444; margin-right:4px;"></span>🚨 이슈 발생일</span>
     </div>
+
     <div style="margin-left:auto; display:flex; gap:4px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:3px;">
       <button id="gantt-mode-year" onclick="window.ganttSetMode('year')" class="cal-mode-btn">연간</button>
       <button id="gantt-mode-zoom" onclick="window.ganttSetMode('zoom')" class="cal-mode-btn cal-mode-active">최근</button>
     </div>
   </div>
-  <div id="gantt-scroll" style="overflow:auto; max-height:420px; border:1px solid #e2e8f0; border-radius:8px;">
+  <div id="gantt-scroll" style="overflow:auto; max-height:480px; border:1px solid #e2e8f0; border-radius:8px;">
     <div id="gantt-inner" style="min-width:100%; width:100%;">
       <div id="gantt-header" style="display:flex; flex-direction:column; border-bottom:1px solid #e2e8f0; position:sticky; top:0; z-index:5; background:#fff;">
         <div style="display:flex;">
-          <div style="width:56px; flex-shrink:0; position:sticky; left:0; background:#fff; z-index:2;"></div>
+          <div style="width:110px; flex-shrink:0; position:sticky; left:0; background:#fff; z-index:2;"></div>
           <div id="gantt-month-ticks" style="flex:1; position:relative; height:22px;"></div>
-          <div style="width:70px; flex-shrink:0; position:sticky; right:0; background:#fff; z-index:2; font-size:11px; color:#94a3b8; display:flex; align-items:center; justify-content:center;">변동</div>
+          <div style="width:70px; flex-shrink:0; position:sticky; right:0; background:#fff; z-index:2; font-size:11px; color:#94a3b8; display:flex; align-items:center; justify-content:center;">상태</div>
         </div>
         <div id="gantt-date-ticks-row" style="display:flex;">
-          <div style="width:56px; flex-shrink:0; position:sticky; left:0; background:#fff; z-index:2;"></div>
+          <div style="width:110px; flex-shrink:0; position:sticky; left:0; background:#fff; z-index:2;"></div>
           <div id="gantt-date-ticks" style="flex:1; position:relative; height:16px; border-top:1px solid #f8fafc;"></div>
           <div style="width:70px; flex-shrink:0; position:sticky; right:0; background:#fff; z-index:2;"></div>
         </div>
@@ -340,7 +341,7 @@
 <div style="display: grid; grid-template-columns: 480px 1fr; gap: 16px; margin-bottom: 14px;">
         <div style="display: flex; flex-direction: column; gap: 14px;">
         
-<div class="chart-card" style="min-height: 440px; order: 2;">
+yle="min-height: 440px; order: 2;">
   
 <div class="chart-title" style="display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px;">
     
@@ -368,7 +369,7 @@
 
 </div>
 
-<div class="chart-card" style="height: 445px; order: 1; display: flex; flex-direction: column;">
+yle="height: 445px; order: 1; display: flex; flex-direction: column;">
     <div class="chart-title">⏳ 처리 대기 Top 5 <span style="font-size: 11px; font-weight: 600; color: #475569; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; border: 1px solid #e2e8f0;">지연일 순</span></div>
 <div id="main-issue-pending" style="overflow-y: auto; flex: 1;">
         <div style="color: #64748b; font-size: 13px;">대기 중인 이슈를 불러오고 있습니다...</div>
@@ -378,7 +379,7 @@
 
         <div style="display: flex; flex-direction: column; gap: 8px;">
 
-<div class="chart-card" style="display: flex; flex-direction: column; padding: 21px;">
+yle="display: flex; flex-direction: column; padding: 21px;">
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 12px; flex-wrap: wrap;">
             <div style="font-size: 16px; font-weight: 700; color: #0f172a; display: flex; align-items: center;">
 📊 Master MD 분석 & 리스크 트렌드
@@ -426,7 +427,7 @@
         </div>
 
 <!-- ▼▼▼ 메인 캘린더 (화이트 테마) ▼▼▼ -->
-        <div class="chart-card" style="margin-top:7px;">
+        yle="margin-top:7px;">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
             <div style="font-size:16px; font-weight:700; color:#0f172a;">📅 프로젝트 일정 캘린더</div>
             <button onclick="window.calMove(-1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:30px; height:30px; border-radius:6px; cursor:pointer; font-size:16px;">‹</button>
@@ -589,7 +590,7 @@
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwhf0oSxAyiBlhUba7Z4p5eGQxXbnq7iHznFjNjyMmHilYgGXEjcRffL24wFCyG0apbRQ/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzXfBKbZa945IBKCHElcvpP9riqvfXZyeVGz79Ed54zvsz7O4_0mk_FrEu-LKDFGh7wkg/exec';
 
     let allData = {}; 
     let documentLinksData = [];
@@ -2104,106 +2105,24 @@ summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD · ${fo
   return Math.round((new Date(b) - new Date(a)) / 86400000);
 }
 
-window.computeGanttData = function() {
-  const order = ['OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2'];
-  const colorMap = { OP8:'#d97757', OP7:'#8cc63f', OP6:'#3b82f6', OP5:'#06b6d4', OP4:'#a855f7', OP3:'#f59e0b', OP2:'#db2777' };
-  const todayStr = calYMD(CAL_TODAY);
-
-  return order.map(code => {
-    const rows = (window.allMasterData || []).filter(r => r._pName === code);
-    if (rows.length === 0) return null;
-
-    let planStart = null, planEnd = null, actStart = null;
-    let totalCnt = 0, doneCnt = 0, holdCnt = 0;
-    let actEndCandidates = [];
-
-    rows.forEach(r => {
-      const rece = calNorm(r['접수일']);
-      const due = calNorm(r['완료예정일']);
-      const compl = calNorm(r['완료일']);
-      const status = (r['완료여부'] || '').toString().trim();
-
-      if (rece) {
-        if (!planStart || rece < planStart) planStart = rece;
-        if (!actStart || rece < actStart) actStart = rece;
-      }
-      if (due && (!planEnd || due > planEnd)) planEnd = due;
-
-      totalCnt++;
-      if (status === 'O') {
-        doneCnt++;
-        if (compl) actEndCandidates.push(compl);
-      } else if (status === '보류') {
-        holdCnt++;
-      } else {
-        actEndCandidates.push(todayStr);
-      }
-    });
-
-    if (!planStart || !planEnd) return null;
-
-    const actEnd = actEndCandidates.length
-      ? actEndCandidates.reduce((a, b) => (a > b ? a : b))
-      : actStart;
-    const done = totalCnt > 0 && (doneCnt + holdCnt) === totalCnt && doneCnt > 0;
-    const isDelayed = !done && todayStr > planEnd;
-    const variance = done ? ganttDaysBetween(planEnd, actEnd) : null;
-
-    return {
-      code, color: colorMap[code],
-      planStart, planEnd, actStart, actEnd,
-      done, isDelayed, variance
-    };
-  }).filter(Boolean);
-};
-
-let ganttInstanceBuilt = false;
-
-let ganttCursor = new Date();
-let ganttMode = 'zoom';
-const GANTT_ZOOM_DAYS = 30;
-
-function ganttClamp(dateStr, min, max) {
-  if (dateStr < min) return min;
-  if (dateStr > max) return max;
-  return dateStr;
-}
-
-window.ganttSetMode = function(mode) {
-  ganttMode = mode;
-  document.getElementById('gantt-mode-year').classList.toggle('cal-mode-active', mode === 'year');
-  document.getElementById('gantt-mode-zoom').classList.toggle('cal-mode-active', mode === 'zoom');
-  window.renderProjectGantt();
-};
-window.ganttMove = function(dir) {
-  const selSet = window.masterMdFilters && window.masterMdFilters['프로젝트'];
-  if (selSet && selSet.size === 1) {
-    indivGanttCursor.setMonth(indivGanttCursor.getMonth() + dir);
-    window.renderProjectGantt();
-    return;
-  }
-  if (ganttMode === 'year') ganttCursor.setFullYear(ganttCursor.getFullYear() + dir);
-  else ganttCursor.setDate(ganttCursor.getDate() + dir * GANTT_ZOOM_DAYS);
-  window.renderProjectGantt();
-};
-window.ganttToday = function() {
-  ganttCursor = new Date();
-  indivGanttCursor = new Date();
-  window.renderProjectGantt();
-};
+// ============================================================================
+// 🚀 [신규 장착] 단계별 3줄 간트차트 (Plan / Site Exec / Remote) 렌더링 엔진
+// ============================================================================
 
 window.renderProjectGantt = function() {
-  // 프로젝트가 정확히 1개 선택돼 있으면 세부 간트로 전환
+  // 1. 만약 상단 슬라이서에서 특정 프로젝트를 딱 1개 골랐다면? → 세부 마이크로 간트 화면으로 전환!
   const selSet = window.masterMdFilters && window.masterMdFilters['프로젝트'];
   if (selSet && selSet.size === 1) {
     const selCode = [...selSet][0];
-    document.getElementById('indiv-gantt-card').style.display = 'none'; // 별도 카드는 안 씀
+    const indivCard = document.getElementById('indiv-gantt-card');
+    if (indivCard) indivCard.style.display = 'none';
     window.renderMacroGanttAsIndiv(selCode);
     return;
   }
-  // 선택 없으면(또는 여러 개면) 전체 매크로 간트
-  const data = window.computeGanttData();
-  if (data.length === 0) return;
+
+  // 2. 전체 매크로 간트차트 렌더링 시작
+  const stageGantt = allData.stageGantt;
+  if (!stageGantt) return;
 
   const todayStr = calYMD(CAL_TODAY);
   let windowStart, windowEnd, labelText;
@@ -2212,7 +2131,7 @@ window.renderProjectGantt = function() {
     const y = ganttCursor.getFullYear();
     windowStart = `${y}-01-01`;
     windowEnd = `${y}-12-31`;
-    labelText = `${y}년`;
+    labelText = `${y}년 전사 프로젝트 단계별 타임라인`;
   } else {
     const ws = new Date(ganttCursor); ws.setDate(ws.getDate() - GANTT_ZOOM_DAYS);
     const we = new Date(ganttCursor); we.setDate(we.getDate() + GANTT_ZOOM_DAYS);
@@ -2230,21 +2149,13 @@ window.renderProjectGantt = function() {
   const ticksEl = document.getElementById('gantt-month-ticks');
   const dateTicksEl = document.getElementById('gantt-date-ticks');
   const rowsEl = document.getElementById('gantt-rows');
-if (!ticksEl || !rowsEl || !dateTicksEl) return;
+  if (!ticksEl || !rowsEl || !dateTicksEl) return;
+  
   ticksEl.innerHTML = '';
   dateTicksEl.innerHTML = '';
   rowsEl.innerHTML = '';
 
-  // 매크로 모드: 헤더 왼쪽 칸 폭 원복 (56px)
-// 매크로 모드: 헤더 왼쪽 칸 폭 원복 (56px) + 텍스트 제거
-  const headerLeft = document.querySelector('#gantt-header > div > div:first-child');
-  if (headerLeft) {
-    headerLeft.style.width = '56px';
-    headerLeft.textContent = '';
-  }
-  const dateHeaderLeft = document.querySelector('#gantt-date-ticks-row > div:first-child');
-  if (dateHeaderLeft) dateHeaderLeft.style.width = '56px';
-
+  // 상단 X축 눈금선 (월별) 그리기
   let cursor = new Date(windowStart);
   cursor.setDate(1);
   while (calYMD(cursor) <= windowEnd) {
@@ -2259,6 +2170,7 @@ if (!ticksEl || !rowsEl || !dateTicksEl) return;
     cursor.setMonth(cursor.getMonth() + 1);
   }
 
+  // 일별 눈금선 그리기 (최근 모드일 때만)
   if (ganttMode === 'zoom') {
     document.getElementById('gantt-date-ticks-row').style.display = 'flex';
     let d = new Date(windowStart);
@@ -2276,6 +2188,7 @@ if (!ticksEl || !rowsEl || !dateTicksEl) return;
     document.getElementById('gantt-date-ticks-row').style.display = 'none';
   }
 
+  // 오늘 날짜 빨간 표시선
   if (todayStr >= windowStart && todayStr <= windowEnd) {
     const todayPct = (dayOffset(todayStr) / totalDays) * 100;
     const todayLine = document.createElement('div');
@@ -2283,110 +2196,140 @@ if (!ticksEl || !rowsEl || !dateTicksEl) return;
     ticksEl.appendChild(todayLine);
   }
 
-  data.forEach((p, pIdx) => {
-    const overlapsPlan = p.planStart <= windowEnd && p.planEnd >= windowStart;
-    const overlapsAct = p.actStart <= windowEnd && p.actEnd >= windowStart;
-    if (!overlapsPlan && !overlapsAct) return;
+  // 대상 프로젝트 순회 (OP8 ~ OP2)
+  const targetProjects = ['OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2'];
+  const stages = ['제작', 'FAT', 'SET-UP', 'SAT'];
+  const colorMap = { OP8:'#d97757', OP7:'#8cc63f', OP6:'#3b82f6', OP5:'#06b6d4', OP4:'#a855f7', OP3:'#f59e0b', OP2:'#db2777' };
 
-    const stripe = pIdx % 2 === 1;
+  targetProjects.forEach((proj, pIdx) => {
+    const pData = stageGantt[proj];
+    if (!pData) return;
 
-    function makeBarRow(labelTextRow, isTop) {
-      const row = document.createElement('div');
-      row.style.cssText = `display:flex; align-items:center; height:20px; background:${stripe ? '#f8fafc' : 'transparent'};`;
-      const left = document.createElement('div');
-      left.style.cssText = `width:56px; flex-shrink:0; position:sticky; left:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:11px; padding-left:8px; font-weight:${isTop ? 700 : 400}; color:${isTop ? '#0f172a' : '#94a3b8'}; border-left:${isTop ? '3px solid ' + p.color : 'none'};`;
-      left.textContent = labelTextRow;
-      left.style.cursor = 'pointer';
-      left.onclick = () => window.showIndivGantt(p.code);
-      row.appendChild(left);
+    // 프로젝트 구분 헤더 타이틀 바
+    const projHeader = document.createElement('div');
+    projHeader.style.cssText = `display:flex; align-items:center; height:24px; background:#f1f5f9; border-top:1px solid #cbd5e1; border-bottom:1px solid #e2e8f0; font-weight:800; font-size:12px; color:#0f172a; padding-left:12px; cursor:pointer;`;
+    projHeader.innerHTML = `<span style="display:inline-block; width:10px; height:10px; background:${colorMap[proj]}; border-radius:2px; margin-right:6px;"></span>[${proj}] 프로젝트 단계별 타임라인`;
+    projHeader.onclick = () => window.showIndivGantt(proj);
+    rowsEl.appendChild(projHeader);
 
-      const track = document.createElement('div');
-      track.style.cssText = 'flex:1; position:relative; height:100%; cursor:pointer;';
-      const bg = document.createElement('div');
-      bg.style.cssText = 'position:absolute; inset:5px 0; background:#f1f5f9; border-radius:2px; pointer-events:none;';
-      track.appendChild(bg);
+    // 4개 단계 렌더링
+    stages.forEach((stageName, sIdx) => {
+      const sData = pData[stageName];
+      if (!sData) return;
 
-if (ganttMode === 'zoom') {
-        let gd = new Date(windowStart);
-        while (calYMD(gd) <= windowEnd) {
-          const gOffset = dayOffset(calYMD(gd));
-          const gPct = (gOffset / totalDays) * 100;
-          const isMonthStart = gd.getDate() === 1;
-          const gLine = document.createElement('div');
-          gLine.dataset.date = calYMD(gd);
-          gLine.style.cssText = `position:absolute; left:${gPct}%; top:0; bottom:0; border-left:${isMonthStart ? '1.5px solid #cbd5e1' : '1px solid #f1f5f9'}; pointer-events:none;`;
-          track.appendChild(gLine);
-          gd.setDate(gd.getDate() + 1);
+      const stripe = sIdx % 2 === 1;
+
+      // 행 렌더링 Helper
+      function createBarRow(label, isPlanRow) {
+        const row = document.createElement('div');
+        row.style.cssText = `display:flex; align-items:center; height:18px; background:${stripe ? '#f8fafc' : '#fff'};`;
+        
+        const left = document.createElement('div');
+        left.style.cssText = `width:110px; flex-shrink:0; position:sticky; left:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:11px; padding-left:18px; color:${isPlanRow ? '#334155' : '#64748b'}; font-weight:${isPlanRow ? 700 : 500}; display:flex; align-items:center;`;
+        if (isPlanRow) left.textContent = stageName;
+        row.appendChild(left);
+
+        const track = document.createElement('div');
+        track.style.cssText = 'flex:1; position:relative; height:100%; cursor:pointer;';
+        const bg = document.createElement('div');
+        bg.style.cssText = 'position:absolute; inset:3px 0; background:#f1f5f9; border-radius:2px; pointer-events:none;';
+        track.appendChild(bg);
+
+        // 캔버스 날짜 클릭 시 해당일 상세 데이터 팝업 연동
+        track.onclick = (e) => {
+          const rect = track.getBoundingClientRect();
+          const clickPct = ((e.clientX - rect.left) / rect.width) * 100;
+          const clickOffset = (clickPct / 100) * totalDays;
+          const clickDate = new Date(windowStart);
+          clickDate.setDate(clickDate.getDate() + Math.floor(clickOffset));
+          const dateStr = calYMD(clickDate);
+
+          const dayRows = (window.allMasterData || []).filter(r => r._pName === proj && calNorm(r['접수일']) === dateStr);
+          if (dayRows.length > 0) {
+            window.showDetailView(`${dateStr} · [${proj}] ${stageName}`, `총 ${dayRows.length}건 작업 내역`, dayRows);
+          } else {
+            window.showIndivGantt(proj);
+          }
+        };
+
+        if (todayStr >= windowStart && todayStr <= windowEnd) {
+          const todayPct = (dayOffset(todayStr) / totalDays) * 100;
+          const line = document.createElement('div');
+          line.style.cssText = `position:absolute; left:${todayPct}%; top:0; bottom:0; border-left:1px solid #fecaca; pointer-events:none;`;
+          track.appendChild(line);
         }
+
+        row.appendChild(track);
+        return { row, track };
       }
 
-track.onclick = (e) => {
-        const rect = track.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const clickPct = (clickX / rect.width) * 100;
-        const clickOffset = (clickPct / 100) * totalDays;
-        const clickDate = new Date(windowStart);
-        clickDate.setDate(clickDate.getDate() + Math.floor(clickOffset));
-        const dateStr = calYMD(clickDate);
-        const dayRows = (window.allMasterData || []).filter(r => r._pName === p.code && calNorm(r['접수일']) === dateStr)
-          .map(r => ({ '프로젝트 코드': p.code, '접수일': r['접수일'] || '-', ...r }));
-        if (dayRows.length > 0) {
-          window.showDetailView(`${dateStr} · ${p.code}`, `${dayRows.length}건`, dayRows);
-        } else {
-          window.showIndivGantt(p.code);
-        }
-      };
-
-      if (todayStr >= windowStart && todayStr <= windowEnd) {
-        const todayPct = (dayOffset(todayStr) / totalDays) * 100;
-        const line = document.createElement('div');
-        line.style.cssText = `position:absolute; left:${todayPct}%; top:0; bottom:0; border-left:1px solid #fecaca;`;
-        track.appendChild(line);
+      // 1. 계획(Plan) 막대 렌더링
+      const { row: planRow, track: planTrack } = createBarRow(stageName, true);
+      if (sData.planStart && sData.planEnd && sData.planStart <= windowEnd && sData.planEnd >= windowStart) {
+        const cs = ganttClamp(sData.planStart, windowStart, windowEnd);
+        const ce = ganttClamp(sData.planEnd, windowStart, windowEnd);
+        const startPct = (dayOffset(cs) / totalDays) * 100;
+        const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, 0.4);
+        const bar = document.createElement('div');
+        bar.style.cssText = `position:absolute; top:4px; bottom:4px; left:${startPct}%; width:${widthPct}%; background:#93c5fd; border-radius:2px; pointer-events:none;`;
+        planTrack.appendChild(bar);
       }
+      rowsEl.appendChild(planRow);
 
-      row.appendChild(track);
-      return { row, track };
-    }
+      // 2. 실행(Site Exec / Remote) 분할 막대 렌더링
+      const { row: actRow, track: actTrack } = createBarRow('', false);
+      
+      // 현장 실행 일자 (녹색) 그리기
+      (sData.execDays || []).forEach(dateStr => {
+        if (dateStr >= windowStart && dateStr <= windowEnd) {
+          const startPct = (dayOffset(dateStr) / totalDays) * 100;
+          const widthPct = Math.max((1 / totalDays) * 100, 0.4);
+          const block = document.createElement('div');
+          block.style.cssText = `position:absolute; top:3px; bottom:3px; left:${startPct}%; width:${widthPct}%; background:#10b981; pointer-events:none;`;
+          actTrack.appendChild(block);
+        }
+      });
 
-    const actColor = p.done ? '#0f766e' : (p.isDelayed ? '#dc2626' : '#3b82f6');
-    const goToProject = () => window.showIndivGantt(p.code);
+      // 원격 대응 일자 (노랑) 그리기
+      (sData.remoteDays || []).forEach(dateStr => {
+        if (dateStr >= windowStart && dateStr <= windowEnd) {
+          const startPct = (dayOffset(dateStr) / totalDays) * 100;
+          const widthPct = Math.max((1 / totalDays) * 100, 0.4);
+          const block = document.createElement('div');
+          block.style.cssText = `position:absolute; top:3px; bottom:3px; left:${startPct}%; width:${widthPct}%; background:#f59e0b; pointer-events:none;`;
+          actTrack.appendChild(block);
+        }
+      });
 
-    const { row: planRow, track: planTrack } = makeBarRow(p.code, true);
-    if (overlapsPlan) {
-      const cs = ganttClamp(p.planStart, windowStart, windowEnd);
-      const ce = ganttClamp(p.planEnd, windowStart, windowEnd);
-      const startPct = (dayOffset(cs) / totalDays) * 100;
-      const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, 0.4);
-      const bar = document.createElement('div');
-      bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:#93c5fd; border-radius:2px; pointer-events:none;`;
-      planTrack.appendChild(bar);
-    }
-    planRow.onclick = goToProject;
-    rowsEl.appendChild(planRow);
+      // 🚨 이슈 발생 마커 얹기 (클릭 시 핀셋 팝업 연결)
+      (sData.issueDates || []).forEach(issueDate => {
+        if (issueDate >= windowStart && issueDate <= windowEnd) {
+          const startPct = (dayOffset(issueDate) / totalDays) * 100;
+          const pin = document.createElement('div');
+          pin.style.cssText = `position:absolute; top:1px; left:${startPct}%; font-size:11px; line-height:1; cursor:pointer; z-index:10; transform:translateX(-50%);`;
+          pin.textContent = '🚨';
+          pin.title = `${issueDate} 이슈 발생! 클릭하여 상세 사유 확인`;
+          pin.onclick = (e) => {
+            e.stopPropagation();
+            const issueRows = (window.allMasterData || []).filter(r => r._pName === proj && calNorm(r['접수일']) === issueDate && r['업무 구분'] === 'Issue');
+            window.showDetailView(`🚨 [${proj}] ${stageName} 단계 이슈 상세`, `${issueDate} 발생 (${issueRows.length}건)`, issueRows);
+          };
+          actTrack.appendChild(pin);
+        }
+      });
 
-    const { row: actRow, track: actTrack } = makeBarRow('', false);
-    if (overlapsAct) {
-      const cs = ganttClamp(p.actStart, windowStart, windowEnd);
-      const ce = ganttClamp(p.actEnd, windowStart, windowEnd);
-      const startPct = (dayOffset(cs) / totalDays) * 100;
-      const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, 0.4);
-      const bar = document.createElement('div');
-      bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${actColor}; border-radius:2px; pointer-events:none;`;
-      actTrack.appendChild(bar);
-    }
-    actRow.onclick = goToProject;
+      // 우측 상태 라벨
+      const statusCell = document.createElement('div');
+      const isOngoing = sData.actualStart && !sData.actualEnd;
+      statusCell.style.cssText = `width:70px; flex-shrink:0; position:sticky; right:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:10px; color:${isOngoing ? '#3b82f6' : '#64748b'}; text-align:center; font-weight:700;`;
+      statusCell.textContent = sData.actualStart ? (isOngoing ? '진행중' : '완료') : '대기';
+      actRow.appendChild(statusCell);
 
-    const varCell = document.createElement('div');
-    const v = p.variance;
-    const vColor = v === null ? (p.isDelayed ? '#dc2626' : '#94a3b8') : (v > 0 ? '#dc2626' : v < 0 ? '#16a34a' : '#94a3b8');
-    const vText = v === null ? (p.isDelayed ? '지연중' : '진행중') : ((v > 0 ? '+' + v : v) + '일');
-    varCell.style.cssText = `width:70px; flex-shrink:0; position:sticky; right:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:11px; color:${vColor}; text-align:center; font-weight:600;`;
-    varCell.textContent = vText;
-    actRow.appendChild(varCell);
-    rowsEl.appendChild(actRow);
+      rowsEl.appendChild(actRow);
+    });
 
     const spacer = document.createElement('div');
-    spacer.style.cssText = 'height:4px;';
+    spacer.style.cssText = 'height:6px;';
     rowsEl.appendChild(spacer);
   });
 };
