@@ -289,6 +289,7 @@
       <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#3b82f6; margin-right:4px;"></span>실행중</span>
       <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#dc2626; margin-right:4px;"></span>지연중</span>
       <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#0f766e; margin-right:4px;"></span>완료</span>
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#94a3b8; margin-right:4px;"></span>보류</span>
     </div>
     <div style="margin-left:auto; display:flex; gap:4px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:3px;">
       <button id="gantt-mode-year" onclick="window.ganttSetMode('year')" class="cal-mode-btn">연간</button>
@@ -2503,7 +2504,7 @@ window.renderMacroGanttAsIndiv = function(code) {
 
   items.forEach((it, idx) => {
     const stripe = idx % 2 === 1;
-    const color = it.isDone ? '#0f766e' : (it.isDelayed ? '#dc2626' : '#3b82f6');
+    const color = it.isDone ? '#0f766e' : (it.isHold ? '#94a3b8' : (it.isDelayed ? '#dc2626' : '#3b82f6'));
     const carryBadge = it.carriedOver ? ' <span style="color:#dc2626;">⚠이월</span>' : '';
     const shortTitle = it.title.length > 14 ? it.title.slice(0, 14) + '…' : it.title;
     const showDay = () => {
@@ -2534,9 +2535,9 @@ window.renderMacroGanttAsIndiv = function(code) {
       bar.onclick = showDay;
       actTrack.appendChild(bar);
     }
-    const varDays = it.isDone ? ganttDaysBetween(it.planEnd, it.actEnd) : null;
-    const vColor = varDays === null ? (it.isDelayed ? '#dc2626' : '#94a3b8') : (varDays > 0 ? '#dc2626' : varDays < 0 ? '#16a34a' : '#94a3b8');
-    const vText = varDays === null ? (it.isDelayed ? '지연중' : '진행중') : ((varDays > 0 ? '+' + varDays : varDays) + '일');
+const varDays = it.isDone ? ganttDaysBetween(it.planEnd, it.actEnd) : null;
+    const vColor = varDays === null ? (it.isHold ? '#94a3b8' : (it.isDelayed ? '#dc2626' : '#94a3b8')) : (varDays > 0 ? '#dc2626' : varDays < 0 ? '#16a34a' : '#94a3b8');
+    const vText = varDays === null ? (it.isHold ? '보류' : (it.isDelayed ? '지연중' : '진행중')) : ((varDays > 0 ? '+' + varDays : varDays) + '일');
     const varCell = document.createElement('div');
     varCell.style.cssText = `width:70px; flex-shrink:0; position:sticky; right:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:11px; color:${vColor}; text-align:center; font-weight:600;`;
     varCell.textContent = vText;
@@ -2654,7 +2655,7 @@ window.renderIndivGantt = function() {
 
   items.forEach((it, idx) => {
     const stripe = idx % 2 === 1;
-    const color = it.isDone ? '#0f766e' : (it.isDelayed ? '#dc2626' : '#3b82f6');
+    const color = it.isDone ? '#0f766e' : (it.isHold ? '#94a3b8' : (it.isDelayed ? '#dc2626' : '#3b82f6'));
     const carryBadge = it.carriedOver ? ' <span style="color:#dc2626;">⚠이월</span>' : '';
     const shortTitle = it.title.length > 14 ? it.title.slice(0, 14) + '…' : it.title;
 
@@ -2689,9 +2690,9 @@ window.renderIndivGantt = function() {
       actTrack.appendChild(bar);
     }
 
-    const varDays = it.isDone ? ganttDaysBetween(it.planEnd, it.actEnd) : null;
-    const vColor = varDays === null ? (it.isDelayed ? '#dc2626' : '#94a3b8') : (varDays > 0 ? '#dc2626' : varDays < 0 ? '#16a34a' : '#94a3b8');
-    const vText = varDays === null ? (it.isDelayed ? '지연중' : '진행중') : ((varDays > 0 ? '+' + varDays : varDays) + '일');
+const varDays = it.isDone ? ganttDaysBetween(it.planEnd, it.actEnd) : null;
+    const vColor = varDays === null ? (it.isHold ? '#94a3b8' : (it.isDelayed ? '#dc2626' : '#94a3b8')) : (varDays > 0 ? '#dc2626' : varDays < 0 ? '#16a34a' : '#94a3b8');
+    const vText = varDays === null ? (it.isHold ? '보류' : (it.isDelayed ? '지연중' : '진행중')) : ((varDays > 0 ? '+' + varDays : varDays) + '일');
     const varCell = document.createElement('div');
     varCell.style.cssText = `width:70px; flex-shrink:0; position:sticky; right:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:11px; color:${vColor}; text-align:center; font-weight:600;`;
     varCell.textContent = vText;
