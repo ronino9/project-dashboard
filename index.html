@@ -2276,7 +2276,7 @@ window.renderProjectGantt = function() {
       const track = document.createElement('div');
       track.style.cssText = 'flex:1; position:relative; height:100%; cursor:pointer;';
       const bg = document.createElement('div');
-      bg.style.cssText = 'position:absolute; inset:5px 0; background:#f1f5f9; border-radius:2px;';
+      bg.style.cssText = 'position:absolute; inset:5px 0; background:#f1f5f9; border-radius:2px; pointer-events:none;';
       track.appendChild(bg);
 
 if (ganttMode === 'zoom') {
@@ -2331,7 +2331,7 @@ track.onclick = (e) => {
       const startPct = (dayOffset(cs) / totalDays) * 100;
       const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, 0.4);
       const bar = document.createElement('div');
-      bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:#93c5fd; border-radius:2px;`;
+      bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:#93c5fd; border-radius:2px; pointer-events:none;`;
       planTrack.appendChild(bar);
     }
     planRow.onclick = goToProject;
@@ -2344,7 +2344,7 @@ track.onclick = (e) => {
       const startPct = (dayOffset(cs) / totalDays) * 100;
       const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, 0.4);
       const bar = document.createElement('div');
-      bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${actColor}; border-radius:2px;`;
+      bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${actColor}; border-radius:2px; pointer-events:none;`;
       actTrack.appendChild(bar);
     }
     actRow.onclick = goToProject;
@@ -2477,7 +2477,7 @@ window.renderIndivGantt = function() {
     const track = document.createElement('div');
     track.style.cssText = 'flex:1; position:relative; height:100%;';
     const bg = document.createElement('div');
-    bg.style.cssText = 'position:absolute; inset:5px 0; background:#f1f5f9; border-radius:2px;';
+    bg.style.cssText = 'position:absolute; inset:5px 0; background:#f1f5f9; border-radius:2px; pointer-events:none;';
     track.appendChild(bg);
     if (todayStr >= monthStart && todayStr <= monthEnd) {
       const todayPct = (dayOffset(todayStr) / totalDays) * 100;
