@@ -2175,16 +2175,32 @@ window.ganttSetMode = function(mode) {
   window.renderProjectGantt();
 };
 window.ganttMove = function(dir) {
+  const selSet = window.masterMdFilters && window.masterMdFilters['프로젝트'];
+  if (selSet && selSet.size === 1) {
+    indivGanttCursor.setMonth(indivGanttCursor.getMonth() + dir);
+    window.renderProjectGantt();
+    return;
+  }
   if (ganttMode === 'year') ganttCursor.setFullYear(ganttCursor.getFullYear() + dir);
   else ganttCursor.setDate(ganttCursor.getDate() + dir * GANTT_ZOOM_DAYS);
   window.renderProjectGantt();
 };
 window.ganttToday = function() {
-  ganttCursor = new Date(CAL_TODAY);
+  ganttCursor = new Date();
+  indivGanttCursor = new Date();
   window.renderProjectGantt();
 };
 
 window.renderProjectGantt = function() {
+  // 프로젝트가 정확히 1개 선택돼 있으면 세부 간트로 전환
+  const selSet = window.masterMdFilters && window.masterMdFilters['프로젝트'];
+  if (selSet && selSet.size === 1) {
+    const selCode = [...selSet][0];
+    document.getElementById('indiv-gantt-card').style.display = 'none'; // 별도 카드는 안 씀
+    window.renderMacroGanttAsIndiv(selCode);
+    return;
+  }
+  // 선택 없으면(또는 여러 개면) 전체 매크로 간트
   const data = window.computeGanttData();
   if (data.length === 0) return;
 
@@ -2384,7 +2400,143 @@ window.indivGanttToday = function() {
   indivGanttCursor = new Date(CAL_TODAY);
   window.renderIndivGantt();
 };
+window.renderMacroGanttAsIndiv = function(code) {
+  indivGanttProject = code;
+  if (!indivGanttCursor) indivGanttCursor = new Date();
 
+  const titleLabel = document.getElementById('gantt-period-label');
+  const y = indivGanttCursor.getFullYear();
+  const m = indivGanttCursor.getMonth();
+  const monthStart = calYMD(new Date(y, m, 1));
+  const monthEnd = calYMD(new Date(y, m + 1, 0));
+  const totalDays = Math.max(ganttDaysBetween(monthStart, monthEnd), 1);
+  const todayStr = calYMD(CAL_TODAY);
+  if (titleLabel) titleLabel.textContent = `📋 ${code} 세부 · ${y}.${String(m + 1).padStart(2, '0')} (도넛 재클릭 시 전체로)`;
+
+  const dayOffset = (dateStr) => ganttDaysBetween(monthStart, dateStr);
+  const ticksEl = document.getElementById('gantt-month-ticks');
+  const dateTicksEl = document.getElementById('gantt-date-ticks');
+  const rowsEl = document.getElementById('gantt-rows');
+  if (!ticksEl || !rowsEl) return;
+  ticksEl.innerHTML = '';
+  if (dateTicksEl) dateTicksEl.innerHTML = '';
+  rowsEl.innerHTML = '';
+  document.getElementById('gantt-date-ticks-row').style.display = 'flex';
+
+  let d = new Date(monthStart);
+  while (calYMD(d) <= monthEnd) {
+    const offset = dayOffset(calYMD(d));
+    const pct = (offset / totalDays) * 100;
+    const cellWidth = 100 / totalDays;
+    const dow = d.getDay();
+    const dowColor = dow === 0 ? '#ef4444' : (dow === 6 ? '#3b82f6' : '#94a3b8');
+    const dt = document.createElement('div');
+    dt.style.cssText = `position:absolute; left:${pct}%; width:${cellWidth}%; top:0; bottom:0; border-left:1px solid #f1f5f9; font-size:10px; color:${dowColor}; display:flex; align-items:center; justify-content:center; font-weight:600;`;
+    dt.textContent = d.getDate();
+    (dateTicksEl || ticksEl).appendChild(dt);
+    d.setDate(d.getDate() + 1);
+  }
+  if (todayStr >= monthStart && todayStr <= monthEnd) {
+    const todayPct = (dayOffset(todayStr) / totalDays) * 100;
+    const todayLine = document.createElement('div');
+    todayLine.style.cssText = `position:absolute; left:${todayPct}%; top:0; bottom:0; border-left:2px solid #ef4444;`;
+    ticksEl.appendChild(todayLine);
+  }
+
+  const rows = (window.allMasterData || []).filter(r => r._pName === code);
+  const items = [];
+  rows.forEach(r => {
+    const rece = calNorm(r['접수일']);
+    const due = calNorm(r['완료예정일']);
+    const compl = calNorm(r['완료일']);
+    const status = (r['완료여부'] || '').toString().trim();
+    if (!rece && !due) return;
+    const planStart = rece || due, planEnd = due || rece, actStart = rece || due;
+    const isDone = status === 'O', isHold = status === '보류';
+    const actEnd = isDone ? (compl || planEnd) : todayStr;
+    const isDelayed = !isDone && !isHold && todayStr > planEnd;
+    const carriedOver = !isDone && !isHold && planEnd < monthStart;
+    const overlapsPlan = planStart <= monthEnd && planEnd >= monthStart;
+    const overlapsAct = actStart <= monthEnd && actEnd >= monthStart;
+    if (!overlapsPlan && !overlapsAct && !carriedOver) return;
+    items.push({ title: r['표준 제작 Item / Issue / 개선사항'] || '(제목 없음)', planStart, planEnd, actStart, actEnd, isDone, isHold, isDelayed, carriedOver, receRaw: r['접수일'] });
+  });
+  items.sort((a, b) => (a.carriedOver !== b.carriedOver) ? (a.carriedOver ? -1 : 1) : (a.planEnd < b.planEnd ? -1 : 1));
+
+  if (items.length === 0) {
+    rowsEl.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8; font-size:13px;">이 달에 해당하는 업무가 없습니다.</div>';
+    return;
+  }
+
+  function makeRow(labelText, isTop, stripe, color) {
+    const row = document.createElement('div');
+    row.style.cssText = `display:flex; align-items:center; height:20px; background:${stripe ? '#f8fafc' : 'transparent'};`;
+    const left = document.createElement('div');
+    left.style.cssText = `width:160px; flex-shrink:0; position:sticky; left:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:11px; padding-left:8px; padding-right:6px; font-weight:${isTop ? 700 : 400}; color:${isTop ? '#0f172a' : '#94a3b8'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-left:${isTop ? '3px solid ' + color : 'none'};`;
+    left.innerHTML = labelText;
+    row.appendChild(left);
+    const track = document.createElement('div');
+    track.style.cssText = 'flex:1; position:relative; height:100%;';
+    const bg = document.createElement('div');
+    bg.style.cssText = 'position:absolute; inset:5px 0; background:#f1f5f9; border-radius:2px; pointer-events:none;';
+    track.appendChild(bg);
+    if (todayStr >= monthStart && todayStr <= monthEnd) {
+      const todayPct = (dayOffset(todayStr) / totalDays) * 100;
+      const line = document.createElement('div');
+      line.style.cssText = `position:absolute; left:${todayPct}%; top:0; bottom:0; border-left:1px solid #fecaca; pointer-events:none;`;
+      track.appendChild(line);
+    }
+    row.appendChild(track);
+    return { row, track };
+  }
+
+  items.forEach((it, idx) => {
+    const stripe = idx % 2 === 1;
+    const color = it.isDone ? '#0f766e' : (it.isDelayed ? '#dc2626' : '#3b82f6');
+    const carryBadge = it.carriedOver ? ' <span style="color:#dc2626;">⚠이월</span>' : '';
+    const shortTitle = it.title.length > 14 ? it.title.slice(0, 14) + '…' : it.title;
+    const showDay = () => {
+      const dayRows = (window.allMasterData || []).filter(r => r._pName === code && calNorm(r['접수일']) === it.actStart)
+        .map(r => ({ '프로젝트 코드': code, '접수일': r['접수일'] || '-', ...r }));
+      window.showDetailView(`${it.actStart} · ${code}`, `${dayRows.length}건`, dayRows);
+    };
+
+    const { row: planRow, track: planTrack } = makeRow(shortTitle + carryBadge, true, stripe, color);
+    if (it.planStart <= monthEnd && it.planEnd >= monthStart) {
+      const cs = ganttClamp(it.planStart, monthStart, monthEnd), ce = ganttClamp(it.planEnd, monthStart, monthEnd);
+      const startPct = (dayOffset(cs) / totalDays) * 100;
+      const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
+      const bar = document.createElement('div');
+      bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:#93c5fd; border-radius:2px; cursor:pointer;`;
+      bar.onclick = showDay;
+      planTrack.appendChild(bar);
+    }
+    rowsEl.appendChild(planRow);
+
+    const { row: actRow, track: actTrack } = makeRow('', false, stripe, color);
+    if (it.actStart <= monthEnd && it.actEnd >= monthStart) {
+      const cs = ganttClamp(it.actStart, monthStart, monthEnd), ce = ganttClamp(it.actEnd, monthStart, monthEnd);
+      const startPct = (dayOffset(cs) / totalDays) * 100;
+      const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
+      const bar = document.createElement('div');
+      bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer;`;
+      bar.onclick = showDay;
+      actTrack.appendChild(bar);
+    }
+    const varDays = it.isDone ? ganttDaysBetween(it.planEnd, it.actEnd) : null;
+    const vColor = varDays === null ? (it.isDelayed ? '#dc2626' : '#94a3b8') : (varDays > 0 ? '#dc2626' : varDays < 0 ? '#16a34a' : '#94a3b8');
+    const vText = varDays === null ? (it.isDelayed ? '지연중' : '진행중') : ((varDays > 0 ? '+' + varDays : varDays) + '일');
+    const varCell = document.createElement('div');
+    varCell.style.cssText = `width:70px; flex-shrink:0; position:sticky; right:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:11px; color:${vColor}; text-align:center; font-weight:600;`;
+    varCell.textContent = vText;
+    actRow.appendChild(varCell);
+    rowsEl.appendChild(actRow);
+
+    const spacer = document.createElement('div');
+    spacer.style.cssText = 'height:4px;';
+    rowsEl.appendChild(spacer);
+  });
+};
 window.renderIndivGantt = function() {
   const code = indivGanttProject;
   if (!code) return;
