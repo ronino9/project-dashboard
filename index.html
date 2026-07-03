@@ -2203,7 +2203,7 @@ if (ganttMode === 'year') {
     if (offset >= -1) {
       const pct = Math.max(offset, 0) / totalDays * 100;
       const tick = document.createElement('div');
-      tick.style.cssText = `position:absolute; left:${pct}%; top:0; bottom:0; border-left:1px solid #f1f5f9; padding-left:4px; font-size:11px; color:#94a3b8; display:flex; align-items:center; font-weight:600;`;
+      tick.style.cssText = `position:absolute; left:${pct}%; top:0; bottom:0; border-left:2px solid #94a3b8; padding-left:4px; font-size:11px; color:#475569; display:flex; align-items:center; font-weight:700;`;
       tick.textContent = (cursor.getMonth() + 1) + '월';
       ticksEl.appendChild(tick);
     }
@@ -2227,6 +2227,20 @@ if (ganttMode === 'zoom') {
     document.getElementById('gantt-date-ticks-row').style.display = 'none';
   }
 
+  if (ganttMode === 'zoom') {
+        let gd = new Date(windowStart);
+        while (calYMD(gd) <= windowEnd) {
+          const gOffset = dayOffset(calYMD(gd));
+          const gPct = (gOffset / totalDays) * 100;
+          const isMonthStart = gd.getDate() === 1;
+          const gLine = document.createElement('div');
+          gLine.dataset.date = calYMD(gd);
+          gLine.style.cssText = `position:absolute; left:${gPct}%; top:0; bottom:0; border-left:${isMonthStart ? '1.5px solid #cbd5e1' : '1px solid #f1f5f9'};`;
+          track.appendChild(gLine);
+          gd.setDate(gd.getDate() + 1);
+        }
+      }
+      if (todayStr >= windowStart && todayStr <= windowEnd) {
   if (todayStr >= windowStart && todayStr <= windowEnd) {
     const todayPct = (dayOffset(todayStr) / totalDays) * 100;
     const todayLine = document.createElement('div');
