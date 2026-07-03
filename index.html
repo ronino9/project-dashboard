@@ -263,7 +263,8 @@
           <button id="roast-btn" onclick="runRoastAnalysis()" style="background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%); color: white; border: none; padding: 7px 16px; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 13px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4); display: flex; align-items: center; gap: 4px; letter-spacing: 0.5px;">
             🔥 통합 팩폭
           </button>
-          <div style="margin-left: auto; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+<div style="margin-left: auto; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <select id="gs-project" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc; font-weight: 700;"><option value="">프로젝트 전체</option></select>
             <input type="text" id="gs-keyword" placeholder="🔍 검색어" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; width: 140px;" onkeydown="if(event.key==='Enter') window.runGlobalSearch()">
             <select id="gs-stage" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">단계 전체</option></select>
             <select id="gs-response" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">대응 전체</option></select>
@@ -2708,6 +2709,17 @@ contentDiv.innerHTML = html;
 
 window.populateGlobalSearchFilters = function() {
   if (!window.allMasterData) return;
+
+  // 프로젝트 필터는 컬럼값이 아닌 _pName 기준이라 별도 처리
+  const projSel = document.getElementById('gs-project');
+  if (projSel) {
+    const currentProj = projSel.value;
+    const order = ['OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2', 'CP'];
+    const uniqueProjects = order.filter(p => window.allMasterData.some(r => r._pName === p));
+    projSel.innerHTML = `<option value="">프로젝트 전체</option>` + uniqueProjects.map(v => `<option value="${v}">${v}</option>`).join('');
+    if (uniqueProjects.includes(currentProj)) projSel.value = currentProj;
+  }
+
   const map = {
     'gs-stage': '단계 구분', 'gs-response': '대응 구분',
     'gs-task': '업무 구분', 'gs-paid': '유/무상', 'gs-part': '파트 구분'
