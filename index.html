@@ -2139,36 +2139,37 @@ window.ganttSetMode = function(mode) {
 
 // 🟢 변경할 코드 (붙여넣을 부분)
 window.ganttMove = function(dir) {
-  // 1. 슬라이서에서 프로젝트가 딱 1개 선택되어 세부 월간 간트로 보고 있을 때
+  // 1. 슬라이서에서 프로젝트가 딱 1개 선택되어 세부 간트(월간)로 보고 있을 때
   const selSet = window.masterMdFilters && window.masterMdFilters['프로젝트'];
   if (selSet && selSet.size === 1) {
+    // 전역 변수가 비어있으면 오늘 날짜로 즉시 초기화
     if (typeof indivGanttCursor === 'undefined' || !indivGanttCursor) {
-      window.indivGanttCursor = new Date();
+      indivGanttCursor = new Date();
     }
-    window.indivGanttCursor.setMonth(window.indivGanttCursor.getMonth() + dir);
+    indivGanttCursor.setMonth(indivGanttCursor.getMonth() + dir);
+    window.indivGanttCursor = indivGanttCursor; // 동기화 보장
     window.renderProjectGantt();
     return;
   }
 
   // 2. 전체 매크로 간트로 보고 있을 때
+  if (typeof ganttCursor === 'undefined' || !ganttCursor) {
+    ganttCursor = new Date();
+  }
   if (ganttMode === 'year') {
     ganttCursor.setFullYear(ganttCursor.getFullYear() + dir);
   } else {
-    ganttCursor.setDate(ganttCursor.getDate() + dir * GANTT_ZOOM_DAYS);
+    ganttCursor.setDate(ganttCursor.getDate() + dir * (typeof GANTT_ZOOM_DAYS !== 'undefined' ? GANTT_ZOOM_DAYS : 30));
   }
+  window.ganttCursor = ganttCursor; // 동기화 보장
   window.renderProjectGantt();
 };
 
 window.ganttToday = function() {
   ganttCursor = new Date();
-  if (typeof indivGanttCursor !== 'undefined') {
-    indivGanttCursor = new Date();
-  }
-  window.renderProjectGantt();
-};
-
-window.ganttToday = function() {
-  ganttCursor = new Date();
+  indivGanttCursor = new Date();
+  window.ganttCursor = ganttCursor;
+  window.indivGanttCursor = indivGanttCursor;
   window.renderProjectGantt();
 };
 
