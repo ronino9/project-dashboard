@@ -277,6 +277,43 @@
         </div>
       </div>
       <!-- 🎯 단계별 AI 팩폭 끝 -->
+      <!-- ▼▼▼ 프로젝트 간트차트 (계획 vs 실행) ▼▼▼ -->
+<div class="chart-card" style="margin-top:7px;">
+  <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+    <button onclick="window.ganttMove(-1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:15px;">‹</button>
+    <button onclick="window.ganttToday()" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; padding:4px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;">오늘</button>
+    <button onclick="window.ganttMove(1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:15px;">›</button>
+    <div id="gantt-period-label" style="font-size:14px; font-weight:700; color:#0f172a;"></div>
+    <div style="display:flex; gap:14px; margin-left:8px; font-size:11px; color:#64748b;">
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#93c5fd; margin-right:4px;"></span>계획</span>
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#3b82f6; margin-right:4px;"></span>실행중</span>
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#dc2626; margin-right:4px;"></span>지연중</span>
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#0f766e; margin-right:4px;"></span>완료</span>
+    </div>
+    <div style="margin-left:auto; display:flex; gap:4px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:3px;">
+      <button id="gantt-mode-year" onclick="window.ganttSetMode('year')" class="cal-mode-btn">연간</button>
+      <button id="gantt-mode-zoom" onclick="window.ganttSetMode('zoom')" class="cal-mode-btn cal-mode-active">확대</button>
+    </div>
+  </div>
+  <div id="gantt-scroll" style="overflow-x:auto; border:1px solid #e2e8f0; border-radius:8px;">
+    <div id="gantt-inner" style="min-width:100%; width:100%;">
+      <div id="gantt-header" style="display:flex; flex-direction:column; border-bottom:1px solid #e2e8f0;">
+        <div style="display:flex;">
+          <div style="width:56px; flex-shrink:0; position:sticky; left:0; background:#fff; z-index:2;"></div>
+          <div id="gantt-month-ticks" style="flex:1; position:relative; height:22px;"></div>
+          <div style="width:70px; flex-shrink:0; position:sticky; right:0; background:#fff; z-index:2; font-size:11px; color:#94a3b8; display:flex; align-items:center; justify-content:center;">변동</div>
+        </div>
+        <div id="gantt-date-ticks-row" style="display:flex;">
+          <div style="width:56px; flex-shrink:0; position:sticky; left:0; background:#fff; z-index:2;"></div>
+          <div id="gantt-date-ticks" style="flex:1; position:relative; height:16px; border-top:1px solid #f8fafc;"></div>
+          <div style="width:70px; flex-shrink:0; position:sticky; right:0; background:#fff; z-index:2;"></div>
+        </div>
+      </div>
+      <div id="gantt-rows"></div>
+    </div>
+  </div>
+</div>
+<!-- ▲▲▲ 프로젝트 간트차트 끝 ▲▲▲ -->
 <div style="display: grid; grid-template-columns: 480px 1fr; gap: 16px; margin-bottom: 14px;">
         <div style="display: flex; flex-direction: column; gap: 14px;">
         
@@ -364,43 +401,7 @@
             </div>
           </div>
         </div>
-<!-- ▼▼▼ 프로젝트 간트차트 (계획 vs 실행) ▼▼▼ -->
-<div class="chart-card" style="margin-top:7px;">
-  <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
-    <button onclick="window.ganttMove(-1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:15px;">‹</button>
-    <button onclick="window.ganttToday()" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; padding:4px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;">오늘</button>
-    <button onclick="window.ganttMove(1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:15px;">›</button>
-    <div id="gantt-period-label" style="font-size:14px; font-weight:700; color:#0f172a;"></div>
-    <div style="display:flex; gap:14px; margin-left:8px; font-size:11px; color:#64748b;">
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#93c5fd; margin-right:4px;"></span>계획</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#3b82f6; margin-right:4px;"></span>실행중</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#dc2626; margin-right:4px;"></span>지연중</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#0f766e; margin-right:4px;"></span>완료</span>
-    </div>
-    <div style="margin-left:auto; display:flex; gap:4px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:3px;">
-      <button id="gantt-mode-year" onclick="window.ganttSetMode('year')" class="cal-mode-btn">연간</button>
-      <button id="gantt-mode-zoom" onclick="window.ganttSetMode('zoom')" class="cal-mode-btn cal-mode-active">확대</button>
-    </div>
-  </div>
-  <div id="gantt-scroll" style="overflow-x:auto; border:1px solid #e2e8f0; border-radius:8px;">
-    <div id="gantt-inner" style="min-width:700px;">
-      <div id="gantt-header" style="display:flex; flex-direction:column; border-bottom:1px solid #e2e8f0;">
-        <div style="display:flex;">
-          <div style="width:56px; flex-shrink:0; position:sticky; left:0; background:#fff; z-index:2;"></div>
-          <div id="gantt-month-ticks" style="flex:1; position:relative; height:22px;"></div>
-          <div style="width:70px; flex-shrink:0; position:sticky; right:0; background:#fff; z-index:2; font-size:11px; color:#94a3b8; display:flex; align-items:center; justify-content:center;">변동</div>
-        </div>
-        <div id="gantt-date-ticks-row" style="display:flex;">
-          <div style="width:56px; flex-shrink:0; position:sticky; left:0; background:#fff; z-index:2;"></div>
-          <div id="gantt-date-ticks" style="flex:1; position:relative; height:16px; border-top:1px solid #f8fafc;"></div>
-          <div style="width:70px; flex-shrink:0; position:sticky; right:0; background:#fff; z-index:2;"></div>
-        </div>
-      </div>
-      <div id="gantt-rows"></div>
-    </div>
-  </div>
-</div>
-<!-- ▲▲▲ 프로젝트 간트차트 끝 ▲▲▲ -->
+
 <!-- ▼▼▼ 메인 캘린더 (화이트 테마) ▼▼▼ -->
         <div class="chart-card" style="margin-top:7px;">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
