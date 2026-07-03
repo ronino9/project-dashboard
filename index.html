@@ -2210,19 +2210,18 @@ if (ganttMode === 'year') {
     cursor.setMonth(cursor.getMonth() + 1);
   }
 
-  if (ganttMode === 'zoom') {
+if (ganttMode === 'zoom') {
     document.getElementById('gantt-date-ticks-row').style.display = 'flex';
     let d = new Date(windowStart);
-    const dow = d.getDay();
-    d.setDate(d.getDate() + ((7 - dow) % 7));
     while (calYMD(d) <= windowEnd) {
       const offset = dayOffset(calYMD(d));
       const pct = (offset / totalDays) * 100;
+      const cellWidth = 100 / totalDays;
       const dt = document.createElement('div');
-      dt.style.cssText = `position:absolute; left:${pct}%; top:0; bottom:0; border-left:1px solid #f8fafc; padding-left:3px; font-size:10px; color:#cbd5e1; display:flex; align-items:center;`;
-      dt.textContent = (d.getMonth() + 1) + '/' + d.getDate();
+      dt.style.cssText = `position:absolute; left:${pct}%; width:${cellWidth}%; top:0; bottom:0; border-left:1px solid #f8fafc; font-size:10px; color:#cbd5e1; display:flex; align-items:center; justify-content:center;`;
+      dt.textContent = d.getDate();
       dateTicksEl.appendChild(dt);
-      d.setDate(d.getDate() + 7);
+      d.setDate(d.getDate() + 1);
     }
   } else {
     document.getElementById('gantt-date-ticks-row').style.display = 'none';
@@ -2324,7 +2323,7 @@ function calCodeColor(code) {
 
 function calNorm(s) {
   if (!s) return '';
-  return s.toString().trim().replace(/\//g, '-').substring(0, 10);
+  return s.toString().trim().replace(/[./]/g, '-').substring(0, 10);
 }
 function calYMD(d) {
   const y = d.getFullYear();
