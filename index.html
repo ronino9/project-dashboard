@@ -296,9 +296,9 @@
       <button id="gantt-mode-zoom" onclick="window.ganttSetMode('zoom')" class="cal-mode-btn cal-mode-active">최근</button>
     </div>
   </div>
-  <div id="gantt-scroll" style="overflow-x:auto; border:1px solid #e2e8f0; border-radius:8px;">
+  <div id="gantt-scroll" style="overflow:auto; max-height:420px; border:1px solid #e2e8f0; border-radius:8px;">
     <div id="gantt-inner" style="min-width:100%; width:100%;">
-      <div id="gantt-header" style="display:flex; flex-direction:column; border-bottom:1px solid #e2e8f0;">
+      <div id="gantt-header" style="display:flex; flex-direction:column; border-bottom:1px solid #e2e8f0; position:sticky; top:0; z-index:5; background:#fff;">
         <div style="display:flex;">
           <div style="width:56px; flex-shrink:0; position:sticky; left:0; background:#fff; z-index:2;"></div>
           <div id="gantt-month-ticks" style="flex:1; position:relative; height:22px;"></div>
