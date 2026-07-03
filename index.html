@@ -155,10 +155,31 @@
         transform: scale(1.05);
       }
     }
-    #roast-btn:hover {
+#roast-btn:hover {
       transform: scale(1.1) !important;
       box-shadow: 0 8px 24px rgba(220, 38, 38, 0.9), 0 0 40px rgba(245, 158, 11, 0.6) !important;
     }
+    .clamp-wrap { position: relative; }
+    .clamp-text {
+      display: -webkit-box;
+      -webkit-line-clamp: 5;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.5;
+    }
+    .clamp-text.clamp-expanded {
+      -webkit-line-clamp: unset;
+      overflow: visible;
+    }
+    .clamp-more-btn {
+      display: none;
+      margin-top: 6px;
+      color: #3b82f6;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .clamp-more-btn.clamp-show { display: inline-block; }
   </style>
 </head>
 <body>
@@ -528,17 +549,19 @@
       return dateStr.toString().substring(2);
     }
 
-    window.closeDetail = function() {
+window.closeDetail = function() {
       document.getElementById('detailView').style.display = 'none';
     }
-    // ✅ 5줄 초과 항목 펼치기/접기 토글
-window.toggleClamp = function(id) {
-  const el = document.getElementById(id);
-  const btn = document.getElementById(id + '-btn');
-  if (!el) return;
-  const expanded = el.classList.toggle('clamp-expanded');
-  if (btn) btn.textContent = expanded ? '접기 ▴' : '더보기 ▾';
-};
+
+    window.toggleClamp = function(id) {
+      const el = document.getElementById(id);
+      const btn = document.getElementById(id + '-btn');
+      if (!el) return;
+      const expanded = el.classList.toggle('clamp-expanded');
+      if (btn) btn.textContent = expanded ? '접기 ▴' : '더보기 ▾';
+    };
+
+    // (기존 showDetailView 함수 그대로 유지 - 생략 없이 포함)
 
     // (기존 showDetailView 함수 그대로 유지 - 생략 없이 포함)
 window.showDetailView = function(dateLabel, typeLabel, dataRows) {
@@ -607,12 +630,12 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
             }
           });
 const analysisCellId = `clamp-analysis-${rowIdx}`;
-return `<td style="min-width: 250px; max-width: 400px; vertical-align: top;">
-  <div class="clamp-wrap">
-    <div class="clamp-text" id="${analysisCellId}" style="white-space: normal; word-break: keep-all; overflow-wrap: break-word;">${formattedHtml}</div>
-    <span class="clamp-more-btn" id="${analysisCellId}-btn" onclick="window.toggleClamp('${analysisCellId}')">더보기 ▾</span>
-  </div>
-</td>`;
+          return `<td style="min-width: 250px; max-width: 400px; vertical-align: top;">
+            <div class="clamp-wrap">
+              <div class="clamp-text" id="${analysisCellId}" style="white-space: normal; word-break: keep-all; overflow-wrap: break-word;">${formattedHtml}</div>
+              <span class="clamp-more-btn" id="${analysisCellId}-btn" onclick="window.toggleClamp('${analysisCellId}')">더보기 ▾</span>
+            </div>
+          </td>`;
         }
         if (h === '로그') {
   const photos = row['로그사진경로'] || [];
