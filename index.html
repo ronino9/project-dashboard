@@ -264,13 +264,14 @@
             🔥 통합 팩폭
           </button>
 <div style="margin-left: auto; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-            <input type="text" id="gs-keyword" placeholder="🔍 검색어" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; width: 140px;" onkeydown="if(event.key==='Enter') window.runGlobalSearch()">
+<input type="text" id="gs-keyword" placeholder="🔍 검색어" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; width: 140px;" onkeydown="if(event.key==='Enter') window.runGlobalSearch()">
+            <select id="gs-project" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc; font-weight: 700;"><option value="">프로젝트 전체</option></select>
+            <select id="gs-status" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">진행상태 전체</option></select>
             <select id="gs-stage" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">단계 전체</option></select>
             <select id="gs-response" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">대응 전체</option></select>
             <select id="gs-task" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">업무 전체</option></select>
             <select id="gs-paid" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">유/무상 전체</option></select>
             <select id="gs-part" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">파트 전체</option></select>
-            <select id="gs-project" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc; font-weight: 700;"><option value="">프로젝트 전체</option></select>
             <button onclick="window.runGlobalSearch()" style="background: #3b82f6; color: #fff; border: none; padding: 7px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px;">검색</button>
           </div>
         </div>
@@ -2722,7 +2723,8 @@ window.populateGlobalSearchFilters = function() {
 
   const map = {
     'gs-stage': '단계 구분', 'gs-response': '대응 구분',
-    'gs-task': '업무 구분', 'gs-paid': '유/무상', 'gs-part': '파트 구분'
+    'gs-task': '업무 구분', 'gs-paid': '유/무상', 'gs-part': '파트 구분',
+    'gs-status': '진행상태'
   };
   Object.entries(map).forEach(([elId, col]) => {
     const sel = document.getElementById(elId);
@@ -2739,6 +2741,8 @@ window.runGlobalSearch = function() {
     alert('데이터가 아직 로드되지 않았습니다.');
     return;
   }
+const project = document.getElementById('gs-project').value;
+  const status = document.getElementById('gs-status').value;
   const keyword = (document.getElementById('gs-keyword').value || '').trim().toLowerCase();
   const stage = document.getElementById('gs-stage').value;
   const response = document.getElementById('gs-response').value;
@@ -2746,12 +2750,14 @@ window.runGlobalSearch = function() {
   const paid = document.getElementById('gs-paid').value;
   const part = document.getElementById('gs-part').value;
 
-  if (!keyword && !stage && !response && !task && !paid && !part) {
+  if (!keyword && !project && !status && !stage && !response && !task && !paid && !part) {
     alert('검색어 또는 필터 조건을 하나 이상 입력해주세요.');
     return;
   }
 
   const matched = window.allMasterData.filter(r => {
+    if (project && r._pName !== project) return false;
+    if (status && r['진행상태'] !== status) return false;
     if (stage && r['단계 구분'] !== stage) return false;
     if (response && r['대응 구분'] !== response) return false;
     if (task && r['업무 구분'] !== task) return false;
