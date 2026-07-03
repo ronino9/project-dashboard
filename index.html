@@ -2277,7 +2277,7 @@ window.renderProjectGantt = function() {
       bg.style.cssText = 'position:absolute; inset:5px 0; background:#f1f5f9; border-radius:2px;';
       track.appendChild(bg);
 
-      if (ganttMode === 'zoom') {
+if (ganttMode === 'zoom') {
         let gd = new Date(windowStart);
         while (calYMD(gd) <= windowEnd) {
           const gOffset = dayOffset(calYMD(gd));
@@ -2285,19 +2285,27 @@ window.renderProjectGantt = function() {
           const isMonthStart = gd.getDate() === 1;
           const gLine = document.createElement('div');
           gLine.dataset.date = calYMD(gd);
-                    gLine.style.cursor = 'pointer';
-          gLine.onclick = (e) => {
-            e.stopPropagation();
-            const dateStr = gLine.dataset.date;
-            const dayRows = (window.allMasterData || []).filter(r => r._pName === p.code && calNorm(r['접수일']) === dateStr)
-              .map(r => ({ '프로젝트 코드': p.code, '접수일': r['접수일'] || '-', ...r }));
-            window.showDetailView(`${dateStr} · ${p.code}`, `${dayRows.length}건`, dayRows);
-          };
-          gLine.style.cssText = `position:absolute; left:${gPct}%; top:0; bottom:0; border-left:${isMonthStart ? '1.5px solid #cbd5e1' : '1px solid #f1f5f9'};`;
+          gLine.style.cssText = `position:absolute; left:${gPct}%; top:0; bottom:0; border-left:${isMonthStart ? '1.5px solid #cbd5e1' : '1px solid #f1f5f9'}; pointer-events:none;`;
           track.appendChild(gLine);
           gd.setDate(gd.getDate() + 1);
         }
       }
+
+      track.onclick = (e) => {
+        const rect = track.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickPct = (clickX / rect.width) * 100;
+        const clickOffset = (clickPct / 100) * totalDays;
+        const clickDate = new Date(windowStart);
+        clickDate.setDate(clickDate.getDate() + Math.floor(clickOffset));
+        const dateStr = calYMD(clickDate);
+        const dayRows = (window.allMasterData || []).filter(r => r._pName === p.code && calNorm(r['접수일']) === dateStr)
+          .map(r => ({ '프로젝트 코드': p.code, '접수일': r['접수일'] || '-', ...r }));
+        if (dayRows.length > 0) {
+          e.stopPropagation();
+          window.showDetailView(`${dateStr} · ${p.code}`, `${dayRows.length}건`, dayRows);
+        }
+      };
 
       if (todayStr >= windowStart && todayStr <= windowEnd) {
         const todayPct = (dayOffset(todayStr) / totalDays) * 100;
