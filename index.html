@@ -2240,6 +2240,7 @@ window.calShowEvent = function(evIdx) {
   box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 };
 // ===== 캘린더 뷰 끝 =====
+    document.addEventListener('DOMContentLoaded', () => {
       const slider = document.getElementById('spacingSlider');
       if (slider) {
         slider.addEventListener('input', (e) => {
