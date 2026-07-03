@@ -2109,24 +2109,71 @@ summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD · ${fo
 // 🚀 [신규 장착] 단계별 3줄 간트차트 (Plan / Site Exec / Remote) 렌더링 엔진
 // ============================================================================
 
+// ============================================================================
+// 🚀 [완전체] 단계별 3줄 간트차트 필수 변수 + 조작 버튼 + 렌더링 엔진
+// ============================================================================
+
+// 1. 필수 전역 변수 및 Helper 함수 (이게 빠져서 에러가 났던 겁니다!)
+let ganttCursor = new Date();
+let ganttMode = 'zoom';
+const GANTT_ZOOM_DAYS = 30;
+
+function ganttDaysBetween(a, b) {
+  return Math.round((new Date(b) - new Date(a)) / 86400000);
+}
+
+function ganttClamp(dateStr, min, max) {
+  if (dateStr < min) return min;
+  if (dateStr > max) return max;
+  return dateStr;
+}
+
+window.ganttSetMode = function(mode) {
+  ganttMode = mode;
+  const btnYear = document.getElementById('gantt-mode-year');
+  const btnZoom = document.getElementById('gantt-mode-zoom');
+  if (btnYear) btnYear.classList.toggle('cal-mode-active', mode === 'year');
+  if (btnZoom) btnZoom.classList.toggle('cal-mode-active', mode === 'zoom');
+  window.renderProjectGantt();
+};
+
+window.ganttMove = function(dir) {
+  if (ganttMode === 'year') ganttCursor.setFullYear(ganttCursor.getFullYear() + dir);
+  else ganttCursor.setDate(ganttCursor.getDate() + dir * GANTT_ZOOM_DAYS);
+  window.renderProjectGantt();
+};
+
+window.ganttToday = function() {
+  ganttCursor = new Date();
+  window.renderProjectGantt();
+};
+
+// 2. 메인 간트차트 렌더링 함수
 window.renderProjectGantt = function() {
-  // 1. 만약 상단 슬라이서에서 특정 프로젝트를 딱 1개 골랐다면? → 세부 마이크로 간트 화면으로 전환!
+  // ① 상단 슬라이서에서 특정 프로젝트를 1개만 골랐다면 세부 간트로 전환
   const selSet = window.masterMdFilters && window.masterMdFilters['프로젝트'];
   if (selSet && selSet.size === 1) {
     const selCode = [...selSet][0];
     const indivCard = document.getElementById('indiv-gantt-card');
     if (indivCard) indivCard.style.display = 'none';
-    window.renderMacroGanttAsIndiv(selCode);
+    if (typeof window.renderMacroGanttAsIndiv === 'function') {
+      window.renderMacroGanttAsIndiv(selCode);
+    }
     return;
   }
 
-  // 2. 전체 매크로 간트차트 렌더링 시작
+  // ② 전체 매크로 간트차트 렌더링 시작
   const stageGantt = allData.stageGantt;
   if (!stageGantt) return;
 
-  const todayStr = calYMD(CAL_TODAY);
-  let windowStart, windowEnd, labelText;
+  // 오늘 날짜 안전하게 가져오기
+  const getTodayYMD = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  const todayStr = (typeof calYMD === 'function' && typeof CAL_TODAY !== 'undefined') ? calYMD(CAL_TODAY) : getTodayYMD();
 
+  let windowStart, windowEnd, labelText;
   if (ganttMode === 'year') {
     const y = ganttCursor.getFullYear();
     windowStart = `${y}-01-01`;
@@ -2135,8 +2182,9 @@ window.renderProjectGantt = function() {
   } else {
     const ws = new Date(ganttCursor); ws.setDate(ws.getDate() - GANTT_ZOOM_DAYS);
     const we = new Date(ganttCursor); we.setDate(we.getDate() + GANTT_ZOOM_DAYS);
-    windowStart = calYMD(ws);
-    windowEnd = calYMD(we);
+    const formatYMD = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    windowStart = formatYMD(ws);
+    windowEnd = formatYMD(we);
     labelText = `${windowStart.substring(2).replace(/-/g,'.')} ~ ${windowEnd.substring(2).replace(/-/g,'.')}`;
   }
 
@@ -2155,11 +2203,12 @@ window.renderProjectGantt = function() {
   dateTicksEl.innerHTML = '';
   rowsEl.innerHTML = '';
 
-  // 상단 X축 눈금선 (월별) 그리기
+  // 상단 X축 눈금선 (월별)
   let cursor = new Date(windowStart);
   cursor.setDate(1);
-  while (calYMD(cursor) <= windowEnd) {
-    const offset = dayOffset(calYMD(cursor));
+  while (`${cursor.getFullYear()}-${String(cursor.getMonth()+1).padStart(2,'0')}-${String(cursor.getDate()).padStart(2,'0')}` <= windowEnd) {
+    const curStr = `${cursor.getFullYear()}-${String(cursor.getMonth()+1).padStart(2,'0')}-${String(cursor.getDate()).padStart(2,'0')}`;
+    const offset = dayOffset(curStr);
     if (offset >= -1) {
       const pct = Math.max(offset, 0) / totalDays * 100;
       const tick = document.createElement('div');
@@ -2170,12 +2219,14 @@ window.renderProjectGantt = function() {
     cursor.setMonth(cursor.getMonth() + 1);
   }
 
-  // 일별 눈금선 그리기 (최근 모드일 때만)
+  // 일별 눈금선 (최근 모드일 때만)
   if (ganttMode === 'zoom') {
-    document.getElementById('gantt-date-ticks-row').style.display = 'flex';
+    const dateRow = document.getElementById('gantt-date-ticks-row');
+    if (dateRow) dateRow.style.display = 'flex';
     let d = new Date(windowStart);
-    while (calYMD(d) <= windowEnd) {
-      const offset = dayOffset(calYMD(d));
+    while (`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` <= windowEnd) {
+      const dStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      const offset = dayOffset(dStr);
       const pct = (offset / totalDays) * 100;
       const cellWidth = 100 / totalDays;
       const dt = document.createElement('div');
@@ -2185,10 +2236,11 @@ window.renderProjectGantt = function() {
       d.setDate(d.getDate() + 1);
     }
   } else {
-    document.getElementById('gantt-date-ticks-row').style.display = 'none';
+    const dateRow = document.getElementById('gantt-date-ticks-row');
+    if (dateRow) dateRow.style.display = 'none';
   }
 
-  // 오늘 날짜 빨간 표시선
+  // 오늘 날짜 표시선
   if (todayStr >= windowStart && todayStr <= windowEnd) {
     const todayPct = (dayOffset(todayStr) / totalDays) * 100;
     const todayLine = document.createElement('div');
@@ -2196,34 +2248,30 @@ window.renderProjectGantt = function() {
     ticksEl.appendChild(todayLine);
   }
 
-  // 대상 프로젝트 순회 (OP8 ~ OP2)
+  // 대상 프로젝트 순회
   const targetProjects = ['OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2'];
   const stages = ['제작', 'FAT', 'SET-UP', 'SAT'];
   const colorMap = { OP8:'#d97757', OP7:'#8cc63f', OP6:'#3b82f6', OP5:'#06b6d4', OP4:'#a855f7', OP3:'#f59e0b', OP2:'#db2777' };
 
-  targetProjects.forEach((proj, pIdx) => {
+  targetProjects.forEach((proj) => {
     const pData = stageGantt[proj];
     if (!pData) return;
 
-    // 프로젝트 구분 헤더 타이틀 바
+    // 프로젝트 타이틀 헤더 바
     const projHeader = document.createElement('div');
     projHeader.style.cssText = `display:flex; align-items:center; height:24px; background:#f1f5f9; border-top:1px solid #cbd5e1; border-bottom:1px solid #e2e8f0; font-weight:800; font-size:12px; color:#0f172a; padding-left:12px; cursor:pointer;`;
     projHeader.innerHTML = `<span style="display:inline-block; width:10px; height:10px; background:${colorMap[proj]}; border-radius:2px; margin-right:6px;"></span>[${proj}] 프로젝트 단계별 타임라인`;
-    projHeader.onclick = () => window.showIndivGantt(proj);
+    projHeader.onclick = () => { if (typeof window.showIndivGantt === 'function') window.showIndivGantt(proj); };
     rowsEl.appendChild(projHeader);
 
-    // 4개 단계 렌더링
     stages.forEach((stageName, sIdx) => {
       const sData = pData[stageName];
       if (!sData) return;
-
       const stripe = sIdx % 2 === 1;
 
-      // 행 렌더링 Helper
       function createBarRow(label, isPlanRow) {
         const row = document.createElement('div');
         row.style.cssText = `display:flex; align-items:center; height:18px; background:${stripe ? '#f8fafc' : '#fff'};`;
-        
         const left = document.createElement('div');
         left.style.cssText = `width:110px; flex-shrink:0; position:sticky; left:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:11px; padding-left:18px; color:${isPlanRow ? '#334155' : '#64748b'}; font-weight:${isPlanRow ? 700 : 500}; display:flex; align-items:center;`;
         if (isPlanRow) left.textContent = stageName;
@@ -2235,19 +2283,19 @@ window.renderProjectGantt = function() {
         bg.style.cssText = 'position:absolute; inset:3px 0; background:#f1f5f9; border-radius:2px; pointer-events:none;';
         track.appendChild(bg);
 
-        // 캔버스 날짜 클릭 시 해당일 상세 데이터 팝업 연동
         track.onclick = (e) => {
           const rect = track.getBoundingClientRect();
           const clickPct = ((e.clientX - rect.left) / rect.width) * 100;
           const clickOffset = (clickPct / 100) * totalDays;
           const clickDate = new Date(windowStart);
           clickDate.setDate(clickDate.getDate() + Math.floor(clickOffset));
-          const dateStr = calYMD(clickDate);
+          const formatYMD = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+          const dateStr = formatYMD(clickDate);
 
-          const dayRows = (window.allMasterData || []).filter(r => r._pName === proj && calNorm(r['접수일']) === dateStr);
+          const dayRows = (window.allMasterData || []).filter(r => r._pName === proj && (r['접수일'] || '').toString().replace(/[./]/g,'-').substring(0,10) === dateStr);
           if (dayRows.length > 0) {
             window.showDetailView(`${dateStr} · [${proj}] ${stageName}`, `총 ${dayRows.length}건 작업 내역`, dayRows);
-          } else {
+          } else if (typeof window.showIndivGantt === 'function') {
             window.showIndivGantt(proj);
           }
         };
@@ -2258,12 +2306,11 @@ window.renderProjectGantt = function() {
           line.style.cssText = `position:absolute; left:${todayPct}%; top:0; bottom:0; border-left:1px solid #fecaca; pointer-events:none;`;
           track.appendChild(line);
         }
-
         row.appendChild(track);
         return { row, track };
       }
 
-      // 1. 계획(Plan) 막대 렌더링
+      // 계획 막대
       const { row: planRow, track: planTrack } = createBarRow(stageName, true);
       if (sData.planStart && sData.planEnd && sData.planStart <= windowEnd && sData.planEnd >= windowStart) {
         const cs = ganttClamp(sData.planStart, windowStart, windowEnd);
@@ -2276,10 +2323,8 @@ window.renderProjectGantt = function() {
       }
       rowsEl.appendChild(planRow);
 
-      // 2. 실행(Site Exec / Remote) 분할 막대 렌더링
+      // 실행 & 원격 분할 막대
       const { row: actRow, track: actTrack } = createBarRow('', false);
-      
-      // 현장 실행 일자 (녹색) 그리기
       (sData.execDays || []).forEach(dateStr => {
         if (dateStr >= windowStart && dateStr <= windowEnd) {
           const startPct = (dayOffset(dateStr) / totalDays) * 100;
@@ -2290,7 +2335,6 @@ window.renderProjectGantt = function() {
         }
       });
 
-      // 원격 대응 일자 (노랑) 그리기
       (sData.remoteDays || []).forEach(dateStr => {
         if (dateStr >= windowStart && dateStr <= windowEnd) {
           const startPct = (dayOffset(dateStr) / totalDays) * 100;
@@ -2301,7 +2345,7 @@ window.renderProjectGantt = function() {
         }
       });
 
-      // 🚨 이슈 발생 마커 얹기 (클릭 시 핀셋 팝업 연결)
+      // 🚨 이슈 발생 마커
       (sData.issueDates || []).forEach(issueDate => {
         if (issueDate >= windowStart && issueDate <= windowEnd) {
           const startPct = (dayOffset(issueDate) / totalDays) * 100;
@@ -2311,14 +2355,13 @@ window.renderProjectGantt = function() {
           pin.title = `${issueDate} 이슈 발생! 클릭하여 상세 사유 확인`;
           pin.onclick = (e) => {
             e.stopPropagation();
-            const issueRows = (window.allMasterData || []).filter(r => r._pName === proj && calNorm(r['접수일']) === issueDate && r['업무 구분'] === 'Issue');
+            const issueRows = (window.allMasterData || []).filter(r => r._pName === proj && (r['접수일']||'').toString().replace(/[./]/g,'-').substring(0,10) === issueDate && r['업무 구분'] === 'Issue');
             window.showDetailView(`🚨 [${proj}] ${stageName} 단계 이슈 상세`, `${issueDate} 발생 (${issueRows.length}건)`, issueRows);
           };
           actTrack.appendChild(pin);
         }
       });
 
-      // 우측 상태 라벨
       const statusCell = document.createElement('div');
       const isOngoing = sData.actualStart && !sData.actualEnd;
       statusCell.style.cssText = `width:70px; flex-shrink:0; position:sticky; right:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:10px; color:${isOngoing ? '#3b82f6' : '#64748b'}; text-align:center; font-weight:700;`;
