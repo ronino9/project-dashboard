@@ -341,7 +341,7 @@
 <div style="display: grid; grid-template-columns: 480px 1fr; gap: 16px; margin-bottom: 14px;">
         <div style="display: flex; flex-direction: column; gap: 14px;">
         
-yle="min-height: 440px; order: 2;">
+<div class="chart-card" style="min-height: 440px; order: 2;">
   
 <div class="chart-title" style="display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px;">
     
@@ -2137,9 +2137,33 @@ window.ganttSetMode = function(mode) {
   window.renderProjectGantt();
 };
 
+// 🟢 변경할 코드 (붙여넣을 부분)
 window.ganttMove = function(dir) {
-  if (ganttMode === 'year') ganttCursor.setFullYear(ganttCursor.getFullYear() + dir);
-  else ganttCursor.setDate(ganttCursor.getDate() + dir * GANTT_ZOOM_DAYS);
+  // 1. 슬라이서에서 프로젝트가 딱 1개 선택되어 세부 월간 간트로 보고 있을 때
+  const selSet = window.masterMdFilters && window.masterMdFilters['프로젝트'];
+  if (selSet && selSet.size === 1) {
+    if (typeof indivGanttCursor === 'undefined' || !indivGanttCursor) {
+      window.indivGanttCursor = new Date();
+    }
+    window.indivGanttCursor.setMonth(window.indivGanttCursor.getMonth() + dir);
+    window.renderProjectGantt();
+    return;
+  }
+
+  // 2. 전체 매크로 간트로 보고 있을 때
+  if (ganttMode === 'year') {
+    ganttCursor.setFullYear(ganttCursor.getFullYear() + dir);
+  } else {
+    ganttCursor.setDate(ganttCursor.getDate() + dir * GANTT_ZOOM_DAYS);
+  }
+  window.renderProjectGantt();
+};
+
+window.ganttToday = function() {
+  ganttCursor = new Date();
+  if (typeof indivGanttCursor !== 'undefined') {
+    indivGanttCursor = new Date();
+  }
   window.renderProjectGantt();
 };
 
