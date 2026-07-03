@@ -2169,7 +2169,7 @@ window.renderProjectGantt = function() {
   const todayStr = calYMD(CAL_TODAY);
   let windowStart, windowEnd, labelText;
 
-if (ganttMode === 'year') {
+  if (ganttMode === 'year') {
     const y = ganttCursor.getFullYear();
     windowStart = `${y}-01-01`;
     windowEnd = `${y}-12-31`;
@@ -2210,7 +2210,7 @@ if (ganttMode === 'year') {
     cursor.setMonth(cursor.getMonth() + 1);
   }
 
-if (ganttMode === 'zoom') {
+  if (ganttMode === 'zoom') {
     document.getElementById('gantt-date-ticks-row').style.display = 'flex';
     let d = new Date(windowStart);
     while (calYMD(d) <= windowEnd) {
@@ -2227,20 +2227,6 @@ if (ganttMode === 'zoom') {
     document.getElementById('gantt-date-ticks-row').style.display = 'none';
   }
 
-  if (ganttMode === 'zoom') {
-        let gd = new Date(windowStart);
-        while (calYMD(gd) <= windowEnd) {
-          const gOffset = dayOffset(calYMD(gd));
-          const gPct = (gOffset / totalDays) * 100;
-          const isMonthStart = gd.getDate() === 1;
-          const gLine = document.createElement('div');
-          gLine.dataset.date = calYMD(gd);
-          gLine.style.cssText = `position:absolute; left:${gPct}%; top:0; bottom:0; border-left:${isMonthStart ? '1.5px solid #cbd5e1' : '1px solid #f1f5f9'};`;
-          track.appendChild(gLine);
-          gd.setDate(gd.getDate() + 1);
-        }
-      }
-      if (todayStr >= windowStart && todayStr <= windowEnd) {
   if (todayStr >= windowStart && todayStr <= windowEnd) {
     const todayPct = (dayOffset(todayStr) / totalDays) * 100;
     const todayLine = document.createElement('div');
@@ -2248,31 +2234,7 @@ if (ganttMode === 'zoom') {
     ticksEl.appendChild(todayLine);
   }
 
-function makeBarRow(labelTextRow, isTop, stripe) {
-    const row = document.createElement('div');
-    row.style.cssText = `display:flex; align-items:center; height:20px; background:${stripe ? '#f8fafc' : 'transparent'};`;
-    const left = document.createElement('div');
-    left.style.cssText = `width:56px; flex-shrink:0; position:sticky; left:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:11px; padding-left:8px; font-weight:${isTop ? 700 : 400}; color:${isTop ? '#0f172a' : '#94a3b8'}; border-left:${isTop ? '3px solid ' + p.color : 'none'};`;
-    left.textContent = labelTextRow;
-    row.appendChild(left);
-    const track = document.createElement('div');
-    track.style.cssText = 'flex:1; position:relative; height:100%; cursor:pointer;';
-    const bg = document.createElement('div');
-    bg.style.cssText = 'position:absolute; inset:5px 0; background:#f1f5f9; border-radius:2px;';
-    track.appendChild(bg);
-    if (todayStr >= windowStart && todayStr <= windowEnd) {
-      const todayPct = (dayOffset(todayStr) / totalDays) * 100;
-      const line = document.createElement('div');
-      line.style.cssText = `position:absolute; left:${todayPct}%; top:0; bottom:0; border-left:1px solid #fecaca;`;
-      track.appendChild(line);
-    }
-    row.appendChild(track);
-    const varCellRight = document.createElement('div');
-    varCellRight.style.cssText = `width:70px; flex-shrink:0; position:sticky; right:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1;`;
-    return { row, track, varCellRight };
-  }
-
-data.forEach((p, pIdx) => {
+  data.forEach((p, pIdx) => {
     const overlapsPlan = p.planStart <= windowEnd && p.planEnd >= windowStart;
     const overlapsAct = p.actStart <= windowEnd && p.actEnd >= windowStart;
     if (!overlapsPlan && !overlapsAct) return;
@@ -2286,17 +2248,34 @@ data.forEach((p, pIdx) => {
       left.style.cssText = `width:56px; flex-shrink:0; position:sticky; left:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:11px; padding-left:8px; font-weight:${isTop ? 700 : 400}; color:${isTop ? '#0f172a' : '#94a3b8'}; border-left:${isTop ? '3px solid ' + p.color : 'none'};`;
       left.textContent = labelTextRow;
       row.appendChild(left);
+
       const track = document.createElement('div');
       track.style.cssText = 'flex:1; position:relative; height:100%; cursor:pointer;';
       const bg = document.createElement('div');
       bg.style.cssText = 'position:absolute; inset:5px 0; background:#f1f5f9; border-radius:2px;';
       track.appendChild(bg);
+
+      if (ganttMode === 'zoom') {
+        let gd = new Date(windowStart);
+        while (calYMD(gd) <= windowEnd) {
+          const gOffset = dayOffset(calYMD(gd));
+          const gPct = (gOffset / totalDays) * 100;
+          const isMonthStart = gd.getDate() === 1;
+          const gLine = document.createElement('div');
+          gLine.dataset.date = calYMD(gd);
+          gLine.style.cssText = `position:absolute; left:${gPct}%; top:0; bottom:0; border-left:${isMonthStart ? '1.5px solid #cbd5e1' : '1px solid #f1f5f9'};`;
+          track.appendChild(gLine);
+          gd.setDate(gd.getDate() + 1);
+        }
+      }
+
       if (todayStr >= windowStart && todayStr <= windowEnd) {
         const todayPct = (dayOffset(todayStr) / totalDays) * 100;
         const line = document.createElement('div');
         line.style.cssText = `position:absolute; left:${todayPct}%; top:0; bottom:0; border-left:1px solid #fecaca;`;
         track.appendChild(line);
       }
+
       row.appendChild(track);
       return { row, track };
     }
