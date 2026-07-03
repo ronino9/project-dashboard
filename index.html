@@ -2266,7 +2266,7 @@ function makeBarRow(labelTextRow, isTop, stripe) {
     const actColor = p.done ? '#0f766e' : (p.isDelayed ? '#dc2626' : '#3b82f6');
     const goToProject = () => window.switchTab(p.code === 'CP' ? 'project1cs' : 'project' + p.code.replace('OP', ''));
 
-    const { row: planRow, track: planTrack } = makeBarRow(p.code, true);
+    const { row: actRow, track: actTrack } = makeBarRow('', false, pIdx % 2 === 1);
     if (overlapsPlan) {
       const cs = ganttClamp(p.planStart, windowStart, windowEnd);
       const ce = ganttClamp(p.planEnd, windowStart, windowEnd);
