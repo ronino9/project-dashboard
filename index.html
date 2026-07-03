@@ -2291,7 +2291,7 @@ if (ganttMode === 'zoom') {
         }
       }
 
-      track.onclick = (e) => {
+track.onclick = (e) => {
         const rect = track.getBoundingClientRect();
         const clickX = e.clientX - rect.left;
         const clickPct = (clickX / rect.width) * 100;
@@ -2302,8 +2302,9 @@ if (ganttMode === 'zoom') {
         const dayRows = (window.allMasterData || []).filter(r => r._pName === p.code && calNorm(r['접수일']) === dateStr)
           .map(r => ({ '프로젝트 코드': p.code, '접수일': r['접수일'] || '-', ...r }));
         if (dayRows.length > 0) {
-          e.stopPropagation();
           window.showDetailView(`${dateStr} · ${p.code}`, `${dayRows.length}건`, dayRows);
+        } else {
+          window.showIndivGantt(p.code);
         }
       };
 
