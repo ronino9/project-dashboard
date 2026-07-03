@@ -364,6 +364,29 @@
             </div>
           </div>
         </div>
+          <!-- ▼▼▼ 프로젝트 간트차트 (계획 vs 실행) ▼▼▼ -->
+<div class="chart-card" style="margin-top:7px;">
+  <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
+    <div style="font-size:16px; font-weight:700; color:#0f172a;">📊 프로젝트 진행 간트 (계획 vs 실행)</div>
+    <div style="display:flex; gap:14px; margin-left:auto; font-size:11px; color:#64748b;">
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#93c5fd; margin-right:4px;"></span>계획</span>
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#3b82f6; margin-right:4px;"></span>실행중</span>
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#dc2626; margin-right:4px;"></span>지연중</span>
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#0f766e; margin-right:4px;"></span>완료</span>
+    </div>
+  </div>
+  <div id="gantt-scroll" style="overflow-x:auto; border:1px solid #e2e8f0; border-radius:8px;">
+    <div id="gantt-inner" style="min-width:700px;">
+      <div style="display:flex; border-bottom:1px solid #e2e8f0;">
+        <div style="width:56px; flex-shrink:0; position:sticky; left:0; background:#fff; z-index:2;"></div>
+        <div id="gantt-month-ticks" style="flex:1; position:relative; height:22px;"></div>
+        <div style="width:70px; flex-shrink:0; position:sticky; right:0; background:#fff; z-index:2; font-size:11px; color:#94a3b8; display:flex; align-items:center; justify-content:center;">변동</div>
+      </div>
+      <div id="gantt-rows"></div>
+    </div>
+  </div>
+</div>
+<!-- ▲▲▲ 프로젝트 간트차트 끝 ▲▲▲ -->
 <!-- ▼▼▼ 메인 캘린더 (화이트 테마) ▼▼▼ -->
         <div class="chart-card" style="margin-top:7px;">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
@@ -1015,6 +1038,10 @@ window.allMasterData = [];
   window.renderMasterSlicers();
   window.updateMasterMdChart();
   window.populateGlobalSearchFilters();
+  window.renderMasterSlicers();
+  window.updateMasterMdChart();
+  window.populateGlobalSearchFilters();
+  window.renderProjectGantt();   // ← 추가
 
 }; // <--- 기존 window.renderMainDashboard 함수의 끝을 닫아줍니다.
 
@@ -2035,6 +2062,148 @@ summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD · ${fo
     });
     content.innerHTML = html;
   }
+    function ganttDaysBetween(a, b) {
+  return Math.round((new Date(b) - new Date(a)) / 86400000);
+}
+
+window.computeGanttData = function() {
+  const order = ['OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2'];
+  const colorMap = { OP8:'#d97757', OP7:'#8cc63f', OP6:'#3b82f6', OP5:'#06b6d4', OP4:'#a855f7', OP3:'#f59e0b', OP2:'#db2777' };
+  const todayStr = calYMD(CAL_TODAY);
+
+  return order.map(code => {
+    const rows = (window.allMasterData || []).filter(r => r._pName === code);
+    if (rows.length === 0) return null;
+
+    let planStart = null, planEnd = null, actStart = null;
+    let totalCnt = 0, doneCnt = 0, holdCnt = 0;
+    let actEndCandidates = [];
+
+    rows.forEach(r => {
+      const rece = calNorm(r['접수일']);
+      const due = calNorm(r['완료예정일']);
+      const compl = calNorm(r['완료일']);
+      const status = (r['완료여부'] || '').toString().trim();
+
+      if (rece) {
+        if (!planStart || rece < planStart) planStart = rece;
+        if (!actStart || rece < actStart) actStart = rece;
+      }
+      if (due && (!planEnd || due > planEnd)) planEnd = due;
+
+      totalCnt++;
+      if (status === 'O') {
+        doneCnt++;
+        if (compl) actEndCandidates.push(compl);
+      } else if (status === '보류') {
+        holdCnt++;
+      } else {
+        actEndCandidates.push(todayStr);
+      }
+    });
+
+    if (!planStart || !planEnd) return null;
+
+    const actEnd = actEndCandidates.length
+      ? actEndCandidates.reduce((a, b) => (a > b ? a : b))
+      : actStart;
+    const done = totalCnt > 0 && (doneCnt + holdCnt) === totalCnt && doneCnt > 0;
+    const isDelayed = !done && todayStr > planEnd;
+    const variance = done ? ganttDaysBetween(planEnd, actEnd) : null;
+
+    return {
+      code, color: colorMap[code],
+      planStart, planEnd, actStart, actEnd,
+      done, isDelayed, variance
+    };
+  }).filter(Boolean);
+};
+
+let ganttInstanceBuilt = false;
+
+window.renderProjectGantt = function() {
+  const data = window.computeGanttData();
+  if (data.length === 0) return;
+
+  const allDates = [];
+  data.forEach(p => { allDates.push(p.planStart, p.planEnd, p.actStart, p.actEnd); });
+  allDates.push(calYMD(CAL_TODAY));
+  const globalStart = allDates.reduce((a, b) => (a < b ? a : b));
+  const globalEnd = allDates.reduce((a, b) => (a > b ? a : b));
+  const totalDays = Math.max(ganttDaysBetween(globalStart, globalEnd), 1);
+
+  const dayOffset = (dateStr) => ganttDaysBetween(globalStart, dateStr);
+
+  const ticksEl = document.getElementById('gantt-month-ticks');
+  const rowsEl = document.getElementById('gantt-rows');
+  if (!ticksEl || !rowsEl) return;
+  ticksEl.innerHTML = '';
+  rowsEl.innerHTML = '';
+
+  let cursor = new Date(globalStart);
+  cursor.setDate(1);
+  while (calYMD(cursor) <= globalEnd) {
+    const offset = dayOffset(calYMD(cursor));
+    if (offset >= 0) {
+      const pct = (offset / totalDays) * 100;
+      const tick = document.createElement('div');
+      tick.style.cssText = `position:absolute; left:${pct}%; top:0; bottom:0; border-left:1px solid #f1f5f9; padding-left:4px; font-size:11px; color:#94a3b8; display:flex; align-items:center;`;
+      tick.textContent = (cursor.getMonth() + 1) + '월';
+      ticksEl.appendChild(tick);
+    }
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+
+  function makeBarRow(labelText, isTop) {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; align-items:center; height:20px;';
+    const left = document.createElement('div');
+    left.style.cssText = `width:56px; flex-shrink:0; position:sticky; left:0; background:#fff; z-index:1; font-size:11px; padding-left:8px; font-weight:${isTop ? 700 : 400}; color:${isTop ? '#0f172a' : '#94a3b8'};`;
+    left.textContent = labelText;
+    row.appendChild(left);
+    const track = document.createElement('div');
+    track.style.cssText = 'flex:1; position:relative; height:100%; cursor:pointer;';
+    const bg = document.createElement('div');
+    bg.style.cssText = 'position:absolute; inset:5px 0; background:#f8fafc; border-radius:2px;';
+    track.appendChild(bg);
+    row.appendChild(track);
+    return { row, track };
+  }
+
+  data.forEach(p => {
+    const planStartPct = (dayOffset(p.planStart) / totalDays) * 100;
+    const planWidthPct = (ganttDaysBetween(p.planStart, p.planEnd) / totalDays) * 100;
+    const actStartPct = (dayOffset(p.actStart) / totalDays) * 100;
+    const actWidthPct = (ganttDaysBetween(p.actStart, p.actEnd) / totalDays) * 100;
+    const actColor = p.done ? '#0f766e' : (p.isDelayed ? '#dc2626' : '#3b82f6');
+
+    const { row: planRow, track: planTrack } = makeBarRow(p.code, true);
+    const planBar = document.createElement('div');
+    planBar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${planStartPct}%; width:${planWidthPct}%; background:#93c5fd; border-radius:2px;`;
+    planTrack.appendChild(planBar);
+    planRow.onclick = () => window.switchTab(p.code === 'CP' ? 'project1cs' : 'project' + p.code.replace('OP', ''));
+    rowsEl.appendChild(planRow);
+
+    const { row: actRow, track: actTrack } = makeBarRow('', false);
+    const actBar = document.createElement('div');
+    actBar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${actStartPct}%; width:${actWidthPct}%; background:${actColor}; border-radius:2px;`;
+    actTrack.appendChild(actBar);
+    actRow.onclick = planRow.onclick;
+
+    const varCell = document.createElement('div');
+    const v = p.variance;
+    const vColor = v === null ? (p.isDelayed ? '#dc2626' : '#94a3b8') : (v > 0 ? '#dc2626' : v < 0 ? '#16a34a' : '#94a3b8');
+    const vText = v === null ? (p.isDelayed ? '지연중' : '진행중') : ((v > 0 ? '+' + v : v) + '일');
+    varCell.style.cssText = `width:70px; flex-shrink:0; position:sticky; right:0; background:#fff; z-index:1; font-size:11px; color:${vColor}; text-align:center; font-weight:600;`;
+    varCell.textContent = vText;
+    actRow.appendChild(varCell);
+    rowsEl.appendChild(actRow);
+
+    const spacer = document.createElement('div');
+    spacer.style.cssText = 'height:4px;';
+    rowsEl.appendChild(spacer);
+  });
+};
 // ===== 캘린더 뷰 (_이력사항 기반 / 예정·실적) =====
 let calMode = 'month';
 const CAL_TODAY = new Date(); 
