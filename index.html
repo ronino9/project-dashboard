@@ -6,6 +6,27 @@
   <title>Real-time Control Tower - Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+  .clamp-wrap { position: relative; }
+.clamp-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.5;
+}
+.clamp-text.clamp-expanded {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+.clamp-more-btn {
+  display: none;
+  margin-top: 6px;
+  color: #3b82f6;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.clamp-more-btn.clamp-show { display: inline-block; }  
 * { box-sizing: border-box; margin: 0; padding: 0; }
 /* 👇 여기에 한 줄만 딱 추가해 주시면 됩니다 👇 */
     .hide-scroll::-webkit-scrollbar { display: none; }
@@ -510,6 +531,14 @@
     window.closeDetail = function() {
       document.getElementById('detailView').style.display = 'none';
     }
+    // ✅ 5줄 초과 항목 펼치기/접기 토글
+window.toggleClamp = function(id) {
+  const el = document.getElementById(id);
+  const btn = document.getElementById(id + '-btn');
+  if (!el) return;
+  const expanded = el.classList.toggle('clamp-expanded');
+  if (btn) btn.textContent = expanded ? '접기 ▴' : '더보기 ▾';
+};
 
     // (기존 showDetailView 함수 그대로 유지 - 생략 없이 포함)
 window.showDetailView = function(dateLabel, typeLabel, dataRows) {
@@ -577,7 +606,13 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
               formattedHtml += `<div style="color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">${block.content}</div>`;
             }
           });
-          return `<td style="min-width: 250px; max-width: 400px; white-space: normal; word-break: keep-all; overflow-wrap: break-word; vertical-align: top;">${formattedHtml}</td>`;
+const analysisCellId = `clamp-analysis-${rowIdx}`;
+return `<td style="min-width: 250px; max-width: 400px; vertical-align: top;">
+  <div class="clamp-wrap">
+    <div class="clamp-text" id="${analysisCellId}" style="white-space: normal; word-break: keep-all; overflow-wrap: break-word;">${formattedHtml}</div>
+    <span class="clamp-more-btn" id="${analysisCellId}-btn" onclick="window.toggleClamp('${analysisCellId}')">더보기 ▾</span>
+  </div>
+</td>`;
         }
         if (h === '로그') {
   const photos = row['로그사진경로'] || [];
@@ -593,14 +628,22 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows) {
   }).join('');
   return `<td style="min-width:220px; vertical-align:top;">${listHtml}</td>`;
 }
-        if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
-          let val = row[h] || '-';
-          return `<td style="min-width: 200px; max-width: 350px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; line-height: 1.5; vertical-align: top; color: #e2e8f0;">${val}</td>`;
-        }
+if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
+  let val = row[h] || '-';
+  return `<td style="min-width: 200px; max-width: 350px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; line-height: 1.5; vertical-align: top; color: #e2e8f0;">${val}</td>`;
+}
         return `<td style="vertical-align: top; text-align: center;">${row[h] || '-'}</td>`;
       }).join('') + '</tr>';
     });
     detailTable.innerHTML = html;
+    // ✅ 5줄 넘는 항목만 더보기 버튼 표시
+detailTable.querySelectorAll('.clamp-text').forEach(el => {
+  const btn = document.getElementById(el.id + '-btn');
+  if (!btn) return;
+  if (el.scrollHeight > el.clientHeight + 2) {
+    btn.classList.add('clamp-show');
+  }
+});
     // ✅ 로그사진 복사 버튼 이벤트 연결
 detailTable.querySelectorAll('.log-photo-copy-btn').forEach(btn => {
   btn.onclick = () => copyFilePath(decodeURIComponent(btn.dataset.path));
