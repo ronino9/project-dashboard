@@ -2732,19 +2732,7 @@ row.appendChild(track);
       window.showDetailView(`${it.actStart} · ${code}`, `${dayRows.length}건`, dayRows);
     };
 
-    const { row: planRow, track: planTrack } = makeRow(shortTitle + carryBadge, true, stripe, color);
-    if (it.planStart <= monthEnd && it.planEnd >= monthStart) {
-      const cs = ganttClamp(it.planStart, monthStart, monthEnd), ce = ganttClamp(it.planEnd, monthStart, monthEnd);
-      const startPct = (dayOffset(cs) / totalDays) * 100;
-      const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
-      const bar = document.createElement('div');
-      bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:#93c5fd; border-radius:2px; cursor:pointer;`;
-      bar.onclick = showDay;
-      planTrack.appendChild(bar);
-    }
-    rowsEl.appendChild(planRow);
-
-    const { row: actRow, track: actTrack } = makeRow('', false, stripe, color);
+const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, stripe, color);
     if (it.actStart <= monthEnd && it.actEnd >= monthStart) {
       const cs = ganttClamp(it.actStart, monthStart, monthEnd), ce = ganttClamp(it.actEnd, monthStart, monthEnd);
       const startPct = (dayOffset(cs) / totalDays) * 100;
@@ -2761,15 +2749,13 @@ bar.onclick = (e) => {
   clickedDate.setDate(clickedDate.getDate() + clickedOffset);
   showDayDetail(calYMD(clickedDate));
 };
-planTrack.appendChild(bar);
+actTrack.appendChild(bar);
     }
 const varDays = it.isDone ? ganttDaysBetween(it.planEnd, it.actEnd) : null;
     const vColor = varDays === null ? (it.isHold ? '#94a3b8' : (it.isDelayed ? '#dc2626' : '#94a3b8')) : (varDays > 0 ? '#dc2626' : varDays < 0 ? '#16a34a' : '#94a3b8');
     const vText = varDays === null ? (it.isHold ? '보류' : (it.isDelayed ? '지연중' : '진행중')) : ((varDays > 0 ? '+' + varDays : varDays) + '일');
-    const varCell = document.createElement('div');
-    varCell.style.cssText = `width:70px; flex-shrink:0; position:sticky; right:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:11px; color:${vColor}; text-align:center; font-weight:600;`;
-    varCell.textContent = vText;
-    actRow.appendChild(varCell);
+    actRight.style.cssText += `font-size:11px; color:${vColor}; text-align:center; font-weight:600; display:flex; align-items:center; justify-content:center;`;
+    actRight.textContent = vText;
     rowsEl.appendChild(actRow);
 
     const spacer = document.createElement('div');
@@ -2878,8 +2864,14 @@ rowsEl.style.minWidth = `${totalDays * 20}px`;
       line.style.cssText = `position:absolute; left:${todayPct}%; top:0; bottom:0; border-left:1px solid #fecaca;`;
       track.appendChild(line);
     }
-    row.appendChild(track);
-    return { row, track };
+row.appendChild(track);
+
+    // 🔧 계획/실행 트랙 폭을 동일하게 맞추기 위해 오른쪽 70px 칸을 항상 예약
+    const right = document.createElement('div');
+    right.style.cssText = `width:70px; flex-shrink:0; position:sticky; right:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1;`;
+    row.appendChild(right);
+
+    return { row, track, right };
   }
 
   items.forEach((it, idx) => {
@@ -2922,10 +2914,8 @@ rowsEl.style.minWidth = `${totalDays * 20}px`;
 const varDays = it.isDone ? ganttDaysBetween(it.planEnd, it.actEnd) : null;
     const vColor = varDays === null ? (it.isHold ? '#94a3b8' : (it.isDelayed ? '#dc2626' : '#94a3b8')) : (varDays > 0 ? '#dc2626' : varDays < 0 ? '#16a34a' : '#94a3b8');
     const vText = varDays === null ? (it.isHold ? '보류' : (it.isDelayed ? '지연중' : '진행중')) : ((varDays > 0 ? '+' + varDays : varDays) + '일');
-    const varCell = document.createElement('div');
-    varCell.style.cssText = `width:70px; flex-shrink:0; position:sticky; right:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:11px; color:${vColor}; text-align:center; font-weight:600;`;
-    varCell.textContent = vText;
-    actRow.appendChild(varCell);
+    actRight.style.cssText += `font-size:11px; color:${vColor}; text-align:center; font-weight:600; display:flex; align-items:center; justify-content:center;`;
+    actRight.textContent = vText;
     rowsEl.appendChild(actRow);
 
     const spacer = document.createElement('div');
