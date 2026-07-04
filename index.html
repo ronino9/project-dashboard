@@ -2783,10 +2783,19 @@ window.renderMacroGanttAsIndiv = function(code) {
       const cs = ganttClamp(it.actStart, monthStart, monthEnd), ce = ganttClamp(it.actEnd, monthStart, monthEnd);
       const startPct = (dayOffset(cs) / totalDays) * 100;
       const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
-      const bar = document.createElement('div');
-      bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer;`;
-      bar.onclick = showDay;
-      actTrack.appendChild(bar);
+const bar = document.createElement('div');
+bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:#93c5fd; border-radius:2px; cursor:pointer;`;
+bar.onclick = (e) => {
+  e.stopPropagation();
+  const rect = bar.getBoundingClientRect();
+  const clickRatio = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
+  const barDaySpan = ganttDaysBetween(cs, ce) + 1;
+  const clickedOffset = Math.floor(clickRatio * barDaySpan);
+  const clickedDate = new Date(cs);
+  clickedDate.setDate(clickedDate.getDate() + clickedOffset);
+  showDayDetail(calYMD(clickedDate));
+};
+planTrack.appendChild(bar);
     }
 const varDays = it.isDone ? ganttDaysBetween(it.planEnd, it.actEnd) : null;
     const vColor = varDays === null ? (it.isHold ? '#94a3b8' : (it.isDelayed ? '#dc2626' : '#94a3b8')) : (varDays > 0 ? '#dc2626' : varDays < 0 ? '#16a34a' : '#94a3b8');
