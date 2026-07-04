@@ -2726,13 +2726,25 @@ row.appendChild(track);
     const color = it.isDone ? '#0f766e' : (it.isHold ? '#94a3b8' : (it.isDelayed ? '#dc2626' : '#3b82f6'));
     const carryBadge = it.carriedOver ? ' <span style="color:#dc2626;">⚠이월</span>' : '';
     const shortTitle = it.title.length > 14 ? it.title.slice(0, 14) + '…' : it.title;
-    const showDay = () => {
+const showDay = () => {
       const dayRows = (window.allMasterData || []).filter(r => r._pName === code && calNorm(r['접수일']) === it.actStart)
         .map(r => ({ '프로젝트 코드': code, '접수일': r['접수일'] || '-', ...r }));
       window.showDetailView(`${it.actStart} · ${code}`, `${dayRows.length}건`, dayRows);
     };
 
-const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, stripe, color);
+    const { row: planRow, track: planTrack } = makeRow(shortTitle + carryBadge, true, stripe, color);
+    if (it.planStart <= monthEnd && it.planEnd >= monthStart) {
+      const cs = ganttClamp(it.planStart, monthStart, monthEnd), ce = ganttClamp(it.planEnd, monthStart, monthEnd);
+      const startPct = (dayOffset(cs) / totalDays) * 100;
+      const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
+      const bar = document.createElement('div');
+      bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:#93c5fd; border-radius:2px; cursor:pointer;`;
+      bar.onclick = showDay;
+      planTrack.appendChild(bar);
+    }
+    rowsEl.appendChild(planRow);
+
+const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, stripe, color);;
     if (it.actStart <= monthEnd && it.actEnd >= monthStart) {
       const cs = ganttClamp(it.actStart, monthStart, monthEnd), ce = ganttClamp(it.actEnd, monthStart, monthEnd);
       const startPct = (dayOffset(cs) / totalDays) * 100;
