@@ -2231,9 +2231,14 @@ if (typeof window.renderMacroGanttAsIndiv === 'function') {
   const rowsEl = document.getElementById('gantt-rows');
   if (!ticksEl || !rowsEl || !dateTicksEl) return;
   
-  ticksEl.innerHTML = '';
-  dateTicksEl.innerHTML = '';
-  rowsEl.innerHTML = '';
+ticksEl.innerHTML = '';
+dateTicksEl.innerHTML = '';
+rowsEl.innerHTML = '';
+ticksEl.style.minWidth = `${totalDays * 2}px`;
+dateTicksEl.style.minWidth = `${totalDays * 2}px`;
+rowsEl.style.minWidth = `${totalDays * 2}px`;
+// 상단 X축 눈금선 (월별)
+let cursor = new Date(windowStart
 
   // 상단 X축 눈금선 (월별)
   let cursor = new Date(windowStart);
