@@ -2670,7 +2670,7 @@ window.renderMacroGanttAsIndiv = function(code) {
     const overlapsPlan = planStart <= monthEnd && planEnd >= monthStart;
     const overlapsAct = actStart <= monthEnd && actEnd >= monthStart;
     if (!overlapsPlan && !overlapsAct && !carriedOver) return;
-    items.push({ title: r['표준 제작 Item / Issue / 개선사항'] || '(제목 없음)', planStart, planEnd, actStart, actEnd, isDone, isHold, isDelayed, carriedOver, receRaw: r['접수일'] });
+    items.push({ title: r['표준 제작 Item / Issue / 개선사항'] || '(제목 없음)', planStart, planEnd, actStart, actEnd, isDone, isHold, isDelayed, carriedOver, receRaw: r['접수일'], row: r });
   });
   items.sort((a, b) => (a.carriedOver !== b.carriedOver) ? (a.carriedOver ? -1 : 1) : (a.planEnd < b.planEnd ? -1 : 1));
 
@@ -2739,27 +2739,21 @@ const showDay = () => {
       const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
       const bar = document.createElement('div');
       bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:#93c5fd; border-radius:2px; cursor:pointer;`;
-      bar.onclick = showDay;
+      bar.onclick = showThisItem;
       planTrack.appendChild(bar);
     }
     rowsEl.appendChild(planRow);
 
-const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, stripe, color);;
+const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, stripe, color);
     if (it.actStart <= monthEnd && it.actEnd >= monthStart) {
       const cs = ganttClamp(it.actStart, monthStart, monthEnd), ce = ganttClamp(it.actEnd, monthStart, monthEnd);
       const startPct = (dayOffset(cs) / totalDays) * 100;
       const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
 const bar = document.createElement('div');
-bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:#93c5fd; border-radius:2px; cursor:pointer;`;
+bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer;`;
 bar.onclick = (e) => {
   e.stopPropagation();
-  const rect = bar.getBoundingClientRect();
-  const clickRatio = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
-  const barDaySpan = ganttDaysBetween(cs, ce) + 1;
-  const clickedOffset = Math.floor(clickRatio * barDaySpan);
-  const clickedDate = new Date(cs);
-  clickedDate.setDate(clickedDate.getDate() + clickedOffset);
-  showDayDetail(calYMD(clickedDate));
+  showThisItem();
 };
 actTrack.appendChild(bar);
     }
@@ -2892,10 +2886,9 @@ row.appendChild(track);
     const carryBadge = it.carriedOver ? ' <span style="color:#dc2626;">⚠이월</span>' : '';
     const shortTitle = it.title.length > 14 ? it.title.slice(0, 14) + '…' : it.title;
 
-    const showDayDetail = (dateStr) => {
-      const dayRows = (window.allMasterData || []).filter(r => r._pName === code && calNorm(r['접수일']) === dateStr)
-        .map(r => ({ '프로젝트 코드': code, '접수일': r['접수일'] || '-', ...r }));
-      window.showDetailView(`${dateStr} · ${code}`, `${dayRows.length}건`, dayRows);
+const showThisItem = () => {
+      const rowCopy = { '프로젝트 코드': code, '접수일': it.row['접수일'] || '-', ...it.row };
+      window.showDetailView(`${it.actStart} · ${code}`, it.title, [rowCopy]);
     };
 
     const { row: planRow, track: planTrack } = makeRow(shortTitle + carryBadge, true, stripe, color);
