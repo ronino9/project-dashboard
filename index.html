@@ -2181,8 +2181,8 @@ window.renderProjectGantt = function() {
     const selCode = [...selSet][0];
     const indivCard = document.getElementById('indiv-gantt-card');
     if (indivCard) indivCard.style.display = 'none';
-if (typeof window.renderProjectStageDrilldown === 'function') {
-      window.renderProjectStageDrilldown(selCode);
+if (typeof window.renderMacroGanttAsIndiv === 'function') {
+      window.renderMacroGanttAsIndiv(selCode);
     }
     return;
   }
