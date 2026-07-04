@@ -2241,7 +2241,7 @@ rowsEl.style.minWidth = `${totalDays * 2}px`;
 let cursor = new Date(windowStart)
 
   // 상단 X축 눈금선 (월별)
-  let cursor = new Date(windowStart);
+  cursor = new Date(windowStart);
   cursor.setDate(1);
   while (`${cursor.getFullYear()}-${String(cursor.getMonth()+1).padStart(2,'0')}-${String(cursor.getDate()).padStart(2,'0')}` <= windowEnd) {
     const curStr = `${cursor.getFullYear()}-${String(cursor.getMonth()+1).padStart(2,'0')}-${String(cursor.getDate()).padStart(2,'0')}`;
