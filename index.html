@@ -2572,8 +2572,8 @@ function buildFlatSegments(pName) {
 }
 
 // ── 여기서부터 실제 렌더 루프: cardOrder 순서를 그대로 따라감 ──
-const projColorMap = { OP8:'#d97757', OP7:'#8cc63f', OP6:'#3b82f6', OP5:'#06b6d4', OP4:'#a855f7', OP3:'#f59e0b', OP2:'#db2777', CP_ALL:'#059669', ETC:'#64748b' };
-const orderList = (window.cardOrder && window.cardOrder.length) ? window.cardOrder.map(c => c.id) : ['OP8','OP7','OP6','OP5','OP4','OP3','OP2','CP_ALL'];
+const projColorMap = { OP8:'#d97757', OP7:'#8cc63f', OP6:'#3b82f6', OP5:'#06b6d4', OP4:'#a855f7', OP3:'#f59e0b', OP2:'#db2777', CP_ALL:'#059669', projectEtc:'#64748b' };
+const orderList = (window.cardOrder && window.cardOrder.length) ? window.cardOrder.map(c => c.id) : ['OP8','OP7','OP6','OP5','OP4','OP3','OP2','CP_ALL','projectEtc'];
 
 orderList.forEach((cardId) => {
   // ── OP 프로젝트 ──
@@ -2601,8 +2601,8 @@ orderList.forEach((cardId) => {
     return;
   }
 
-  // ── CS(CP_ALL) / 기타업무(ETC) ──
-  if (cardId === 'CP_ALL' || cardId === 'ETC') {
+  // ── CS(CP_ALL) / 기타업무(projectEtc) ──
+  if (cardId === 'CP_ALL' || cardId === 'projectEtc') {
     const pName = cardId === 'CP_ALL' ? 'CP' : 'ETC';
     const label = cardId === 'CP_ALL' ? 'C/S' : '기타';
     const flat = buildFlatSegments(pName);
