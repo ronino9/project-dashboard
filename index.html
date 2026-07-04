@@ -285,12 +285,12 @@
     <button onclick="window.ganttMove(1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:15px;">›</button>
     <div id="gantt-period-label" style="font-size:14px; font-weight:700; color:#0f172a;"></div>
     
-    <div style="display:flex; gap:14px; margin-left:8px; font-size:11px; color:#64748b;">
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#93c5fd; margin-right:4px;"></span>계획 (Plan)</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#10b981; margin-right:4px;"></span>현장 실행 (Site)</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#f59e0b; margin-right:4px;"></span>원격 대응 (Remote)</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#ef4444; margin-right:4px;"></span>🚨 이슈 발생일</span>
-    </div>
+<div style="display:flex; gap:14px; margin-left:8px; font-size:11px; color:#64748b;">
+  <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#93c5fd; margin-right:4px;"></span>계획 (Plan)</span>
+  <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#10b981; margin-right:4px;"></span>현장 실행 (Site)</span>
+  <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#f59e0b; margin-right:4px;"></span>원격 대응 (Remote)</span>
+  <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#ef4444; margin-right:4px;"></span>🚨 이슈 발생일</span>
+</div>
 
     <div style="margin-left:auto; display:flex; gap:4px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:3px;">
       <button id="gantt-mode-year" onclick="window.ganttSetMode('year')" class="cal-mode-btn">연간</button>
@@ -2281,19 +2281,19 @@ if (typeof window.renderMacroGanttAsIndiv === 'function') {
 // - 날짜 클릭 시 그 날짜의 정확한 상세이력만 표시 (작업 있는 날짜만 클릭 가능)
 // ============================================================================
 
+// 단계별 색상 (파스텔 톤: 제작=파랑/FAT=노랑/SET-UP=주황/SAT=초록)
 const STAGE_COLORS_PLAN = {
-  '제작':   '#bfdbfe',
-  'FAT':    '#ddd6fe',
-  'SET-UP': '#a7f3d0',
-  'SAT':    '#fed7aa'
+  '제작':   '#c7ddf5',
+  'FAT':    '#f5e9b8',
+  'SET-UP': '#f7dcc0',
+  'SAT':    '#c9e8d1'
 };
 const STAGE_COLORS_EXEC = {
-  '제작':   '#3b82f6',
-  'FAT':    '#8b5cf6',
-  'SET-UP': '#10b981',
-  'SAT':    '#f59e0b'
+  '제작':   '#5b9bd5',
+  'FAT':    '#d9b84a',
+  'SET-UP': '#e0975a',
+  'SAT':    '#6fb583'
 };
-const REMOTE_COLOR = '#f59e0b';
 const STAGE_ORDER = ['제작', 'FAT', 'SET-UP', 'SAT'];
 
 // 프로젝트 1개의 4단계 데이터를 "단계별 구간 리스트"로 합성
@@ -2344,10 +2344,10 @@ function renderPlanSegments(track, segs, windowStart, windowEnd, totalDays, dayO
   });
 }
 
-// 실행 막대(하루 단위 셀) 렌더링 - 원격인 날은 노랑으로 덮어씀, 이어진 것처럼 보이게 인접 동일색 병합
+// 실행 막대(하루 단위 셀) 렌더링 - 색은 단계로 통일, 원격 여부는 색과 무관하게 인접일이면 이어붙임
 function renderExecSegments(track, execDays, windowStart, windowEnd, totalDays, dayOffset, onDayClick) {
   if (execDays.length === 0) return;
-  // 인접한 날짜 중 같은 색(원격여부+단계 조합)끼리 묶어서 하나의 막대로 그림
+  // 인접한 날짜 중 같은 단계끼리 묶어서 하나의 막대로 그림 (원격 여부는 색에 영향 없음)
   let i = 0;
   while (i < execDays.length) {
     const start = execDays[i];
@@ -2355,7 +2355,7 @@ function renderExecSegments(track, execDays, windowStart, windowEnd, totalDays, 
     while (
       j + 1 < execDays.length &&
       ganttDaysBetween(execDays[j].date, execDays[j + 1].date) === 1 &&
-      execDays[j + 1].isRemote === start.isRemote
+      execDays[j + 1].stage === start.stage
     ) {
       j++;
     }
@@ -2366,14 +2366,30 @@ function renderExecSegments(track, execDays, windowStart, windowEnd, totalDays, 
       const startPct = (dayOffset(cs) / totalDays) * 100;
       const widthPct = Math.max(((ganttDaysBetween(cs, ce) + 1) / totalDays) * 100, 0.4);
       const bar = document.createElement('div');
-      const color = start.isRemote ? REMOTE_COLOR : (STAGE_COLORS_EXEC[start.stage] || '#94a3b8');
+      const color = STAGE_COLORS_EXEC[start.stage] || '#94a3b8';
       bar.style.cssText = `position:absolute; top:4px; bottom:4px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer; pointer-events:auto;`;
-      bar.title = `${start.stage}${start.isRemote ? ' (원격)' : ''}`;
+      bar.title = start.stage;
       if (onDayClick) bar.onclick = (e) => { e.stopPropagation(); onDayClick(start.date, start.stage); };
       track.appendChild(bar);
     }
     i = j + 1;
   }
+
+  // 원격 마커 (📶) - 막대 색과 별개로, 원격인 날짜 위에 얹는다
+  const seenRemote = new Set();
+  execDays.forEach(({ date, stage, isRemote }) => {
+    if (!isRemote) return;
+    if (date < windowStart || date > windowEnd) return;
+    if (seenRemote.has(date)) return;
+    seenRemote.add(date);
+    const pct = (dayOffset(date) / totalDays) * 100;
+    const marker = document.createElement('div');
+    marker.style.cssText = `position:absolute; top:10px; left:${pct}%; font-size:9px; line-height:1; cursor:pointer; z-index:9; transform:translateX(-50%); pointer-events:auto;`;
+    marker.textContent = '📶';
+    marker.title = `${date} 원격 (${stage})`;
+    if (onDayClick) marker.onclick = (e) => { e.stopPropagation(); onDayClick(date, stage); };
+    track.appendChild(marker);
+  });
 }
 
 // 이슈 마커
