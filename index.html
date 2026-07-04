@@ -2274,10 +2274,13 @@ if (typeof window.renderMacroGanttAsIndiv === 'function') {
   }
 
 // ============================================================================
-// 🎯 매크로 간트 — 프로젝트당 2줄(계획/실행) 압축, 단계는 색 구간으로만 구분
+// 🎯 매크로 간트 — 최종판
+// - 프로젝트명/색상 세로 병합 라벨 (헤더줄 제거)
+// - 원격 날짜는 실행 막대 자체를 노랑으로 오버레이
+// - 그리드 라인이 헤더 날짜 눈금과 정확히 일치 (칸 중앙 기준)
+// - 날짜 클릭 시 그 날짜의 정확한 상세이력만 표시 (작업 있는 날짜만 클릭 가능)
 // ============================================================================
 
-// 단계별 색상
 const STAGE_COLORS_PLAN = {
   '제작':   '#bfdbfe',
   'FAT':    '#ddd6fe',
@@ -2290,13 +2293,13 @@ const STAGE_COLORS_EXEC = {
   'SET-UP': '#10b981',
   'SAT':    '#f59e0b'
 };
+const REMOTE_COLOR = '#f59e0b';
 const STAGE_ORDER = ['제작', 'FAT', 'SET-UP', 'SAT'];
 
 // 프로젝트 1개의 4단계 데이터를 "단계별 구간 리스트"로 합성
 function buildStageSegments(pData) {
   const planSegs = [];
-  const execSegs = [];
-  const remoteDates = [];
+  const execSegs = [];      // { stage, date } 단위로 하루하루 쪼갠 배열 (원격 오버레이를 위해)
   const issueDates = [];
 
   STAGE_ORDER.forEach(stageName => {
@@ -2305,18 +2308,25 @@ function buildStageSegments(pData) {
     if (sData.planStart && sData.planEnd) {
       planSegs.push({ stage: stageName, start: sData.planStart, end: sData.planEnd });
     }
+    const remoteSet = new Set(sData.remoteDays || []);
+    // 실행 구간을 하루 단위로 펼쳐서 원격 여부를 각 날짜에 매핑
     if (sData.actualStart && sData.actualEnd) {
-      execSegs.push({ stage: stageName, start: sData.actualStart, end: sData.actualEnd });
+      let d = new Date(sData.actualStart);
+      const end = new Date(sData.actualEnd);
+      while (d <= end) {
+        const dStr = calYMD(d);
+        execSegs.push({ stage: stageName, date: dStr, isRemote: remoteSet.has(dStr) });
+        d.setDate(d.getDate() + 1);
+      }
     }
-    (sData.remoteDays || []).forEach(d => remoteDates.push({ date: d, stage: stageName }));
     (sData.issueDates || []).forEach(d => issueDates.push({ date: d, stage: stageName }));
   });
 
-  return { planSegs, execSegs, remoteDates, issueDates };
+  return { planSegs, execSegs, issueDates };
 }
 
-// 세그먼트 막대들을 track에 렌더 (겹치는 window로 클리핑)
-function renderStageSegmentTrack(track, segs, colorMap, windowStart, windowEnd, totalDays, dayOffset, onClick) {
+// 계획 막대(구간) 렌더링 - 단계별로 이어진 막대, 색만 다름
+function renderPlanSegments(track, segs, windowStart, windowEnd, totalDays, dayOffset, onClick) {
   segs.forEach(seg => {
     if (seg.end < windowStart || seg.start > windowEnd) return;
     const cs = ganttClamp(seg.start, windowStart, windowEnd);
@@ -2324,15 +2334,47 @@ function renderStageSegmentTrack(track, segs, colorMap, windowStart, windowEnd, 
     const startPct = (dayOffset(cs) / totalDays) * 100;
     const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, 0.4);
     const bar = document.createElement('div');
-    bar.style.cssText = `position:absolute; top:4px; bottom:4px; left:${startPct}%; width:${widthPct}%; background:${colorMap[seg.stage] || '#94a3b8'}; border-radius:2px; cursor:pointer; pointer-events:auto;`;
+    bar.style.cssText = `position:absolute; top:4px; bottom:4px; left:${startPct}%; width:${widthPct}%; background:${STAGE_COLORS_PLAN[seg.stage] || '#94a3b8'}; border-radius:2px; cursor:pointer; pointer-events:auto;`;
     bar.title = seg.stage;
-    if (onClick) bar.onclick = (e) => { e.stopPropagation(); onClick(seg); };
+    if (onClick) bar.onclick = (e) => { e.stopPropagation(); onClick(seg.stage, seg.start, seg.end); };
     track.appendChild(bar);
   });
 }
 
-// 원격/이슈 마커
-function renderStageMarkers(track, dates, windowStart, windowEnd, totalDays, dayOffset, opts) {
+// 실행 막대(하루 단위 셀) 렌더링 - 원격인 날은 노랑으로 덮어씀, 이어진 것처럼 보이게 인접 동일색 병합
+function renderExecSegments(track, execDays, windowStart, windowEnd, totalDays, dayOffset, onDayClick) {
+  if (execDays.length === 0) return;
+  // 인접한 날짜 중 같은 색(원격여부+단계 조합)끼리 묶어서 하나의 막대로 그림
+  let i = 0;
+  while (i < execDays.length) {
+    const start = execDays[i];
+    let j = i;
+    while (
+      j + 1 < execDays.length &&
+      ganttDaysBetween(execDays[j].date, execDays[j + 1].date) === 1 &&
+      execDays[j + 1].isRemote === start.isRemote
+    ) {
+      j++;
+    }
+    const end = execDays[j];
+    if (end.date >= windowStart && start.date <= windowEnd) {
+      const cs = ganttClamp(start.date, windowStart, windowEnd);
+      const ce = ganttClamp(end.date, windowStart, windowEnd);
+      const startPct = (dayOffset(cs) / totalDays) * 100;
+      const widthPct = Math.max(((ganttDaysBetween(cs, ce) + 1) / totalDays) * 100, 0.4);
+      const bar = document.createElement('div');
+      const color = start.isRemote ? REMOTE_COLOR : (STAGE_COLORS_EXEC[start.stage] || '#94a3b8');
+      bar.style.cssText = `position:absolute; top:4px; bottom:4px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer; pointer-events:auto;`;
+      bar.title = `${start.stage}${start.isRemote ? ' (원격)' : ''}`;
+      if (onDayClick) bar.onclick = (e) => { e.stopPropagation(); onDayClick(start.date, start.stage); };
+      track.appendChild(bar);
+    }
+    i = j + 1;
+  }
+}
+
+// 이슈 마커
+function renderIssueMarkers(track, dates, windowStart, windowEnd, totalDays, dayOffset, onClick) {
   const seen = new Set();
   dates.forEach(({ date, stage }) => {
     if (date < windowStart || date > windowEnd) return;
@@ -2340,17 +2382,34 @@ function renderStageMarkers(track, dates, windowStart, windowEnd, totalDays, day
     seen.add(date);
     const pct = (dayOffset(date) / totalDays) * 100;
     const marker = document.createElement('div');
-    marker.style.cssText = `position:absolute; top:${opts.top}; left:${pct}%; font-size:10px; line-height:1; cursor:pointer; z-index:10; transform:translateX(-50%); pointer-events:auto;`;
-    marker.textContent = opts.symbol;
-    marker.title = `${date} (${stage})`;
-    if (opts.onClick) marker.onclick = (e) => { e.stopPropagation(); opts.onClick(date, stage); };
+    marker.style.cssText = `position:absolute; top:1px; left:${pct}%; font-size:10px; line-height:1; cursor:pointer; z-index:10; transform:translateX(-50%); pointer-events:auto;`;
+    marker.textContent = '🚨';
+    marker.title = `${date} 이슈 (${stage})`;
+    if (onClick) marker.onclick = (e) => { e.stopPropagation(); onClick(date, stage); };
     track.appendChild(marker);
   });
 }
 
-// ── 여기서부터 실제 렌더 루프 ──
+// 일별 세로 그리드 - 헤더의 날짜 눈금(칸 중앙 기준)과 정확히 맞춤
+// 헤더는 각 날짜 칸이 cellWidth 폭을 가지고 그 중앙에 숫자가 옴.
+// 그리드 선은 "칸과 칸 사이 경계"에 그어야 시각적으로 맞음 -> 각 날짜 칸의 시작 위치에 선을 긋는다.
+function renderDateGrid(track, windowStart, windowEnd, totalDays, dayOffset) {
+  let d = new Date(windowStart);
+  while (calYMD(d) <= windowEnd) {
+    const dStr = calYMD(d);
+    const offset = dayOffset(dStr);
+    const pct = (offset / totalDays) * 100;
+    const isMonthStart = d.getDate() === 1;
+    const line = document.createElement('div');
+    line.style.cssText = `position:absolute; left:${pct}%; top:0; bottom:0; border-left:${isMonthStart ? '2px solid #94a3b8' : '1px solid #eef1f5'}; pointer-events:none; z-index:${isMonthStart ? 2 : 1};`;
+    track.appendChild(line);
+    d.setDate(d.getDate() + 1);
+  }
+}
+
+// ── 여기서부터 실제 렌더 루프 (프로젝트당 통짜 블록, 세로 병합 라벨) ──
 const targetProjects = ['OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2'];
-const colorMap = { OP8:'#d97757', OP7:'#8cc63f', OP6:'#3b82f6', OP5:'#06b6d4', OP4:'#a855f7', OP3:'#f59e0b', OP2:'#db2777' };
+const projColorMap = { OP8:'#d97757', OP7:'#8cc63f', OP6:'#3b82f6', OP5:'#06b6d4', OP4:'#a855f7', OP3:'#f59e0b', OP2:'#db2777' };
 
 targetProjects.forEach((proj) => {
   const pData = stageGantt[proj];
@@ -2358,91 +2417,87 @@ targetProjects.forEach((proj) => {
 
   const built = buildStageSegments(pData);
 
-  // 프로젝트 타이틀 헤더 바
-  const projHeader = document.createElement('div');
-  projHeader.style.cssText = `display:flex; align-items:center; height:24px; background:#f1f5f9; border-top:1px solid #cbd5e1; border-bottom:1px solid #e2e8f0; font-weight:800; font-size:12px; color:#0f172a; padding-left:12px; cursor:pointer;`;
-  projHeader.innerHTML = `<span style="display:inline-block; width:10px; height:10px; background:${colorMap[proj]}; border-radius:2px; margin-right:6px;"></span>[${proj}] 프로젝트 단계별 타임라인`;
-  projHeader.onclick = () => { if (typeof window.showIndivGantt === 'function') window.showIndivGantt(proj); };
-  rowsEl.appendChild(projHeader);
-
-  // 클릭 핸들러
-  const onSegClick = (seg) => {
-    const dayRows = (window.allMasterData || []).filter(r => r._pName === proj && (r['단계 구분'] || '') === seg.stage);
-    window.showDetailView(`[${proj}] ${seg.stage}`, `${seg.start} ~ ${seg.end}`, dayRows);
+  // 클릭 핸들러: 단계 구간 클릭 시 그 단계 전체 이력
+  const onSegClick = (stage, start, end) => {
+    const dayRows = (window.allMasterData || []).filter(r => r._pName === proj && (r['단계 구분'] || '') === stage);
+    window.showDetailView(`[${proj}] ${stage}`, `${start} ~ ${end}`, dayRows);
   };
-  const onMarkerClick = (date, stage) => {
+  // 클릭 핸들러: 특정 날짜 클릭 시 그 날짜의 실제 데이터만
+  const onDayClick = (date, stage) => {
     const dayRows = (window.allMasterData || []).filter(r => r._pName === proj && (r['접수일'] || '').toString().replace(/[./]/g, '-').substring(0, 10) === date);
     window.showDetailView(`${date} · [${proj}] ${stage}`, `${dayRows.length}건`, dayRows);
   };
 
-  // 행 생성 헬퍼
-  function createStageRow(label, isPlanRow, stripe) {
+  // 프로젝트 블록 컨테이너 (계획줄 + 실행줄, 왼쪽 라벨은 rowspan처럼 병합)
+  const block = document.createElement('div');
+  block.style.cssText = 'display:flex; position:relative; border-top:1px solid #e5e9f0;';
+
+  // 왼쪽 병합 라벨: 색상바 + 프로젝트명 (계획+실행 두 줄 높이만큼, 세로 중앙정렬)
+  const projLabel = document.createElement('div');
+  projLabel.style.cssText = `width:34px; flex-shrink:0; position:sticky; left:0; z-index:2; background:#fff; display:flex; align-items:stretch; cursor:pointer;`;
+  projLabel.onclick = () => { if (typeof window.showIndivGantt === 'function') window.showIndivGantt(proj); };
+  const colorBar = document.createElement('div');
+  colorBar.style.cssText = `width:5px; background:${projColorMap[proj]};`;
+  const projNameWrap = document.createElement('div');
+  projNameWrap.style.cssText = `flex:1; display:flex; align-items:center; justify-content:center;`;
+  const projNameText = document.createElement('div');
+  projNameText.style.cssText = `font-size:11px; font-weight:800; color:#0f172a; writing-mode:horizontal-tb;`;
+  projNameText.textContent = proj;
+  projNameWrap.appendChild(projNameText);
+  projLabel.appendChild(colorBar);
+  projLabel.appendChild(projNameWrap);
+  block.appendChild(projLabel);
+
+  // 오른쪽: 계획/실행 두 줄
+  const rowsWrap = document.createElement('div');
+  rowsWrap.style.cssText = 'flex:1; display:flex; flex-direction:column;';
+
+  function createSubRow(label, stripe) {
     const row = document.createElement('div');
-    row.style.cssText = `display:flex; align-items:center; height:20px; background:${stripe ? '#f8fafc' : '#fff'};`;
+    row.style.cssText = `display:flex; align-items:center; height:22px; background:${stripe ? '#f8fafc' : '#fff'};`;
     const left = document.createElement('div');
-    left.style.cssText = `width:110px; flex-shrink:0; position:sticky; left:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:11px; padding-left:18px; color:${isPlanRow ? '#334155' : '#64748b'}; font-weight:${isPlanRow ? 700 : 500}; display:flex; align-items:center;`;
+    left.style.cssText = `width:76px; flex-shrink:0; position:sticky; left:34px; z-index:2; background:${stripe ? '#f8fafc' : '#fff'}; font-size:11px; color:#64748b; font-weight:600; padding-left:8px; display:flex; align-items:center;`;
     left.textContent = label;
     row.appendChild(left);
 
     const track = document.createElement('div');
-    track.style.cssText = 'flex:1; position:relative; height:100%; cursor:pointer;';
+    track.style.cssText = 'flex:1; position:relative; height:100%; cursor:default;';
     const bg = document.createElement('div');
     bg.style.cssText = 'position:absolute; inset:3px 0; background:#f1f5f9; border-radius:2px; pointer-events:none;';
     track.appendChild(bg);
 
-    // ↓↓↓ 여기 추가: 일별 세로 그리드 + 월 경계 굵게 ↓↓↓
-    let gridDate = new Date(windowStart);
-    while (calYMD(gridDate) <= windowEnd) {
-      const gStr = calYMD(gridDate);
-      const gPct = (dayOffset(gStr) / totalDays) * 100;
-      const isMonthStart = gridDate.getDate() === 1;
-      const gridLine = document.createElement('div');
-      gridLine.style.cssText = `position:absolute; left:${gPct}%; top:0; bottom:0; border-left:${isMonthStart ? '2px solid #94a3b8' : '1px solid #e5e9f0'}; pointer-events:none; z-index:${isMonthStart ? 2 : 1};`;
-      track.appendChild(gridLine);
-      gridDate.setDate(gridDate.getDate() + 1);
-    }
-    // ↑↑↑ 여기까지 추가 ↑↑↑
-    
+    renderDateGrid(track, windowStart, windowEnd, totalDays, dayOffset);
+
     if (todayStr >= windowStart && todayStr <= windowEnd) {
       const todayPct = (dayOffset(todayStr) / totalDays) * 100;
       const line = document.createElement('div');
-      line.style.cssText = `position:absolute; left:${todayPct}%; top:0; bottom:0; border-left:1px solid #fecaca; pointer-events:none;`;
+      line.style.cssText = `position:absolute; left:${todayPct}%; top:0; bottom:0; border-left:1px solid #fca5a5; pointer-events:none; z-index:3;`;
       track.appendChild(line);
     }
 
-    track.onclick = (e) => {
-      if (e.target !== track && e.target !== bg) return;
-      if (typeof window.showIndivGantt === 'function') window.showIndivGantt(proj);
-    };
-
     const right = document.createElement('div');
-    right.style.cssText = `width:70px; flex-shrink:0; position:sticky; right:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1;`;
+    right.style.cssText = `width:70px; flex-shrink:0; position:sticky; right:0; z-index:2; background:${stripe ? '#f8fafc' : '#fff'};`;
     row.appendChild(track);
     row.appendChild(right);
     return { row, track, right };
   }
 
-  // 1) 계획 줄
-  const { row: planRow, track: planTrack } = createStageRow('계획', true, false);
-  renderStageSegmentTrack(planTrack, built.planSegs, STAGE_COLORS_PLAN, windowStart, windowEnd, totalDays, dayOffset, onSegClick);
-  rowsEl.appendChild(planRow);
+  const { row: planRow, track: planTrack } = createSubRow('계획', false);
+  renderPlanSegments(planTrack, built.planSegs, windowStart, windowEnd, totalDays, dayOffset, onSegClick);
+  rowsWrap.appendChild(planRow);
 
-  // 2) 실행 줄
-  const { row: execRow, track: execTrack, right: execRight } = createStageRow('실행', false, true);
-  renderStageSegmentTrack(execTrack, built.execSegs, STAGE_COLORS_EXEC, windowStart, windowEnd, totalDays, dayOffset, onSegClick);
-  renderStageMarkers(execTrack, built.remoteDates, windowStart, windowEnd, totalDays, dayOffset, { symbol: '●', top: '1px', onClick: onMarkerClick });
-  renderStageMarkers(execTrack, built.issueDates, windowStart, windowEnd, totalDays, dayOffset, { symbol: '🚨', top: '10px', onClick: onMarkerClick });
+  const { row: execRow, track: execTrack, right: execRight } = createSubRow('실행', true);
+  renderExecSegments(execTrack, built.execSegs, windowStart, windowEnd, totalDays, dayOffset, onDayClick);
+  renderIssueMarkers(execTrack, built.issueDates, windowStart, windowEnd, totalDays, dayOffset, onDayClick);
 
   const anyOngoing = STAGE_ORDER.some(s => pData[s] && pData[s].actualStart && !pData[s].actualEnd);
   const anyStarted = STAGE_ORDER.some(s => pData[s] && pData[s].actualStart);
   execRight.style.cssText += `font-size:10px; text-align:center; font-weight:700; color:${anyOngoing ? '#3b82f6' : '#64748b'}; display:flex; align-items:center; justify-content:center;`;
   execRight.textContent = anyStarted ? (anyOngoing ? '진행중' : '완료') : '대기';
+  rowsWrap.appendChild(execRow);
 
-  rowsEl.appendChild(execRow);
-
-  const spacer = document.createElement('div');
-  spacer.style.cssText = 'height:6px;';
-  rowsEl.appendChild(spacer);
+  block.appendChild(rowsWrap);
+  rowsEl.appendChild(block);
 });
 };
 let indivGanttCursor = new Date();
