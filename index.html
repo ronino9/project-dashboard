@@ -2603,6 +2603,7 @@ orderList.forEach((cardId) => {
 let indivGanttCursor = new Date();
 let indivGanttProject = null;
 window.renderMacroGanttAsIndiv = function(code) {
+  if (indivGanttProject !== code) indivGanttCursor = new Date();   // 프로젝트가 바뀌면 이번 달로 리셋
   indivGanttProject = code;
   if (!indivGanttCursor) indivGanttCursor = new Date();
 
