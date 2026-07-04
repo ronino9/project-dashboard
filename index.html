@@ -2725,11 +2725,10 @@ row.appendChild(track);
     const stripe = idx % 2 === 1;
     const color = it.isDone ? '#0f766e' : (it.isHold ? '#94a3b8' : (it.isDelayed ? '#dc2626' : '#3b82f6'));
     const carryBadge = it.carriedOver ? ' <span style="color:#dc2626;">⚠이월</span>' : '';
-    const shortTitle = it.title.length > 14 ? it.title.slice(0, 14) + '…' : it.title;
-const showDay = () => {
-      const dayRows = (window.allMasterData || []).filter(r => r._pName === code && calNorm(r['접수일']) === it.actStart)
-        .map(r => ({ '프로젝트 코드': code, '접수일': r['접수일'] || '-', ...r }));
-      window.showDetailView(`${it.actStart} · ${code}`, `${dayRows.length}건`, dayRows);
+const shortTitle = it.title.length > 14 ? it.title.slice(0, 14) + '…' : it.title;
+const showThisItem = () => {
+      const rowCopy = { '프로젝트 코드': code, '접수일': it.row['접수일'] || '-', ...it.row };
+      window.showDetailView(`${it.actStart} · ${code}`, it.title, [rowCopy]);
     };
 
     const { row: planRow, track: planTrack } = makeRow(shortTitle + carryBadge, true, stripe, color);
