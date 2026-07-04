@@ -2173,10 +2173,18 @@ if (typeof window.renderMacroGanttAsIndiv === 'function') {
     return;
   }
 
-  // ② 전체 매크로 간트차트 렌더링 시작
+// ② 전체 매크로 간트차트 렌더링 시작
   const stageGantt = allData.stageGantt;
   if (!stageGantt) return;
 
+  // 🔧 세부 간트가 남긴 헤더 좌측 칸 폭/텍스트 흔적을 원상복구
+  const headerLeftReset = document.querySelector('#gantt-header > div > div:first-child');
+  if (headerLeftReset) {
+    headerLeftReset.style.cssText = 'width:110px; flex-shrink:0; position:sticky; left:0; background:#fff; z-index:2;';
+    headerLeftReset.textContent = '';
+  }
+  const dateHeaderLeftReset = document.querySelector('#gantt-date-ticks-row > div:first-child');
+  if (dateHeaderLeftReset) dateHeaderLeftReset.style.width = '110px';
   // 오늘 날짜 안전하게 가져오기
   const getTodayYMD = () => {
     const d = new Date();
