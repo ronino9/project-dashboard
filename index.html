@@ -2390,6 +2390,19 @@ targetProjects.forEach((proj) => {
     bg.style.cssText = 'position:absolute; inset:3px 0; background:#f1f5f9; border-radius:2px; pointer-events:none;';
     track.appendChild(bg);
 
+    // ↓↓↓ 여기 추가: 일별 세로 그리드 + 월 경계 굵게 ↓↓↓
+    let gridDate = new Date(windowStart);
+    while (calYMD(gridDate) <= windowEnd) {
+      const gStr = calYMD(gridDate);
+      const gPct = (dayOffset(gStr) / totalDays) * 100;
+      const isMonthStart = gridDate.getDate() === 1;
+      const gridLine = document.createElement('div');
+      gridLine.style.cssText = `position:absolute; left:${gPct}%; top:0; bottom:0; border-left:${isMonthStart ? '2px solid #94a3b8' : '1px solid #e5e9f0'}; pointer-events:none; z-index:${isMonthStart ? 2 : 1};`;
+      track.appendChild(gridLine);
+      gridDate.setDate(gridDate.getDate() + 1);
+    }
+    // ↑↑↑ 여기까지 추가 ↑↑↑
+    
     if (todayStr >= windowStart && todayStr <= windowEnd) {
       const todayPct = (dayOffset(todayStr) / totalDays) * 100;
       const line = document.createElement('div');
@@ -2542,6 +2555,20 @@ window.renderMacroGanttAsIndiv = function(code) {
     const bg = document.createElement('div');
     bg.style.cssText = 'position:absolute; inset:5px 0; background:#f1f5f9; border-radius:2px; pointer-events:none;';
     track.appendChild(bg);
+    
+    // ↓↓↓ 여기 추가: 일별 세로 그리드 + 월 경계 굵게 ↓↓↓
+    let gridDate = new Date(monthStart);
+    while (calYMD(gridDate) <= monthEnd) {
+      const gStr = calYMD(gridDate);
+      const gPct = (dayOffset(gStr) / totalDays) * 100;
+      const isMonthStart = gridDate.getDate() === 1;
+      const gridLine = document.createElement('div');
+      gridLine.style.cssText = `position:absolute; left:${gPct}%; top:0; bottom:0; border-left:${isMonthStart ? '2px solid #94a3b8' : '1px solid #e5e9f0'}; pointer-events:none; z-index:${isMonthStart ? 2 : 1};`;
+      track.appendChild(gridLine);
+      gridDate.setDate(gridDate.getDate() + 1);
+    }
+    // ↑↑↑ 여기까지 추가 ↑↑
+    
     if (todayStr >= monthStart && todayStr <= monthEnd) {
       const todayPct = (dayOffset(todayStr) / totalDays) * 100;
       const line = document.createElement('div');
