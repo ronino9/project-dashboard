@@ -2491,7 +2491,7 @@ function renderProjectBlock(proj, label, soloColor, segs, isClickable, onSegClic
   if (segs.colorMode === 'stage') {
     renderPlanSegments(planTrack, segs.planSegs, windowStart, windowEnd, totalDays, dayOffset, onSegClick);
   } else {
-    renderSolidDaySegments(planTrack, segs.planSegs, soloColor, windowStart, windowEnd, totalDays, dayOffset, onDayClick);
+    renderSolidDaySegments(planTrack, segs.planSegs, lightenColor(soloColor, 0.6), windowStart, windowEnd, totalDays, dayOffset, onDayClick);
   }
   rowsWrap.appendChild(planRow);
 
@@ -2509,6 +2509,18 @@ function renderProjectBlock(proj, label, soloColor, segs, isClickable, onSegClic
 
   block.appendChild(rowsWrap);
   rowsEl.appendChild(block);
+}
+
+// hex 색상을 지정 비율만큼 흰색과 섞어 연하게 만든다 (계획 막대용)
+function lightenColor(hex, ratio) {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  const nr = Math.round(r + (255 - r) * ratio);
+  const ng = Math.round(g + (255 - g) * ratio);
+  const nb = Math.round(b + (255 - b) * ratio);
+  return `#${nr.toString(16).padStart(2, '0')}${ng.toString(16).padStart(2, '0')}${nb.toString(16).padStart(2, '0')}`;
 }
 
 // 단색(단계 구분 없는) 날짜 세그먼트 렌더링 - CS/기타업무용. planSegs/execSegs는 { date } 배열
