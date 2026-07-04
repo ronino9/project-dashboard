@@ -2297,9 +2297,11 @@ const REMOTE_COLOR = '#f59e0b';
 const STAGE_ORDER = ['제작', 'FAT', 'SET-UP', 'SAT'];
 
 // 프로젝트 1개의 4단계 데이터를 "단계별 구간 리스트"로 합성
+// 중요: 실행일은 actualStart~actualEnd를 기계적으로 채우지 않고,
+// GAS가 내려주는 execDays(현장)/remoteDays(원격) 실제 날짜 배열만 사용한다.
 function buildStageSegments(pData) {
   const planSegs = [];
-  const execSegs = [];      // { stage, date } 단위로 하루하루 쪼갠 배열 (원격 오버레이를 위해)
+  const execSegs = [];      // { stage, date, isRemote } - 실제 작업이 있었던 날짜만
   const issueDates = [];
 
   STAGE_ORDER.forEach(stageName => {
@@ -2308,19 +2310,20 @@ function buildStageSegments(pData) {
     if (sData.planStart && sData.planEnd) {
       planSegs.push({ stage: stageName, start: sData.planStart, end: sData.planEnd });
     }
-    const remoteSet = new Set(sData.remoteDays || []);
-    // 실행 구간을 하루 단위로 펼쳐서 원격 여부를 각 날짜에 매핑
-    if (sData.actualStart && sData.actualEnd) {
-      let d = new Date(sData.actualStart);
-      const end = new Date(sData.actualEnd);
-      while (d <= end) {
-        const dStr = calYMD(d);
-        execSegs.push({ stage: stageName, date: dStr, isRemote: remoteSet.has(dStr) });
-        d.setDate(d.getDate() + 1);
-      }
-    }
+
+    // 실제 작업일만 수집 (현장 + 원격)
+    const dayMap = {}; // date -> isRemote
+    (sData.execDays || []).forEach(d => { dayMap[d] = false; });
+    (sData.remoteDays || []).forEach(d => { dayMap[d] = true; });
+
+    Object.keys(dayMap).sort().forEach(dStr => {
+      execSegs.push({ stage: stageName, date: dStr, isRemote: dayMap[dStr] });
+    });
+
     (sData.issueDates || []).forEach(d => issueDates.push({ date: d, stage: stageName }));
   });
+
+  execSegs.sort((a, b) => a.date < b.date ? -1 : (a.date > b.date ? 1 : 0));
 
   return { planSegs, execSegs, issueDates };
 }
