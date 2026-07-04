@@ -322,28 +322,7 @@
   </div>
 </div>
 <!-- ▲▲▲ 프로젝트 간트차트 끝 ▲▲▲ -->
-<!-- ▼▼▼ 개별 프로젝트 세부 간트 ▼▼▼ -->
-<div class="chart-card" id="indiv-gantt-card" style="margin-top:7px; display:none;">
-  <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
-    <button onclick="window.closeIndivGantt()" style="background:#f1f5f9; border:1px solid #e2e8f0; color:#475569; padding:4px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;">‹ 매크로 간트로</button>
-    <div id="indiv-gantt-title" style="font-size:15px; font-weight:800; color:#0f172a;"></div>
-    <button onclick="window.indivGanttMove(-1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:15px;">‹</button>
-    <button onclick="window.indivGanttToday()" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; padding:4px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;">이번달</button>
-    <button onclick="window.indivGanttMove(1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:15px;">›</button>
-    <div id="indiv-gantt-period-label" style="font-size:13px; color:#64748b;"></div>
-  </div>
-  <div id="indiv-gantt-scroll" style="overflow-x:auto; border:1px solid #e2e8f0; border-radius:8px;">
-    <div id="indiv-gantt-inner" style="min-width:100%; width:100%;">
-      <div style="display:flex; border-bottom:1px solid #e2e8f0;">
-        <div style="width:160px; flex-shrink:0; position:sticky; left:0; background:#fff; z-index:2;"></div>
-        <div id="indiv-gantt-date-ticks" style="flex:1; position:relative; height:22px;"></div>
-        <div style="width:70px; flex-shrink:0; position:sticky; right:0; background:#fff; z-index:2; font-size:11px; color:#94a3b8; display:flex; align-items:center; justify-content:center;">변동</div>
-      </div>
-      <div id="indiv-gantt-rows"></div>
-    </div>
-  </div>
-</div>
-<!-- ▲▲▲ 개별 프로젝트 세부 간트 끝 ▲▲▲ -->
+
 <div style="display: grid; grid-template-columns: 480px 1fr; gap: 16px; margin-bottom: 14px;">
         <div style="display: flex; flex-direction: column; gap: 14px;">
         
@@ -2447,7 +2426,7 @@ function renderProjectBlock(proj, label, soloColor, segs, isClickable, onSegClic
 
   const projLabel = document.createElement('div');
   projLabel.style.cssText = `width:34px; flex-shrink:0; position:sticky; left:0; z-index:2; background:#fff; display:flex; align-items:stretch; ${isClickable ? 'cursor:pointer;' : ''}`;
-  if (isClickable) projLabel.onclick = () => { if (typeof window.showIndivGantt === 'function') window.showIndivGantt(proj); };
+  if (isClickable) projLabel.onclick = () => { if (typeof window.selectMasterProject === 'function') window.selectMasterProject(proj); };
   const colorBar = document.createElement('div');
   colorBar.style.cssText = `width:5px; background:${soloColor};`;
   const projNameWrap = document.createElement('div');
@@ -2623,25 +2602,6 @@ orderList.forEach((cardId) => {
 };
 let indivGanttCursor = new Date();
 let indivGanttProject = null;
-
-window.showIndivGantt = function(code) {
-  indivGanttProject = code;
-  indivGanttCursor = new Date(CAL_TODAY);
-  document.getElementById('indiv-gantt-card').style.display = 'block';
-  window.renderIndivGantt();
-  document.getElementById('indiv-gantt-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-};
-window.closeIndivGantt = function() {
-  document.getElementById('indiv-gantt-card').style.display = 'none';
-};
-window.indivGanttMove = function(dir) {
-  indivGanttCursor.setMonth(indivGanttCursor.getMonth() + dir);
-  window.renderIndivGantt();
-};
-window.indivGanttToday = function() {
-  indivGanttCursor = new Date(CAL_TODAY);
-  window.renderIndivGantt();
-};
 window.renderMacroGanttAsIndiv = function(code) {
   indivGanttProject = code;
   if (!indivGanttCursor) indivGanttCursor = new Date();
@@ -2751,8 +2711,14 @@ window.renderMacroGanttAsIndiv = function(code) {
       line.style.cssText = `position:absolute; left:${todayPct}%; top:0; bottom:0; border-left:1px solid #fecaca; pointer-events:none;`;
       track.appendChild(line);
     }
-    row.appendChild(track);
-    return { row, track };
+row.appendChild(track);
+
+    // 🔧 계획/실행 트랙 폭을 동일하게 맞추기 위해 오른쪽 70px 칸을 항상 예약
+    const right = document.createElement('div');
+    right.style.cssText = `width:70px; flex-shrink:0; position:sticky; right:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1;`;
+    row.appendChild(right);
+
+    return { row, track, right };
   }
 
   items.forEach((it, idx) => {
