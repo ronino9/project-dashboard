@@ -2829,11 +2829,12 @@ window.renderIndivGantt = function() {
 
   const dayOffset = (dateStr) => ganttDaysBetween(monthStart, dateStr);
 
-  const ticksEl = document.getElementById('indiv-gantt-date-ticks');
-  const rowsEl = document.getElementById('indiv-gantt-rows');
-  if (!ticksEl || !rowsEl) return;
-  ticksEl.innerHTML = '';
-  rowsEl.innerHTML = '';
+const ticksEl = document.getElementById('indiv-gantt-date-ticks');
+const rowsEl = document.getElementById('indiv-gantt-rows');
+ticksEl.innerHTML = '';
+rowsEl.innerHTML = '';
+ticksEl.style.minWidth = `${totalDays * 20}px`;
+rowsEl.style.minWidth = `${totalDays * 20}px`;
 
   let d = new Date(monthStart);
   while (calYMD(d) <= monthEnd) {
