@@ -2432,57 +2432,37 @@ function renderDateGrid(track, windowStart, windowEnd, totalDays, dayOffset) {
   }
 }
 
-// ── 여기서부터 실제 렌더 루프 (프로젝트당 통짜 블록, 세로 병합 라벨) ──
-const targetProjects = ['OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2'];
-const projColorMap = { OP8:'#d97757', OP7:'#8cc63f', OP6:'#3b82f6', OP5:'#06b6d4', OP4:'#a855f7', OP3:'#f59e0b', OP2:'#db2777' };
-
-targetProjects.forEach((proj) => {
-  const pData = stageGantt[proj];
-  if (!pData) return;
-
-  const built = buildStageSegments(pData);
-
-  // 클릭 핸들러: 단계 구간 클릭 시 그 단계 전체 이력
-  const onSegClick = (stage, start, end) => {
-    const dayRows = (window.allMasterData || []).filter(r => r._pName === proj && (r['단계 구분'] || '') === stage);
-    window.showDetailView(`[${proj}] ${stage}`, `${start} ~ ${end}`, dayRows);
-  };
-  // 클릭 핸들러: 특정 날짜 클릭 시 그 날짜의 실제 데이터만
-  const onDayClick = (date, stage) => {
-    const dayRows = (window.allMasterData || []).filter(r => r._pName === proj && (r['접수일'] || '').toString().replace(/[./]/g, '-').substring(0, 10) === date);
-    window.showDetailView(`${date} · [${proj}] ${stage}`, `${dayRows.length}건`, dayRows);
-  };
-
-  // 프로젝트 블록 컨테이너 (계획줄 + 실행줄, 왼쪽 라벨은 rowspan처럼 병합)
+// ── 공통: 프로젝트 1개(OP든 CS/기타업무든)의 블록을 그리는 함수 ──
+// segs = { planSegs, execSegs, issueDates } (execSegs/issueDates 없으면 빈 배열)
+// colorMode: 'stage'면 STAGE_COLORS_* 사용, 'solid'면 고정 색(soloColor) 사용
+function renderProjectBlock(proj, label, soloColor, segs, isClickable, onSegClick, onDayClick) {
   const block = document.createElement('div');
   block.style.cssText = 'display:flex; position:relative; border-top:1px solid #e5e9f0;';
 
-  // 왼쪽 병합 라벨: 색상바 + 프로젝트명 (계획+실행 두 줄 높이만큼, 세로 중앙정렬)
   const projLabel = document.createElement('div');
-  projLabel.style.cssText = `width:34px; flex-shrink:0; position:sticky; left:0; z-index:2; background:#fff; display:flex; align-items:stretch; cursor:pointer;`;
-  projLabel.onclick = () => { if (typeof window.showIndivGantt === 'function') window.showIndivGantt(proj); };
+  projLabel.style.cssText = `width:34px; flex-shrink:0; position:sticky; left:0; z-index:2; background:#fff; display:flex; align-items:stretch; ${isClickable ? 'cursor:pointer;' : ''}`;
+  if (isClickable) projLabel.onclick = () => { if (typeof window.showIndivGantt === 'function') window.showIndivGantt(proj); };
   const colorBar = document.createElement('div');
-  colorBar.style.cssText = `width:5px; background:${projColorMap[proj]};`;
+  colorBar.style.cssText = `width:5px; background:${soloColor};`;
   const projNameWrap = document.createElement('div');
   projNameWrap.style.cssText = `flex:1; display:flex; align-items:center; justify-content:center;`;
   const projNameText = document.createElement('div');
-  projNameText.style.cssText = `font-size:11px; font-weight:800; color:#0f172a; writing-mode:horizontal-tb;`;
-  projNameText.textContent = proj;
+  projNameText.style.cssText = `font-size:11px; font-weight:800; color:#0f172a;`;
+  projNameText.textContent = label;
   projNameWrap.appendChild(projNameText);
   projLabel.appendChild(colorBar);
   projLabel.appendChild(projNameWrap);
   block.appendChild(projLabel);
 
-  // 오른쪽: 계획/실행 두 줄
   const rowsWrap = document.createElement('div');
   rowsWrap.style.cssText = 'flex:1; display:flex; flex-direction:column;';
 
-  function createSubRow(label, stripe) {
+  function createSubRow(rowLabel, stripe) {
     const row = document.createElement('div');
     row.style.cssText = `display:flex; align-items:center; height:22px; background:${stripe ? '#f8fafc' : '#fff'};`;
     const left = document.createElement('div');
     left.style.cssText = `width:76px; flex-shrink:0; position:sticky; left:34px; z-index:2; background:${stripe ? '#f8fafc' : '#fff'}; font-size:11px; color:#64748b; font-weight:600; padding-left:8px; display:flex; align-items:center;`;
-    left.textContent = label;
+    left.textContent = rowLabel;
     row.appendChild(left);
 
     const track = document.createElement('div');
@@ -2508,21 +2488,119 @@ targetProjects.forEach((proj) => {
   }
 
   const { row: planRow, track: planTrack } = createSubRow('계획', false);
-  renderPlanSegments(planTrack, built.planSegs, windowStart, windowEnd, totalDays, dayOffset, onSegClick);
+  if (segs.colorMode === 'stage') {
+    renderPlanSegments(planTrack, segs.planSegs, windowStart, windowEnd, totalDays, dayOffset, onSegClick);
+  } else {
+    renderSolidDaySegments(planTrack, segs.planSegs, soloColor, windowStart, windowEnd, totalDays, dayOffset, onDayClick);
+  }
   rowsWrap.appendChild(planRow);
 
   const { row: execRow, track: execTrack, right: execRight } = createSubRow('실행', true);
-  renderExecSegments(execTrack, built.execSegs, windowStart, windowEnd, totalDays, dayOffset, onDayClick);
-  renderIssueMarkers(execTrack, built.issueDates, windowStart, windowEnd, totalDays, dayOffset, onDayClick);
+  if (segs.colorMode === 'stage') {
+    renderExecSegments(execTrack, segs.execSegs, windowStart, windowEnd, totalDays, dayOffset, onDayClick);
+  } else {
+    renderSolidDaySegments(execTrack, segs.execSegs, soloColor, windowStart, windowEnd, totalDays, dayOffset, onDayClick);
+  }
+  renderIssueMarkers(execTrack, segs.issueDates || [], windowStart, windowEnd, totalDays, dayOffset, onDayClick);
 
-  const anyOngoing = STAGE_ORDER.some(s => pData[s] && pData[s].actualStart && !pData[s].actualEnd);
-  const anyStarted = STAGE_ORDER.some(s => pData[s] && pData[s].actualStart);
-  execRight.style.cssText += `font-size:10px; text-align:center; font-weight:700; color:${anyOngoing ? '#3b82f6' : '#64748b'}; display:flex; align-items:center; justify-content:center;`;
-  execRight.textContent = anyStarted ? (anyOngoing ? '진행중' : '완료') : '대기';
+  execRight.style.cssText += `font-size:10px; text-align:center; font-weight:700; color:${segs.statusColor || '#64748b'}; display:flex; align-items:center; justify-content:center;`;
+  execRight.textContent = segs.statusText || '';
   rowsWrap.appendChild(execRow);
 
   block.appendChild(rowsWrap);
   rowsEl.appendChild(block);
+}
+
+// 단색(단계 구분 없는) 날짜 세그먼트 렌더링 - CS/기타업무용. planSegs/execSegs는 { date } 배열
+function renderSolidDaySegments(track, days, color, windowStart, windowEnd, totalDays, dayOffset, onDayClick) {
+  if (!days || days.length === 0) return;
+  const sorted = [...days].sort((a, b) => a.date < b.date ? -1 : (a.date > b.date ? 1 : 0));
+  let i = 0;
+  while (i < sorted.length) {
+    const start = sorted[i];
+    let j = i;
+    while (j + 1 < sorted.length && ganttDaysBetween(sorted[j].date, sorted[j + 1].date) === 1) {
+      j++;
+    }
+    const end = sorted[j];
+    if (end.date >= windowStart && start.date <= windowEnd) {
+      const cs = ganttClamp(start.date, windowStart, windowEnd);
+      const ce = ganttClamp(end.date, windowStart, windowEnd);
+      const startPct = (dayOffset(cs) / totalDays) * 100;
+      const widthPct = Math.max(((ganttDaysBetween(cs, ce) + 1) / totalDays) * 100, 0.4);
+      const bar = document.createElement('div');
+      bar.style.cssText = `position:absolute; top:4px; bottom:4px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer; pointer-events:auto;`;
+      if (onDayClick) bar.onclick = (e) => { e.stopPropagation(); onDayClick(start.date, ''); };
+      track.appendChild(bar);
+    }
+    i = j + 1;
+  }
+}
+
+// CS/기타업무 데이터 구성: 계획=접수일 있는 모든 건, 실행=진행상태 완료인 건만
+function buildFlatSegments(pName) {
+  const rows = (window.allMasterData || []).filter(r => r._pName === pName);
+  const planSegs = [];
+  const execSegs = [];
+  rows.forEach(r => {
+    const dateStr = (r['접수일'] || '').toString().replace(/[./]/g, '-').substring(0, 10);
+    if (!dateStr) return;
+    planSegs.push({ date: dateStr });
+    const status = (r['진행상태'] || '').toString().trim();
+    if (status === '완료') execSegs.push({ date: dateStr });
+  });
+  const anyDone = execSegs.length > 0;
+  return {
+    colorMode: 'solid',
+    planSegs, execSegs, issueDates: [],
+    statusColor: '#64748b',
+    statusText: anyDone ? '진행' : '대기'
+  };
+}
+
+// ── 여기서부터 실제 렌더 루프: cardOrder 순서를 그대로 따라감 ──
+const projColorMap = { OP8:'#d97757', OP7:'#8cc63f', OP6:'#3b82f6', OP5:'#06b6d4', OP4:'#a855f7', OP3:'#f59e0b', OP2:'#db2777', CP_ALL:'#059669', ETC:'#64748b' };
+const orderList = (window.cardOrder && window.cardOrder.length) ? window.cardOrder.map(c => c.id) : ['OP8','OP7','OP6','OP5','OP4','OP3','OP2','CP_ALL'];
+
+orderList.forEach((cardId) => {
+  // ── OP 프로젝트 ──
+  if (stageGantt[cardId]) {
+    const proj = cardId;
+    const pData = stageGantt[proj];
+    const built = buildStageSegments(pData);
+    built.colorMode = 'stage';
+
+    const anyOngoing = STAGE_ORDER.some(s => pData[s] && pData[s].actualStart && !pData[s].actualEnd);
+    const anyStarted = STAGE_ORDER.some(s => pData[s] && pData[s].actualStart);
+    built.statusColor = anyOngoing ? '#3b82f6' : '#64748b';
+    built.statusText = anyStarted ? (anyOngoing ? '진행중' : '완료') : '대기';
+
+    const onSegClick = (stage, start, end) => {
+      const dayRows = (window.allMasterData || []).filter(r => r._pName === proj && (r['단계 구분'] || '') === stage);
+      window.showDetailView(`[${proj}] ${stage}`, `${start} ~ ${end}`, dayRows);
+    };
+    const onDayClick = (date, stage) => {
+      const dayRows = (window.allMasterData || []).filter(r => r._pName === proj && (r['접수일'] || '').toString().replace(/[./]/g, '-').substring(0, 10) === date);
+      window.showDetailView(`${date} · [${proj}] ${stage || ''}`, `${dayRows.length}건`, dayRows);
+    };
+
+    renderProjectBlock(proj, proj, projColorMap[proj] || '#94a3b8', built, true, onSegClick, onDayClick);
+    return;
+  }
+
+  // ── CS(CP_ALL) / 기타업무(ETC) ──
+  if (cardId === 'CP_ALL' || cardId === 'ETC') {
+    const pName = cardId === 'CP_ALL' ? 'CP' : 'ETC';
+    const label = cardId === 'CP_ALL' ? 'C/S' : '기타';
+    const flat = buildFlatSegments(pName);
+
+    const onDayClick = (date) => {
+      const dayRows = (window.allMasterData || []).filter(r => r._pName === pName && (r['접수일'] || '').toString().replace(/[./]/g, '-').substring(0, 10) === date);
+      window.showDetailView(`${date} · ${label}`, `${dayRows.length}건`, dayRows);
+    };
+
+    renderProjectBlock(cardId, label, projColorMap[cardId] || '#94a3b8', flat, false, null, onDayClick);
+  }
 });
 };
 let indivGanttCursor = new Date();
