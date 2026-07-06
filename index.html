@@ -2146,9 +2146,12 @@ window.ganttToday = function() {
 // 2. 메인 간트차트 렌더링 함수
 window.renderProjectGantt = function() {
   // ① 상단 슬라이서에서 특정 프로젝트를 1개만 골랐다면 세부 간트로 전환
-  const selSet = window.masterMdFilters && window.masterMdFilters['프로젝트'];
+const selSet = window.masterMdFilters && window.masterMdFilters['프로젝트'];
   if (selSet && selSet.size === 1) {
-    const selCode = [...selSet][0];
+    let selCode = [...selSet][0];
+    // 카드 코드값 → allMasterData의 _pName 값으로 정규화
+    if (selCode === 'projectEtc') selCode = 'ETC';
+    else if (selCode === 'CP_ALL') selCode = 'CP';
     const indivCard = document.getElementById('indiv-gantt-card');
     if (indivCard) indivCard.style.display = 'none';
 if (typeof window.renderMacroGanttAsIndiv === 'function') {
