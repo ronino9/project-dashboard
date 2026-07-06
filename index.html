@@ -4173,70 +4173,138 @@ window._pdcaCalc = { total, execRate, execN, complianceRate, reworkRate, reworkC
 let pdcaReworkChartInstance = null;
 let pdcaImproveChartInstance = null;
 
+// ===== PDCA 차트: 엔지니어링 표준화 ROI & 차수별 공수 절감 증명 엔진 =====
+let pdcaReworkChartInstance = null;
+let pdcaImproveChartInstance = null;
+
 window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImproveTag) {
-  // ── 능동 개선 월별 추이 (문제 아닌 건의 개선 태그) ──
-  const activeMonthMap = {};
-  rows.forEach(r => {
-    if (isProblem(r) || !hasImproveTag(r)) return;
-    const raw = (r['접수일'] || '').toString().replace(/\//g, '-');
-    if (raw.length < 7) return;
-    const mk = raw.substring(0, 7);
-    activeMonthMap[mk] = (activeMonthMap[mk] || 0) + 1;
-  });
+  
+  // 💡 1. 타이틀 영역을 엔지니어링 철학에 맞게 자동 개조
+  const chartCanvas = document.getElementById('pdcaReworkChart');
+  if (chartCanvas && chartCanvas.parentElement) {
+    const titleContainer = chartCanvas.parentElement.querySelector('div');
+    if (titleContainer) {
+      titleContainer.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+          <div style="font-size:15px; font-weight:800; color:#0f172a;">
+            🚀 프로젝트 차수별 이슈 소각 & 표준화 ROI
+            <span style="font-size:12px; font-weight:600; color:#3b82f6;">| 러닝 커브 증명</span>
+          </div>
+          <span style="font-size:11px; background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:2px 8px; border-radius:12px; font-weight:700;">
+            ✔ 표준 자산화 효과 추적
+          </span>
+        </div>
+      `;
+    }
+  }
 
-  // ── 재작업률 월별 추이 (접수일 기준) ──
-  const monthMap = {};
+  // ── 2. 프로젝트 차수별(OP2 -> OP3 -> ... -> OP8 -> CP) 공수 데이터 집계 ──
+  const projOrder = ['OP2', 'OP3', 'OP4', 'OP5', 'OP6', 'OP7', 'OP8', 'CP'];
+  const projAgg = {};
+  projOrder.forEach(p => { projAgg[p] = { totalMd: 0, issueMd: 0, stdMd: 0 }; });
+
   rows.forEach(r => {
-    const raw = (r['접수일'] || '').toString().replace(/\//g, '-');
-    if (raw.length < 7) return;
-    const mk = raw.substring(0, 7);
-    if (!monthMap[mk]) monthMap[mk] = { total: 0, rework: 0 };
-    monthMap[mk].total++;
+    let pName = r._pName || '';
+    if (!projAgg[pName]) return;
+
+    const md = parseFloat(r['공수(MD)']) || 0;
+    projAgg[pName].totalMd += md;
+
+    const task = (r['업무 구분'] || '').toString().trim();
+    const status = (r['진행상태'] || '').toString().trim();
     const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
-    if (yn === 'Y') monthMap[mk].rework++;
-  });
-  const months = Object.keys(monthMap).sort();
-  const reworkTrend = months.map(m => monthMap[m].total > 0 ? +(monthMap[m].rework / monthMap[m].total * 100).toFixed(1) : 0);
 
+    // 이슈/재작업 등 허비·트러블슈팅에 들어간 공수
+    if (task === 'Issue' || status === '지연중' || yn === 'Y') {
+      projAgg[pName].issueMd += md;
+    }
+    // 자별적인 개선, 표준화, 기술 지원 등 자산화에 기여한 공수
+    else if (task === '표준' || task === '개선' || hasImproveTag(r)) {
+      projAgg[pName].stdMd += md;
+    }
+  });
+
+  // 데이터가 실제로 존재하는 프로젝트 차수만 필터링
+  const validProjs = projOrder.filter(p => projAgg[p].totalMd > 0);
+  const issueMdArr = validProjs.map(p => +(projAgg[p].issueMd.toFixed(1)));
+  const stdMdArr = validProjs.map(p => +(projAgg[p].stdMd.toFixed(1)));
+  // 이슈 비중 (전체 MD 중 이슈 MD가 차지하는 비율 - 하향할수록 훌륭함)
+  const issueRateArr = validProjs.map(p => {
+    const t = projAgg[p].totalMd;
+    return t > 0 ? +((projAgg[p].issueMd / t) * 100).toFixed(1) : 0;
+  });
+
+  // ── 3. 프로젝트 차수별 복합 차트 그리기 ──
   if (pdcaReworkChartInstance) pdcaReworkChartInstance.destroy();
   pdcaReworkChartInstance = new Chart(document.getElementById('pdcaReworkChart'), {
-    type: 'line',
+    type: 'bar',
     data: {
-      labels: months.map(m => m.substring(2)),
+      labels: validProjs,
       datasets: [
         {
-          label: '재작업률(%)',
-          data: reworkTrend,
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59,130,246,0.1)',
-          borderWidth: 3,
-          fill: true,
-          tension: 0.4,
-          pointBackgroundColor: '#3b82f6',
-          pointRadius: 4
+          type: 'line',
+          label: '이슈 공수 비중 (%)',
+          data: issueRateArr,
+          borderColor: '#ef4444',
+          borderWidth: 2.5,
+          pointBackgroundColor: '#ef4444',
+          pointRadius: 4,
+          tension: 0.3,
+          yAxisID: 'yRate'
         },
         {
-          label: `To-Be(${TARGET.rework}%)`,
-          data: months.map(() => TARGET.rework),
-          borderColor: '#10b981',
-          borderWidth: 2,
-          borderDash: [6, 4],
-          pointRadius: 0,
-          fill: false
+          type: 'bar',
+          label: '🚨 이슈/재작업 해결 MD (시행착오)',
+          data: issueMdArr,
+          backgroundColor: '#fca5a5',
+          borderColor: '#ef4444',
+          borderWidth: 1,
+          borderRadius: 4,
+          yAxisID: 'yMd'
+        },
+        {
+          type: 'bar',
+          label: '🛡️ 표준화/개선 투자 MD (자산화)',
+          data: stdMdArr,
+          backgroundColor: '#3b82f6',
+          borderRadius: 4,
+          yAxisID: 'yMd'
         }
       ]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'top', align: 'end', labels: { boxWidth: 12, font: { size: 11 } } } },
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', align: 'end', labels: { boxWidth: 10, font: { size: 11, weight: 600 } } },
+        tooltip: {
+          callbacks: {
+            footer: (tooltipItems) => {
+              const idx = tooltipItems[0].dataIndex;
+              const p = validProjs[idx];
+              return `총 투입 공수: ${projAgg[p].totalMd.toFixed(1)} MD`;
+            }
+          }
+        }
+      },
       scales: {
-        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 11 } } },
-        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { color: '#64748b', font: { size: 11 }, callback: v => v + '%' } }
+        x: { grid: { display: false }, ticks: { font: { size: 11, weight: 700 }, color: '#0f172a' } },
+        yMd: {
+          type: 'linear', display: true, position: 'left',
+          title: { display: true, text: '투입 공수 (MD)', font: { size: 10, weight: 700 } },
+          grid: { color: '#f1f5f9' }, stacked: false
+        },
+        yRate: {
+          type: 'linear', display: true, position: 'right',
+          title: { display: true, text: '이슈 비중 (%)', font: { size: 10, weight: 700 }, color: '#ef4444' },
+          grid: { display: false }, min: 0, max: 100,
+          ticks: { callback: v => v + '%' }
+        }
       }
     }
   });
 
-  // ── 개선 유형 분포 (도넛) ──
+  // ── 4. 개선 유형 분포 (도넛 - 기존 로직 유지) ──
   const impLabels = Object.keys(improveDist);
   const impData = impLabels.map(k => improveDist[k]);
   const impColors = ['#3b82f6', '#10b981', '#a855f7', '#f59e0b', '#94a3b8'];
@@ -4249,7 +4317,6 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
     options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false } } }
   });
 
-  // 개선 유형 범례
   document.getElementById('pdca-improve-legend').innerHTML = impTotal === 0
     ? '<div style="font-size:12px; color:#94a3b8; text-align:center;">아직 [개선-*] 태그 데이터가 없습니다</div>'
     : impLabels.map((k, i) => {
@@ -4260,23 +4327,7 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
         </div>`;
       }).join('');
 
-  // 능동 개선 월별 추이 텍스트 (범례 아래)
-  const actMonths = Object.keys(activeMonthMap).sort();
-  if (actMonths.length > 0) {
-    const last = actMonths[actMonths.length - 1];
-    const prev = actMonths.length > 1 ? actMonths[actMonths.length - 2] : null;
-    const lastN = activeMonthMap[last];
-    const prevN = prev ? activeMonthMap[prev] : 0;
-    const diff = lastN - prevN;
-    const arrow = diff > 0 ? `▲${diff}` : (diff < 0 ? `▼${Math.abs(diff)}` : '=');
-    const arrowColor = diff > 0 ? '#16a34a' : (diff < 0 ? '#dc2626' : '#94a3b8');
-    document.getElementById('pdca-improve-legend').innerHTML += `<div style="margin-top:8px; padding-top:8px; border-top:1px solid #f1f5f9; font-size:12px; color:#475569; display:flex; justify-content:space-between;">
-      <span>💡 능동 개선 (이번달)</span>
-      <span style="font-weight:700; color:#0f172a;">${lastN}건 <span style="color:${arrowColor};">${arrow}</span></span>
-    </div>`;
-  }
-
-  // ── 자동 액션 리스트: 재작업 몰린 파트/단계 지목 ──
+  // ── 5. 하단 To-Do 카드 (앞서 구현한 클릭 Drill-down 유지) ──
   const groupRework = (colName) => {
     const g = {};
     rows.forEach(r => {
@@ -4296,25 +4347,6 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
   const byStage = groupRework('단계 구분');
   const byPart = groupRework('파트 구분');
 
-// 💡 1. 클릭 시 해당 파트/단계의 재작업 원인 데이터를 팝업으로 띄워주는 Drill-down 함수
-  window.showReworkDrilldown = function(colName, keyName) {
-    if (!window.allMasterData) return;
-    const matched = window.allMasterData
-      .filter(r => {
-        const val = (r[colName] || '').toString().trim();
-        const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
-        return val === keyName && yn === 'Y';
-      })
-      .map(r => ({ '프로젝트 코드': r._pName, '접수일': r['접수일'] || '-', ...r }));
-
-    if (matched.length === 0) {
-      alert('상세 재작업 데이터가 없습니다.');
-      return;
-    }
-    window.showDetailView(`🚨 [재작업 정밀 진단] ${colName}: ${keyName}`, `총 ${matched.length}건 발견`, matched);
-  };
-
-  // 💡 2. To-Do 카드에 마우스 호버 및 클릭 이벤트 장착
   const actionItem = (icon, label, colName, x) => `
     <div onclick="window.showReworkDrilldown('${colName}', '${x.key}')" style="background:#f8fafc; border:1px solid #e2e8f0; border-left:4px solid #a855f7; border-radius:8px; padding:12px 16px; margin-bottom:8px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.transform='translateX(3px)';" onmouseout="this.style.background='#f8fafc'; this.style.transform='none';">
       <div style="font-size:13px; font-weight:700; color:#0f172a; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
@@ -4334,7 +4366,6 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
 
   document.getElementById('pdca-action-list').innerHTML = actionHtml ||
     '<div style="padding:20px; text-align:center; color:#16a34a; font-weight:600;">✅ 재작업이 집중된 파트·단계가 없습니다. 양호합니다.</div>';
-  
 };
   </script>
 </body>
