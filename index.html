@@ -2826,8 +2826,21 @@ const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, str
           actTrack.appendChild(issueMark);
         }
       }
-    } else {
-// 다건 그룹 — 실제 작업일만 이어붙이고, 건너뛴 날짜는 끊어서 별도 조각으로 표시
+} else {
+      // ── [다건 그룹] 시작일~완료일 전체를 옅은 색으로 깔고, 실작업일만 진하게 덮어쓰기 ──
+
+      // 1. 브릿지 바 (지연/대기 기간): 시작일(6/13)~완료일(6/20 또는 오늘) 전체를 옅은 색(opacity: 0.25)으로 연결
+      if (it.actStart <= monthEnd && it.actEnd >= monthStart) {
+        const cs = ganttClamp(it.actStart, monthStart, monthEnd);
+        const ce = ganttClamp(it.actEnd, monthStart, monthEnd);
+        const startPct = (dayOffset(cs) / totalDays) * 100;
+        const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
+        const bridgeBar = document.createElement('div');
+        bridgeBar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${color}; opacity:0.25; border-radius:2px; pointer-events:none;`;
+        actTrack.appendChild(bridgeBar);
+      }
+
+      // 2. 실작업 바 (투입일): 실제 기록이 있는 날짜(6/13, 6/20)만 진한 색(opacity: 1.0)으로 위에 얹기
       const execDaysInMonth = it.execDays.filter(d => d.date >= monthStart && d.date <= monthEnd);
       let ei = 0;
       while (ei < execDaysInMonth.length) {
@@ -2838,19 +2851,19 @@ const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, str
         const cs = execDaysInMonth[ei].date, ce = execDaysInMonth[ej].date;
         const startPct = (dayOffset(cs) / totalDays) * 100;
         const widthPct = Math.max(((ganttDaysBetween(cs, ce) + 1) / totalDays) * 100, (100 / totalDays) * 0.9);
-        const bar = document.createElement('div');
-        bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer;`;
-        // 이 조각(같은 날짜 구간)에 실제로 해당하는 행들만 상세이력에 보여줌 (그룹 대표행이 아니라 그 날짜의 실제 행)
+        const solidBar = document.createElement('div');
+        solidBar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${color}; opacity:1.0; border-radius:2px; cursor:pointer; z-index:2;`;
+        
         const segRows = execDaysInMonth.slice(ei, ej + 1).map(d => d.row);
-        bar.onclick = (e) => {
+        solidBar.onclick = (e) => {
           e.stopPropagation();
           const rowCopies = segRows.map(r => ({ '프로젝트 코드': code, '접수일': r['접수일'] || '-', ...r }));
           const dateLabel = cs === ce ? cs : `${cs} ~ ${ce}`;
           window.showDetailView(`${dateLabel} · ${code}`, it.title, rowCopies);
         };
-        actTrack.appendChild(bar);
+        actTrack.appendChild(solidBar);
 
-        // 📶 원격 / 🚨 이슈 마커 (조각 내 각 날짜의 실제 행 기준으로 판별)
+        // 📶 원격 / 🚨 이슈 마커 (진한 실작업 바 위에 표시)
         for (let k = ei; k <= ej; k++) {
           const dRow = execDaysInMonth[k].row;
           const dPct = (dayOffset(execDaysInMonth[k].date) / totalDays) * 100;
@@ -2869,7 +2882,7 @@ const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, str
             actTrack.appendChild(issueMark);
           }
         }
-ei = ej + 1;
+        ei = ej + 1;
       }
     }
 
