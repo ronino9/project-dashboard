@@ -2604,7 +2604,30 @@ const INDIV_TASK_COLOR = {
 function indivTaskColor(taskType) {
   return INDIV_TASK_COLOR[(taskType || '').toString().trim()] || '#D4AC0D';
 }
-
+// 💡 간트차트 막대가 왼쪽에서 오른쪽으로 게이지처럼 차오르는 애니메이션 엔진!
+window.applyGanttAnimation = function() {
+  if (!document.getElementById('gantt-anim-style')) {
+    const style = document.createElement('style');
+    style.id = 'gantt-anim-style';
+    style.innerHTML = `
+      @keyframes growBarRight {
+        0% { transform: scaleX(0); }
+        100% { transform: scaleX(1); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  const rowsEl = document.getElementById('gantt-rows');
+  if (!rowsEl) return;
+  
+  rowsEl.querySelectorAll('div').forEach(el => {
+    // 왼쪽 위치(left), 폭(width), 둥근모서리(borderRadius)를 모두 가진 요소가 바로 간트 막대!
+    if (el.style.left && el.style.width && el.style.borderRadius) {
+      el.style.transformOrigin = 'left center';
+      el.style.animation = 'growBarRight 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+    }
+  });
+};
 // 💡 어디서든 색상을 연하게 변환할 수 있도록 공용(전역) 함수로 등록!
 window.lightenColor = function(hex, ratio) {
   if (!hex || typeof hex !== 'string') return '#cbd5e1';
@@ -2994,6 +3017,8 @@ const varDays = it.isDone ? ganttDaysBetween(it.planEnd, it.actEnd) : null;
     rowsEl.appendChild(spacer);
   });
 };
+    window.applyGanttAnimation(); // 💡 딱 한 줄 추가! 게이지 애니메이션 발사!
+  };
 window.renderIndivGantt = function() {
   const code = indivGanttProject;
   if (!code) return;
