@@ -2598,7 +2598,8 @@ let indivGanttProject = null;
 // 단, 보류 상태는 이 색을 무시하고 무조건 회색으로 덮어씀 (아래 렌더 로직에서 처리)
 const INDIV_TASK_COLOR = {
   '이슈': '#C0392B', 'Issue': '#C0392B',
-  '표준': '#3498DB', '기술지원': '#3498DB', '기능요구': '#3498DB'
+  '표준': '#3498DB', '기술지원': '#3498DB', '기능요구': '#3498DB',
+  '개선': '#27AE60' // 💡 여기에 '개선'을 녹색으로 확실하게 추가!
 };
 function indivTaskColor(taskType) {
   return INDIV_TASK_COLOR[(taskType || '').toString().trim()] || '#D4AC0D';
