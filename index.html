@@ -2740,6 +2740,9 @@ const rows = (window.allMasterData || []).filter(r => r._pName === code);
   });
 items.sort((a, b) => (a.carriedOver !== b.carriedOver) ? (a.carriedOver ? -1 : 1) : (a.planEnd < b.planEnd ? -1 : 1));
 
+  // 💡 0. 필터 전역 변수 초기화
+  if (!window.indivTaskFilter) window.indivTaskFilter = 'ALL';
+
   // 💡 1. 이번 달 카테고리별 실시간 건수(Count) 자동 집계
   const counts = { ISSUE: 0, IMPROVE: 0, STD: 0, ETC: 0, HOLD: 0 };
   items.forEach(it => {
@@ -2759,45 +2762,45 @@ items.sort((a, b) => (a.carriedOver !== b.carriedOver) ? (a.carriedOver ? -1 : 1
     }
   });
 
-  // 💡 2. 상단 버튼 텍스트(숫자) 업데이트 & 0건 항목 스마트 비활성화 처리
+  // 만약 달을 이동했는데 현재 켜둔 필터 카테고리가 이번 달엔 0건이라면 자동으로 'ALL'로 복귀 (센스 있는 방어!)
+  if (window.indivTaskFilter !== 'ALL' && counts[window.indivTaskFilter] === 0) {
+    window.indivTaskFilter = 'ALL';
+  }
+
+  // 💡 2. 상단 버튼 텍스트(숫자) & 활성화/비활성화 스타일 실시간 동기화
   Object.keys(counts).forEach(key => {
     const cntSpan = document.getElementById(`cnt-${key}`);
     const btnEl = document.getElementById(`btn-filter-${key}`);
     if (cntSpan) cntSpan.textContent = counts[key];
     if (btnEl) {
+      const isTarget = window.indivTaskFilter === key;
       if (counts[key] === 0) {
         btnEl.style.opacity = '0.25';
         btnEl.style.cursor = 'not-allowed';
+        btnEl.style.boxShadow = 'none';
       } else {
+        btnEl.style.opacity = (window.indivTaskFilter === 'ALL' || isTarget) ? '1' : '0.35';
         btnEl.style.cursor = 'pointer';
+        btnEl.style.boxShadow = isTarget ? '0 0 0 2px #0f172a' : 'none'; // 선택된 버튼 테두리 강조!
       }
     }
   });
   const allBtn = document.getElementById('btn-filter-ALL');
-  if (allBtn) allBtn.innerHTML = `전체보기 (${items.length})`;
-
-  // 💡 3. 슬라이서 클릭 컨트롤러
-  if (typeof window.filterIndivGantt !== 'function') {
-    window.indivTaskFilter = 'ALL';
-    window.filterIndivGantt = function(type) {
-      if (type !== 'ALL' && counts[type] === 0) return;
-      window.indivTaskFilter = type;
-      document.querySelectorAll('.indiv-filter-btn').forEach(btn => {
-        const filterKey = btn.getAttribute('data-filter');
-        const isTarget = filterKey === type;
-        if (filterKey !== 'ALL' && counts[filterKey] === 0) {
-          btn.style.opacity = '0.25';
-          btn.style.boxShadow = 'none';
-        } else {
-          btn.style.opacity = (type === 'ALL' || isTarget) ? '1' : '0.35';
-          btn.style.boxShadow = isTarget ? '0 0 0 2px #0f172a' : 'none';
-        }
-      });
-      window.renderMacroGanttAsIndiv(indivGanttProject);
-    };
+  if (allBtn) {
+    allBtn.innerHTML = `전체보기 (${items.length})`;
+    const isAll = window.indivTaskFilter === 'ALL';
+    allBtn.style.opacity = '1';
+    allBtn.style.boxShadow = isAll ? '0 0 0 2px #0f172a' : 'none';
   }
 
-  // 💡 4. 현재 필터링 상태에 따라 간트차트에 그릴 항목 추출
+  // 💡 3. 슬라이서 클릭 함수 (언제 눌러도 100% 즉시 작동)
+  window.filterIndivGantt = function(type) {
+    if (type !== 'ALL' && counts[type] === 0) return; // 0건이면 무시
+    window.indivTaskFilter = type;
+    window.renderMacroGanttAsIndiv(indivGanttProject); // 즉시 간트차트 재렌더링!
+  };
+
+  // 💡 4. 현재 켜진 필터링 조건에 맞춰 차트에 그릴 항목만 쏙 솎아내기
   const filteredItems = items.filter(it => {
     if (!window.indivTaskFilter || window.indivTaskFilter === 'ALL') return true;
     const task = (it.row['업무 구분'] || '').toString().trim();
