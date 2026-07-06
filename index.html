@@ -553,7 +553,7 @@
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzXfBKbZa945IBKCHElcvpP9riqvfXZyeVGz79Ed54zvsz7O4_0mk_FrEu-LKDFGh7wkg/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycby_OI6v0-t-kPuAdj9QQ5ZAMuAZzvMSINmx4qydPwqRZuZJ_sZNNdVY52MxCOaV7UJ96w/exec';
 
     let allData = {}; 
     let documentLinksData = [];
@@ -974,8 +974,9 @@ const summary = proj.d.summary || {};
   const today = new Date('2026-06-12'); 
 
   ['project8', 'project7', 'project6', 'project5', 'project4', 'project3', 'project2'].forEach(pKey => {
-    if(allData[pKey] && allData[pKey].history) {
+if(allData[pKey] && allData[pKey].history) {
       allData[pKey].history.forEach(r => {
+        if (r._isRep === false) return;   // 그룹 비대표행은 상태 집계 제외
 if(['지연중', 'Issue', '임박'].includes(r['진행상태'])) {
             const delayDays = parseInt(r['지연일']) || 0;
             
@@ -1215,10 +1216,11 @@ window.allMasterData.forEach(r => {
               trendData[monthKey].risk += 1;
           }
 
-if (status === '지연중') delayCount++;
-          if (status === '임박') imminentCount++;
-          if (status === '보류') holdCount++;
-      }
+if (r._isRep !== false) {
+            if (status === '지연중') delayCount++;
+            if (status === '임박') imminentCount++;
+            if (status === '보류') holdCount++;
+          }
   });
 
   // KPI 업데이트
