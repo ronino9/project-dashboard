@@ -251,6 +251,58 @@
         <span class="badge" style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe;">전체 프로젝트</span>
       </div>
 <div id="pdca-content"><div style="padding:40px; text-align:center; color:#64748b;">PDCA 데이터 집계 중...</div></div>
+<!-- ========================================================
+     👉 신규(테스트용): 공수 추이(개선폭) 요약 카드
+     "Master MD 분석 & 리스크 트렌드" 카드 바로 위에 삽입
+     ======================================================== -->
+<div class="chart-card" style="padding: 21px; margin-top: 16px;">
+  <div style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px; display:flex; align-items:center; gap:8px;">
+    🧪 공수 추이 테스트
+    <span style="font-size:11px; font-weight:600; color:#94a3b8; background:#f1f5f9; padding:2px 8px; border-radius:10px;">개발 확인용</span>
+  </div>
+  <div style="font-size:12px; color:#64748b; margin-bottom:14px;">같은 이슈 계열이 재발했을 때 예상 대비 편차가 줄었는지(개선) 늘었는지(악화) 확인</div>
+  <div id="deviation-trend-list" style="display:flex; flex-direction:column; gap:8px;">
+    <div style="color:#94a3b8; font-size:13px;">데이터 로딩 중...</div>
+  </div>
+</div>
+
+<script>
+window.renderDeviationTrendTest = function() {
+  const container = document.getElementById('deviation-trend-list');
+  if (!container) return;
+  const ranking = allData.issueRanking || [];
+
+  const withTrend = ranking.filter(r => r.편차건수 !== '' && r.편차건수 !== undefined && r.편차건수 >= 1);
+
+  if (withTrend.length === 0) {
+    container.innerHTML = `<div style="color:#94a3b8; font-size:13px;">아직 편차 데이터가 있는 클러스터가 없습니다. (예상 작업 시간 / 작업 시간 편차가 기록된 이슈가 2건 이상 같은 계열로 묶여야 표시됩니다)</div>`;
+    return;
+  }
+
+  withTrend.sort((a, b) => (b.개선폭 || 0) - (a.개선폭 || 0));
+
+  container.innerHTML = withTrend.map(r => {
+    const improved = (r.개선폭 || 0) > 0;
+    const worsened = (r.개선폭 || 0) < 0;
+    const badgeColor = improved ? '#16a34a' : (worsened ? '#dc2626' : '#64748b');
+    const badgeBg = improved ? '#f0fdf4' : (worsened ? '#fef2f2' : '#f1f5f9');
+    const badgeText = improved ? `▼ ${r.개선폭}H 개선` : (worsened ? `▲ ${Math.abs(r.개선폭)}H 악화` : '변화 없음');
+    const singleNote = r.편차건수 === 1 ? ' <span style="color:#94a3b8;">(1건뿐 — 추세 판단 근거 부족)</span>' : '';
+
+    return `
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:13px; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${r.이름 || '(이름 없음)'}</div>
+          <div style="font-size:11px; color:#64748b; margin-top:2px;">
+            ${r.편차건수}건 · 첫편차 ${r.첫편차}H → 최근편차 ${r.최근편차}H${singleNote}
+          </div>
+        </div>
+        <span style="background:${badgeBg}; color:${badgeColor}; font-size:11px; font-weight:700; padding:3px 10px; border-radius:12px; white-space:nowrap;">${badgeText}</span>
+      </div>
+    `;
+  }).join('');
+};
+</script>      
 
 <div class="chart-card" style="display: flex; flex-direction: column; padding: 21px; margin-top: 16px;">
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 12px; flex-wrap: wrap;">
@@ -553,7 +605,7 @@
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycby_OI6v0-t-kPuAdj9QQ5ZAMuAZzvMSINmx4qydPwqRZuZJ_sZNNdVY52MxCOaV7UJ96w/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxx58iwE8NhZla_etFlXcNRscMwLWquZM1m5EvDxX-xLZ4u-Rl-RzO8ilNDhaw4kvIfUA/exec';
 
     let allData = {}; 
     let documentLinksData = [];
