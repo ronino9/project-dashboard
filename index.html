@@ -2604,7 +2604,21 @@ function indivTaskColor(taskType) {
   return INDIV_TASK_COLOR[(taskType || '').toString().trim()] || '#D4AC0D';
 }
 
-window.renderMacroGanttAsIndiv = function(code) {
+// 💡 어디서든 색상을 연하게 변환할 수 있도록 공용(전역) 함수로 등록!
+window.lightenColor = function(hex, ratio) {
+  if (!hex || typeof hex !== 'string') return '#cbd5e1';
+  const h = hex.replace('#', '');
+  if (h.length !== 6) return hex;
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  const nr = Math.round(r + (255 - r) * ratio);
+  const ng = Math.round(g + (255 - g) * ratio);
+  const nb = Math.round(b + (255 - b) * ratio);
+  return `#${nr.toString(16).padStart(2, '0')}${ng.toString(16).padStart(2, '0')}${nb.toString(16).padStart(2, '0')}`;
+};
+function lightenColor(hex, ratio) { return window.lightenColor(hex, ratio); }
+    window.renderMacroGanttAsIndiv = function(code) {
   if (indivGanttProject !== code) indivGanttCursor = new Date();   // 프로젝트가 바뀌면 이번 달로 리셋
   indivGanttProject = code;
   if (!indivGanttCursor) indivGanttCursor = new Date();
