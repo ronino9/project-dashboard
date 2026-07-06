@@ -680,9 +680,18 @@ const analysisCellId = `clamp-analysis-${rowIdx}`;
 }
 if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
   let val = row[h] || '-';
-  const colKey = (h === '진행 사항') ? 'prog' : 'item';
+  const colKey = (h === '진행 사ять') ? 'prog' : 'item';
   const cellId = `clamp-${colKey}-${rowIdx}`;
+  // 제목 셀에만 그룹ID 배지 (그룹ID 있는 행 한정)
+  let groupBadge = '';
+  if (h === '표준 제작 Item / Issue / 개선사항') {
+    const gid = (row['그룹ID'] || '').toString().trim();
+    if (gid) {
+      groupBadge = `<div style="margin-bottom:6px;"><span onclick="window.showGroupHistory('${gid}')" style="display:inline-flex; align-items:center; gap:4px; background:#1e293b; border:1px solid #3b82f6; color:#93c5fd; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; cursor:pointer;" title="이 그룹의 전체 이력 보기">🔗 ${gid}</span></div>`;
+    }
+  }
   return `<td style="min-width: 200px; max-width: 350px; vertical-align: top; color: #e2e8f0;">
+    ${groupBadge}
     <div class="clamp-wrap">
       <div class="clamp-text" id="${cellId}" style="white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word;">${val}</div>
       <span class="clamp-more-btn" id="${cellId}-btn" onclick="window.toggleClamp('${cellId}')">더보기 ▾</span>
@@ -710,8 +719,23 @@ detailTable.querySelectorAll('.log-photo-copy-btn').forEach(btn => {
     }
   });
 
-  detailView.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+detailView.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+// 같은 그룹ID 이력을 접수일 순으로 모아서 상세이력 재표시 (전역에서 그룹ID 유일)
+window.showGroupHistory = function(groupId) {
+  if (!groupId || !window.allMasterData) return;
+  const rows = window.allMasterData
+    .filter(r => (r['그룹ID'] || '').toString().trim() === groupId)
+    .map(r => ({ '프로젝트 코드': r._pName, '접수일': r['접수일'] || '-', ...r }))
+    .sort((a, b) => {
+      const da = (a['접수일'] || '').toString().replace(/[./]/g, '-');
+      const db = (b['접수일'] || '').toString().replace(/[./]/g, '-');
+      return da < db ? -1 : (da > db ? 1 : 0);
+    });
+  if (rows.length === 0) return;
+  window.showDetailView(`🔗 그룹 이력 · ${groupId}`, `${rows.length}건 (접수일 순)`, rows);
+};
 
     window.toggleSection = function(section) {
       const content = document.getElementById(section + 'Content');
