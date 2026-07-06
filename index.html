@@ -309,17 +309,34 @@
     <button onclick="window.ganttMove(1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:15px;">›</button>
     <div id="gantt-period-label" style="font-size:14px; font-weight:700; color:#0f172a;"></div>
     
-<div style="display:flex; gap:12px; margin-left:8px; font-size:11px; color:#64748b; flex-wrap:wrap; align-items:center;">
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#c7ddf5; margin-right:4px;"></span>제작 계획</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#5b9bd5; margin-right:4px;"></span>제작 실행</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#f5e9b8; margin-right:4px;"></span>FAT 계획</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#d9b84a; margin-right:4px;"></span>FAT 실행</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#f7dcc0; margin-right:4px;"></span>SET-UP 계획</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#e0975a; margin-right:4px;"></span>SET-UP 실행</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#c9e8d1; margin-right:4px;"></span>SAT 계획</span>
-      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#6fb583; margin-right:4px;"></span>SAT 실행</span>
-      <span>📶 원격</span>
-      <span>🚨 이슈 발생일</span>
+<div id="gantt-legend-macro" style="display:flex; flex-direction:column; gap:4px; margin-left:8px; font-size:11px; color:#64748b;">
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#c7ddf5; margin-right:4px;"></span>제작 계획</span>
+        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#f5e9b8; margin-right:4px;"></span>FAT 계획</span>
+        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#f7dcc0; margin-right:4px;"></span>SET-UP 계획</span>
+        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#c9e8d1; margin-right:4px;"></span>SAT 계획</span>
+        <span style="margin-left:4px;">📶 원격</span>
+      </div>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#5b9bd5; margin-right:4px;"></span>제작 실행</span>
+        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#d9b84a; margin-right:4px;"></span>FAT 실행</span>
+        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#e0975a; margin-right:4px;"></span>SET-UP 실행</span>
+        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#6fb583; margin-right:4px;"></span>SAT 실행</span>
+        <span style="margin-left:4px;">🚨 이슈 발생일</span>
+      </div>
+    </div>
+    <div id="gantt-legend-indiv" style="display:none; flex-direction:column; gap:4px; margin-left:8px; font-size:11px; color:#64748b;">
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#93c5fd; margin-right:4px;"></span>계획</span>
+        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#3b82f6; margin-right:4px;"></span>진행중</span>
+        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#0f766e; margin-right:4px;"></span>완료</span>
+        <span style="margin-left:4px;">📶 원격</span>
+      </div>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#dc2626; margin-right:4px;"></span>지연중</span>
+        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#94a3b8; margin-right:4px;"></span>보류</span>
+        <span style="margin-left:4px;">🚨 이슈 발생일</span>
+      </div>
     </div>
 
     <div style="margin-left:auto; display:flex; gap:4px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:3px;">
@@ -2134,6 +2151,11 @@ if (typeof window.renderMacroGanttAsIndiv === 'function') {
   }
 
 // ② 전체 매크로 간트차트 렌더링 시작
+  const legendMacroEl = document.getElementById('gantt-legend-macro');
+  const legendIndivEl = document.getElementById('gantt-legend-indiv');
+  if (legendMacroEl) legendMacroEl.style.display = 'flex';
+  if (legendIndivEl) legendIndivEl.style.display = 'none';
+
   const stageGantt = allData.stageGantt;
   if (!stageGantt) return;
 
@@ -2575,6 +2597,11 @@ window.renderMacroGanttAsIndiv = function(code) {
   indivGanttProject = code;
   if (!indivGanttCursor) indivGanttCursor = new Date();
 
+  const legendMacroEl = document.getElementById('gantt-legend-macro');
+  const legendIndivEl = document.getElementById('gantt-legend-indiv');
+  if (legendMacroEl) legendMacroEl.style.display = 'none';
+  if (legendIndivEl) legendIndivEl.style.display = 'flex';
+
   const titleLabel = document.getElementById('gantt-period-label');
   const y = indivGanttCursor.getFullYear();
   const m = indivGanttCursor.getMonth();
@@ -2724,6 +2751,22 @@ bar.onclick = (e) => {
   showThisItem();
 };
 actTrack.appendChild(bar);
+
+      // 📶 원격 / 🚨 이슈 마커
+      const isRemote = it.row && (it.row['대응 구분'] || '').toString().trim() === '원격';
+      const isIssueType = it.row && (it.row['업무 구분'] || '').toString().trim() === 'Issue';
+      if (isRemote) {
+        const remoteMark = document.createElement('div');
+        remoteMark.style.cssText = `position:absolute; top:9px; left:${startPct}%; font-size:9px; line-height:1; z-index:9; transform:translateX(-50%); pointer-events:none;`;
+        remoteMark.textContent = '📶';
+        actTrack.appendChild(remoteMark);
+      }
+      if (isIssueType) {
+        const issueMark = document.createElement('div');
+        issueMark.style.cssText = `position:absolute; top:-2px; left:${startPct}%; font-size:10px; line-height:1; z-index:10; transform:translateX(-50%); pointer-events:none;`;
+        issueMark.textContent = '🚨';
+        actTrack.appendChild(issueMark);
+      }
     }
 const varDays = it.isDone ? ganttDaysBetween(it.planEnd, it.actEnd) : null;
     const vColor = varDays === null ? (it.isHold ? '#94a3b8' : (it.isDelayed ? '#dc2626' : '#94a3b8')) : (varDays > 0 ? '#dc2626' : varDays < 0 ? '#16a34a' : '#94a3b8');
