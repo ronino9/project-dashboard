@@ -2904,28 +2904,7 @@ const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, str
       }
     }
 
-    // 지연 트레일: 미완료·비보류 상태에서 완료예정일이 지났을 때만,
-    // 마지막 작업일(actEnd 직전) ~ 오늘까지 연한 빨강 점선으로 "아직 열려있고 밀리는 중"을 표시
-    if (it.isDelayed) {
-      // 이번 달에 표시된 마지막 실행 조각의 끝점을 트레일 시작으로 삼음
-      let trailStart;
-      if (it.execDays) {
-        const inMonth = it.execDays.filter(d => d.date >= monthStart && d.date <= monthEnd);
-        trailStart = inMonth.length ? inMonth[inMonth.length - 1].date : it.actStart;
-      } else {
-        trailStart = it.actStart; // 단일 행은 접수일 이후로 트레일
-      }
-      const trailEnd = ganttClamp(todayStr, monthStart, monthEnd);
-      if (trailStart <= monthEnd && trailEnd >= monthStart && trailStart < trailEnd) {
-        const cs = ganttClamp(trailStart, monthStart, monthEnd);
-        const startPct = (dayOffset(cs) / totalDays) * 100;
-        const widthPct = Math.max((ganttDaysBetween(cs, trailEnd) / totalDays) * 100, 0.4);
-        const trail = document.createElement('div');
-        trail.style.cssText = `position:absolute; top:9px; bottom:9px; left:${startPct}%; width:${widthPct}%; background:repeating-linear-gradient(90deg, #fca5a5 0, #fca5a5 4px, transparent 4px, transparent 8px); border-radius:2px; pointer-events:none; opacity:0.8;`;
-        trail.title = '지연 진행 중 (마지막 작업일 이후)';
-        actTrack.appendChild(trail);
-      }
-    }
+ 
 
 const varDays = it.isDone ? ganttDaysBetween(it.planEnd, it.actEnd) : null;
     const vColor = varDays === null ? (it.isHold ? '#94a3b8' : (it.isDelayed ? '#dc2626' : '#94a3b8')) : (varDays > 0 ? '#dc2626' : varDays < 0 ? '#16a34a' : '#94a3b8');
