@@ -347,10 +347,16 @@
 </div>
 <!-- ▲▲▲ 프로젝트 간트차트 끝 ▲▲▲ -->
 
-<div style="display: grid; grid-template-columns: 480px 1fr; gap: 16px; margin-bottom: 14px;">
-        <div style="display: flex; flex-direction: column; gap: 14px;">
-        
-<div class="chart-card" style="min-height: 440px; order: 2;">
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;">
+
+<div class="chart-card" style="min-height: 440px; display: flex; flex-direction: column;">
+    <div class="chart-title">⏳ 처리 대기 Top 5 <span style="font-size: 11px; font-weight: 600; color: #475569; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; border: 1px solid #e2e8f0;">지연일 순</span></div>
+    <div id="main-issue-pending" style="overflow-y: auto; flex: 1;">
+        <div style="color: #64748b; font-size: 13px;">대기 중인 이슈를 불러오고 있습니다...</div>
+    </div>
+</div>
+
+<div class="chart-card" style="min-height: 440px;">
   
 <div class="chart-title" style="display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px;">
     
@@ -378,39 +384,9 @@
 
 </div>
 
-<div style="height: 445px; order: 1; display: flex; flex-direction: column;">
-    <div class="chart-title">⏳ 처리 대기 Top 5 <span style="font-size: 11px; font-weight: 600; color: #475569; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; border: 1px solid #e2e8f0;">지연일 순</span></div>
-<div id="main-issue-pending" style="overflow-y: auto; flex: 1;">
-        <div style="color: #64748b; font-size: 13px;">대기 중인 이슈를 불러오고 있습니다...</div>
-    </div>
-</div>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-
-
-<!-- ▼▼▼ 메인 캘린더 (화이트 테마) ▼▼▼ -->
-<div style="margin-top:7px;">
-    <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
-            <div style="font-size:16px; font-weight:700; color:#0f172a;">📅 프로젝트 일정 캘린더</div>
-            <button onclick="window.calMove(-1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:30px; height:30px; border-radius:6px; cursor:pointer; font-size:16px;">‹</button>
-            <button onclick="window.calToday()" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; padding:5px 14px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600;">오늘</button>
-            <button onclick="window.calMove(1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:30px; height:30px; border-radius:6px; cursor:pointer; font-size:16px;">›</button>
-            <div id="cal-title" style="font-size:17px; font-weight:800; color:#0f172a; min-width:150px;"></div>
-            <div style="flex:1;"></div>
-            <div style="display:flex; gap:4px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:3px;">
-              <button id="cal-mode-day"   onclick="window.calSetMode('day')"   class="cal-mode-btn">일</button>
-              <button id="cal-mode-week"  onclick="window.calSetMode('week')"  class="cal-mode-btn">주</button>
-              <button id="cal-mode-month" onclick="window.calSetMode('month')" class="cal-mode-btn cal-mode-active">월</button>
-            </div>
-          </div>
-          <div id="cal-body"></div>
-        </div>
-        <!-- ▲▲▲ 메인 캘린더 끝 ▲▲▲ -->
-        </div>
       </div>
     </div>    
-    </div>   
+    </div>
 
     <div class="header" id="project-header" style="display: none;">
       <div class="header-top">
