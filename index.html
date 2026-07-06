@@ -325,16 +325,17 @@
         <span style="margin-left:4px;">🚨 이슈 발생일</span>
       </div>
     </div>
-    <div id="gantt-legend-indiv" style="display:none; flex-direction:column; gap:4px; margin-left:8px; font-size:11px; color:#64748b;">
+<div id="gantt-legend-indiv" style="display:none; flex-direction:column; gap:4px; margin-left:8px; font-size:11px; color:#64748b;">
       <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
         <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#93c5fd; margin-right:4px;"></span>계획</span>
-        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#3b82f6; margin-right:4px;"></span>진행중</span>
-        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#0f766e; margin-right:4px;"></span>완료</span>
+        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#C0392B; margin-right:4px;"></span>이슈</span>
+        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#3498DB; margin-right:4px;"></span>표준·기술지원·기능요구</span>
+        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#D4AC0D; margin-right:4px;"></span>기타</span>
         <span style="margin-left:4px;">📶 원격</span>
       </div>
       <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
-        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#dc2626; margin-right:4px;"></span>지연중</span>
         <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#94a3b8; margin-right:4px;"></span>보류</span>
+        <span><span style="display:inline-block; width:12px; height:5px; border-radius:2px; background:repeating-linear-gradient(90deg,#fca5a5 0,#fca5a5 4px,transparent 4px,transparent 8px); margin-right:4px;"></span>지연 진행중</span>
         <span style="margin-left:4px;">🚨 이슈 발생일</span>
       </div>
     </div>
@@ -2592,6 +2593,17 @@ orderList.forEach((cardId) => {
 };
 let indivGanttCursor = new Date();
 let indivGanttProject = null;
+
+// 개별 간트 막대 색: 업무구분 기준 (이슈=빨강 / 표준·기술지원·기능요구=파랑 / 그 외 전부 황토)
+// 단, 보류 상태는 이 색을 무시하고 무조건 회색으로 덮어씀 (아래 렌더 로직에서 처리)
+const INDIV_TASK_COLOR = {
+  '이슈': '#C0392B', 'Issue': '#C0392B',
+  '표준': '#3498DB', '기술지원': '#3498DB', '기능요구': '#3498DB'
+};
+function indivTaskColor(taskType) {
+  return INDIV_TASK_COLOR[(taskType || '').toString().trim()] || '#D4AC0D';
+}
+
 window.renderMacroGanttAsIndiv = function(code) {
   if (indivGanttProject !== code) indivGanttCursor = new Date();   // 프로젝트가 바뀌면 이번 달로 리셋
   indivGanttProject = code;
@@ -2764,7 +2776,7 @@ row.appendChild(track);
     return { row, track, right };
   }
 
-  items.forEach((it, idx) => {
+  
     const stripe = idx % 2 === 1;
     const color = it.isDone ? '#0f766e' : (it.isHold ? '#94a3b8' : (it.isDelayed ? '#dc2626' : '#3b82f6'));
     const carryBadge = it.carriedOver ? ' <span style="color:#dc2626;">⚠이월</span>' : '';
@@ -2815,7 +2827,7 @@ const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, str
         }
       }
     } else {
-      // 다건 그룹 — 실제 작업일만 이어붙이고, 건너뛴 날짜는 끊어서 별도 조각으로 표시
+// 다건 그룹 — 실제 작업일만 이어붙이고, 건너뛴 날짜는 끊어서 별도 조각으로 표시
       const execDaysInMonth = it.execDays.filter(d => d.date >= monthStart && d.date <= monthEnd);
       let ei = 0;
       while (ei < execDaysInMonth.length) {
@@ -2828,7 +2840,14 @@ const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, str
         const widthPct = Math.max(((ganttDaysBetween(cs, ce) + 1) / totalDays) * 100, (100 / totalDays) * 0.9);
         const bar = document.createElement('div');
         bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer;`;
-        bar.onclick = (e) => { e.stopPropagation(); showThisItem(); };
+        // 이 조각(같은 날짜 구간)에 실제로 해당하는 행들만 상세이력에 보여줌 (그룹 대표행이 아니라 그 날짜의 실제 행)
+        const segRows = execDaysInMonth.slice(ei, ej + 1).map(d => d.row);
+        bar.onclick = (e) => {
+          e.stopPropagation();
+          const rowCopies = segRows.map(r => ({ '프로젝트 코드': code, '접수일': r['접수일'] || '-', ...r }));
+          const dateLabel = cs === ce ? cs : `${cs} ~ ${ce}`;
+          window.showDetailView(`${dateLabel} · ${code}`, it.title, rowCopies);
+        };
         actTrack.appendChild(bar);
 
         // 📶 원격 / 🚨 이슈 마커 (조각 내 각 날짜의 실제 행 기준으로 판별)
@@ -2850,9 +2869,33 @@ const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, str
             actTrack.appendChild(issueMark);
           }
         }
-        ei = ej + 1;
+ei = ej + 1;
       }
     }
+
+    // 지연 트레일: 미완료·비보류 상태에서 완료예정일이 지났을 때만,
+    // 마지막 작업일(actEnd 직전) ~ 오늘까지 연한 빨강 점선으로 "아직 열려있고 밀리는 중"을 표시
+    if (it.isDelayed) {
+      // 이번 달에 표시된 마지막 실행 조각의 끝점을 트레일 시작으로 삼음
+      let trailStart;
+      if (it.execDays) {
+        const inMonth = it.execDays.filter(d => d.date >= monthStart && d.date <= monthEnd);
+        trailStart = inMonth.length ? inMonth[inMonth.length - 1].date : it.actStart;
+      } else {
+        trailStart = it.actStart; // 단일 행은 접수일 이후로 트레일
+      }
+      const trailEnd = ganttClamp(todayStr, monthStart, monthEnd);
+      if (trailStart <= monthEnd && trailEnd >= monthStart && trailStart < trailEnd) {
+        const cs = ganttClamp(trailStart, monthStart, monthEnd);
+        const startPct = (dayOffset(cs) / totalDays) * 100;
+        const widthPct = Math.max((ganttDaysBetween(cs, trailEnd) / totalDays) * 100, 0.4);
+        const trail = document.createElement('div');
+        trail.style.cssText = `position:absolute; top:9px; bottom:9px; left:${startPct}%; width:${widthPct}%; background:repeating-linear-gradient(90deg, #fca5a5 0, #fca5a5 4px, transparent 4px, transparent 8px); border-radius:2px; pointer-events:none; opacity:0.8;`;
+        trail.title = '지연 진행 중 (마지막 작업일 이후)';
+        actTrack.appendChild(trail);
+      }
+    }
+
 const varDays = it.isDone ? ganttDaysBetween(it.planEnd, it.actEnd) : null;
     const vColor = varDays === null ? (it.isHold ? '#94a3b8' : (it.isDelayed ? '#dc2626' : '#94a3b8')) : (varDays > 0 ? '#dc2626' : varDays < 0 ? '#16a34a' : '#94a3b8');
     const vText = varDays === null ? (it.isHold ? '보류' : (it.isDelayed ? '지연중' : '진행중')) : ((varDays > 0 ? '+' + varDays : varDays) + '일');
@@ -2976,9 +3019,11 @@ row.appendChild(track);
     return { row, track, right };
   }
 
-  items.forEach((it, idx) => {
+items.forEach((it, idx) => {
     const stripe = idx % 2 === 1;
-    const color = it.isDone ? '#0f766e' : (it.isHold ? '#94a3b8' : (it.isDelayed ? '#dc2626' : '#3b82f6'));
+    // 보류면 무조건 회색, 그 외엔 업무구분 색 (완료/지연 여부는 오른쪽 텍스트가 표현)
+    const taskType = it.row ? (it.row['업무 구분'] || '') : '';
+    const color = it.isHold ? '#94a3b8' : indivTaskColor(taskType);
     const carryBadge = it.carriedOver ? ' <span style="color:#dc2626;">⚠이월</span>' : '';
     const shortTitle = it.title.length > 14 ? it.title.slice(0, 14) + '…' : it.title;
 
