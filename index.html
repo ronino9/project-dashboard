@@ -325,24 +325,20 @@
         <span style="margin-left:4px;">🚨 이슈 발생일</span>
       </div>
     </div>
-<div id="gantt-legend-indiv" style="display:none; flex-direction:column; gap:4px; margin-left:8px; font-size:11px; color:#64748b;">
-      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
-        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#93c5fd; margin-right:4px;"></span>계획</span>
-        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#C0392B; margin-right:4px;"></span>이슈</span>
-        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#3498DB; margin-right:4px;"></span>표준·기술지원·기능요구</span>
-        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#D4AC0D; margin-right:4px;"></span>기타</span>
-        <span style="margin-left:4px;">📶 원격</span>
-      </div>
-      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
-        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#94a3b8; margin-right:4px;"></span>보류</span>
-        <span><span style="display:inline-block; width:12px; height:5px; border-radius:2px; background:repeating-linear-gradient(90deg,#fca5a5 0,#fca5a5 4px,transparent 4px,transparent 8px); margin-right:4px;"></span>지연 진행중</span>
-        <span style="margin-left:4px;">🚨 이슈 발생일</span>
-      </div>
-    </div>
-
-    <div style="margin-left:auto; display:flex; gap:4px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:3px;">
-      <button id="gantt-mode-year" onclick="window.ganttSetMode('year')" class="cal-mode-btn">연간</button>
-      <button id="gantt-mode-zoom" onclick="window.ganttSetMode('zoom')" class="cal-mode-btn cal-mode-active">최근</button>
+<div id="gantt-legend-indiv" style="display:none; align-items:center; gap:6px; margin-left:8px; font-size:11px; flex-wrap:wrap;">
+      <button id="btn-filter-ALL" onclick="window.filterIndivGantt('ALL')" class="indiv-filter-btn" data-filter="ALL" style="padding:3px 10px; border-radius:12px; border:1px solid #0f172a; background:#0f172a; color:#fff; font-weight:700; cursor:pointer; transition:0.2s;">전체보기</button>
+      <button id="btn-filter-ISSUE" onclick="window.filterIndivGantt('ISSUE')" class="indiv-filter-btn" data-filter="ISSUE" style="padding:3px 10px; border-radius:12px; border:1px solid #fca5a5; background:#fef2f2; color:#C0392B; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; transition:0.2s;"><span style="width:10px; height:10px; background:#C0392B; border-radius:2px;"></span>이슈 <span id="cnt-ISSUE">0</span></button>
+      <button id="btn-filter-IMPROVE" onclick="window.filterIndivGantt('IMPROVE')" class="indiv-filter-btn" data-filter="IMPROVE" style="padding:3px 10px; border-radius:12px; border:1px solid #86efac; background:#f0fdf4; color:#16a34a; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; transition:0.2s;"><span style="width:10px; height:10px; background:#27AE60; border-radius:2px;"></span>개선 <span id="cnt-IMPROVE">0</span></button>
+      <button id="btn-filter-STD" onclick="window.filterIndivGantt('STD')" class="indiv-filter-btn" data-filter="STD" style="padding:3px 10px; border-radius:12px; border:1px solid #bfdbfe; background:#eff6ff; color:#2563eb; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; transition:0.2s;"><span style="width:10px; height:10px; background:#3498DB; border-radius:2px;"></span>표준·기술·기능 <span id="cnt-STD">0</span></button>
+      <button id="btn-filter-ETC" onclick="window.filterIndivGantt('ETC')" class="indiv-filter-btn" data-filter="ETC" style="padding:3px 10px; border-radius:12px; border:1px solid #fde047; background:#fefce8; color:#b45309; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; transition:0.2s;"><span style="width:10px; height:10px; background:#D4AC0D; border-radius:2px;"></span>기타 <span id="cnt-ETC">0</span></button>
+      <button id="btn-filter-HOLD" onclick="window.filterIndivGantt('HOLD')" class="indiv-filter-btn" data-filter="HOLD" style="padding:3px 10px; border-radius:12px; border:1px solid #cbd5e1; background:#f8fafc; color:#64748b; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; transition:0.2s;"><span style="width:10px; height:10px; background:#94a3b8; border-radius:2px;"></span>보류 <span id="cnt-HOLD">0</span></button>
+      
+      <span style="color:#cbd5e1; margin:0 4px;">|</span>
+      
+      <span style="color:#64748b; display:flex; align-items:center; gap:10px; font-weight:600;">
+        <span>📶 원격</span>
+        <span>🚨 이슈 발생일</span>
+      </span>
     </div>
   </div>
   <div id="gantt-scroll" style="overflow:auto; max-height:480px; border:1px solid #e2e8f0; border-radius:8px;">
@@ -2742,10 +2738,83 @@ const rows = (window.allMasterData || []).filter(r => r._pName === code);
       row: repRow
     });
   });
-  items.sort((a, b) => (a.carriedOver !== b.carriedOver) ? (a.carriedOver ? -1 : 1) : (a.planEnd < b.planEnd ? -1 : 1));
+items.sort((a, b) => (a.carriedOver !== b.carriedOver) ? (a.carriedOver ? -1 : 1) : (a.planEnd < b.planEnd ? -1 : 1));
 
-  if (items.length === 0) {
-    rowsEl.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8; font-size:13px;">이 달에 해당하는 업무가 없습니다.</div>';
+  // 💡 1. 이번 달 카테고리별 실시간 건수(Count) 자동 집계
+  const counts = { ISSUE: 0, IMPROVE: 0, STD: 0, ETC: 0, HOLD: 0 };
+  items.forEach(it => {
+    const task = (it.row['업무 구분'] || '').toString().trim();
+    const isHold = it.isHold || (it.row['완료여부'] === '보류');
+    
+    if (isHold) {
+      counts.HOLD++;
+    } else if (task === '이슈' || task === 'Issue') {
+      counts.ISSUE++;
+    } else if (task === '개선') {
+      counts.IMPROVE++;
+    } else if (['표준', '기술지원', '기능요구'].includes(task)) {
+      counts.STD++;
+    } else {
+      counts.ETC++;
+    }
+  });
+
+  // 💡 2. 상단 버튼 텍스트(숫자) 업데이트 & 0건 항목 스마트 비활성화 처리
+  Object.keys(counts).forEach(key => {
+    const cntSpan = document.getElementById(`cnt-${key}`);
+    const btnEl = document.getElementById(`btn-filter-${key}`);
+    if (cntSpan) cntSpan.textContent = counts[key];
+    if (btnEl) {
+      if (counts[key] === 0) {
+        btnEl.style.opacity = '0.25';
+        btnEl.style.cursor = 'not-allowed';
+      } else {
+        btnEl.style.cursor = 'pointer';
+      }
+    }
+  });
+  const allBtn = document.getElementById('btn-filter-ALL');
+  if (allBtn) allBtn.innerHTML = `전체보기 (${items.length})`;
+
+  // 💡 3. 슬라이서 클릭 컨트롤러
+  if (typeof window.filterIndivGantt !== 'function') {
+    window.indivTaskFilter = 'ALL';
+    window.filterIndivGantt = function(type) {
+      if (type !== 'ALL' && counts[type] === 0) return;
+      window.indivTaskFilter = type;
+      document.querySelectorAll('.indiv-filter-btn').forEach(btn => {
+        const filterKey = btn.getAttribute('data-filter');
+        const isTarget = filterKey === type;
+        if (filterKey !== 'ALL' && counts[filterKey] === 0) {
+          btn.style.opacity = '0.25';
+          btn.style.boxShadow = 'none';
+        } else {
+          btn.style.opacity = (type === 'ALL' || isTarget) ? '1' : '0.35';
+          btn.style.boxShadow = isTarget ? '0 0 0 2px #0f172a' : 'none';
+        }
+      });
+      window.renderMacroGanttAsIndiv(indivGanttProject);
+    };
+  }
+
+  // 💡 4. 현재 필터링 상태에 따라 간트차트에 그릴 항목 추출
+  const filteredItems = items.filter(it => {
+    if (!window.indivTaskFilter || window.indivTaskFilter === 'ALL') return true;
+    const task = (it.row['업무 구분'] || '').toString().trim();
+    const isHold = it.isHold || (it.row['완료여부'] === '보류');
+    
+    if (window.indivTaskFilter === 'HOLD') return isHold;
+    if (isHold) return false;
+    
+    if (window.indivTaskFilter === 'ISSUE') return task === '이슈' || task === 'Issue';
+    if (window.indivTaskFilter === 'IMPROVE') return task === '개선';
+    if (window.indivTaskFilter === 'STD') return ['표준', '기술지원', '기능요구'].includes(task);
+    if (window.indivTaskFilter === 'ETC') return !['이슈', 'Issue', '개선', '표준', '기술지원', '기능요구'].includes(task);
+    return true;
+  });
+
+  if (filteredItems.length === 0) {
+    rowsEl.innerHTML = '<div style="padding:35px; text-align:center; color:#94a3b8; font-size:13px; font-weight:600;">선택한 업무 구분에 해당하는 이달의 항목이 없습니다.</div>';
     return;
   }
 
