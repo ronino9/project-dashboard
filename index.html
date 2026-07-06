@@ -200,9 +200,13 @@
     <div id="main-panel">          <!-- ★ 이 줄 추가 -->
 <!-- 내부 탭: PDCA / 프로젝트 현황 -->
 <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
-      <div style="display:flex; gap:8px;">
-        <button id="btn-main-pdca" class="tab-btn" onclick="window.switchMainTab('pdca')">📊 PDCA 현황</button>
-<button id="btn-main-project" class="tab-btn active" onclick="window.switchMainTab('project')">📋 프로젝트 현황</button>
+<div style="display:inline-flex; background:#f1f5f9; padding:4px; border-radius:12px; border:1px solid #e2e8f0; gap:4px;">
+        <button id="btn-main-pdca" onclick="window.switchMainTab('pdca')" style="padding:8px 20px; border:none; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer; transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display:flex; align-items:center; gap:6px; background:transparent; color:#64748b;">
+          <span>🔄</span> PDCA 현황
+        </button>
+        <button id="btn-main-project" onclick="window.switchMainTab('project')" style="padding:8px 20px; border:none; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer; transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display:flex; align-items:center; gap:6px; background:#3b82f6; color:#ffffff; box-shadow:0 2px 4px rgba(59, 130, 246, 0.25);">
+          <span>📋</span> 프로젝트 현황
+        </button>
       </div>
       <div id="main-top-kpi" style="display: flex; gap: 6px;">
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 10px; text-align: center;">
@@ -3898,18 +3902,19 @@ window.switchMainTab = function(which) {
   const projContent = document.getElementById('project-content');
   const btnPdca = document.getElementById('btn-main-pdca');
   const btnProj = document.getElementById('btn-main-project');
-
-  // 💡 상단 KPI 요약 박스와 글로벌 검색바 요소 가져오기
   const topKpi = document.getElementById('main-top-kpi');
   const topSearch = document.getElementById('global-search-bar');
+
+  // 💡 세련된 액티브 스타일 정의
+  const activeStyle = "background:#3b82f6; color:#ffffff; box-shadow:0 2px 4px rgba(59, 130, 246, 0.25);";
+  const inactiveStyle = "background:transparent; color:#64748b; box-shadow:none;";
 
   if (which === 'pdca') {
     pdcaPanel.style.display = 'block';
     projContent.style.display = 'none';
-    btnPdca.classList.add('active');
-    btnProj.classList.remove('active');
+    if (btnPdca) btnPdca.style.cssText += activeStyle;
+    if (btnProj) btnProj.style.cssText += inactiveStyle;
     
-    // 💡 PDCA 탭에서는 상단 KPI와 검색바를 숨김 처리!
     if (topKpi) topKpi.style.display = 'none';
     if (topSearch) topSearch.style.display = 'none';
     
@@ -3917,10 +3922,9 @@ window.switchMainTab = function(which) {
   } else {
     pdcaPanel.style.display = 'none';
     projContent.style.display = 'block';
-    btnPdca.classList.remove('active');
-    btnProj.classList.add('active');
+    if (btnPdca) btnPdca.style.cssText += inactiveStyle;
+    if (btnProj) btnProj.style.cssText += activeStyle;
     
-    // 💡 프로젝트 현황 탭에서는 다시 보이도록 복구!
     if (topKpi) topKpi.style.display = 'flex';
     if (topSearch) topSearch.style.display = 'flex';
     
