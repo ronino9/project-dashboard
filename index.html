@@ -2778,7 +2778,8 @@ row.appendChild(track);
 items.forEach((it, idx) => {
     const stripe = idx % 2 === 1;
     // 보류면 무조건 회색, 그 외엔 업무구분 색 (완료/지연 여부는 오른쪽 텍스트가 표현)
-    const color = it.isDone ? '#0f766e' : (it.isHold ? '#94a3b8' : (it.isDelayed ? '#dc2626' : '#3b82f6'));
+    const taskType = it.row ? (it.row['업무 구분'] || '') : '';
+    const color = it.isHold ? '#94a3b8' : indivTaskColor(taskType);
     const carryBadge = it.carriedOver ? ' <span style="color:#dc2626;">⚠이월</span>' : '';
 const shortTitle = it.title.length > 14 ? it.title.slice(0, 14) + '…' : it.title;
 const showThisItem = () => {
