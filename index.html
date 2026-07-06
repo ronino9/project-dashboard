@@ -2650,23 +2650,70 @@ window.renderMacroGanttAsIndiv = function(code) {
     ticksEl.appendChild(todayLine);
   }
 
-  const rows = (window.allMasterData || []).filter(r => r._pName === code);
+const rows = (window.allMasterData || []).filter(r => r._pName === code);
+
+  // 그룹ID 기준으로 행 묶기 (그룹ID 없으면 단독 그룹으로 취급 → 기존 방식 그대로 유지)
+  const groups = {};
+  rows.forEach((r, idx) => {
+    const gid = (r['그룹ID'] || '').toString().trim() || `__solo_${idx}`;
+    if (!groups[gid]) groups[gid] = [];
+    groups[gid].push(r);
+  });
+
   const items = [];
-  rows.forEach(r => {
-    const rece = calNorm(r['접수일']);
-    const due = calNorm(r['완료예정일']);
-    const compl = calNorm(r['완료일']);
-    const status = (r['완료여부'] || '').toString().trim();
-    if (!rece && !due) return;
-    const planStart = rece || due, planEnd = due || rece, actStart = rece || due;
-    const isDone = status === 'O', isHold = status === '보류';
-    const actEnd = isDone ? (compl || planEnd) : todayStr;
+  Object.values(groups).forEach(groupRows => {
+    const isMultiRow = groupRows.length > 1;
+
+    // 그룹 내에서 실제로 접수일이 찍힌 날짜만 수집 (다건 그룹의 경우 이 배열로만 그린다)
+    const execDaysRaw = [];
+    groupRows.forEach(r => {
+      const d = calNorm(r['접수일']);
+      if (d) execDaysRaw.push({ date: d, row: r });
+    });
+    if (execDaysRaw.length === 0) return;
+    execDaysRaw.sort((a, b) => a.date < b.date ? -1 : (a.date > b.date ? 1 : 0));
+
+    // 완료 여부: 그룹 내 어느 행이든 완료여부='O'면 완료로 간주, 완료일은 그중 가장 늦은 날짜
+    let isDone = false, isHold = false, completeDate = '';
+    groupRows.forEach(r => {
+      const status = (r['완료여부'] || '').toString().trim();
+      if (status === 'O') {
+        isDone = true;
+        const c = calNorm(r['완료일']);
+        if (c && (!completeDate || c > completeDate)) completeDate = c;
+      }
+      if (status === '보류') isHold = true;
+    });
+
+    // 완료예정일: 그룹 내 값 중 가장 늦은 것 (없으면 마지막 작업일로 대체)
+    let due = '';
+    groupRows.forEach(r => {
+      const d = calNorm(r['완료예정일']);
+      if (d && (!due || d > due)) due = d;
+    });
+
+    const firstDay = execDaysRaw[0].date;
+    const lastDay = execDaysRaw[execDaysRaw.length - 1].date;
+    const planStart = firstDay;
+    const planEnd = due || lastDay;
+    const actStart = firstDay;
+    const actEnd = isDone ? (completeDate || lastDay) : todayStr;
     const isDelayed = !isDone && !isHold && todayStr > planEnd;
     const carriedOver = !isDone && !isHold && planEnd < monthStart;
+
     const overlapsPlan = planStart <= monthEnd && planEnd >= monthStart;
     const overlapsAct = actStart <= monthEnd && actEnd >= monthStart;
-    if (!overlapsPlan && !overlapsAct && !carriedOver) return;
-    items.push({ title: r['표준 제작 Item / Issue / 개선사항'] || '(제목 없음)', planStart, planEnd, actStart, actEnd, isDone, isHold, isDelayed, carriedOver, receRaw: r['접수일'], row: r });
+    const hasDayInMonth = execDaysRaw.some(d => d.date >= monthStart && d.date <= monthEnd);
+    if (!overlapsPlan && !overlapsAct && !carriedOver && !hasDayInMonth) return;
+
+    const repRow = groupRows[0]; // 제목 등 대표값은 그룹 첫 행 사용
+    items.push({
+      title: repRow['표준 제작 Item / Issue / 개선사항'] || '(제목 없음)',
+      planStart, planEnd, actStart, actEnd, isDone, isHold, isDelayed, carriedOver,
+      // 다건 그룹만 execDays를 채움 → 렌더링 시 이 값 유무로 분기
+      execDays: isMultiRow ? execDaysRaw : null,
+      row: repRow
+    });
   });
   items.sort((a, b) => (a.carriedOver !== b.carriedOver) ? (a.carriedOver ? -1 : 1) : (a.planEnd < b.planEnd ? -1 : 1));
 
@@ -2740,32 +2787,70 @@ const showThisItem = () => {
     rowsEl.appendChild(planRow);
 
 const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, stripe, color);
-    if (it.actStart <= monthEnd && it.actEnd >= monthStart) {
-      const cs = ganttClamp(it.actStart, monthStart, monthEnd), ce = ganttClamp(it.actEnd, monthStart, monthEnd);
-      const startPct = (dayOffset(cs) / totalDays) * 100;
-      const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
-const bar = document.createElement('div');
-bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer;`;
-bar.onclick = (e) => {
-  e.stopPropagation();
-  showThisItem();
-};
-actTrack.appendChild(bar);
 
-      // 📶 원격 / 🚨 이슈 마커
-      const isRemote = it.row && (it.row['대응 구분'] || '').toString().includes('원격');
-      const isIssueType = it.row && (it.row['업무 구분'] || '').toString().trim() === 'Issue';
-      if (isRemote) {
-        const remoteMark = document.createElement('div');
-        remoteMark.style.cssText = `position:absolute; top:9px; left:${startPct}%; font-size:9px; line-height:1; z-index:9; transform:translateX(-50%); pointer-events:none;`;
-        remoteMark.textContent = '📶';
-        actTrack.appendChild(remoteMark);
+    if (!it.execDays) {
+      // 단일 행(그룹ID 없음) — 기존 방식: 접수일~완료일(또는 오늘)을 연속 막대로 채움
+      if (it.actStart <= monthEnd && it.actEnd >= monthStart) {
+        const cs = ganttClamp(it.actStart, monthStart, monthEnd), ce = ganttClamp(it.actEnd, monthStart, monthEnd);
+        const startPct = (dayOffset(cs) / totalDays) * 100;
+        const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
+        const bar = document.createElement('div');
+        bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer;`;
+        bar.onclick = (e) => { e.stopPropagation(); showThisItem(); };
+        actTrack.appendChild(bar);
+
+        const isRemote = it.row && (it.row['대응 구분'] || '').toString().includes('원격');
+        const isIssueType = it.row && (it.row['업무 구분'] || '').toString().trim() === 'Issue';
+        if (isRemote) {
+          const remoteMark = document.createElement('div');
+          remoteMark.style.cssText = `position:absolute; top:9px; left:${startPct}%; font-size:9px; line-height:1; z-index:9; transform:translateX(-50%); pointer-events:none;`;
+          remoteMark.textContent = '📶';
+          actTrack.appendChild(remoteMark);
+        }
+        if (isIssueType) {
+          const issueMark = document.createElement('div');
+          issueMark.style.cssText = `position:absolute; top:-2px; left:${startPct}%; font-size:10px; line-height:1; z-index:10; transform:translateX(-50%); pointer-events:none;`;
+          issueMark.textContent = '🚨';
+          actTrack.appendChild(issueMark);
+        }
       }
-      if (isIssueType) {
-        const issueMark = document.createElement('div');
-        issueMark.style.cssText = `position:absolute; top:-2px; left:${startPct}%; font-size:10px; line-height:1; z-index:10; transform:translateX(-50%); pointer-events:none;`;
-        issueMark.textContent = '🚨';
-        actTrack.appendChild(issueMark);
+    } else {
+      // 다건 그룹 — 실제 작업일만 이어붙이고, 건너뛴 날짜는 끊어서 별도 조각으로 표시
+      const execDaysInMonth = it.execDays.filter(d => d.date >= monthStart && d.date <= monthEnd);
+      let ei = 0;
+      while (ei < execDaysInMonth.length) {
+        let ej = ei;
+        while (ej + 1 < execDaysInMonth.length && ganttDaysBetween(execDaysInMonth[ej].date, execDaysInMonth[ej + 1].date) === 1) {
+          ej++;
+        }
+        const cs = execDaysInMonth[ei].date, ce = execDaysInMonth[ej].date;
+        const startPct = (dayOffset(cs) / totalDays) * 100;
+        const widthPct = Math.max(((ganttDaysBetween(cs, ce) + 1) / totalDays) * 100, (100 / totalDays) * 0.9);
+        const bar = document.createElement('div');
+        bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer;`;
+        bar.onclick = (e) => { e.stopPropagation(); showThisItem(); };
+        actTrack.appendChild(bar);
+
+        // 📶 원격 / 🚨 이슈 마커 (조각 내 각 날짜의 실제 행 기준으로 판별)
+        for (let k = ei; k <= ej; k++) {
+          const dRow = execDaysInMonth[k].row;
+          const dPct = (dayOffset(execDaysInMonth[k].date) / totalDays) * 100;
+          const isRemote = dRow && (dRow['대응 구분'] || '').toString().includes('원격');
+          const isIssueType = dRow && (dRow['업무 구분'] || '').toString().trim() === 'Issue';
+          if (isRemote) {
+            const remoteMark = document.createElement('div');
+            remoteMark.style.cssText = `position:absolute; top:9px; left:${dPct}%; font-size:9px; line-height:1; z-index:9; transform:translateX(-50%); pointer-events:none;`;
+            remoteMark.textContent = '📶';
+            actTrack.appendChild(remoteMark);
+          }
+          if (isIssueType) {
+            const issueMark = document.createElement('div');
+            issueMark.style.cssText = `position:absolute; top:-2px; left:${dPct}%; font-size:10px; line-height:1; z-index:10; transform:translateX(-50%); pointer-events:none;`;
+            issueMark.textContent = '🚨';
+            actTrack.appendChild(issueMark);
+          }
+        }
+        ei = ej + 1;
       }
     }
 const varDays = it.isDone ? ganttDaysBetween(it.planEnd, it.actEnd) : null;
