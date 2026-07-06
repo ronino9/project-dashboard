@@ -680,7 +680,7 @@ const analysisCellId = `clamp-analysis-${rowIdx}`;
 }
 if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
   let val = row[h] || '-';
-  const colKey = (h === '진행 사ять') ? 'prog' : 'item';
+  const colKey = (h === '진행 사항') ? 'prog' : 'item';
   const cellId = `clamp-${colKey}-${rowIdx}`;
   // 제목 셀에만 그룹ID 배지 (그룹ID 있는 행 한정)
   let groupBadge = '';
