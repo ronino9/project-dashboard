@@ -2753,7 +2753,7 @@ bar.onclick = (e) => {
 actTrack.appendChild(bar);
 
       // 📶 원격 / 🚨 이슈 마커
-      const isRemote = it.row && (it.row['대응 구분'] || '').toString().trim() === '원격';
+      const isRemote = it.row && (it.row['대응 구분'] || '').toString().includes('원격');
       const isIssueType = it.row && (it.row['업무 구분'] || '').toString().trim() === 'Issue';
       if (isRemote) {
         const remoteMark = document.createElement('div');
