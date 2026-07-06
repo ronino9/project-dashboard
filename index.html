@@ -4296,9 +4296,31 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
   const byStage = groupRework('단계 구분');
   const byPart = groupRework('파트 구분');
 
-  const actionItem = (icon, label, x) => `
-    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-left:4px solid #a855f7; border-radius:8px; padding:12px 16px; margin-bottom:8px;">
-      <div style="font-size:13px; font-weight:700; color:#0f172a; margin-bottom:4px;">${icon} ${label} <span style="color:#a855f7;">${x.key}</span> 재작업 집중 — 정밀 진단 필요</div>
+// 💡 1. 클릭 시 해당 파트/단계의 재작업 원인 데이터를 팝업으로 띄워주는 Drill-down 함수
+  window.showReworkDrilldown = function(colName, keyName) {
+    if (!window.allMasterData) return;
+    const matched = window.allMasterData
+      .filter(r => {
+        const val = (r[colName] || '').toString().trim();
+        const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
+        return val === keyName && yn === 'Y';
+      })
+      .map(r => ({ '프로젝트 코드': r._pName, '접수일': r['접수일'] || '-', ...r }));
+
+    if (matched.length === 0) {
+      alert('상세 재작업 데이터가 없습니다.');
+      return;
+    }
+    window.showDetailView(`🚨 [재작업 정밀 진단] ${colName}: ${keyName}`, `총 ${matched.length}건 발견`, matched);
+  };
+
+  // 💡 2. To-Do 카드에 마우스 호버 및 클릭 이벤트 장착
+  const actionItem = (icon, label, colName, x) => `
+    <div onclick="window.showReworkDrilldown('${colName}', '${x.key}')" style="background:#f8fafc; border:1px solid #e2e8f0; border-left:4px solid #a855f7; border-radius:8px; padding:12px 16px; margin-bottom:8px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.transform='translateX(3px)';" onmouseout="this.style.background='#f8fafc'; this.style.transform='none';">
+      <div style="font-size:13px; font-weight:700; color:#0f172a; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
+        <span>${icon} ${label} <span style="color:#a855f7;">${x.key}</span> 재작업 집중 — 정밀 진단 필요</span>
+        <span style="font-size:11px; color:#3b82f6; font-weight:700;">상세 원인 보기 🔍</span>
+      </div>
       <div style="display:flex; gap:8px; align-items:center;">
         <span style="background:#fef2f2; color:#dc2626; font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px;">재작업률 ${x.rate.toFixed(1)}%</span>
         <span style="font-size:11px; color:#64748b;">${x.rework}건 / 전체 ${x.total}건</span>
@@ -4306,9 +4328,9 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
     </div>`;
 
   let actionHtml = '';
-  if (byStage.length > 0) actionHtml += actionItem('🔧', '단계', byStage[0]);
-  if (byPart.length > 0) actionHtml += actionItem('🏭', '파트', byPart[0]);
-  if (byStage.length > 1) actionHtml += actionItem('🔧', '단계', byStage[1]);
+  if (byStage.length > 0) actionHtml += actionItem('🔧', '단계', '단계 구분', byStage[0]);
+  if (byPart.length > 0) actionHtml += actionItem('🏭', '파트', '파트 구분', byPart[0]);
+  if (byStage.length > 1) actionHtml += actionItem('🔧', '단계', '단계 구분', byStage[1]);
 
   document.getElementById('pdca-action-list').innerHTML = actionHtml ||
     '<div style="padding:20px; text-align:center; color:#16a34a; font-weight:600;">✅ 재작업이 집중된 파트·단계가 없습니다. 양호합니다.</div>';
