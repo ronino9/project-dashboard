@@ -861,9 +861,16 @@ return `
       `;
     }
 
-    // ===== OP 프로젝트는 기존 단계별 카드 =====
+// ===== OP 프로젝트는 기존 단계별 카드 =====
 const summary = proj.d.summary || {};
-    const overall = summary.overall || '0%';
+    let overall = summary.overall || '0%';
+    // 기타업무는 단계(제작~SAT) 개념이 없어 진행률이 0%로 나오므로 완료율로 대체
+    if (proj.id === 'projectEtc') {
+      const _h = (proj.d && proj.d.history) ? proj.d.history : [];
+      const _total = _h.length;
+      const _done = _h.filter(r => (r['진행상태'] || '').includes('완료')).length;
+      overall = (_total > 0 ? Math.round((_done / _total) * 100) : 0) + '%';
+    }
     const satVal = (summary.complete && summary.complete[3] !== undefined) ? parseFloat(summary.complete[3]) : 0;
     const statusText = satVal >= 100 ? '완료' : '진행중';
     const badgeStyle = statusText === '완료' ? 'background:#d1fae5; color:#059669;' : 'background:#dbeafe; color:#2563eb;';
