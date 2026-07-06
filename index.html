@@ -310,7 +310,13 @@
   <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
     <button onclick="window.ganttMove(-1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:15px;">‹</button>
     <button onclick="window.ganttToday()" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; padding:4px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;">오늘</button>
-    <button onclick="window.ganttMove(1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:15px;">›</button>
+<button onclick="window.ganttMove(1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:15px;">›</button>
+
+    <div style="display:inline-flex; background:#f1f5f9; padding:3px; border-radius:8px; border:1px solid #e2e8f0; gap:2px; margin-left:4px;">
+      <button id="gantt-mode-year" onclick="window.ganttSetMode('year')" class="cal-mode-btn" style="font-size:12px; padding:4px 12px;">연간</button>
+      <button id="gantt-mode-zoom" onclick="window.ganttSetMode('zoom')" class="cal-mode-btn cal-mode-active" style="font-size:12px; padding:4px 12px;">월간</button>
+    </div>
+
     <div id="gantt-period-label" style="font-size:14px; font-weight:700; color:#0f172a;"></div>
     
 <div id="gantt-legend-macro" style="display:flex; flex-direction:column; gap:4px; margin-left:8px; font-size:11px; color:#64748b;">
