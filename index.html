@@ -251,6 +251,129 @@
         <span class="badge" style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe;">전체 프로젝트</span>
       </div>
 <div id="pdca-content"><div style="padding:40px; text-align:center; color:#64748b;">PDCA 데이터 집계 중...</div></div>
+      <!-- ========================================================
+     반복 업무 개선 추이 카드
+     "재작업률 개선 추이" 그리드 바로 위에 삽입
+     ======================================================== -->
+<div class="chart-card" style="padding: 21px; margin-top: 16px; margin-bottom: 16px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:4px; flex-wrap:wrap;">
+    <div style="font-size:16px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">
+      🔁 반복 업무 개선 추이
+      <span style="font-size:11px; font-weight:600; color:#64748b; background:#f1f5f9; padding:2px 8px; border-radius:10px;">같은 업무 유형이 반복될 때 편차·지연·재작업이 줄고 있는가</span>
+    </div>
+    <div style="display:flex; gap:6px;">
+      <button id="tt-sort-count" onclick="window.sortTaskTrends('count')" style="padding:4px 12px; font-size:12px; font-weight:700; border-radius:8px; border:1px solid #3b82f6; background:#3b82f6; color:#fff; cursor:pointer;">빈도순</button>
+      <button id="tt-sort-improve" onclick="window.sortTaskTrends('improve')" style="padding:4px 12px; font-size:12px; font-weight:700; border-radius:8px; border:1px solid #e2e8f0; background:#fff; color:#475569; cursor:pointer;">개선폭순</button>
+      <button id="tt-sort-worse" onclick="window.sortTaskTrends('worse')" style="padding:4px 12px; font-size:12px; font-weight:700; border-radius:8px; border:1px solid #e2e8f0; background:#fff; color:#475569; cursor:pointer;">악화순</button>
+    </div>
+  </div>
+  <div style="overflow-x:auto;">
+    <table style="width:100%; border-collapse:collapse; font-size:12px; margin-top:12px;">
+      <thead>
+        <tr style="border-bottom:2px solid #e2e8f0;">
+          <th style="text-align:left; padding:8px 10px; color:#64748b; font-weight:700;">업무 유형</th>
+          <th style="text-align:center; padding:8px 10px; color:#64748b; font-weight:700;">파트</th>
+          <th style="text-align:center; padding:8px 10px; color:#64748b; font-weight:700;">건수</th>
+          <th style="text-align:center; padding:8px 10px; color:#64748b; font-weight:700;">편차 개선</th>
+          <th style="text-align:center; padding:8px 10px; color:#64748b; font-weight:700;">지연 개선</th>
+          <th style="text-align:center; padding:8px 10px; color:#64748b; font-weight:700;">재작업률</th>
+        </tr>
+      </thead>
+      <tbody id="task-trends-tbody">
+        <tr><td colspan="6" style="text-align:center; padding:20px; color:#94a3b8;">데이터 로딩 중...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+window._taskTrendsSort = 'count';
+
+window.sortTaskTrends = function(mode) {
+  window._taskTrendsSort = mode;
+  ['count', 'improve', 'worse'].forEach(m => {
+    const btn = document.getElementById('tt-sort-' + m);
+    if (!btn) return;
+    if (m === mode) { btn.style.background = '#3b82f6'; btn.style.color = '#fff'; btn.style.borderColor = '#3b82f6'; }
+    else { btn.style.background = '#fff'; btn.style.color = '#475569'; btn.style.borderColor = '#e2e8f0'; }
+  });
+  window.renderTaskTrends();
+};
+
+function pickPrimaryImprovement(r) {
+  const candidates = [];
+  if (r.편차건수 >= 2 && r.편차개선폭 !== '') candidates.push({ type: '편차', val: r.편차개선폭, unit: 'H' });
+  if (r.지연건수 >= 2 && r.지연개선폭 !== '') candidates.push({ type: '지연', val: r.지연개선폭, unit: '일' });
+  if (candidates.length === 0) return null;
+  candidates.sort((a, b) => Math.abs(b.val) - Math.abs(a.val));
+  return candidates[0];
+}
+
+function renderTrendBadge(val, unit, minCount, actualCount) {
+  if (actualCount < 2) {
+    return `<span style="color:#cbd5e1; font-size:11px;">데이터 부족(${actualCount}건)</span>`;
+  }
+  if (val === '' || val === null) return `<span style="color:#cbd5e1; font-size:11px;">-</span>`;
+  const improved = val > 0;
+  const worsened = val < 0;
+  const color = improved ? '#16a34a' : (worsened ? '#dc2626' : '#64748b');
+  const bg = improved ? '#f0fdf4' : (worsened ? '#fef2f2' : '#f1f5f9');
+  const arrow = improved ? '▼' : (worsened ? '▲' : '·');
+  const text = val === 0 ? '변화없음' : `${arrow} ${Math.abs(val)}${unit}`;
+  return `<span style="background:${bg}; color:${color}; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px;">${text}</span>`;
+}
+
+window.renderTaskTrends = function() {
+  const tbody = document.getElementById('task-trends-tbody');
+  if (!tbody) return;
+  const data = (allData && allData.taskTrends) ? allData.taskTrends : [];
+
+  if (data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#94a3b8;">아직 집계된 반복 업무 데이터가 없습니다.</td></tr>`;
+    return;
+  }
+
+  let sorted = [...data];
+  if (window._taskTrendsSort === 'count') {
+    sorted.sort((a, b) => b.전체건수 - a.전체건수);
+  } else if (window._taskTrendsSort === 'improve') {
+    sorted = sorted.filter(r => pickPrimaryImprovement(r) && pickPrimaryImprovement(r).val > 0);
+    sorted.sort((a, b) => pickPrimaryImprovement(b).val - pickPrimaryImprovement(a).val);
+  } else if (window._taskTrendsSort === 'worse') {
+    sorted = sorted.filter(r => pickPrimaryImprovement(r) && pickPrimaryImprovement(r).val < 0);
+    sorted.sort((a, b) => pickPrimaryImprovement(a).val - pickPrimaryImprovement(b).val);
+  }
+
+  const topN = sorted.slice(0, 20);
+
+  if (topN.length === 0) {
+    const emptyMsg = window._taskTrendsSort === 'improve' ? '개선된 항목이 아직 없습니다.' : '악화된 항목이 없습니다. 양호합니다.';
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#94a3b8;">${emptyMsg}</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = topN.map((r, idx) => {
+    const shortTitle = (r.대표제목 || '').replace(/\n/g, ' ').slice(0, 30);
+    const stripe = idx % 2 === 1 ? 'background:#f8fafc;' : '';
+    const holdNote = r.보류건수 > 0 ? `<span style="color:#94a3b8; font-size:10px;"> (보류${r.보류건수})</span>` : '';
+    const extNote = r.외부요인건수 > 0 ? `<span style="color:#94a3b8; font-size:10px;"> (외부${r.외부요인건수})</span>` : '';
+    const reworkText = r.재작업대상건수 > 0
+      ? `${r.재작업률}%<span style="color:#94a3b8; font-size:10px;"> (${r.재작업건수}/${r.재작업대상건수})</span>`
+      : `<span style="color:#cbd5e1;">-</span>`;
+
+    return `
+      <tr style="border-bottom:1px solid #f1f5f9; ${stripe}" title="${(r.대표제목 || '').replace(/"/g, '&quot;')}">
+        <td style="padding:8px 10px; color:#0f172a; font-weight:600;">${shortTitle}${shortTitle.length >= 30 ? '…' : ''}</td>
+        <td style="padding:8px 10px; text-align:center;"><span style="background:#eff6ff; color:#1d4ed8; font-size:10px; font-weight:700; padding:2px 8px; border-radius:8px;">${r.파트 || '-'}</span></td>
+        <td style="padding:8px 10px; text-align:center; color:#475569; font-weight:700;">${r.전체건수}${holdNote}${extNote}</td>
+        <td style="padding:8px 10px; text-align:center;">${renderTrendBadge(r.편차개선폭, 'H', 2, r.편차건수)}</td>
+        <td style="padding:8px 10px; text-align:center;">${renderTrendBadge(r.지연개선폭, '일', 2, r.지연건수)}</td>
+        <td style="padding:8px 10px; text-align:center; color:#334155; font-weight:600;">${reworkText}</td>
+      </tr>
+    `;
+  }).join('');
+};
+</script>
 <!-- ========================================================
      👉 신규(테스트용): 공수 추이(개선폭) 요약 카드
      "Master MD 분석 & 리스크 트렌드" 카드 바로 위에 삽입
@@ -605,7 +728,7 @@ window.renderDeviationTrendTest = function() {
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyhDsOsfM1wcDQ_y8X6M_uG0veX3jmAwnLgSYC5ICz_HN7QMiEaFQ0Fm8LosuChHXa6UQ/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwu5tsiYE-9ng_yNeNPB_NUPy39ksIUVp7XSXFcVwdty-bsoheIXfDMA-hyvfhdnwYCqw/exec';
 
     let allData = {}; 
     let documentLinksData = [];
@@ -4217,8 +4340,12 @@ document.getElementById('pdca-content').innerHTML = cardsHtml;
 window._pdcaCalc = { total, execRate, execN, complianceRate, reworkRate, reworkCnt, improveRate, problemCnt, problemImproved, activeImproveCnt, improveDist };
   console.log('PDCA 집계:', window._pdcaCalc);
 
-  // 3단계: 차트 & 액션 리스트 그리기
+// 3단계: 차트 & 액션 리스트 그리기
   window.renderPdcaCharts(rows, improveDist, TARGET, isProblem, hasImproveTag);
+
+  // 👉 이 두 줄 추가
+  if (typeof window.renderDeviationTrendTest === 'function') window.renderDeviationTrendTest();
+  if (typeof window.renderTaskTrends === 'function') window.renderTaskTrends();
 
 };   // ← renderPdca 함수 닫기
 
