@@ -981,6 +981,7 @@ window.animateMainCards = function() {
     requestAnimationFrame(() => bar.style.width = finalWidth);
   });
 };
+    window.renderMainDashboard = function() {
   if (!allData || !allData.project7) return;
 
   // 1. 프로젝트 리스트 (상단 카드 생성) — 순서는 window.cardOrder에 저장(드래그로 변경 가능)
