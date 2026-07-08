@@ -4649,6 +4649,8 @@ window.renderPdcaTrendChart = function(rows, hasImproveTagFn) {
 if (pdcaReworkChartInstance) { pdcaReworkChartInstance.destroy(); pdcaReworkChartInstance = null; }
 
   setTimeout(() => {
+  let delayed; // 👈 이 줄을 반드시 추가
+    
   pdcaReworkChartInstance = new Chart(document.getElementById('pdcaReworkChart'), {
     type: 'bar',
     data: {
@@ -4698,17 +4700,19 @@ if (pdcaReworkChartInstance) { pdcaReworkChartInstance.destroy(); pdcaReworkChar
       maintainAspectRatio: false,
 interaction: { mode: 'index', intersect: false },
     // 👇 여기서부터 교체: 기존 'animation: true,' 를 아래 코드로 덮어쓰세요!
-      animation: {
-        duration: 1200, // 전체 애니메이션 속도 (1.2초)
-        easing: 'easeOutQuart', // 부드럽게 감속하는 이징 효과
+ animation: {
+        onComplete: () => {
+          delayed = true;
+        },
         delay: (context) => {
           let delay = 0;
-          // 각 데이터 포인트(x축)와 데이터셋(막대, 선1, 선2)마다 시차를 부여
-          if (context.type === 'data') {
-            delay = context.dataIndex * 80 + context.datasetIndex * 150;
+          if (context.type === 'data' && context.mode === 'default' && !delayed) {
+            delay = context.dataIndex * 150 + context.datasetIndex * 200;
           }
           return delay;
-        }
+        },
+        duration: 1500,
+        easing: 'easeOutQuart'
       },
       // 👆 여기까지 교체
 
