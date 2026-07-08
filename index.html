@@ -4697,7 +4697,21 @@ if (pdcaReworkChartInstance) { pdcaReworkChartInstance.destroy(); pdcaReworkChar
       responsive: true,
       maintainAspectRatio: false,
 interaction: { mode: 'index', intersect: false },
-      animation: true,
+    // 👇 여기서부터 교체: 기존 'animation: true,' 를 아래 코드로 덮어쓰세요!
+      animation: {
+        duration: 1200, // 전체 애니메이션 속도 (1.2초)
+        easing: 'easeOutQuart', // 부드럽게 감속하는 이징 효과
+        delay: (context) => {
+          let delay = 0;
+          // 각 데이터 포인트(x축)와 데이터셋(막대, 선1, 선2)마다 시차를 부여
+          if (context.type === 'data') {
+            delay = context.dataIndex * 80 + context.datasetIndex * 150;
+          }
+          return delay;
+        }
+      },
+      // 👆 여기까지 교체
+
       plugins: {
         legend: { position: 'top', align: 'end', labels: { boxWidth: 10, font: { size: 11, weight: 600 } } },
         tooltip: {
