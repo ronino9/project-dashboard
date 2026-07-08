@@ -26,14 +26,22 @@
   transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease !important;
 }
 
-/* 2. 🔥 제미나이의 CSS 마법 (:has) 🔥
-   같은 그룹(같은 가로줄)에 있는 막대 중 하나라도 마우스가 올라가면 전부 동시 적용! */
-#gantt-rows div:has(> div[style*="cursor: pointer"]:hover) > div[style*="cursor: pointer"],
-#gantt-rows div:has(> div[style*="cursor:pointer"]:hover) > div[style*="cursor:pointer"] {
-  transform: scaleY(1.3) translateY(-1px) !important; 
-  filter: brightness(1.2) saturate(1.2) !important; 
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important; 
-  z-index: 50 !important; 
+/* 2. 메인 간트차트: 마우스 올린 막대 '하나만' 강조 */
+#gantt-rows div[style*="cursor: pointer"]:hover,
+#gantt-rows div[style*="cursor:pointer"]:hover {
+  transform: scaleY(1.3) translateY(-1px) !important;
+  filter: brightness(1.2) saturate(1.2) !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
+  z-index: 50 !important;
+}
+
+/* 3. 세부 간트차트(그룹): 같은 그룹 트랙에 있는 막대 '전부' 강조 */
+#gantt-rows .group-track:has(> div[style*="cursor: pointer"]:hover) > div[style*="cursor: pointer"],
+#gantt-rows .group-track:has(> div[style*="cursor:pointer"]:hover) > div[style*="cursor:pointer"] {
+  transform: scaleY(1.3) translateY(-1px) !important;
+  filter: brightness(1.2) saturate(1.2) !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
+  z-index: 50 !important;
 }
   .clamp-wrap { position: relative; }
 .clamp-text {
