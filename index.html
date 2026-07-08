@@ -2628,7 +2628,7 @@ function buildStageSegments(pData) {
 }
 
 // 계획 막대(구간) 렌더링 - 단계별로 이어진 막대, 색만 다름
-function renderPlanSegments(track, segs, windowStart, windowEnd, totalDays, dayOffset, onClick) {
+function renderPlanSegments(track, segs, windowStart, windowEnd, totalDays, dayOffset, onClick, hlPrefix) {
   segs.forEach(seg => {
     if (seg.end < windowStart || seg.start > windowEnd) return;
     const cs = ganttClamp(seg.start, windowStart, windowEnd);
@@ -2636,6 +2636,8 @@ function renderPlanSegments(track, segs, windowStart, windowEnd, totalDays, dayO
     const startPct = (dayOffset(cs) / totalDays) * 100;
     const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, 0.4);
     const bar = document.createElement('div');
+    bar.className = 'gantt-bar';
+    bar.dataset.hl = `${hlPrefix}_${seg.stage}`;
     bar.style.cssText = `position:absolute; top:4px; bottom:4px; left:${startPct}%; width:${widthPct}%; background:${STAGE_COLORS_PLAN[seg.stage] || '#94a3b8'}; border-radius:2px; cursor:pointer; pointer-events:auto;`;
     bar.title = seg.stage;
     if (onClick) bar.onclick = (e) => { e.stopPropagation(); onClick(seg.stage, seg.start, seg.end); };
@@ -2644,7 +2646,7 @@ function renderPlanSegments(track, segs, windowStart, windowEnd, totalDays, dayO
 }
 
 // 실행 막대(하루 단위 셀) 렌더링 - 색은 단계로 통일, 원격 여부는 색과 무관하게 인접일이면 이어붙임
-function renderExecSegments(track, execDays, windowStart, windowEnd, totalDays, dayOffset, onDayClick) {
+function renderExecSegments(track, execDays, windowStart, windowEnd, totalDays, dayOffset, onDayClick, hlPrefix) {
   if (execDays.length === 0) return;
   // 인접한 날짜 중 같은 단계끼리 묶어서 하나의 막대로 그림 (원격 여부는 색에 영향 없음)
   let i = 0;
@@ -2666,6 +2668,8 @@ function renderExecSegments(track, execDays, windowStart, windowEnd, totalDays, 
       const widthPct = Math.max(((ganttDaysBetween(cs, ce) + 1) / totalDays) * 100, 0.4);
       const bar = document.createElement('div');
       const color = STAGE_COLORS_EXEC[start.stage] || '#94a3b8';
+      bar.className = 'gantt-bar';
+      bar.dataset.hl = `${hlPrefix}_${start.stage}`;
       bar.style.cssText = `position:absolute; top:4px; bottom:4px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer; pointer-events:auto;`;
 bar.title = start.stage;
       if (onDayClick) bar.onclick = (e) => {
@@ -2790,19 +2794,19 @@ function renderProjectBlock(proj, label, soloColor, segs, isClickable, onSegClic
     return { row, track, right };
   }
 
-  const { row: planRow, track: planTrack } = createSubRow('계획', false);
+const { row: planRow, track: planTrack } = createSubRow('계획', false);
   if (segs.colorMode === 'stage') {
-    renderPlanSegments(planTrack, segs.planSegs, windowStart, windowEnd, totalDays, dayOffset, onSegClick);
+    renderPlanSegments(planTrack, segs.planSegs, windowStart, windowEnd, totalDays, dayOffset, onSegClick, proj);
   } else {
-    renderSolidDaySegments(planTrack, segs.planSegs, lightenColor(soloColor, 0.6), windowStart, windowEnd, totalDays, dayOffset, onDayClick);
+    renderSolidDaySegments(planTrack, segs.planSegs, lightenColor(soloColor, 0.6), windowStart, windowEnd, totalDays, dayOffset, onDayClick, proj);
   }
   rowsWrap.appendChild(planRow);
 
   const { row: execRow, track: execTrack, right: execRight } = createSubRow('실행', true);
   if (segs.colorMode === 'stage') {
-    renderExecSegments(execTrack, segs.execSegs, windowStart, windowEnd, totalDays, dayOffset, onDayClick);
+    renderExecSegments(execTrack, segs.execSegs, windowStart, windowEnd, totalDays, dayOffset, onDayClick, proj);
   } else {
-    renderSolidDaySegments(execTrack, segs.execSegs, soloColor, windowStart, windowEnd, totalDays, dayOffset, onDayClick);
+    renderSolidDaySegments(execTrack, segs.execSegs, soloColor, windowStart, windowEnd, totalDays, dayOffset, onDayClick, proj);
   }
   renderIssueMarkers(execTrack, segs.issueDates || [], windowStart, windowEnd, totalDays, dayOffset, onDayClick);
 
@@ -2827,7 +2831,7 @@ function lightenColor(hex, ratio) {
 }
 
 // 단색(단계 구분 없는) 날짜 세그먼트 렌더링 - CS/기타업무용. planSegs/execSegs는 { date } 배열
-function renderSolidDaySegments(track, days, color, windowStart, windowEnd, totalDays, dayOffset, onDayClick) {
+function renderSolidDaySegments(track, days, color, windowStart, windowEnd, totalDays, dayOffset, onDayClick, hlPrefix) {
   if (!days || days.length === 0) return;
   const sorted = [...days].sort((a, b) => a.date < b.date ? -1 : (a.date > b.date ? 1 : 0));
   let i = 0;
@@ -2843,7 +2847,9 @@ function renderSolidDaySegments(track, days, color, windowStart, windowEnd, tota
       const ce = ganttClamp(end.date, windowStart, windowEnd);
       const startPct = (dayOffset(cs) / totalDays) * 100;
       const widthPct = Math.max(((ganttDaysBetween(cs, ce) + 1) / totalDays) * 100, 0.4);
-      const bar = document.createElement('div');
+     const bar = document.createElement('div');
+      bar.className = 'gantt-bar';
+      if (hlPrefix) bar.dataset.hl = hlPrefix;
 bar.style.cssText = `position:absolute; top:4px; bottom:4px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer; pointer-events:auto;`;
       if (onDayClick) bar.onclick = (e) => {
         e.stopPropagation();
@@ -2924,9 +2930,10 @@ orderList.forEach((cardId) => {
       window.showDetailView(`${date} · ${label}`, `${dayRows.length}건`, dayRows);
     };
 
-    renderProjectBlock(cardId, label, projColorMap[cardId] || '#94a3b8', flat, false, null, onDayClick);
+renderProjectBlock(cardId, label, projColorMap[cardId] || '#94a3b8', flat, false, null, onDayClick);
   }
 });
+window.wireGanttHoverGroups();
 };
 let indivGanttCursor = new Date();
 let indivGanttProject = null;
