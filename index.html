@@ -4576,7 +4576,8 @@ if (pdcaImproveChartInstance) pdcaImproveChartInstance.destroy();
 };
     // ── ISO 주차 계산: 날짜 → "YYYY-W##" ──
 function getIsoWeekKey(dateStr) {
-  const d = new Date(dateStr + 'T00:00:00');
+  const normalized = String(dateStr).trim().replace(/[.\/]/g, '-').replace(/-$/, '');
+  const d = new Date(normalized + 'T00:00:00');
   if (isNaN(d)) return null;
   const target = new Date(d.valueOf());
   const dayNr = (d.getDay() + 6) % 7;
@@ -4694,10 +4695,9 @@ window.renderPdcaTrendChart = function(rows, hasImproveTagFn) {
       responsive: true,
       maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
-      animation: {
-        duration: 1100,
-        easing: 'easeOutQuart',
-        delay: (ctx) => ctx.type === 'data' && ctx.mode === 'default' ? ctx.dataIndex * 60 : 0
+animation: {
+        duration: 1200,
+        easing: 'easeOutQuart'
       },
       plugins: {
         legend: { position: 'top', align: 'end', labels: { boxWidth: 10, font: { size: 11, weight: 600 } } },
