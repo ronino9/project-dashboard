@@ -4344,7 +4344,13 @@ const cardsHtml = `
     </div>
 <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-bottom:16px;">
       <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-        <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:4px;">📈 개선 효과 추이 <span style="font-size:12px; font-weight:600; color:#3b82f6;">| 개선 활동 → 실제 성과로 이어지는가</span></div>
+<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:4px; flex-wrap:wrap;">
+          <div style="font-size:15px; font-weight:800; color:#0f172a;">📈 개선 효과 추이 <span style="font-size:12px; font-weight:600; color:#3b82f6;">| 개선 활동 → 실제 성과로 이어지는가</span></div>
+          <div style="display:flex; gap:4px; flex-shrink:0;">
+            <button id="pdca-trend-month" onclick="window.setPdcaTrendUnit('month')" style="padding:3px 10px; font-size:11px; font-weight:700; border-radius:8px; border:1px solid #3b82f6; background:#3b82f6; color:#fff; cursor:pointer;">월별</button>
+            <button id="pdca-trend-week" onclick="window.setPdcaTrendUnit('week')" style="padding:3px 10px; font-size:11px; font-weight:700; border-radius:8px; border:1px solid #e2e8f0; background:#fff; color:#475569; cursor:pointer;">주별</button>
+          </div>
+        </div>
         <div style="font-size:12px; color:#64748b; margin-bottom:16px;">회색 막대(개선책 마련)가 늘어난 뒤로 편차·지연 라인이 0선 아래로 내려가면 개선이 효과를 낸 것 · 대표행·외부요인 제외 기준</div>
         <div style="position:relative; height:230px;"><canvas id="pdcaReworkChart"></canvas></div>
       </div>
@@ -4409,115 +4415,9 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
     }
   }
 
-  // ── 2. 월별 집계: 개선책 마련 건수 + 평균 작업시간편차 + 평균 지연일 ──
-  //    _isRep 대표행만, 외부요인 제외 (재작업률/isProblem과 동일 기준)
-  const isExtFactorLocal = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
-  const monthAgg = {};
-
-  rows.forEach(r => {
-    if (r._isRep === false) return;
-    if (isExtFactorLocal(r)) return;
-
-    const rawDate = r['접수일'] || '';
-    if (!rawDate || typeof rawDate !== 'string' || rawDate.length < 7) return;
-    const monthKey = rawDate.substring(0, 7);
-    if (!monthAgg[monthKey]) monthAgg[monthKey] = { improveCnt: 0, devSum: 0, devN: 0, delaySum: 0, delayN: 0 };
-
-    if (hasImproveTag(r)) monthAgg[monthKey].improveCnt++;
-
-    const dev = parseFloat(r['작업 시간 편차']);
-    if (!isNaN(dev)) { monthAgg[monthKey].devSum += dev; monthAgg[monthKey].devN++; }
-
-    const delay = parseFloat(r['지연일']);
-    if (!isNaN(delay)) { monthAgg[monthKey].delaySum += delay; monthAgg[monthKey].delayN++; }
-  });
-
-  const sortedMonthsPdca = Object.keys(monthAgg).sort();
-  const improveCntArr = sortedMonthsPdca.map(m => monthAgg[m].improveCnt);
-  const avgDevArr = sortedMonthsPdca.map(m => monthAgg[m].devN > 0 ? +(monthAgg[m].devSum / monthAgg[m].devN).toFixed(2) : null);
-  const avgDelayArr = sortedMonthsPdca.map(m => monthAgg[m].delayN > 0 ? +(monthAgg[m].delaySum / monthAgg[m].delayN).toFixed(2) : null);
-  const monthLabels = sortedMonthsPdca.map(m => m.substring(2).replace('-', '.'));
-
-  // ── 3. 월별 개선 효과 복합 차트 그리기 ──
-  if (pdcaReworkChartInstance) pdcaReworkChartInstance.destroy();
-  pdcaReworkChartInstance = new Chart(document.getElementById('pdcaReworkChart'), {
-    type: 'bar',
-    data: {
-      labels: monthLabels,
-      datasets: [
-        {
-          type: 'bar',
-          label: '개선책 마련 건수',
-          data: improveCntArr,
-          backgroundColor: 'rgba(148,163,184,0.35)',
-          borderRadius: 4,
-          yAxisID: 'yCnt',
-          order: 3
-        },
-        {
-          type: 'line',
-          label: '작업 시간 편차 (H, 평균)',
-          data: avgDevArr,
-          borderColor: '#2563eb',
-          backgroundColor: '#2563eb',
-          borderWidth: 2.5,
-          pointRadius: 4,
-          spanGaps: true,
-          tension: 0.3,
-          yAxisID: 'yDev',
-          order: 1
-        },
-        {
-          type: 'line',
-          label: '지연일 (평균)',
-          data: avgDelayArr,
-          borderColor: '#ea580c',
-          backgroundColor: '#ea580c',
-          borderWidth: 2.5,
-          borderDash: [6, 4],
-          pointRadius: 4,
-          pointStyle: 'rectRot',
-          spanGaps: true,
-          tension: 0.3,
-          yAxisID: 'yDev',
-          order: 2
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { position: 'top', align: 'end', labels: { boxWidth: 10, font: { size: 11, weight: 600 } } },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => {
-              if (ctx.dataset.yAxisID === 'yCnt') return `개선책 ${ctx.parsed.y}건`;
-              const v = ctx.parsed.y;
-              if (v === null) return `${ctx.dataset.label}: 데이터 없음`;
-              const tag = v < 0 ? ' (개선)' : (v > 0 ? ' (악화)' : '');
-              return `${ctx.dataset.label}: ${v > 0 ? '+' : ''}${v}${tag}`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11, weight: 700 }, color: '#0f172a' } },
-        yDev: {
-          type: 'linear', display: true, position: 'left',
-          title: { display: true, text: '편차 (H / 일, 0=기준)', font: { size: 10, weight: 700 } },
-          grid: { color: (c) => c.tick.value === 0 ? '#94a3b8' : '#f1f5f9', lineWidth: (c) => c.tick.value === 0 ? 1.5 : 1 }
-        },
-        yCnt: {
-          type: 'linear', display: true, position: 'right',
-          title: { display: true, text: '개선책 건수', font: { size: 10, weight: 700 } },
-          grid: { display: false }, min: 0,
-          ticks: { stepSize: 1 }
-        }
-      }
-    }
-  });
+// ── 개선 효과 추이 차트 (월/주 단위 토글 지원) ──
+  window._pdcaChartRows = rows;
+  window.renderPdcaTrendChart(rows);
 
 // ── 4. 개선 유형 분포 (하이브리드: 바깥 링=유형별 분포 유지, 안쪽 링=능동/방어 비중 신규) ──
   const impLabels = Object.keys(improveDist);
@@ -4672,6 +4572,162 @@ if (pdcaImproveChartInstance) pdcaImproveChartInstance.destroy();
 
   document.getElementById('pdca-action-list').innerHTML = actionHtml ||
     '<div style="padding:20px; text-align:center; color:#16a34a; font-weight:600;">✅ 재작업이 집중된 파트·단계가 없습니다. 양호합니다.</div>';
+};
+    // ── ISO 주차 계산: 날짜 → "YYYY-W##" ──
+function getIsoWeekKey(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d)) return null;
+  const target = new Date(d.valueOf());
+  const dayNr = (d.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNr + 3);
+  const firstThursday = new Date(target.getFullYear(), 0, 4);
+  const diff = target - firstThursday;
+  const weekNo = 1 + Math.round(diff / (7 * 86400000));
+  return `${target.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+}
+
+function isoWeekLabel(weekKey) {
+  const [y, w] = weekKey.split('-W').map(Number);
+  const jan4 = new Date(y, 0, 4);
+  const dayNr = (jan4.getDay() + 6) % 7;
+  const week1Mon = new Date(jan4);
+  week1Mon.setDate(jan4.getDate() - dayNr);
+  const target = new Date(week1Mon);
+  target.setDate(week1Mon.getDate() + (w - 1) * 7);
+  const mm = String(target.getMonth() + 1).padStart(2, '0');
+  const dd = String(target.getDate()).padStart(2, '0');
+  return `${String(y).substring(2)}.${mm}.${dd}`;
+}
+
+window._pdcaTrendUnit = 'month';
+window.setPdcaTrendUnit = function(unit) {
+  window._pdcaTrendUnit = unit;
+  const btnM = document.getElementById('pdca-trend-month');
+  const btnW = document.getElementById('pdca-trend-week');
+  if (btnM) { btnM.style.background = unit === 'month' ? '#3b82f6' : '#fff'; btnM.style.color = unit === 'month' ? '#fff' : '#475569'; btnM.style.borderColor = unit === 'month' ? '#3b82f6' : '#e2e8f0'; }
+  if (btnW) { btnW.style.background = unit === 'week' ? '#3b82f6' : '#fff'; btnW.style.color = unit === 'week' ? '#fff' : '#475569'; btnW.style.borderColor = unit === 'week' ? '#3b82f6' : '#e2e8f0'; }
+  if (window._pdcaChartRows) window.renderPdcaTrendChart(window._pdcaChartRows);
+};
+
+window.renderPdcaTrendChart = function(rows) {
+  const unit = window._pdcaTrendUnit || 'month';
+  const isExtFactorLocal = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
+  const agg = {};
+
+  rows.forEach(r => {
+    if (r._isRep === false) return;
+    if (isExtFactorLocal(r)) return;
+
+    const rawDate = (r['접수일'] || '').toString();
+    if (!rawDate || rawDate.length < 10) return;
+    const key = unit === 'week' ? getIsoWeekKey(rawDate) : rawDate.substring(0, 7);
+    if (!key) return;
+    if (!agg[key]) agg[key] = { improveCnt: 0, devSum: 0, devN: 0, delaySum: 0, delayN: 0 };
+
+    if (hasImproveTag(r)) agg[key].improveCnt++;
+
+    const dev = parseFloat(r['작업 시간 편차']);
+    if (!isNaN(dev)) { agg[key].devSum += dev; agg[key].devN++; }
+
+    const delay = parseFloat(r['지연일']);
+    if (!isNaN(delay)) { agg[key].delaySum += delay; agg[key].delayN++; }
+  });
+
+  const allSortedKeys = Object.keys(agg).sort();
+  const maxPoints = 12; // 월별=최근 12개월, 주별=최근 12주
+  const sortedKeys = allSortedKeys.slice(-maxPoints);
+
+  const improveCntArr = sortedKeys.map(k => agg[k].improveCnt);
+  const avgDevArr = sortedKeys.map(k => agg[k].devN > 0 ? +(agg[k].devSum / agg[k].devN).toFixed(2) : null);
+  const avgDelayArr = sortedKeys.map(k => agg[k].delayN > 0 ? +(agg[k].delaySum / agg[k].delayN).toFixed(2) : null);
+  const labels = unit === 'week'
+    ? sortedKeys.map(k => isoWeekLabel(k))
+    : sortedKeys.map(k => k.substring(2).replace('-', '.'));
+
+  if (pdcaReworkChartInstance) pdcaReworkChartInstance.destroy();
+  pdcaReworkChartInstance = new Chart(document.getElementById('pdcaReworkChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'bar',
+          label: '개선책 마련 건수',
+          data: improveCntArr,
+          backgroundColor: 'rgba(148,163,184,0.35)',
+          borderRadius: 4,
+          yAxisID: 'yCnt',
+          order: 3
+        },
+        {
+          type: 'line',
+          label: '작업 시간 편차 (H, 평균)',
+          data: avgDevArr,
+          borderColor: '#2563eb',
+          backgroundColor: '#2563eb',
+          borderWidth: 2.5,
+          pointRadius: 4,
+          spanGaps: true,
+          tension: 0.3,
+          yAxisID: 'yDev',
+          order: 1
+        },
+        {
+          type: 'line',
+          label: '지연일 (평균)',
+          data: avgDelayArr,
+          borderColor: '#ea580c',
+          backgroundColor: '#ea580c',
+          borderWidth: 2.5,
+          borderDash: [6, 4],
+          pointRadius: 4,
+          pointStyle: 'rectRot',
+          spanGaps: true,
+          tension: 0.3,
+          yAxisID: 'yDev',
+          order: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      animation: {
+        duration: 1100,
+        easing: 'easeOutQuart',
+        delay: (ctx) => ctx.type === 'data' && ctx.mode === 'default' ? ctx.dataIndex * 60 : 0
+      },
+      plugins: {
+        legend: { position: 'top', align: 'end', labels: { boxWidth: 10, font: { size: 11, weight: 600 } } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              if (ctx.dataset.yAxisID === 'yCnt') return `개선책 ${ctx.parsed.y}건`;
+              const v = ctx.parsed.y;
+              if (v === null) return `${ctx.dataset.label}: 데이터 없음`;
+              const tag = v < 0 ? ' (개선)' : (v > 0 ? ' (악화)' : '');
+              return `${ctx.dataset.label}: ${v > 0 ? '+' : ''}${v}${tag}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10, weight: 700 }, color: '#0f172a', maxRotation: unit === 'week' ? 45 : 0 } },
+        yDev: {
+          type: 'linear', display: true, position: 'left',
+          title: { display: true, text: '편차 (H / 일, 0=기준)', font: { size: 10, weight: 700 } },
+          grid: { color: (c) => c.tick.value === 0 ? '#94a3b8' : '#f1f5f9', lineWidth: (c) => c.tick.value === 0 ? 1.5 : 1 }
+        },
+        yCnt: {
+          type: 'linear', display: true, position: 'right',
+          title: { display: true, text: '개선책 건수', font: { size: 10, weight: 700 } },
+          grid: { display: false }, min: 0,
+          ticks: { stepSize: 1 }
+        }
+      }
+    }
+  });
 };
   </script>
 </body>
