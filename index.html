@@ -4348,11 +4348,13 @@ const cardsHtml = `
         <div style="font-size:12px; color:#64748b; margin-bottom:16px;">회색 막대(개선책 마련)가 늘어난 뒤로 편차·지연 라인이 0선 아래로 내려가면 개선이 효과를 낸 것 · 대표행·외부요인 제외 기준</div>
         <div style="position:relative; height:230px;"><canvas id="pdcaReworkChart"></canvas></div>
       </div>
-<div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column;">
         <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:4px;">개선 유형 분포</div>
-        <div style="font-size:12px; color:#64748b; margin-bottom:16px;">바깥 링: 어떤 유형의 개선인가 · 안쪽 링: 문제 터지기 전 스스로 했는가(능동) vs 문제 대응이었는가(방어)</div>
-        <div style="position:relative; height:180px;"><canvas id="pdcaImproveChart"></canvas></div>
-        <div id="pdca-improve-legend" style="margin-top:12px; display:flex; flex-direction:column; gap:6px;"></div>
+        <div style="font-size:12px; color:#64748b; margin-bottom:12px;">바깥 링: 어떤 유형의 개선인가 · 안쪽 링: 문제 터지기 전 스스로 했는가(능동) vs 문제 대응이었는가(방어)</div>
+        <div style="display:flex; align-items:center; gap:20px; flex:1;">
+          <div style="position:relative; width:150px; height:150px; flex-shrink:0;"><canvas id="pdcaImproveChart"></canvas></div>
+          <div id="pdca-improve-legend" style="flex:1; display:flex; flex-direction:column; gap:6px; justify-content:center;"></div>
+        </div>
       </div>
     </div>
     <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
@@ -4532,35 +4534,51 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
   const activeDefTotal = activeTagCnt + defensiveTagCnt;
   const activeRatio = activeDefTotal > 0 ? Math.round((activeTagCnt / activeDefTotal) * 100) : null;
 
-  if (pdcaImproveChartInstance) pdcaImproveChartInstance.destroy();
+if (pdcaImproveChartInstance) pdcaImproveChartInstance.destroy();
   pdcaImproveChartInstance = new Chart(document.getElementById('pdcaImproveChart'), {
     type: 'doughnut',
     data: {
       labels: impLabels,
       datasets: [
         {
-          // 바깥 링: 개선 유형 분포 (기존 그대로)
+          // 바깥 링: 개선 유형 분포 (기존 그대로, 호버 시 살짝 튀어나오게)
           data: impData,
           backgroundColor: impColors,
-          borderWidth: 2,
+          borderWidth: 3,
           borderColor: '#fff',
+          hoverBorderWidth: 3,
+          hoverOffset: 8,
+          borderRadius: 6,
+          spacing: 2,
           weight: 1
         },
         {
           // 안쪽 링: 능동(자발) vs 방어(문제대응) 비중 (신규)
           data: activeDefTotal > 0 ? [activeTagCnt, defensiveTagCnt] : [1],
-          backgroundColor: activeDefTotal > 0 ? ['#0ea5e9', '#cbd5e1'] : ['#f1f5f9'],
-          borderWidth: 2,
+          backgroundColor: activeDefTotal > 0 ? ['#0ea5e9', '#e2e8f0'] : ['#f1f5f9'],
+          borderWidth: 3,
           borderColor: '#fff',
-          weight: 0.6
+          hoverBorderWidth: 3,
+          hoverOffset: 6,
+          borderRadius: 6,
+          spacing: 2,
+          weight: 0.55
         }
       ]
     },
     options: {
-      responsive: true, maintainAspectRatio: false, cutout: '45%',
+      responsive: true, maintainAspectRatio: false, cutout: '42%',
+      animation: { animateRotate: true, animateScale: true, duration: 900, easing: 'easeOutQuart' },
       plugins: {
         legend: { display: false },
         tooltip: {
+          backgroundColor: '#0f172a',
+          titleFont: { size: 12, weight: '700' },
+          bodyFont: { size: 12 },
+          padding: 10,
+          cornerRadius: 8,
+          displayColors: true,
+          boxPadding: 4,
           callbacks: {
             label: (ctx) => {
               if (ctx.datasetIndex === 1) {
@@ -4573,7 +4591,26 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
           }
         }
       }
-    }
+    },
+    plugins: [{
+      id: 'centerText',
+      afterDraw(chart) {
+        const { ctx, chartArea } = chart;
+        if (!chartArea) return;
+        const cx = (chartArea.left + chartArea.right) / 2;
+        const cy = (chartArea.top + chartArea.bottom) / 2;
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '700 20px -apple-system, sans-serif';
+        ctx.fillText(String(impTotal), cx, cy - 8);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '600 10px -apple-system, sans-serif';
+        ctx.fillText('총 개선', cx, cy + 10);
+        ctx.restore();
+      }
+    }]
   });
 
   document.getElementById('pdca-improve-legend').innerHTML = (impTotal === 0
