@@ -4417,7 +4417,8 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
 
 // ── 개선 효과 추이 차트 (월/주 단위 토글 지원) ──
   window._pdcaChartRows = rows;
-  window.renderPdcaTrendChart(rows);
+  window._pdcaHasImproveTagFn = hasImproveTag;
+  window.renderPdcaTrendChart(rows, hasImproveTag);
 
 // ── 4. 개선 유형 분포 (하이브리드: 바깥 링=유형별 분포 유지, 안쪽 링=능동/방어 비중 신규) ──
   const impLabels = Object.keys(improveDist);
@@ -4606,10 +4607,10 @@ window.setPdcaTrendUnit = function(unit) {
   const btnW = document.getElementById('pdca-trend-week');
   if (btnM) { btnM.style.background = unit === 'month' ? '#3b82f6' : '#fff'; btnM.style.color = unit === 'month' ? '#fff' : '#475569'; btnM.style.borderColor = unit === 'month' ? '#3b82f6' : '#e2e8f0'; }
   if (btnW) { btnW.style.background = unit === 'week' ? '#3b82f6' : '#fff'; btnW.style.color = unit === 'week' ? '#fff' : '#475569'; btnW.style.borderColor = unit === 'week' ? '#3b82f6' : '#e2e8f0'; }
-  if (window._pdcaChartRows) window.renderPdcaTrendChart(window._pdcaChartRows);
+  if (window._pdcaChartRows) window.renderPdcaTrendChart(window._pdcaChartRows, window._pdcaHasImproveTagFn);
 };
 
-window.renderPdcaTrendChart = function(rows) {
+window.renderPdcaTrendChart = function(rows, hasImproveTagFn) {
   const unit = window._pdcaTrendUnit || 'month';
   const isExtFactorLocal = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
   const agg = {};
@@ -4624,7 +4625,7 @@ window.renderPdcaTrendChart = function(rows) {
     if (!key) return;
     if (!agg[key]) agg[key] = { improveCnt: 0, devSum: 0, devN: 0, delaySum: 0, delayN: 0 };
 
-    if (hasImproveTag(r)) agg[key].improveCnt++;
+    if (hasImproveTagFn(r)) agg[key].improveCnt++;
 
     const dev = parseFloat(r['작업 시간 편차']);
     if (!isNaN(dev)) { agg[key].devSum += dev; agg[key].devN++; }
