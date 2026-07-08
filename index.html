@@ -20,31 +20,11 @@
   background: #e2e8f0 !important; 
   color: #0f172a !important;
 }
-/* 1. 간트차트 막대 기본 애니메이션 세팅 및 뚜렷한 흰색 세로 구분선 */
-#gantt-rows div[style*="cursor: pointer"],
-#gantt-rows div[style*="cursor:pointer"] {
-  transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease !important;
-  border-right: 2px solid #ffffff !important; /* 오른쪽 흰색 두꺼운 선 */
-  border-left: 2px solid #ffffff !important;  /* 왼쪽 흰색 두꺼운 선 (양쪽으로 확실하게 끊어줌) */
-  box-sizing: border-box !important;
-}
-
-/* 2. 메인 간트차트: 마우스 올린 막대 '하나만' 강조 */
-#gantt-rows div[style*="cursor: pointer"]:hover,
-#gantt-rows div[style*="cursor:pointer"]:hover {
-  transform: scaleY(1.3) translateY(-1px) !important;
-  filter: brightness(1.2) saturate(1.2) !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
-  z-index: 50 !important;
-}
-
-/* 3. 세부 간트차트(그룹): 같은 그룹 트랙에 있는 막대 '전부' 강조 */
-#gantt-rows .group-track:has(> div[style*="cursor: pointer"]:hover) > div[style*="cursor: pointer"],
-#gantt-rows .group-track:has(> div[style*="cursor:pointer"]:hover) > div[style*="cursor:pointer"] {
-  transform: scaleY(1.3) translateY(-1px) !important;
-  filter: brightness(1.2) saturate(1.2) !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
-  z-index: 50 !important;
+.gantt-bar { transition: filter 0.15s ease, box-shadow 0.15s ease; }
+.gantt-bar:hover, .gantt-bar.gantt-hl {
+  filter: brightness(1.18) saturate(1.15);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.22);
+  z-index: 60 !important;
 }
   .clamp-wrap { position: relative; }
 .clamp-text {
@@ -2962,6 +2942,20 @@ function indivTaskColor(taskType) {
   return INDIV_TASK_COLOR[(taskType || '').toString().trim()] || '#D4AC0D';
 }
 // 💡 간트차트 막대가 왼쪽에서 오른쪽으로 게이지처럼 차오르는 애니메이션 엔진!
+    window.wireGanttHoverGroups = function() {
+  const rowsEl = document.getElementById('gantt-rows');
+  if (!rowsEl) return;
+  rowsEl.querySelectorAll('.gantt-bar[data-hl]').forEach(bar => {
+    bar.onmouseenter = () => {
+      const key = bar.dataset.hl;
+      rowsEl.querySelectorAll(`.gantt-bar[data-hl="${key}"]`).forEach(el => el.classList.add('gantt-hl'));
+    };
+    bar.onmouseleave = () => {
+      const key = bar.dataset.hl;
+      rowsEl.querySelectorAll(`.gantt-bar[data-hl="${key}"]`).forEach(el => el.classList.remove('gantt-hl'));
+    };
+  });
+};
 window.applyGanttAnimation = function() {
   if (!document.getElementById('gantt-anim-style')) {
     const style = document.createElement('style');
@@ -2981,9 +2975,10 @@ window.applyGanttAnimation = function() {
     // 왼쪽 위치(left), 폭(width), 둥근모서리(borderRadius)를 모두 가진 요소가 바로 간트 막대!
     if (el.style.left && el.style.width && el.style.borderRadius) {
       el.style.transformOrigin = 'left center';
-      el.style.animation = 'growBarRight 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+el.style.animation = 'growBarRight 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards';
     }
   });
+  window.wireGanttHoverGroups();
 };
 // 💡 어디서든 색상을 연하게 변환할 수 있도록 공용(전역) 함수로 등록!
 window.lightenColor = function(hex, ratio) {
