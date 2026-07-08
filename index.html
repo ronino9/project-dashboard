@@ -2868,9 +2868,6 @@ function renderSolidDaySegments(track, days, color, windowStart, windowEnd, tota
   while (i < sorted.length) {
     const start = sorted[i];
     let j = i;
-    while (j + 1 < sorted.length && ganttDaysBetween(sorted[j].date, sorted[j + 1].date) === 1) {
-      j++;
-    }
     const end = sorted[j];
     if (end.date >= windowStart && start.date <= windowEnd) {
       const cs = ganttClamp(start.date, windowStart, windowEnd);
