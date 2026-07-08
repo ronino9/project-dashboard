@@ -27,6 +27,7 @@
   cursor: pointer;
 }
 .clamp-more-btn.clamp-show { display: inline-block; }  
+#main-panel .stage-fill { transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 /* 👇 여기에 한 줄만 딱 추가해 주시면 됩니다 👇 */
     .hide-scroll::-webkit-scrollbar { display: none; }
@@ -956,7 +957,30 @@ async function syncDashboard() {
     }
 
 // ✅ 여기서부터 복사하세요
-window.renderMainDashboard = function() {
+window.animateMainCards = function() {
+  const container = document.getElementById('main-summary-cards');
+  if (!container) return;
+
+  // 도넛
+  container.querySelectorAll('.donut-progress-circle').forEach(circle => {
+    const finalDash = circle.getAttribute('stroke-dasharray');
+    circle.style.transition = 'none';
+    circle.setAttribute('stroke-dasharray', '0, 100');
+    circle.getBoundingClientRect(); // 강제 리플로우
+    circle.style.transition = 'stroke-dasharray 0.9s cubic-bezier(0.16, 1, 0.3, 1)';
+    requestAnimationFrame(() => circle.setAttribute('stroke-dasharray', finalDash));
+  });
+
+  // 단계 막대
+  container.querySelectorAll('.stage-fill').forEach(bar => {
+    const finalWidth = bar.style.width;
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    bar.getBoundingClientRect();
+    bar.style.transition = 'width 0.9s cubic-bezier(0.16, 1, 0.3, 1)';
+    requestAnimationFrame(() => bar.style.width = finalWidth);
+  });
+};
   if (!allData || !allData.project7) return;
 
   // 1. 프로젝트 리스트 (상단 카드 생성) — 순서는 window.cardOrder에 저장(드래그로 변경 가능)
@@ -1033,7 +1057,7 @@ return `
           <div class="donut-container">
             <svg viewBox="0 0 36 36" style="width:100%;height:100%;">
               <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#f1f5f9" stroke-width="3"/>
-              <circle cx="18" cy="18" r="15.9155" fill="none" stroke="${proj.color}" stroke-width="3" stroke-dasharray="${rate}, 100" style="stroke-linecap:round;"/>
+              <circle class="donut-progress-circle" cx="18" cy="18" r="15.9155" fill="none" stroke="${proj.color}" stroke-width="3" stroke-dasharray="${rate}, 100" style="stroke-linecap:round;"/>
             </svg>
             <div class="donut-text" style="color: #1e293b;">
               ${rate}%<br><span style="font-size:9px; color:#64748b; font-weight:normal;">완료율</span>
@@ -1120,7 +1144,7 @@ const summary = proj.d.summary || {};
           <div class="donut-container">
             <svg viewBox="0 0 36 36" style="width:100%;height:100%;">
               <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#f1f5f9" stroke-width="3"/>
-              <circle cx="18" cy="18" r="15.9155" fill="none" stroke="${proj.color}" stroke-width="3" stroke-dasharray="${overall.replace('%','')}, 100" style="stroke-linecap:round;"/>
+              <circle class="donut-progress-circle" cx="18" cy="18" r="15.9155" fill="none" stroke="${proj.color}" stroke-width="3" stroke-dasharray="${overall.replace('%','')}, 100" style="stroke-linecap:round;"/>
             </svg>
             <div class="donut-text" style="color: #1e293b;">
               ${overall}<br><span style="font-size:10px; color:#64748b; font-weight:normal;">진행률</span>
@@ -1134,6 +1158,7 @@ const summary = proj.d.summary || {};
     `;
   }).join('');
   document.getElementById('main-summary-cards').innerHTML = summaryCardsHtml;
+window.animateMainCards();
 
 // 2. 이슈 랭킹 (Top 5 - 화이트 테마)
   const topIssuesContainer = document.getElementById('main-issue-top5');
