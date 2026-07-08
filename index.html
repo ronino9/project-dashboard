@@ -4646,7 +4646,9 @@ window.renderPdcaTrendChart = function(rows, hasImproveTagFn) {
     ? sortedKeys.map(k => isoWeekLabel(k))
     : sortedKeys.map(k => k.substring(2).replace('-', '.'));
 
-  if (pdcaReworkChartInstance) pdcaReworkChartInstance.destroy();
+if (pdcaReworkChartInstance) { pdcaReworkChartInstance.destroy(); pdcaReworkChartInstance = null; }
+
+  setTimeout(() => {
   pdcaReworkChartInstance = new Chart(document.getElementById('pdcaReworkChart'), {
     type: 'bar',
     data: {
@@ -4717,7 +4719,7 @@ interaction: { mode: 'index', intersect: false },
           title: { display: true, text: '편차 (H / 일, 0=기준)', font: { size: 10, weight: 700 } },
           grid: { color: (c) => c.tick.value === 0 ? '#94a3b8' : '#f1f5f9', lineWidth: (c) => c.tick.value === 0 ? 1.5 : 1 }
         },
-        yCnt: {
+yCnt: {
           type: 'linear', display: true, position: 'right',
           title: { display: true, text: '개선책 건수', font: { size: 10, weight: 700 } },
           grid: { display: false }, min: 0,
@@ -4726,6 +4728,7 @@ interaction: { mode: 'index', intersect: false },
       }
     }
   });
+  }, 50);
 };
   </script>
 </body>
