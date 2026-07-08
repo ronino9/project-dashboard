@@ -4655,7 +4655,7 @@ if (pdcaReworkChartInstance) { pdcaReworkChartInstance.destroy(); pdcaReworkChar
     type: 'bar',
     data: {
       labels,
-      datasets: [
+datasets: [
         {
           type: 'bar',
           label: '개선책 마련 건수',
@@ -4663,7 +4663,10 @@ if (pdcaReworkChartInstance) { pdcaReworkChartInstance.destroy(); pdcaReworkChar
           backgroundColor: 'rgba(148,163,184,0.35)',
           borderRadius: 4,
           yAxisID: 'yCnt',
-          order: 3
+          order: 3,
+          animation: {
+            y: { duration: 1200, easing: 'easeOutQuart', from: (ctx) => ctx.chart.scales.yCnt.getPixelForValue(0) }
+          }
         },
         {
           type: 'line',
@@ -4676,7 +4679,10 @@ if (pdcaReworkChartInstance) { pdcaReworkChartInstance.destroy(); pdcaReworkChar
           spanGaps: true,
           tension: 0.3,
           yAxisID: 'yDev',
-          order: 1
+          order: 1,
+          animations: {
+            y: { duration: 1200, easing: 'easeOutQuart', from: (ctx) => ctx.chart.scales.yDev.getPixelForValue(0) }
+          }
         },
         {
           type: 'line',
@@ -4691,7 +4697,10 @@ if (pdcaReworkChartInstance) { pdcaReworkChartInstance.destroy(); pdcaReworkChar
           spanGaps: true,
           tension: 0.3,
           yAxisID: 'yDev',
-          order: 2
+          order: 2,
+          animations: {
+            y: { duration: 1200, easing: 'easeOutQuart', from: (ctx) => ctx.chart.scales.yDev.getPixelForValue(0) }
+          }
         }
       ]
     },
