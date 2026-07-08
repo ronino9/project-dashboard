@@ -4182,68 +4182,77 @@ window.renderPdca = function() {
     return;
   }
 
-  // ===== To-Be 목표치 =====
+  // ===== To-Be 목표치 (코드 상수로 관리) =====
   const TARGET = { exec: 100, compliance: 100, rework: 5.0, improve: 100 };
+
   const total = rows.length;
 
-  // ── 0) [신규] CEO 맞춤형: 표준화(Yokoten), 근본원인(Root Cause), 절감공수(ROI) 집계 ──
-  let stdCount = 0;
-  const rootCauseDist = {};
-  let roiHours = 0;
-
-  // 💡 편차 개선폭을 활용한 ROI(절감 시간) 자동 계산
-  const trends = window.allData?.taskTrends || [];
-  trends.forEach(t => {
-    // 편차가 양수(+)라는 건 초과했던 시간이 줄어들며 개선되었다는 의미
-    if (t.편차_개선폭 && t.편차_개선폭 > 0 && t.전체건수 > 1) {
-      // 첫 1회를 제외한 나머지 반복 횟수만큼 시간을 벌어들였다고 누적
-      roiHours += (t.편차_개선폭 * (t.전체건수 - 1));
-    }
-  });
-
-  // ── 1~3) 기존 지표 집계 + 신규 태그 파싱 ──
+  // ── 1) 계획 대비 실행률: 예상시간 있는 건만 (공란 제외) ──
   let planSum = 0, actualSum = 0, execN = 0;
-  let compliant = 0;
-  let reworkCnt = 0, reworkBase = 0;
-  const improveDist = { '일정':0, '품질':0, '효율':0, '동료기여':0, '기타':0 };
-  let problemCnt = 0, problemImproved = 0, activeImproveCnt = 0;
-
-  const isExternalFactor = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
-  const isProblem = (r) => {
-    if (r._isRep === false || isExternalFactor(r)) return false;
-    const st = (r['진행상태'] || '').toString().trim();
-    const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
-    return st === '지연중' || st === '지연완료' || st === 'Issue' || yn === 'Y';
-  };
-  const hasImproveTag = (r) => /\[개선-[^\]]+\]/.test(r['분석 데이터'] || r['분석데이터'] || '');
-
   rows.forEach(r => {
     const plan = parseFloat(r['예상 작업 시간(H)']) || 0;
     const actual = parseFloat(r['작업 시간']) || 0;
     if (plan > 0) { planSum += plan; actualSum += actual; execN++; }
+  });
+  const execRate = planSum > 0 ? Math.round((actualSum / planSum) * 100) : null;
 
+  // ── 2) 일정 준수율: 지연일=0(또는 공란) → 준수 ──
+  let compliant = 0;
+  rows.forEach(r => {
     const delay = parseInt(r['지연일']) || 0;
     if (delay <= 0) compliant++;
+  });
+  const complianceRate = total > 0 ? Math.round((compliant / total) * 100) : 0;
 
-    if (r._isRep !== false && !isExternalFactor(r)) {
-      reworkBase++;
-      const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
-      if (yn === 'Y') reworkCnt++;
-    }
+  // ── 3) 재작업률: 재작업 여부(Y/N)='Y' ──
+// ── 외부요인 판별: 분석 데이터에 (외부요인) 표기가 있으면 제외 대상 ──
+  //    GAS calculateTaskTrends()의 isExternalFactor와 동일 기준으로 통일
+  const isExternalFactor = (r) => {
+    const a = r['분석 데이터'] || r['분석데이터'] || '';
+    return /\(외부요인\)/.test(a);
+  };
 
-    // 💡 [신규] 분석 데이터에서 태그 파싱
-    const analysis = r['분석 데이터'] || r['분석데이터'] || '';
-    
-    // [표준화-완료] 파싱
-    if (/\[표준화-완료\]/.test(analysis)) stdCount++;
-    
-    // [원인-XXX] 파싱
-    const rcMatches = analysis.match(/\[원인-([^\]]+)\]/g) || [];
-    rcMatches.forEach(tag => {
-      const cause = tag.replace(/\[원인-|\]/g, '').trim();
-      rootCauseDist[cause] = (rootCauseDist[cause] || 0) + 1;
+  // ── 3) 재작업률: 재작업 여부(Y/N)='Y' ──
+  //    (a) 대표행(_isRep)만 집계해 그룹 다건 중복 방지
+  //    (b) 외부요인 건은 분모·분자 모두 제외 (우리 개선 대상이 아님)
+  let reworkCnt = 0, reworkBase = 0;
+  rows.forEach(r => {
+    if (r._isRep === false) return;        // 그룹 비대표행 제외
+    if (isExternalFactor(r)) return;       // 외부요인 제외
+    reworkBase++;
+    const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
+    if (yn === 'Y') reworkCnt++;
+  });
+  const reworkRate = reworkBase > 0 ? (reworkCnt / reworkBase * 100) : 0;
+
+// ── 4) 개선 분석: 문제 건 대응(개선책 반영률) + 능동 개선(건수) ──
+  const improveDist = { '일정':0, '품질':0, '효율':0, '동료기여':0, '기타':0 };
+
+  // 문제 건 판별: 진행상태 지연중/지연완료/Issue 또는 재작업='Y'
+  //   단, 대표행만 + 외부요인 제외 (재작업률과 동일 기준으로 통일)
+  const isProblem = (r) => {
+    if (r._isRep === false) return false;
+    if (isExternalFactor(r)) return false;
+    const st = (r['진행상태'] || '').toString().trim();
+    const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
+    return st === '지연중' || st === '지연완료' || st === 'Issue' || yn === 'Y';
+  };
+  const hasImproveTag = (r) => {
+    const a = r['분석 데이터'] || r['분석데이터'] || '';
+    return /\[개선-[^\]]+\]/.test(a);
+  };
+  const countTags = (r) => {
+    const a = r['분석 데이터'] || r['분석데이터'] || '';
+    const m = a.match(/\[개선-([^\]]+)\]/g) || [];
+    m.forEach(tag => {
+      const name = tag.replace(/\[개선-|\]/g, '').trim();
+      if (improveDist[name] !== undefined) improveDist[name]++;
+      else improveDist['기타']++;
     });
+  };
 
+  let problemCnt = 0, problemImproved = 0, activeImproveCnt = 0;
+  rows.forEach(r => {
     const prob = isProblem(r);
     const tagged = hasImproveTag(r);
     if (prob) {
@@ -4252,25 +4261,16 @@ window.renderPdca = function() {
     } else {
       if (tagged) activeImproveCnt++;
     }
-    
-    if (tagged) {
-      const m = analysis.match(/\[개선-([^\]]+)\]/g) || [];
-      m.forEach(tag => {
-        const name = tag.replace(/\[개선-|\]/g, '').trim();
-        if (improveDist[name] !== undefined) improveDist[name]++;
-        else improveDist['기타']++;
-      });
-    }
+    if (tagged) countTags(r);  // 유형 분포는 문제/능동 구분 없이 전체 집계
   });
 
-  const execRate = planSum > 0 ? Math.round((actualSum / planSum) * 100) : null;
-  const complianceRate = total > 0 ? Math.round((compliant / total) * 100) : 0;
-  const reworkRate = reworkBase > 0 ? (reworkCnt / reworkBase * 100) : 0;
+  // 개선책 반영률 = 문제 건 중 개선 태그 달린 비율
   const improveRate = problemCnt > 0 ? Math.round((problemImproved / problemCnt) * 100) : null;
 
   // ===== 카드 렌더링 =====
+  // 각 카드: P/D/C/A 뱃지, 지표명, 큰 수치, To-Be, 한줄 코멘트
   const card = (phase, phaseColor, title, valueHtml, target, comment, commentColor) => `
-    <div style="flex:1; min-width:210px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:8px;">
+    <div style="flex:1; min-width:230px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:8px;">
       <div style="display:flex; align-items:center; gap:8px;">
         <span style="background:${phaseColor}1a; color:${phaseColor}; font-size:11px; font-weight:800; padding:2px 8px; border-radius:6px; letter-spacing:0.5px;">${phase}</span>
         <span style="font-size:14px; font-weight:700; color:#334155;">${title}</span>
@@ -4282,58 +4282,54 @@ window.renderPdca = function() {
       <div style="font-size:12px; color:${commentColor}; font-weight:600; margin-top:auto;">${comment}</div>
     </div>`;
 
-  // 상태 코멘트 처리
-  let execVal = execRate === null ? '<span style="color:#94a3b8;">—</span>' : `${execRate}<span style="font-size:20px;">%</span>`;
-  let execComment = execRate === null ? '⚪ 예상시간 데이터 축적 중' : (execRate <= 105 ? `📊 ${execN}건 기준 · 계획 근접` : `📊 ${execN}건 기준 · 계획 대비 초과`);
-  let execCommentColor = execRate === null ? '#94a3b8' : (execRate <= 105 ? '#16a34a' : '#dc2626');
+  // 실행률 코멘트
+  let execVal, execComment, execCommentColor;
+  if (execRate === null) {
+    execVal = '<span style="color:#94a3b8;">—</span>';
+    execComment = '⚪ 예상시간 데이터 축적 중';
+    execCommentColor = '#94a3b8';
+  } else {
+    execVal = `${execRate}<span style="font-size:20px;">%</span>`;
+    if (execRate <= 105) { execComment = `📊 ${execN}건 기준 · 계획 근접`; execCommentColor = '#16a34a'; }
+    else { execComment = `📊 ${execN}건 기준 · 계획 대비 초과`; execCommentColor = '#dc2626'; }
+  }
 
+  // 준수율 코멘트
   const compComment = complianceRate >= 95 ? '✔ 전원 수준 안정적 유지' : (complianceRate >= 80 ? '⚠ 일부 지연 발생' : '🔴 지연 다수 발생');
   const compColor = complianceRate >= 95 ? '#16a34a' : (complianceRate >= 80 ? '#d97706' : '#dc2626');
 
+  // 재작업률 코멘트 (낮을수록 좋음)
   const reworkGood = reworkRate <= TARGET.rework;
   const reworkComment = reworkGood ? `✅ 목표(${TARGET.rework}%) 이내` : `⬇ 목표(${TARGET.rework}%) 대비 초과`;
   const reworkColor = reworkGood ? '#16a34a' : '#dc2626';
 
-  let improveVal = improveRate === null ? '<span style="color:#94a3b8;">—</span>' : `${improveRate}<span style="font-size:20px;">%</span>`;
-  let improveComment = improveRate === null ? '⚪ 아직 문제 건이 없습니다' : `📝 문제 ${problemCnt}건 중 ${problemImproved}건 개선책 반영`;
-  let improveCommentColor = improveRate === null ? '#94a3b8' : (improveRate >= 70 ? '#16a34a' : (improveRate >= 40 ? '#d97706' : '#dc2626'));
+// 개선책 반영률 코멘트
+  let improveVal, improveComment, improveCommentColor;
+  if (improveRate === null) {
+    improveVal = '<span style="color:#94a3b8;">—</span>';
+    improveComment = '⚪ 아직 문제 건이 없습니다';
+    improveCommentColor = '#94a3b8';
+  } else {
+    improveVal = `${improveRate}<span style="font-size:20px;">%</span>`;
+    improveComment = `📝 문제 ${problemCnt}건 중 ${problemImproved}건 개선책 반영`;
+    improveCommentColor = improveRate >= 70 ? '#16a34a' : (improveRate >= 40 ? '#d97706' : '#dc2626');
+  }
 
-  // 💡 [신규] CEO를 위한 프리미엄 임팩트 뷰 (다크 테마로 강조)
-  const executiveBannerHtml = `
-    <div style="display:flex; gap:16px; margin-bottom:16px; flex-wrap:wrap;">
-      <div style="flex:1; min-width:300px; background:linear-gradient(135deg, #0f172a, #1e293b); border:1px solid #334155; border-radius:12px; padding:20px; color:#f8fafc; display:flex; align-items:center; justify-content:space-between; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
-        <div>
-          <div style="font-size:11px; font-weight:800; color:#38bdf8; margin-bottom:6px; letter-spacing:1px;">🚀 SYSTEM ASSET (Yokoten)</div>
-          <div style="font-size:18px; font-weight:800; color:#f8fafc; margin-bottom:2px;">표준화 달성 건수</div>
-          <div style="font-size:12px; color:#94a3b8;">개인의 문제해결이 전사 표준 매뉴얼로 이식됨</div>
-        </div>
-        <div style="font-size:42px; font-weight:800; color:#38bdf8; text-shadow:0 0 15px rgba(56,189,248,0.4);">${stdCount}<span style="font-size:16px; color:#94a3b8; margin-left:4px; font-weight:600;">건</span></div>
-      </div>
-      <div style="flex:1; min-width:300px; background:linear-gradient(135deg, #064e3b, #14532d); border:1px solid #166534; border-radius:12px; padding:20px; color:#f8fafc; display:flex; align-items:center; justify-content:space-between; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
-        <div>
-          <div style="font-size:11px; font-weight:800; color:#34d399; margin-bottom:6px; letter-spacing:1px;">💰 ROI TRACKING</div>
-          <div style="font-size:18px; font-weight:800; color:#f8fafc; margin-bottom:2px;">누적 절감 공수</div>
-          <div style="font-size:12px; color:#a7f3d0;">데이터 기반 능동 개선이 방어해 낸 인건비/시간</div>
-        </div>
-        <div style="font-size:42px; font-weight:800; color:#34d399; text-shadow:0 0 15px rgba(52,211,153,0.4);">${roiHours.toFixed(1)}<span style="font-size:16px; color:#6ee7b7; margin-left:4px; font-weight:600;">H</span></div>
-      </div>
-    </div>
-  `;
+  // 능동 개선 코멘트
+  const activeComment = `💡 문제 없이 자발적으로 도출한 개선`;
 
   const cardsHtml = `
-    ${executiveBannerHtml}
     <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px;">
       ${card('P→D', '#3b82f6', '계획 대비 실행률', execVal, TARGET.exec + '%', execComment, execCommentColor)}
       ${card('C', '#10b981', '일정 준수율', complianceRate + '<span style="font-size:20px;">%</span>', TARGET.compliance + '%', compComment, compColor)}
       ${card('A', '#a855f7', '재작업률 (핵심 지표)', reworkRate.toFixed(1) + '<span style="font-size:20px;">%</span>', TARGET.rework + '%', reworkComment, reworkColor)}
       ${card('A', '#a855f7', '개선책 반영률', improveVal, TARGET.improve + '%', improveComment, improveCommentColor)}
-      ${card('A', '#0ea5e9', '능동 개선', activeImproveCnt + '<span style="font-size:20px;">건</span>', '추이↗', '💡 문제 없이 자발적으로 도출한 개선', '#0284c7')}
+      ${card('A', '#0ea5e9', '능동 개선', activeImproveCnt + '<span style="font-size:20px;">건</span>', '추이↗', activeComment, '#0284c7')}
     </div>
-
-    <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-bottom:16px;">
+<div style="display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-bottom:16px;">
       <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
         <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:4px;">재작업률 개선 추이 <span style="font-size:12px; font-weight:600; color:#3b82f6;">| As-Is vs To-Be</span></div>
-        <div style="font-size:12px; color:#64748b; margin-bottom:16px;">PDCA 사이클이 올바르게 작동하는지 보여주는 핵심 지표</div>
+        <div style="font-size:12px; color:#64748b; margin-bottom:16px;">PDCA 사이클이 올바르게 작동하는지 보여주는 핵심 지표 (낮을수록 우수)</div>
         <div style="position:relative; height:230px;"><canvas id="pdcaReworkChart"></canvas></div>
       </div>
       <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
@@ -4342,34 +4338,40 @@ window.renderPdca = function() {
         <div id="pdca-improve-legend" style="margin-top:12px; display:flex; flex-direction:column; gap:6px;"></div>
       </div>
     </div>
-
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-      <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-        <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:4px; display:flex; align-items:center; gap:6px;">✳️ 이달의 핵심 To-Do</div>
-        <div style="font-size:12px; color:#64748b; margin-bottom:16px;">재작업이 몰린 파트·단계를 데이터가 자동 지목</div>
-        <div id="pdca-action-list"></div>
-      </div>
-      <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-        <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:4px; display:flex; align-items:center; gap:6px;">🔥 고질병 (Root Cause) 진단</div>
-        <div style="font-size:12px; color:#64748b; margin-bottom:16px;">전사 리소스를 가장 많이 갉아먹는 근본 원인 Top 5</div>
-        <div id="pdca-root-cause-list"></div>
-      </div>
+    <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+      <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:4px; display:flex; align-items:center; gap:6px;">✳️ 이달의 핵심 To-Do</div>
+      <div style="font-size:12px; color:#64748b; margin-bottom:16px;">재작업이 몰린 파트·단계를 데이터가 자동 지목 (담당·기한 수동입력 없음)</div>
+      <div id="pdca-action-list"></div>
     </div>`;
 
-  document.getElementById('pdca-content').innerHTML = cardsHtml;
+document.getElementById('pdca-content').innerHTML = cardsHtml;
 
+  // 하단으로 옮겨온 Master MD 분석 도넛/트렌드 차트도 탭이 보일 때 다시 그려서 사이즈 깨짐 방지
   if (typeof window.updateMasterMdChart === 'function') window.updateMasterMdChart();
   if (typeof window.renderMasterSlicers === 'function') window.renderMasterSlicers();
 
-  // 3단계 차트 그리기 (rootCauseDist 파라미터 추가 전달)
-  window.renderPdcaCharts(rows, improveDist, TARGET, isProblem, hasImproveTag, rootCauseDist);
+// 3단계에서 쓸 계산 결과를 잠깐 보관 (콘솔 확인용)
 
+  // 3단계에서 쓸 계산 결과를 잠깐 보관 (콘솔 확인용)
+window._pdcaCalc = { total, execRate, execN, complianceRate, reworkRate, reworkCnt, improveRate, problemCnt, problemImproved, activeImproveCnt, improveDist };
+  console.log('PDCA 집계:', window._pdcaCalc);
+
+// 3단계: 차트 & 액션 리스트 그리기
+  window.renderPdcaCharts(rows, improveDist, TARGET, isProblem, hasImproveTag);
+
+  // 👉 이 두 줄 추가
   if (typeof window.renderDeviationTrendTest === 'function') window.renderDeviationTrendTest();
   if (typeof window.renderTaskTrends === 'function') window.renderTaskTrends();
-};
 
-window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImproveTag, rootCauseDist) {
+};   // ← renderPdca 함수 닫기
+
+// ===== PDCA 차트: 엔지니어링 표준화 ROI & 차수별 공수 절감 증명 엔진 =====
+let pdcaReworkChartInstance = null;
+let pdcaImproveChartInstance = null;
+
+window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImproveTag) {
   
+  // 💡 1. 타이틀 영역을 엔지니어링 철학에 맞게 자동 개조
   const chartCanvas = document.getElementById('pdcaReworkChart');
   if (chartCanvas && chartCanvas.parentElement) {
     const titleContainer = chartCanvas.parentElement.querySelector('div');
@@ -4388,6 +4390,7 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
     }
   }
 
+  // ── 2. 프로젝트 차수별(OP2 -> OP3 -> ... -> OP8 -> CP) 공수 데이터 집계 ──
   const projOrder = ['OP2', 'OP3', 'OP4', 'OP5', 'OP6', 'OP7', 'OP8', 'CP'];
   const projAgg = {};
   projOrder.forEach(p => { projAgg[p] = { totalMd: 0, issueMd: 0, stdMd: 0 }; });
@@ -4403,22 +4406,27 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
     const status = (r['진행상태'] || '').toString().trim();
     const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
 
+    // 이슈/재작업 등 허비·트러블슈팅에 들어간 공수
     if (task === 'Issue' || status === '지연중' || yn === 'Y') {
       projAgg[pName].issueMd += md;
     }
+    // 자별적인 개선, 표준화, 기술 지원 등 자산화에 기여한 공수
     else if (task === '표준' || task === '개선' || hasImproveTag(r)) {
       projAgg[pName].stdMd += md;
     }
   });
 
+  // 데이터가 실제로 존재하는 프로젝트 차수만 필터링
   const validProjs = projOrder.filter(p => projAgg[p].totalMd > 0);
   const issueMdArr = validProjs.map(p => +(projAgg[p].issueMd.toFixed(1)));
   const stdMdArr = validProjs.map(p => +(projAgg[p].stdMd.toFixed(1)));
+  // 이슈 비중 (전체 MD 중 이슈 MD가 차지하는 비율 - 하향할수록 훌륭함)
   const issueRateArr = validProjs.map(p => {
     const t = projAgg[p].totalMd;
     return t > 0 ? +((projAgg[p].issueMd / t) * 100).toFixed(1) : 0;
   });
 
+  // ── 3. 프로젝트 차수별 복합 차트 그리기 ──
   if (pdcaReworkChartInstance) pdcaReworkChartInstance.destroy();
   pdcaReworkChartInstance = new Chart(document.getElementById('pdcaReworkChart'), {
     type: 'bar',
@@ -4488,6 +4496,7 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
     }
   });
 
+  // ── 4. 개선 유형 분포 (도넛 - 기존 로직 유지) ──
   const impLabels = Object.keys(improveDist);
   const impData = impLabels.map(k => improveDist[k]);
   const impColors = ['#3b82f6', '#10b981', '#a855f7', '#f59e0b', '#94a3b8'];
@@ -4510,7 +4519,7 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
         </div>`;
       }).join('');
 
-  // ── 5. 하단 액션 리스트 (To-Do) ──
+  // ── 5. 하단 To-Do 카드 (앞서 구현한 클릭 Drill-down 유지) ──
   const groupRework = (colName) => {
     const g = {};
     rows.forEach(r => {
@@ -4549,40 +4558,6 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
 
   document.getElementById('pdca-action-list').innerHTML = actionHtml ||
     '<div style="padding:20px; text-align:center; color:#16a34a; font-weight:600;">✅ 재작업이 집중된 파트·단계가 없습니다. 양호합니다.</div>';
-
-  // 💡 [신규] 6. 고질병 (Root Cause) 리스트 렌더링
-  const rcContainer = document.getElementById('pdca-root-cause-list');
-  if (rcContainer) {
-    const rcSorted = Object.entries(rootCauseDist || {}).sort((a, b) => b[1] - a[1]);
-    let rcHtml = '';
-    
-    if (rcSorted.length > 0) {
-      rcHtml = rcSorted.slice(0, 5).map((x, i) => {
-        // Top 1, 2, 3은 더 눈에 띄게 스타일링
-        const isTop = i < 3;
-        const color = isTop ? '#ef4444' : '#64748b';
-        const weight = isTop ? '800' : '600';
-        return `
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:${i%2===0?'#f8fafc':'#ffffff'}; border-radius:6px; margin-bottom:4px;">
-            <div style="font-size:13px; color:#334155; font-weight:${weight}; display:flex; align-items:center; gap:8px;">
-              <span style="color:${color}; font-size:11px; background:${isTop?'#fef2f2':'#f1f5f9'}; padding:2px 6px; border-radius:4px;">${i+1}위</span>
-              ${x[0]}
-            </div>
-            <span style="font-size:13px; font-weight:800; color:#0f172a;">${x[1]}<span style="font-size:11px; color:#64748b; font-weight:500; margin-left:2px;">건</span></span>
-          </div>
-        `;
-      }).join('');
-    } else {
-      rcHtml = `
-        <div style="padding:20px; text-align:center; background:#f8fafc; border-radius:8px; border:1px dashed #cbd5e1;">
-          <div style="font-size:18px; margin-bottom:8px;">🧐</div>
-          <div style="font-size:12px; color:#64748b; font-weight:600;">집계된 원인 데이터가 없습니다.</div>
-          <div style="font-size:11px; color:#94a3b8; margin-top:4px;">분석 데이터에 [원인-초기설계오류] 등의 태그를 남기면 자동 집계됩니다.</div>
-        </div>
-      `;
-    }
-    rcContainer.innerHTML = rcHtml;
-  }
 };
   </script>
 </body>
