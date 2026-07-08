@@ -6,6 +6,20 @@
   <title>Real-time Control Tower - Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    /* PDCA 현황 / 프로젝트 현황 버튼 Hover 애니메이션 */
+#btn-main-pdca:hover, #btn-main-project:hover {
+  transform: translateY(-2px);
+}
+
+#btn-main-project:hover {
+  box-shadow: 0 6px 14px rgba(59, 130, 246, 0.4) !important;
+  filter: brightness(1.05);
+}
+
+#btn-main-pdca:hover {
+  background: #e2e8f0 !important; 
+  color: #0f172a !important;
+}
   .clamp-wrap { position: relative; }
 .clamp-text {
   display: -webkit-box;
