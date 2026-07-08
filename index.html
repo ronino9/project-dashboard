@@ -921,7 +921,7 @@ detailTable.querySelectorAll('.log-photo-copy-btn').forEach(btn => {
   btn.onclick = () => copyFilePath(decodeURIComponent(btn.dataset.path));
 });
   }
-detailView.style.display = 'block';
+detailView.classList.add('active');
 
   // ✅ 5줄 넘는 항목만 더보기 버튼 표시 (반드시 화면에 보인 뒤에 높이 측정)
   detailTable.querySelectorAll('.clamp-text').forEach(el => {
@@ -931,8 +931,6 @@ detailView.style.display = 'block';
       btn.classList.add('clamp-show');
     }
   });
-
-detailView.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // 같은 그룹ID 이력을 접수일 순으로 모아서 상세이력 재표시 (전역에서 그룹ID 유일)
@@ -1777,7 +1775,7 @@ window.showIssueDetail = function(idx) {
       tools.style.display = 'none';
       slicers.style.display = 'none';
       charts.style.display = 'none';
-      detailView.style.display = 'none';
+      detailView.classList.remove('active');
       csPanel.style.display = 'none';
       dailyPanel.style.display = 'none';
       docPanel.style.display = 'none';
