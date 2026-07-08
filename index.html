@@ -3295,14 +3295,20 @@ const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, str
         actTrack.appendChild(bridgeBar);
       }
 
-      // 2. 실작업 바 (투입일): 실제 기록이 있는 날짜(6/13, 6/20)만 진한 색(opacity: 1.0)으로 위에 얹기
+// 2. 실작업 바 (투입일): 실제 기록이 있는 날짜(6/13, 6/20)만 진한 색(opacity: 1.0)으로 위에 얹기
       const execDaysInMonth = it.execDays.filter(d => d.date >= monthStart && d.date <= monthEnd);
       let ei = 0;
       while (ei < execDaysInMonth.length) {
         let ej = ei;
+        
+        /* 👇 연속된 날짜를 하나의 막대로 합치지 않도록 주석 처리 👇 */
+        /*
         while (ej + 1 < execDaysInMonth.length && ganttDaysBetween(execDaysInMonth[ej].date, execDaysInMonth[ej + 1].date) === 1) {
           ej++;
         }
+        */
+        /* 👆 주석 처리 끝 👆 */
+        
         const cs = execDaysInMonth[ei].date, ce = execDaysInMonth[ej].date;
         const startPct = (dayOffset(cs) / totalDays) * 100;
         const widthPct = Math.max(((ganttDaysBetween(cs, ce) + 1) / totalDays) * 100, (100 / totalDays) * 0.9);
