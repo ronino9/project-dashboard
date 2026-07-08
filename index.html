@@ -4268,7 +4268,7 @@ window.renderPdca = function() {
   const improveRate = problemCnt > 0 ? Math.round((problemImproved / problemCnt) * 100) : null;
 
   // ===== 카드 렌더링 =====
-  // 각 카드: P/D/C/A 뱃지, 지표명, 큰 수치, To-Be, 한줄 코멘트
+// ===== 카드 렌더링 (P/D/C/A 4카드 + 재작업률은 상단 KPI로) =====
   const card = (phase, phaseColor, title, valueHtml, target, comment, commentColor) => `
     <div style="flex:1; min-width:230px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:8px;">
       <div style="display:flex; align-items:center; gap:8px;">
@@ -4282,7 +4282,14 @@ window.renderPdca = function() {
       <div style="font-size:12px; color:${commentColor}; font-weight:600; margin-top:auto;">${comment}</div>
     </div>`;
 
-  // 실행률 코멘트
+  // ── P: 계획 수립률 (예상 시간을 산정하고 착수한 비율) ──
+  let planSetCount = 0;
+  rows.forEach(r => { if ((parseFloat(r['예상 작업 시간(H)']) || 0) > 0) planSetCount++; });
+  const planRate = total > 0 ? Math.round((planSetCount / total) * 100) : 0;
+  const planComment = planRate >= 80 ? '대부분 예상 시간을 산정하고 착수' : '예상 시간 없이 착수한 건이 남아있음';
+  const planCommentColor = planRate >= 80 ? '#16a34a' : '#d97706';
+
+  // D: 실행률 코멘트
   let execVal, execComment, execCommentColor;
   if (execRate === null) {
     execVal = '<span style="color:#94a3b8;">—</span>';
@@ -4294,16 +4301,11 @@ window.renderPdca = function() {
     else { execComment = `📊 ${execN}건 기준 · 계획 대비 초과`; execCommentColor = '#dc2626'; }
   }
 
-  // 준수율 코멘트
+  // C: 준수율 코멘트
   const compComment = complianceRate >= 95 ? '✔ 전원 수준 안정적 유지' : (complianceRate >= 80 ? '⚠ 일부 지연 발생' : '🔴 지연 다수 발생');
   const compColor = complianceRate >= 95 ? '#16a34a' : (complianceRate >= 80 ? '#d97706' : '#dc2626');
 
-  // 재작업률 코멘트 (낮을수록 좋음)
-  const reworkGood = reworkRate <= TARGET.rework;
-  const reworkComment = reworkGood ? `✅ 목표(${TARGET.rework}%) 이내` : `⬇ 목표(${TARGET.rework}%) 대비 초과`;
-  const reworkColor = reworkGood ? '#16a34a' : '#dc2626';
-
-// 개선책 반영률 코멘트
+  // A: 개선책 반영률 코멘트
   let improveVal, improveComment, improveCommentColor;
   if (improveRate === null) {
     improveVal = '<span style="color:#94a3b8;">—</span>';
@@ -4315,15 +4317,30 @@ window.renderPdca = function() {
     improveCommentColor = improveRate >= 70 ? '#16a34a' : (improveRate >= 40 ? '#d97706' : '#dc2626');
   }
 
-  // 능동 개선 코멘트
+  // A: 능동 개선 코멘트
   const activeComment = `💡 문제 없이 자발적으로 도출한 개선`;
 
+  // 재작업률은 카드가 아니라 상단 KPI 줄로 (결과 지표라 P/D/C/A 어디에도 안 맞음)
+  const reworkTopKpi = `
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 16px;">
+        <div style="font-size:11px; color:#64748b; font-weight:600;">재작업률</div>
+        <div style="font-size:20px; font-weight:800; color:${reworkRate <= TARGET.rework ? '#0f766e' : '#dc2626'};">${reworkRate.toFixed(1)}%<span style="font-size:11px; color:#94a3b8; font-weight:600;"> / 목표 ${TARGET.rework}%</span></div>
+      </div>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 16px;">
+        <div style="font-size:11px; color:#64748b; font-weight:600;">문제 건</div>
+        <div style="font-size:20px; font-weight:800; color:#0f172a;">${problemCnt}</div>
+      </div>
+    </div>`;
+
   const cardsHtml = `
+const cardsHtml = `
+    ${reworkTopKpi}
     <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px;">
-      ${card('P→D', '#3b82f6', '계획 대비 실행률', execVal, TARGET.exec + '%', execComment, execCommentColor)}
-      ${card('C', '#10b981', '일정 준수율', complianceRate + '<span style="font-size:20px;">%</span>', TARGET.compliance + '%', compComment, compColor)}
-      ${card('A', '#a855f7', '재작업률 (핵심 지표)', reworkRate.toFixed(1) + '<span style="font-size:20px;">%</span>', TARGET.rework + '%', reworkComment, reworkColor)}
-      ${card('A', '#a855f7', '개선책 반영률', improveVal, TARGET.improve + '%', improveComment, improveCommentColor)}
+      ${card('P', '#64748b', '계획 수립률', planRate + '<span style="font-size:20px;">%</span>', '100%', planComment, planCommentColor)}
+      ${card('D', '#3b82f6', '계획 대비 실행률', execVal, TARGET.exec + '%', execComment, execCommentColor)}
+      ${card('C', '#0f766e', '일정 준수율', complianceRate + '<span style="font-size:20px;">%</span>', TARGET.compliance + '%', compComment, compColor)}
+      ${card('A', '#7c3aed', '개선책 반영률', improveVal, TARGET.improve + '%', improveComment, improveCommentColor)}
       ${card('A', '#0ea5e9', '능동 개선', activeImproveCnt + '<span style="font-size:20px;">건</span>', '추이↗', activeComment, '#0284c7')}
     </div>
 <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-bottom:16px;">
