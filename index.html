@@ -3248,13 +3248,14 @@ filteredItems.forEach((it, idx) => {
     const taskType = it.row ? (it.row['업무 구분'] || '') : '';
     const color = it.isHold ? '#94a3b8' : indivTaskColor(taskType);
     const carryBadge = it.carriedOver ? ' <span style="color:#dc2626;">⚠이월</span>' : '';
-const shortTitle = it.title.length > 14 ? it.title.slice(0, 14) + '…' : it.title;
-const showThisItem = () => {
+    const shortTitle = it.title.length > 14 ? it.title.slice(0, 14) + '…' : it.title;
+    const itemKey = `item_${idx}`;
+    const showThisItem = () => {
       const rowCopy = { '프로젝트 코드': code, '접수일': it.row['접수일'] || '-', ...it.row };
       window.showDetailView(`${it.actStart} · ${code}`, it.title, [rowCopy]);
     };
 
-// 💡 계획 막대: 실행 막대 색상(color)의 연한 파스텔 버전(lightenColor 0.44)으로 그립니다!
+    // 💡 계획 막대: 실행 막대 색상(color)의 연한 파스텔 버전(lightenColor 0.44)으로 그립니다!
     const planColor = it.isHold ? '#cbd5e1' : lightenColor(color, 0.44);
     const { row: planRow, track: planTrack } = makeRow(shortTitle + carryBadge, true, stripe, color);
     if (it.planStart <= monthEnd && it.planEnd >= monthStart) {
@@ -3262,13 +3263,15 @@ const showThisItem = () => {
       const startPct = (dayOffset(cs) / totalDays) * 100;
       const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
       const bar = document.createElement('div');
+      bar.className = 'gantt-bar';
+      bar.dataset.hl = itemKey;
       bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${planColor}; border-radius:2px; cursor:pointer;`;
       bar.onclick = showThisItem;
       planTrack.appendChild(bar);
     }
     rowsEl.appendChild(planRow);
 
-const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, stripe, color);
+    const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, stripe, color);
 
     if (!it.execDays) {
       // 단일 행(그룹ID 없음) — 기존 방식: 접수일~완료일(또는 오늘)을 연속 막대로 채움
@@ -3277,6 +3280,8 @@ const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, str
         const startPct = (dayOffset(cs) / totalDays) * 100;
         const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
         const bar = document.createElement('div');
+        bar.className = 'gantt-bar';
+        bar.dataset.hl = itemKey;
         bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer;`;
         bar.onclick = (e) => { e.stopPropagation(); showThisItem(); };
         actTrack.appendChild(bar);
@@ -3296,40 +3301,35 @@ const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, str
           actTrack.appendChild(issueMark);
         }
       }
-} else {
+    } else {
       // ── [다건 그룹] 시작일~완료일 전체를 옅은 색으로 깔고, 실작업일만 진하게 덮어쓰기 ──
 
-      // 1. 브릿지 바 (지연/대기 기간): 시작일(6/13)~완료일(6/20 또는 오늘) 전체를 옅은 색(opacity: 0.25)으로 연결
+      // 1. 브릿지 바 (지연/대기 기간): 시작일~완료일(또는 오늘) 전체를 옅은 색(opacity: 0.25)으로 연결
       if (it.actStart <= monthEnd && it.actEnd >= monthStart) {
         const cs = ganttClamp(it.actStart, monthStart, monthEnd);
         const ce = ganttClamp(it.actEnd, monthStart, monthEnd);
         const startPct = (dayOffset(cs) / totalDays) * 100;
         const widthPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
         const bridgeBar = document.createElement('div');
+        bridgeBar.className = 'gantt-bar';
+        bridgeBar.dataset.hl = itemKey;
         bridgeBar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${color}; opacity:0.25; border-radius:2px; pointer-events:none;`;
         actTrack.appendChild(bridgeBar);
       }
 
-// 2. 실작업 바 (투입일): 실제 기록이 있는 날짜(6/13, 6/20)만 진한 색(opacity: 1.0)으로 위에 얹기
+      // 2. 실작업 바 (투입일): 실제 기록이 있는 날짜만 진한 색(opacity: 1.0)으로 위에 얹기
       const execDaysInMonth = it.execDays.filter(d => d.date >= monthStart && d.date <= monthEnd);
       let ei = 0;
       while (ei < execDaysInMonth.length) {
         let ej = ei;
-        
-        /* 👇 연속된 날짜를 하나의 막대로 합치지 않도록 주석 처리 👇 */
-        /*
-        while (ej + 1 < execDaysInMonth.length && ganttDaysBetween(execDaysInMonth[ej].date, execDaysInMonth[ej + 1].date) === 1) {
-          ej++;
-        }
-        */
-        /* 👆 주석 처리 끝 👆 */
-        
         const cs = execDaysInMonth[ei].date, ce = execDaysInMonth[ej].date;
         const startPct = (dayOffset(cs) / totalDays) * 100;
         const widthPct = Math.max(((ganttDaysBetween(cs, ce) + 1) / totalDays) * 100, (100 / totalDays) * 0.9);
         const solidBar = document.createElement('div');
+        solidBar.className = 'gantt-bar';
+        solidBar.dataset.hl = itemKey;
         solidBar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${startPct}%; width:${widthPct}%; background:${color}; opacity:1.0; border-radius:2px; cursor:pointer; z-index:2;`;
-        
+
         const segRows = execDaysInMonth.slice(ei, ej + 1).map(d => d.row);
         solidBar.onclick = (e) => {
           e.stopPropagation();
@@ -3362,9 +3362,7 @@ const { row: actRow, track: actTrack, right: actRight } = makeRow('', false, str
       }
     }
 
- 
-
-const varDays = it.isDone ? ganttDaysBetween(it.planEnd, it.actEnd) : null;
+    const varDays = it.isDone ? ganttDaysBetween(it.planEnd, it.actEnd) : null;
     const vColor = varDays === null ? (it.isHold ? '#94a3b8' : (it.isDelayed ? '#dc2626' : '#94a3b8')) : (varDays > 0 ? '#dc2626' : varDays < 0 ? '#16a34a' : '#94a3b8');
     const vText = varDays === null ? (it.isHold ? '보류' : (it.isDelayed ? '지연중' : '진행중')) : ((varDays > 0 ? '+' + varDays : varDays) + '일');
     actRight.style.cssText += `font-size:11px; color:${vColor}; text-align:center; font-weight:600; display:flex; align-items:center; justify-content:center;`;
