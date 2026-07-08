@@ -2594,6 +2594,36 @@ const STAGE_COLORS_EXEC = {
   'SAT':    '#6fb583'
 };
 const STAGE_ORDER = ['제작', 'FAT', 'SET-UP', 'SAT'];
+window.buildGanttTooltip = function(proj, stage, startDate, endDate) {
+  const rows = (window.allMasterData || []).filter(r => {
+    if (r._pName !== proj) return false;
+    if ((r['단계 구분'] || '') !== stage) return false;
+    const d = (r['접수일'] || '').toString().replace(/[./]/g, '-').substring(0, 10);
+    return d >= startDate && d <= endDate;
+  });
+  if (rows.length === 0) return `${stage} · ${startDate}${startDate !== endDate ? ' ~ ' + endDate : ''}`;
+
+  const groupSet = new Set();
+  rows.forEach(r => {
+    const gid = (r['그룹ID'] || '').toString().trim();
+    groupSet.add(gid || `__단독_${r['표준 제작 Item / Issue / 개선사항'] || ''}`);
+  });
+  const distinctCount = groupSet.size;
+
+  let header;
+  if (rows.length === 1) {
+    header = `[단일 항목] ${rows[0]['표준 제작 Item / Issue / 개선사항'] || '(제목없음)'}`;
+  } else if (distinctCount === 1) {
+    header = `[같은 항목 반복] 총 ${rows.length}건 · ${rows[0]['표준 제작 Item / Issue / 개선사항'] || ''}`;
+  } else {
+    header = `[서로 다른 ${distinctCount}개 항목 겹침] 총 ${rows.length}건`;
+  }
+
+  const titles = [...new Set(rows.map(r => r['표준 제작 Item / Issue / 개선사항'] || '(제목없음)'))].slice(0, 5);
+  const titleList = titles.map(t => `· ${t.length > 30 ? t.slice(0, 30) + '…' : t}`).join('\n');
+
+  return `${header}\n${startDate}${startDate !== endDate ? ' ~ ' + endDate : ''}\n${titleList}`;
+};  
 
 // 프로젝트 1개의 4단계 데이터를 "단계별 구간 리스트"로 합성
 // 중요: 실행일은 actualStart~actualEnd를 기계적으로 채우지 않고,
@@ -2639,7 +2669,7 @@ function renderPlanSegments(track, segs, windowStart, windowEnd, totalDays, dayO
     bar.className = 'gantt-bar';
     bar.dataset.hl = `${hlPrefix}_${seg.stage}`;
     bar.style.cssText = `position:absolute; top:4px; bottom:4px; left:${startPct}%; width:${widthPct}%; background:${STAGE_COLORS_PLAN[seg.stage] || '#94a3b8'}; border-radius:2px; cursor:pointer; pointer-events:auto;`;
-    bar.title = seg.stage;
+    bar.title = `[계획] ${seg.stage} · ${seg.start} ~ ${seg.end}`;
     if (onClick) bar.onclick = (e) => { e.stopPropagation(); onClick(seg.stage, seg.start, seg.end); };
     track.appendChild(bar);
   });
@@ -2671,7 +2701,7 @@ function renderExecSegments(track, execDays, windowStart, windowEnd, totalDays, 
       bar.className = 'gantt-bar';
       bar.dataset.hl = `${hlPrefix}_${start.stage}`;
       bar.style.cssText = `position:absolute; top:4px; bottom:4px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer; pointer-events:auto;`;
-bar.title = start.stage;
+bar.title = window.buildGanttTooltip ? window.buildGanttTooltip(hlPrefix, start.stage, start.date, end.date) : start.stage;
       if (onDayClick) bar.onclick = (e) => {
         e.stopPropagation();
         const rect = bar.getBoundingClientRect();
