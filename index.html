@@ -3002,7 +3002,8 @@ const rows = (window.allMasterData || []).filter(r => r._pName === code);
   // 그룹ID 기준으로 행 묶기 (그룹ID 없으면 단독 그룹으로 취급 → 기존 방식 그대로 유지)
   const groups = {};
   rows.forEach((r, idx) => {
-    const gid = (r['그룹ID'] || '').toString().trim() || `__solo_${idx}`;
+    const taskType = (r['업무 구분'] || '').toString().trim();
+    const gid = ((r['그룹ID'] || '').toString().trim() || `__solo_${idx}`) + '_' + taskType;
     if (!groups[gid]) groups[gid] = [];
     groups[gid].push(r);
   });
@@ -3020,12 +3021,12 @@ const rows = (window.allMasterData || []).filter(r => r._pName === code);
     if (execDaysRaw.length === 0) return;
     execDaysRaw.sort((a, b) => a.date < b.date ? -1 : (a.date > b.date ? 1 : 0));
 
-    // 완료 여부: 그룹 내 어느 행이든 완료여부='O'면 완료로 간주, 완료일은 그중 가장 늦은 날짜
-    let isDone = false, isHold = false, completeDate = '';
+// 완료 여부: 그룹 내 모든 행이 완료여부='O'여야 그룹 전체 완료로 간주 (하나라도 미완료면 진행중)
+    let isDone = true, isHold = false, completeDate = '';
     groupRows.forEach(r => {
       const status = (r['완료여부'] || '').toString().trim();
-      if (status === 'O') {
-        isDone = true;
+      if (status !== 'O') { isDone = false; }
+      else {
         const c = calNorm(r['완료일']);
         if (c && (!completeDate || c > completeDate)) completeDate = c;
       }
@@ -3500,7 +3501,8 @@ function calCodeColor(code) {
 
 function calNorm(s) {
   if (!s) return '';
-  return s.toString().trim().replace(/[./]/g, '-').substring(0, 10);
+  const norm = s.toString().trim().replace(/[./]/g, '-').substring(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(norm) ? norm : '';
 }
 function calYMD(d) {
   const y = d.getFullYear();
