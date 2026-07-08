@@ -2687,8 +2687,18 @@ function renderExecSegments(track, execDays, windowStart, windowEnd, totalDays, 
       const bar = document.createElement('div');
       const color = STAGE_COLORS_EXEC[start.stage] || '#94a3b8';
       bar.style.cssText = `position:absolute; top:4px; bottom:4px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer; pointer-events:auto;`;
-      bar.title = start.stage;
-      if (onDayClick) bar.onclick = (e) => { e.stopPropagation(); onDayClick(start.date, start.stage); };
+bar.title = start.stage;
+      if (onDayClick) bar.onclick = (e) => {
+        e.stopPropagation();
+        const rect = bar.getBoundingClientRect();
+        const fraction = Math.min(0.999, Math.max(0, (e.clientX - rect.left) / rect.width));
+        const segDays = ganttDaysBetween(cs, ce) + 1;
+        const dayIdx = Math.floor(fraction * segDays);
+        const clickedDateObj = new Date(cs);
+        clickedDateObj.setDate(clickedDateObj.getDate() + dayIdx);
+        const clickedDate = `${clickedDateObj.getFullYear()}-${String(clickedDateObj.getMonth() + 1).padStart(2, '0')}-${String(clickedDateObj.getDate()).padStart(2, '0')}`;
+        onDayClick(clickedDate, start.stage);
+      };
       track.appendChild(bar);
     }
     i = j + 1;
@@ -2854,8 +2864,18 @@ function renderSolidDaySegments(track, days, color, windowStart, windowEnd, tota
       const startPct = (dayOffset(cs) / totalDays) * 100;
       const widthPct = Math.max(((ganttDaysBetween(cs, ce) + 1) / totalDays) * 100, 0.4);
       const bar = document.createElement('div');
-      bar.style.cssText = `position:absolute; top:4px; bottom:4px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer; pointer-events:auto;`;
-      if (onDayClick) bar.onclick = (e) => { e.stopPropagation(); onDayClick(start.date, ''); };
+bar.style.cssText = `position:absolute; top:4px; bottom:4px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer; pointer-events:auto;`;
+      if (onDayClick) bar.onclick = (e) => {
+        e.stopPropagation();
+        const rect = bar.getBoundingClientRect();
+        const fraction = Math.min(0.999, Math.max(0, (e.clientX - rect.left) / rect.width));
+        const segDays = ganttDaysBetween(cs, ce) + 1;
+        const dayIdx = Math.floor(fraction * segDays);
+        const clickedDateObj = new Date(cs);
+        clickedDateObj.setDate(clickedDateObj.getDate() + dayIdx);
+        const clickedDate = `${clickedDateObj.getFullYear()}-${String(clickedDateObj.getMonth() + 1).padStart(2, '0')}-${String(clickedDateObj.getDate()).padStart(2, '0')}`;
+        onDayClick(clickedDate, '');
+      };
       track.appendChild(bar);
     }
     i = j + 1;
