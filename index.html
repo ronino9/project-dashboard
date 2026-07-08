@@ -130,7 +130,7 @@
 #detailView #detailClose:hover { color:#0f172a !important; }
 #detailBackBtn { background:#f8fafc !important; border:1px solid #e2e8f0 !important; color:#3b82f6 !important; }
 #detailBackBtn:hover { background:#eff6ff !important; border-color:#93c5fd !important; }
-#detailTable { border-collapse:separate; border-spacing:0; width:max-content; min-width:100%; font-size:12px; }
+#detailTable { border-collapse:separate; border-spacing:0; table-layout:fixed; width:1730px; font-size:12px; }
 #detailTable th { position:sticky; top:0; z-index:4; text-align:left; padding:8px; background:#f8fafc !important; border-bottom:1px solid #e2e8f0 !important; color:#64748b !important; font-weight:700; }
 #detailTable td { padding:8px; border-bottom:1px solid #f1f5f9 !important; color:#334155 !important; background:#ffffff; }
 #detailTable th:nth-child(1), #detailTable td:nth-child(1) { position:sticky; left:0; width:90px; min-width:90px; max-width:90px; background:#f8fafc !important; z-index:2; }
@@ -822,15 +822,17 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows, _fromBack) {
     detailTable.innerHTML = '<tr><td style="text-align:center;">데이터가 없습니다.</td></tr>';
   } else {
     // 1. 헤더 정의
-    const headers = ['프로젝트 코드', '접수일', '진행상태', '업무 구분', '작업 시간', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터', '로그'];
-    let html = '<tr>' + headers.map(h => {
+const headers = ['프로젝트 코드', '접수일', '진행상태', '업무 구분', '작업 시간', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터', '로그'];
+    const colWidths = [90, 100, 90, 90, 110, 70, 320, 320, 320, 220];
+    let html = '<colgroup>' + colWidths.map(w => `<col style="width:${w}px;">`).join('') + '</colgroup>';
+    html += '<tr>' + headers.map(h => {
   if (h === '진행상태') return `<th style="text-align: center; white-space: nowrap; min-width: 85px;">${h}</th>`;
   return `<th>${h}</th>`;
 }).join('') + '</tr>';
 
     dataRows.forEach((row, rowIdx) => {
       // 2. 스마트 데이터 추출 (프로젝트 코드나 접수일이 없으면 현재 상태에서 유추)
-      const pCode = row['프로젝트 코드'] || document.getElementById('projectTitle').textContent || '-';
+      const pCode = row['프로젝트 코드'] || row._pName || document.getElementById('projectTitle').textContent || '-';
       const dateVal = row['접수일'] || '-';
 
       html += '<tr>' + headers.map(h => {
@@ -842,7 +844,7 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows, _fromBack) {
           let val = row[h] || '-';
           const statusColorMap = { '완료': '#059669', '지연완료': '#7c3aed', '지연중': '#dc2626', 'Issue': '#dc2626', '보류': '#475569', '임박': '#d97706', '진행중': '#2563eb' };
           let color = statusColorMap[val] || '#3b82f6';
-          return `<td style="text-align: center; vertical-align: top; white-space: nowrap;"><span class="badge" style="background:${color};">${val}</span></td>`;
+          return `<td style="text-align: center; vertical-align: top; white-space: nowrap;"><span class="badge" style="background:${color}; color:#ffffff; font-weight:700;">${val}</span></td>`;
         }
         if (h === '작업 시간') {
           const start = row['시작 시간'] || '';
@@ -852,7 +854,7 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows, _fromBack) {
         }
         if (h === '분석 데이터') {
           let val = row[h] || '-';
-          if (val === '-') return `<td style="vertical-align: top; color: #cbd5e1;">-</td>`;
+          if (val === '-') return `<td style="vertical-align: top; color: #94a3b8;">-</td>`;
           let lines = val.split('\n');
           let blocks = [];
           let currentBlock = null;
@@ -871,13 +873,13 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows, _fromBack) {
           let formattedHtml = '';
           blocks.forEach(block => {
             if (block.keyword) {
-              formattedHtml += `<div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 12px;"><span class="badge" style="background: #312e81; border: 1px solid #4f46e5; color: #c7d2fe;">📌 ${block.keyword}</span>${block.content ? `<span style="color: #cbd5e1; line-height: 1.5;">${block.content}</span>` : ''}</div>`;
+formattedHtml += `<div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 12px;"><span class="badge" style="background: #eef2ff; border: 1px solid #c7d2fe; color: #4338ca;">📌 ${block.keyword}</span>${block.content ? `<span style="color: #334155; line-height: 1.5;">${block.content}</span>` : ''}</div>`;
             } else {
-              formattedHtml += `<div style="color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">${block.content}</div>`;
+              formattedHtml += `<div style="color: #334155; line-height: 1.5; margin-bottom: 12px;">${block.content}</div>`;
             }
           });
 const analysisCellId = `clamp-analysis-${rowIdx}`;
-          return `<td style="min-width: 250px; max-width: 400px; vertical-align: top;">
+          return `<td style="vertical-align: top; overflow:hidden;">
             <div class="clamp-wrap">
               <div class="clamp-text" id="${analysisCellId}" style="white-space: normal; word-break: keep-all; overflow-wrap: break-word;">${formattedHtml}</div>
               <span class="clamp-more-btn" id="${analysisCellId}-btn" onclick="window.toggleClamp('${analysisCellId}')">더보기 ▾</span>
@@ -896,7 +898,7 @@ const analysisCellId = `clamp-analysis-${rowIdx}`;
       <button class="log-photo-copy-btn" data-path="${safeServer}" style="background:#1e293b; border:1px solid #334155; color:#6ee7b7; padding:2px 8px; border-radius:4px; cursor:pointer; font-size:10px;">서버</button>
     </div>`;
   }).join('');
-  return `<td style="min-width:220px; vertical-align:top;">${listHtml}</td>`;
+  return `<td style="vertical-align:top; overflow:hidden;">${listHtml}</td>`;
 }
 if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
   let val = row[h] || '-';
@@ -910,13 +912,20 @@ if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') 
       groupBadge = `<div style="margin-bottom:6px;"><span onclick="window.showGroupHistory('${gid}')" style="display:inline-flex; align-items:center; gap:4px; background:#1e293b; border:1px solid #3b82f6; color:#93c5fd; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; cursor:pointer;" title="이 그룹의 전체 이력 보기">🔗 ${gid}</span></div>`;
     }
   }
-  return `<td style="min-width: 200px; max-width: 350px; vertical-align: top; color: #e2e8f0;">
+  return `<td style="vertical-align: top; color: #e2e8f0; overflow:hidden;">
     ${groupBadge}
     <div class="clamp-wrap">
       <div class="clamp-text" id="${cellId}" style="white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word;">${val}</div>
       <span class="clamp-more-btn" id="${cellId}-btn" onclick="window.toggleClamp('${cellId}')">더보기 ▾</span>
     </div>
   </td>`;
+}
+        if (h === '업무 구분') {
+  let val = row[h] || '-';
+  const taskColorMap = { '표준': '#64748b', '개선': '#16a34a', 'Issue': '#dc2626', '이슈': '#dc2626', '기술지원': '#d97706', '기능요구': '#2563eb', '미팅': '#7c3aed', '일정': '#0891b2' };
+  let tColor = taskColorMap[val] || '#475569';
+  if (val === '-') return `<td style="text-align: center; vertical-align: top; color: #cbd5e1;">-</td>`;
+  return `<td style="text-align: center; vertical-align: top; white-space: nowrap;"><span class="badge" style="background:${tColor}; color:#ffffff; font-weight:700;">${val}</span></td>`;
 }
         return `<td style="vertical-align: top; text-align: center;">${row[h] || '-'}</td>`;
       }).join('') + '</tr>';
