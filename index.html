@@ -28,6 +28,7 @@
 }
 .clamp-more-btn.clamp-show { display: inline-block; }  
 #main-panel .stage-fill { transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
+    .tt-row:hover { background:#eff6ff !important; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 /* 👇 여기에 한 줄만 딱 추가해 주시면 됩니다 👇 */
     .hide-scroll::-webkit-scrollbar { display: none; }
@@ -262,6 +263,7 @@
       🔁 반복 업무 개선 추이
       <span style="font-size:11px; font-weight:600; color:#64748b; background:#f1f5f9; padding:2px 8px; border-radius:10px;">같은 업무 유형이 반복될 때 편차·지연·재작업이 줄고 있는가</span>
     </div>
+    <span id="tt-last-update" style="font-size:11px; color:#94a3b8; font-weight:600; white-space:nowrap;"></span>
     <div style="display:flex; gap:6px;">
       <button id="tt-sort-count" onclick="window.sortTaskTrends('count')" style="padding:4px 12px; font-size:12px; font-weight:700; border-radius:8px; border:1px solid #3b82f6; background:#3b82f6; color:#fff; cursor:pointer;">빈도순</button>
       <button id="tt-sort-improve" onclick="window.sortTaskTrends('improve')" style="padding:4px 12px; font-size:12px; font-weight:700; border-radius:8px; border:1px solid #e2e8f0; background:#fff; color:#475569; cursor:pointer;">개선폭순</button>
@@ -317,16 +319,25 @@ function renderTrendBadge(val, unit, minCount, actualCount) {
   if (val === '' || val === null) return `<span style="color:#cbd5e1; font-size:11px;">-</span>`;
   const improved = val > 0;
   const worsened = val < 0;
-  const color = improved ? '#16a34a' : (worsened ? '#dc2626' : '#64748b');
-  const bg = improved ? '#f0fdf4' : (worsened ? '#fef2f2' : '#f1f5f9');
-  const arrow = improved ? '▼' : (worsened ? '▲' : '·');
-  const text = val === 0 ? '변화없음' : `${arrow} ${Math.abs(val)}${unit}`;
-  return `<span style="background:${bg}; color:${color}; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px;">${text}</span>`;
+  if (!improved && !worsened) {
+    return `<span style="color:#94a3b8; font-size:11px;">· 변화없음</span>`;
+  }
+  const color = improved ? '#16a34a' : '#dc2626';
+  const bg = improved ? '#f0fdf4' : '#fef2f2';
+  const arrow = improved ? '▼' : '▲';
+  return `<span style="background:${bg}; color:${color}; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px;">${arrow} ${Math.abs(val)}${unit}</span>`;
 }
 
 window.renderTaskTrends = function() {
   const tbody = document.getElementById('task-trends-tbody');
   if (!tbody) return;
+  const updateEl = document.getElementById('tt-last-update');
+  if (updateEl && window._lastSyncTime) {
+    const t = window._lastSyncTime;
+    const hh = String(t.getHours()).padStart(2, '0');
+    const mm = String(t.getMinutes()).padStart(2, '0');
+    updateEl.textContent = `🕐 최근 갱신 ${hh}:${mm}`;
+  }
   const data = (allData && allData.taskTrends) ? allData.taskTrends : [];
 
   if (data.length === 0) {
@@ -358,12 +369,13 @@ window.renderTaskTrends = function() {
     const stripe = idx % 2 === 1 ? 'background:#f8fafc;' : '';
     const holdNote = r.보류건수 > 0 ? `<span style="color:#94a3b8; font-size:10px;"> (보류${r.보류건수})</span>` : '';
     const extNote = r.외부요인건수 > 0 ? `<span style="color:#94a3b8; font-size:10px;"> (외부${r.외부요인건수})</span>` : '';
+const reworkColor = (r.재작업대상건수 > 0 && r.재작업률 > 0) ? '#dc2626' : '#0f172a';
     const reworkText = r.재작업대상건수 > 0
-      ? `${r.재작업률}%<span style="color:#94a3b8; font-size:10px;"> (${r.재작업건수}/${r.재작업대상건수})</span>`
+      ? `<span style="color:${reworkColor}; font-weight:700;">${r.재작업률}%</span><span style="color:#94a3b8; font-size:10px;"> (${r.재작업건수}/${r.재작업대상건수})</span>`
       : `<span style="color:#cbd5e1;">-</span>`;
 
     return `
-      <tr style="border-bottom:1px solid #f1f5f9; ${stripe}" title="${(r.대표제목 || '').replace(/"/g, '&quot;')}">
+      <tr class="tt-row" style="border-bottom:1px solid #f1f5f9; ${stripe}" title="${(r.대표제목 || '').replace(/"/g, '&quot;')}">
         <td style="padding:8px 10px; color:#0f172a; font-weight:600;">${shortTitle}${shortTitle.length >= 30 ? '…' : ''}</td>
         <td style="padding:8px 10px; text-align:center;"><span style="background:#eff6ff; color:#1d4ed8; font-size:10px; font-weight:700; padding:2px 8px; border-radius:8px;">${r.파트 || '-'}</span></td>
         <td style="padding:8px 10px; text-align:center; color:#475569; font-weight:700;">${r.전체건수}${holdNote}${extNote}</td>
@@ -930,6 +942,7 @@ async function syncDashboard() {
 
         localStorage.setItem('auth_id', id);
         localStorage.setItem('auth_pin', pin);
+        window._lastSyncTime = new Date();
 
         if (allData.project1CsRiskMap) csRiskData = allData.project1CsRiskMap;
         if (allData.csStatistics) { csStatsData = allData.csStatistics; renderTotalStats(); }
