@@ -4387,7 +4387,7 @@ let pdcaImproveChartInstance = null;
 
 window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImproveTag) {
   
-  // 💡 1. 타이틀 영역을 엔지니어링 철학에 맞게 자동 개조
+// 💡 1. 타이틀 영역을 "개선 효과 추이" 컨셉으로 개조
   const chartCanvas = document.getElementById('pdcaReworkChart');
   if (chartCanvas && chartCanvas.parentElement) {
     const titleContainer = chartCanvas.parentElement.querySelector('div');
@@ -4395,118 +4395,122 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
       titleContainer.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
           <div style="font-size:15px; font-weight:800; color:#0f172a;">
-            🚀 프로젝트 차수별 이슈 소각 & 표준화 ROI
-            <span style="font-size:12px; font-weight:600; color:#3b82f6;">| 러닝 커브 증명</span>
+            📈 개선 효과 추이
+            <span style="font-size:12px; font-weight:600; color:#3b82f6;">| 개선 활동 이후 공수·일정이 나아지는가</span>
           </div>
           <span style="font-size:11px; background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:2px 8px; border-radius:12px; font-weight:700;">
-            ✔ 표준 자산화 효과 추적
+            0선 아래 = 개선
           </span>
         </div>
       `;
     }
   }
 
-  // ── 2. 프로젝트 차수별(OP2 -> OP3 -> ... -> OP8 -> CP) 공수 데이터 집계 ──
-  const projOrder = ['OP2', 'OP3', 'OP4', 'OP5', 'OP6', 'OP7', 'OP8', 'CP'];
-  const projAgg = {};
-  projOrder.forEach(p => { projAgg[p] = { totalMd: 0, issueMd: 0, stdMd: 0 }; });
+  // ── 2. 월별 집계: 개선책 마련 건수 + 평균 작업시간편차 + 평균 지연일 ──
+  //    _isRep 대표행만, 외부요인 제외 (재작업률/isProblem과 동일 기준)
+  const isExtFactorLocal = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
+  const monthAgg = {};
 
   rows.forEach(r => {
-    let pName = r._pName || '';
-    if (!projAgg[pName]) return;
+    if (r._isRep === false) return;
+    if (isExtFactorLocal(r)) return;
 
-    const md = parseFloat(r['공수(MD)']) || 0;
-    projAgg[pName].totalMd += md;
+    const rawDate = r['접수일'] || '';
+    if (!rawDate || typeof rawDate !== 'string' || rawDate.length < 7) return;
+    const monthKey = rawDate.substring(0, 7);
+    if (!monthAgg[monthKey]) monthAgg[monthKey] = { improveCnt: 0, devSum: 0, devN: 0, delaySum: 0, delayN: 0 };
 
-    const task = (r['업무 구분'] || '').toString().trim();
-    const status = (r['진행상태'] || '').toString().trim();
-    const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
+    if (hasImproveTag(r)) monthAgg[monthKey].improveCnt++;
 
-    // 이슈/재작업 등 허비·트러블슈팅에 들어간 공수
-    if (task === 'Issue' || status === '지연중' || yn === 'Y') {
-      projAgg[pName].issueMd += md;
-    }
-    // 자별적인 개선, 표준화, 기술 지원 등 자산화에 기여한 공수
-    else if (task === '표준' || task === '개선' || hasImproveTag(r)) {
-      projAgg[pName].stdMd += md;
-    }
+    const dev = parseFloat(r['작업 시간 편차']);
+    if (!isNaN(dev)) { monthAgg[monthKey].devSum += dev; monthAgg[monthKey].devN++; }
+
+    const delay = parseFloat(r['지연일']);
+    if (!isNaN(delay)) { monthAgg[monthKey].delaySum += delay; monthAgg[monthKey].delayN++; }
   });
 
-  // 데이터가 실제로 존재하는 프로젝트 차수만 필터링
-  const validProjs = projOrder.filter(p => projAgg[p].totalMd > 0);
-  const issueMdArr = validProjs.map(p => +(projAgg[p].issueMd.toFixed(1)));
-  const stdMdArr = validProjs.map(p => +(projAgg[p].stdMd.toFixed(1)));
-  // 이슈 비중 (전체 MD 중 이슈 MD가 차지하는 비율 - 하향할수록 훌륭함)
-  const issueRateArr = validProjs.map(p => {
-    const t = projAgg[p].totalMd;
-    return t > 0 ? +((projAgg[p].issueMd / t) * 100).toFixed(1) : 0;
-  });
+  const sortedMonthsPdca = Object.keys(monthAgg).sort();
+  const improveCntArr = sortedMonthsPdca.map(m => monthAgg[m].improveCnt);
+  const avgDevArr = sortedMonthsPdca.map(m => monthAgg[m].devN > 0 ? +(monthAgg[m].devSum / monthAgg[m].devN).toFixed(2) : null);
+  const avgDelayArr = sortedMonthsPdca.map(m => monthAgg[m].delayN > 0 ? +(monthAgg[m].delaySum / monthAgg[m].delayN).toFixed(2) : null);
+  const monthLabels = sortedMonthsPdca.map(m => m.substring(2).replace('-', '.'));
 
-  // ── 3. 프로젝트 차수별 복합 차트 그리기 ──
+  // ── 3. 월별 개선 효과 복합 차트 그리기 ──
   if (pdcaReworkChartInstance) pdcaReworkChartInstance.destroy();
   pdcaReworkChartInstance = new Chart(document.getElementById('pdcaReworkChart'), {
     type: 'bar',
     data: {
-      labels: validProjs,
+      labels: monthLabels,
       datasets: [
         {
+          type: 'bar',
+          label: '개선책 마련 건수',
+          data: improveCntArr,
+          backgroundColor: 'rgba(148,163,184,0.35)',
+          borderRadius: 4,
+          yAxisID: 'yCnt',
+          order: 3
+        },
+        {
           type: 'line',
-          label: '이슈 공수 비중 (%)',
-          data: issueRateArr,
-          borderColor: '#ef4444',
+          label: '작업 시간 편차 (H, 평균)',
+          data: avgDevArr,
+          borderColor: '#2563eb',
+          backgroundColor: '#2563eb',
           borderWidth: 2.5,
-          pointBackgroundColor: '#ef4444',
           pointRadius: 4,
+          spanGaps: true,
           tension: 0.3,
-          yAxisID: 'yRate'
+          yAxisID: 'yDev',
+          order: 1
         },
         {
-          type: 'bar',
-          label: '🚨 이슈/재작업 해결 MD (시행착오)',
-          data: issueMdArr,
-          backgroundColor: '#fca5a5',
-          borderColor: '#ef4444',
-          borderWidth: 1,
-          borderRadius: 4,
-          yAxisID: 'yMd'
-        },
-        {
-          type: 'bar',
-          label: '🛡️ 표준화/개선 투자 MD (자산화)',
-          data: stdMdArr,
-          backgroundColor: '#3b82f6',
-          borderRadius: 4,
-          yAxisID: 'yMd'
+          type: 'line',
+          label: '지연일 (평균)',
+          data: avgDelayArr,
+          borderColor: '#ea580c',
+          backgroundColor: '#ea580c',
+          borderWidth: 2.5,
+          borderDash: [6, 4],
+          pointRadius: 4,
+          pointStyle: 'rectRot',
+          spanGaps: true,
+          tension: 0.3,
+          yAxisID: 'yDev',
+          order: 2
         }
       ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { position: 'top', align: 'end', labels: { boxWidth: 10, font: { size: 11, weight: 600 } } },
         tooltip: {
           callbacks: {
-            footer: (tooltipItems) => {
-              const idx = tooltipItems[0].dataIndex;
-              const p = validProjs[idx];
-              return `총 투입 공수: ${projAgg[p].totalMd.toFixed(1)} MD`;
+            label: (ctx) => {
+              if (ctx.dataset.yAxisID === 'yCnt') return `개선책 ${ctx.parsed.y}건`;
+              const v = ctx.parsed.y;
+              if (v === null) return `${ctx.dataset.label}: 데이터 없음`;
+              const tag = v < 0 ? ' (개선)' : (v > 0 ? ' (악화)' : '');
+              return `${ctx.dataset.label}: ${v > 0 ? '+' : ''}${v}${tag}`;
             }
           }
         }
       },
       scales: {
         x: { grid: { display: false }, ticks: { font: { size: 11, weight: 700 }, color: '#0f172a' } },
-        yMd: {
+        yDev: {
           type: 'linear', display: true, position: 'left',
-          title: { display: true, text: '투입 공수 (MD)', font: { size: 10, weight: 700 } },
-          grid: { color: '#f1f5f9' }, stacked: false
+          title: { display: true, text: '편차 (H / 일, 0=기준)', font: { size: 10, weight: 700 } },
+          grid: { color: (c) => c.tick.value === 0 ? '#94a3b8' : '#f1f5f9', lineWidth: (c) => c.tick.value === 0 ? 1.5 : 1 }
         },
-        yRate: {
+        yCnt: {
           type: 'linear', display: true, position: 'right',
-          title: { display: true, text: '이슈 비중 (%)', font: { size: 10, weight: 700 }, color: '#ef4444' },
-          grid: { display: false }, min: 0, max: 100,
-          ticks: { callback: v => v + '%' }
+          title: { display: true, text: '개선책 건수', font: { size: 10, weight: 700 } },
+          grid: { display: false }, min: 0,
+          ticks: { stepSize: 1 }
         }
       }
     }
