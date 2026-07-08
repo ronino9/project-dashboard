@@ -73,6 +73,8 @@
     #main-panel .donuts-row::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     #main-panel .donuts-row::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
     #main-panel .main-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    #main-panel .main-card { transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease; }
+#main-panel .main-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); border-color: #cbd5e1; }
     #main-panel .main-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     #main-panel .main-card-title { font-size: 18px; font-weight: 700; color: #0f172a; }
     #main-panel .main-card-subtitle { font-size: 12px; color: #64748b; }
