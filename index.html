@@ -246,9 +246,9 @@
 
     <div id="main-panel">          <!-- ★ 이 줄 추가 -->
 <!-- 내부 탭: PDCA / 프로젝트 현황 -->
-<div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
-<div style="display:flex; align-items:center; gap:10px;">
-        <div style="display:inline-flex; background:#f1f5f9; padding:4px; border-radius:12px; border:1px solid #e2e8f0; gap:4px;">
+<div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+<div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+<div style="display:inline-flex; background:#f1f5f9; padding:4px; border-radius:12px; border:1px solid #e2e8f0; gap:4px;">
           <button id="btn-main-pdca" onclick="window.switchMainTab('pdca')" style="padding:8px 20px; border:none; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer; transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display:flex; align-items:center; gap:6px; background:transparent; color:#64748b;">
             <span>🔄</span> PDCA 현황
           </button>
@@ -257,46 +257,6 @@
           </button>
         </div>
 
-<div id="pdca-top-kpi" style="display:none; align-items:flex-end; gap:14px; flex-wrap:wrap;">
-          <div class="pdca-kpi-group">
-            <span class="pdca-kpi-group-label">📉 재작업</span>
-            <div class="pdca-kpi-item">
-              <span class="pdca-kpi-label">재작업률</span>
-              <span id="pdca-kpi-rework" class="pdca-kpi-value">0.0%</span>
-            </div>
-            <div class="pdca-kpi-divider"></div>
-            <div class="pdca-kpi-item" id="pdca-kpi-mom-item">
-              <span class="pdca-kpi-label">전월대비</span>
-              <span id="pdca-kpi-mom" class="pdca-kpi-value">-</span>
-            </div>
-          </div>
-
-          <div class="pdca-kpi-group">
-            <span class="pdca-kpi-group-label">💡 개선책</span>
-            <div class="pdca-kpi-item clickable" onclick="window.showPdcaProblemDetail('reflected')" title="클릭 시 반영 건 상세 보기">
-              <span class="pdca-kpi-label">반영</span>
-              <span id="pdca-kpi-reflected" class="pdca-kpi-value" style="color:#16a34a;">0건</span>
-            </div>
-            <div class="pdca-kpi-divider"></div>
-            <div class="pdca-kpi-item clickable" onclick="window.showPdcaProblemDetail('unreflected')" title="클릭 시 미반영 건 상세 보기">
-              <span class="pdca-kpi-label">미반영</span>
-              <span id="pdca-kpi-unreflected" class="pdca-kpi-value" style="color:#dc2626;">0건</span>
-            </div>
-          </div>
-
-          <div class="pdca-kpi-group">
-            <span class="pdca-kpi-group-label">⏱ 지연</span>
-            <div class="pdca-kpi-item">
-              <span class="pdca-kpi-label">지연중</span>
-              <span id="pdca-kpi-delayed" class="pdca-kpi-value">0건</span>
-            </div>
-            <div class="pdca-kpi-divider"></div>
-            <div class="pdca-kpi-item">
-              <span class="pdca-kpi-label">평균지연일</span>
-              <span id="pdca-kpi-avgdelay" class="pdca-kpi-value">0일</span>
-            </div>
-          </div>
-        </div>
       <div id="main-top-kpi" style="display: flex; gap: 6px;">
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 10px; text-align: center;">
           <div style="font-size: 9px; color: #64748b; font-weight: 700;">총 공수 MD</div>
@@ -329,8 +289,50 @@
         <select id="gs-task" style="padding: 5px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">업무 전체</option></select>
         <select id="gs-paid" style="padding: 5px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">유/무상 전체</option></select>
         <select id="gs-part" style="padding: 5px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">파트 전체</option></select>
-        <button onclick="window.runGlobalSearch()" style="background: #3b82f6; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;">검색</button>
+<button onclick="window.runGlobalSearch()" style="background: #3b82f6; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;">검색</button>
       </div>
+    </div>
+
+    <div id="pdca-top-kpi" style="display:none; align-items:flex-end; gap:14px; flex-wrap:wrap;">
+      <div class="pdca-kpi-group">
+        <span class="pdca-kpi-group-label">📉 재작업</span>
+        <div class="pdca-kpi-item">
+          <span class="pdca-kpi-label">재작업률</span>
+          <span id="pdca-kpi-rework" class="pdca-kpi-value">0.0%</span>
+        </div>
+        <div class="pdca-kpi-divider"></div>
+        <div class="pdca-kpi-item" id="pdca-kpi-mom-item">
+          <span class="pdca-kpi-label">전월대비</span>
+          <span id="pdca-kpi-mom" class="pdca-kpi-value">-</span>
+        </div>
+      </div>
+
+      <div class="pdca-kpi-group">
+        <span class="pdca-kpi-group-label">💡 개선책</span>
+        <div class="pdca-kpi-item clickable" onclick="window.showPdcaProblemDetail('reflected')" title="클릭 시 반영 건 상세 보기">
+          <span class="pdca-kpi-label">반영</span>
+          <span id="pdca-kpi-reflected" class="pdca-kpi-value" style="color:#16a34a;">0건</span>
+        </div>
+        <div class="pdca-kpi-divider"></div>
+        <div class="pdca-kpi-item clickable" onclick="window.showPdcaProblemDetail('unreflected')" title="클릭 시 미반영 건 상세 보기">
+          <span class="pdca-kpi-label">미반영</span>
+          <span id="pdca-kpi-unreflected" class="pdca-kpi-value" style="color:#dc2626;">0건</span>
+        </div>
+      </div>
+
+      <div class="pdca-kpi-group">
+        <span class="pdca-kpi-group-label">⏱ 지연</span>
+        <div class="pdca-kpi-item">
+          <span class="pdca-kpi-label">지연중</span>
+          <span id="pdca-kpi-delayed" class="pdca-kpi-value">0건</span>
+        </div>
+        <div class="pdca-kpi-divider"></div>
+        <div class="pdca-kpi-item">
+          <span class="pdca-kpi-label">평균지연일</span>
+          <span id="pdca-kpi-avgdelay" class="pdca-kpi-value">0일</span>
+        </div>
+      </div>
+    </div>
     </div>
 
     <!-- PDCA 콘텐츠 (내부 탭) -->
