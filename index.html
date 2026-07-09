@@ -3042,14 +3042,25 @@ window.applyGanttAnimation = function() {
   }
   const rowsEl = document.getElementById('gantt-rows');
   if (!rowsEl) return;
-  
+
+  const bars = [];
   rowsEl.querySelectorAll('div').forEach(el => {
     // 왼쪽 위치(left), 폭(width), 둥근모서리(borderRadius)를 모두 가진 요소가 바로 간트 막대!
     if (el.style.left && el.style.width && el.style.borderRadius) {
       el.style.transformOrigin = 'left center';
-el.style.animation = 'growBarRight 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+      el.style.animation = 'none';   // 1단계: 애니메이션을 일단 제거
+      bars.push(el);
     }
   });
+
+  // 2단계: 강제 리플로우 — 브라우저가 "애니메이션 없음" 상태를 실제로 인지하게 만듦
+  void rowsEl.offsetHeight;
+
+  // 3단계: 다시 애니메이션 지정 → 항상 처음부터 재생됨
+  bars.forEach(el => {
+    el.style.animation = 'growBarRight 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+  });
+
   window.wireGanttHoverGroups();
 };
 // 💡 어디서든 색상을 연하게 변환할 수 있도록 공용(전역) 함수로 등록!
