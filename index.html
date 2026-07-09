@@ -1566,11 +1566,9 @@ window.allMasterData.forEach(r => {
               trendData[monthKey].risk += 1;
           }
 
-if (r._isRep !== false) {
-            if (status === '지연중') delayCount++;
-            if (status === '임박') imminentCount++;
-            if (status === '보류') holdCount++;
-          }
+if (status === '지연중') delayCount++;
+          if (status === '임박') imminentCount++;
+          if (status === '보류') holdCount++;
       }
   });
 
