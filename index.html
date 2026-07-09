@@ -4534,8 +4534,12 @@ const cardsHtml = `
           <div id="pdca-improve-legend" style="flex:1; display:flex; flex-direction:column; gap:6px; justify-content:center;"></div>
         </div>
       </div>
-    </div>
-``;
+</div>
+    <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+      <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:4px; display:flex; align-items:center; gap:6px;">✳️ 이달의 핵심 To-Do</div>
+      <div style="font-size:12px; color:#64748b; margin-bottom:16px;">재작업이 몰린 파트·단계를 데이터가 자동 지목 (담당·기한 수동입력 없음)</div>
+      <div id="pdca-action-list"></div>
+    </div>`;
 
 document.getElementById('pdca-content').innerHTML = cardsHtml;
 
