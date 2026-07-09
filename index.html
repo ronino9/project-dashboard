@@ -3320,10 +3320,13 @@ if (!it.execDays) {
         bridgeBar.onclick = (e) => { e.stopPropagation(); showThisItem(); };
         actTrack.appendChild(bridgeBar);
 
-        // 2. 실작업 여부 판단 (작업시간이나 진행사항이 기록되어 있는지)
+// 작업 착수 여부 확인 (공수 0 초과 AND (작업시간 존재 OR 진행사항 존재))
         const workTime = (it.row['작업 시간'] || '').toString().trim();
-        const progress = (it.row['진행 사항'] || '').toString().trim();
-        const hasWork = (workTime !== '' && workTime !== '-') || (progress !== '' && progress !== '-');
+        const progressInfo = (it.row['진행 사항'] || '').toString().trim();
+        const md = parseFloat(it.row['공수(MD)']) || 0;
+        
+        // 공수가 0보다 크고, 내용이 하나라도 있어야 '실제 작업'으로 간주합니다.
+        const hasWork = (md > 0) && ((workTime !== '' && workTime !== '-') || (progressInfo !== '' && progressInfo !== '-'));
 
         // 3. 특정 날짜에 진한 실작업 막대(Opacity 1.0) 그리는 내부 함수
         const drawSolidDay = (dateStr) => {
