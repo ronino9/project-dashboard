@@ -337,38 +337,75 @@
         </div>
       </div>
 
-      <div style="flex:1; min-width:0; position:relative; background:#fff7ed; border:1px solid #fed7aa; border-radius:12px; padding:14px 16px 10px; display:flex; flex-direction:column; justify-content:center;">
-        <span style="position:absolute; top:-9px; left:12px; background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; font-size:10px; font-weight:700; padding:1px 8px; border-radius:8px; white-space:nowrap;">⚖️ 내부 vs 외부요인 공수</span>
+<div style="flex:1; min-width:0; position:relative; background:#fff7ed; border:1px solid #fed7aa; border-radius:12px; padding:10px 14px 6px; display:flex; flex-direction:column; gap:8px;">
+        <span style="position:absolute; top:-9px; left:12px; background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; font-size:10px; font-weight:700; padding:1px 8px; border-radius:8px; white-space:nowrap;">🌩️ 외부요인 KPI</span>
 
-        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
-          <div style="display:flex; align-items:baseline; gap:4px;">
-            <span style="font-size:10px; color:#64748b; font-weight:700;">내부</span>
-            <span id="pdca-kpi-md-internal" style="font-size:16px; font-weight:800; color:#1d4ed8;">0.0</span>
-            <span style="font-size:10px; color:#94a3b8;">MD</span>
+        <div style="display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap; margin-top:2px;">
+          <div class="pdca-kpi-group">
+            <span class="pdca-kpi-group-label">📉 재작업</span>
+            <div class="pdca-kpi-item">
+              <span class="pdca-kpi-label">재작업률</span>
+              <span id="pdca-kpi-rework-ext" class="pdca-kpi-value">0.0%</span>
+            </div>
           </div>
-          <div style="display:flex; align-items:baseline; gap:4px;">
-            <span id="pdca-kpi-md-external" style="font-size:16px; font-weight:800; color:#c2410c;">0.0</span>
-            <span style="font-size:10px; color:#94a3b8;">MD</span>
-            <span style="font-size:10px; color:#64748b; font-weight:700;">외부</span>
+
+          <div class="pdca-kpi-group">
+            <span class="pdca-kpi-group-label">💡 개선책</span>
+            <div class="pdca-kpi-item clickable" onclick="window.showPdcaProblemDetailExternal('reflected')" title="클릭 시 반영 건 상세 보기">
+              <span class="pdca-kpi-label">반영</span>
+              <span id="pdca-kpi-reflected-ext" class="pdca-kpi-value" style="color:#16a34a;">0건</span>
+            </div>
+            <div class="pdca-kpi-divider"></div>
+            <div class="pdca-kpi-item clickable" onclick="window.showPdcaProblemDetailExternal('unreflected')" title="클릭 시 미반영 건 상세 보기">
+              <span class="pdca-kpi-label">미반영</span>
+              <span id="pdca-kpi-unreflected-ext" class="pdca-kpi-value" style="color:#dc2626;">0건</span>
+            </div>
+          </div>
+
+          <div class="pdca-kpi-group">
+            <span class="pdca-kpi-group-label">⏱ 지연</span>
+            <div class="pdca-kpi-item">
+              <span class="pdca-kpi-label">지연중</span>
+              <span id="pdca-kpi-delayed-ext" class="pdca-kpi-value">0건</span>
+            </div>
+            <div class="pdca-kpi-divider"></div>
+            <div class="pdca-kpi-item">
+              <span class="pdca-kpi-label">평균지연일</span>
+              <span id="pdca-kpi-avgdelay-ext" class="pdca-kpi-value">0일</span>
+            </div>
           </div>
         </div>
 
-        <div style="position:relative; height:18px; display:flex;">
-          <div style="width:50%; display:flex; justify-content:flex-end;">
-            <div id="pdca-kpi-bar-internal" style="width:0%; height:100%; background:#3b82f6; border-radius:3px 0 0 3px; transition:width 0.9s cubic-bezier(0.16,1,0.3,1);"></div>
+        <div style="margin-top:6px; padding-top:8px; border-top:1px dashed #fed7aa;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
+            <div style="display:flex; align-items:baseline; gap:4px;">
+              <span style="font-size:10px; color:#64748b; font-weight:700;">내부</span>
+              <span id="pdca-kpi-md-internal" style="font-size:16px; font-weight:800; color:#1d4ed8;">0.0</span>
+              <span style="font-size:10px; color:#94a3b8;">MD</span>
+            </div>
+            <div style="display:flex; align-items:baseline; gap:4px;">
+              <span id="pdca-kpi-md-external" style="font-size:16px; font-weight:800; color:#c2410c;">0.0</span>
+              <span style="font-size:10px; color:#94a3b8;">MD</span>
+              <span style="font-size:10px; color:#64748b; font-weight:700;">외부</span>
+            </div>
           </div>
-          <div style="width:1px; background:#cbd5e1;"></div>
-          <div style="width:50%; display:flex; justify-content:flex-start;">
-            <div id="pdca-kpi-bar-external" style="width:0%; height:100%; background:#f97316; border-radius:0 3px 3px 0; transition:width 0.9s cubic-bezier(0.16,1,0.3,1);"></div>
-          </div>
-        </div>
 
-        <div style="display:flex; justify-content:space-between; margin-top:4px;">
-          <span id="pdca-kpi-pct-internal" style="font-size:11px; font-weight:700; color:#1d4ed8;">0%</span>
-          <span id="pdca-kpi-pct-external" style="font-size:11px; font-weight:700; color:#c2410c;">0%</span>
+          <div style="position:relative; height:18px; display:flex;">
+            <div style="width:50%; display:flex; justify-content:flex-end;">
+              <div id="pdca-kpi-bar-internal" style="width:0%; height:100%; background:#3b82f6; border-radius:3px 0 0 3px; transition:width 0.9s cubic-bezier(0.16,1,0.3,1);"></div>
+            </div>
+            <div style="width:1px; background:#cbd5e1;"></div>
+            <div style="width:50%; display:flex; justify-content:flex-start;">
+              <div id="pdca-kpi-bar-external" style="width:0%; height:100%; background:#f97316; border-radius:0 3px 3px 0; transition:width 0.9s cubic-bezier(0.16,1,0.3,1);"></div>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; margin-top:4px;">
+            <span id="pdca-kpi-pct-internal" style="font-size:11px; font-weight:700; color:#1d4ed8;">0%</span>
+            <span id="pdca-kpi-pct-external" style="font-size:11px; font-weight:700; color:#c2410c;">0%</span>
+          </div>
         </div>
       </div>
-    </div>
     </div>
 
     <!-- PDCA 콘텐츠 (내부 탭) -->
@@ -4488,17 +4525,82 @@ function computeImprovementStats(rows) {
 
 return { problemCnt, problemImproved, activeImproveCnt, improveDist, reflectedRows, unreflectedRows, hasImproveTag };
 }
-    window.renderPdcaFactorSplit = function(rows) {
+function computeExternalFactorStats(rows) {
   const isExternalFactor = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
+  const isHold = (r) => (r['진행상태'] || '').toString().trim() === '보류';
+  const hasImproveTag = (r) => /\[개선-[^\]]+\]/.test(r['분석 데이터'] || r['분석데이터'] || '');
+  const isEligibleRow = (r) => {
+    if (isHold(r)) return false;
+    if (!isExternalFactor(r)) return false;
+    const st = (r['진행상태'] || '').toString().trim();
+    const task = (r['업무 구분'] || '').toString().trim();
+    const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
+    return task === 'Issue' || st === '지연중' || st === '지연완료' || yn === 'Y';
+  };
+
+  const groups = {};
+  const units = [];
+  rows.forEach(r => {
+    const gid = (r['그룹ID'] || '').toString().trim();
+    if (!gid) { units.push([r]); return; }
+    if (!groups[gid]) { groups[gid] = []; units.push(groups[gid]); }
+    groups[gid].push(r);
+  });
+
+  let problemCnt = 0, problemImproved = 0;
+  const reflectedRows = [];
+  const unreflectedRows = [];
+
+  units.forEach(unitRows => {
+    const usable = unitRows.filter(isExternalFactor);
+    if (usable.length === 0) return;
+    const isProb = usable.some(isEligibleRow);
+    if (!isProb) return;
+    problemCnt++;
+    const tagged = usable.filter(hasImproveTag);
+    if (tagged.length > 0) {
+      problemImproved++;
+      reflectedRows.push(...usable);
+    } else {
+      unreflectedRows.push(...usable);
+    }
+  });
+
+  let reworkCnt = 0, reworkBase = 0;
+  rows.forEach(r => {
+    if (r._isRep === false) return;
+    if (!isExternalFactor(r)) return;
+    reworkBase++;
+    const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
+    if (yn === 'Y') reworkCnt++;
+  });
+  const reworkRate = reworkBase > 0 ? (reworkCnt / reworkBase * 100) : 0;
+
+  let delayedCnt = 0, delaySum = 0, delayN = 0;
+  rows.forEach(r => {
+    if (r._isRep === false) return;
+    if (!isExternalFactor(r)) return;
+    if ((r['진행상태'] || '') === '지연중') delayedCnt++;
+    const delay = parseFloat(r['지연일']);
+    if (!isNaN(delay) && delay > 0) { delaySum += delay; delayN++; }
+  });
+  const avgDelay = delayN > 0 ? (delaySum / delayN) : 0;
+
+  return { problemCnt, problemImproved, reworkRate, delayedCnt, avgDelay, reflectedRows, unreflectedRows };
+}
+
+window.renderPdcaFactorSplit = function(rows) {
+  const isExternalFactor = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
+
   let internalMd = 0, externalMd = 0;
   rows.forEach(r => {
     const md = parseFloat(r['공수(MD)']) || 0;
     if (isExternalFactor(r)) externalMd += md;
     else internalMd += md;
   });
-  const total = internalMd + externalMd;
-  const intPct = total > 0 ? Math.round((internalMd / total) * 100) : 0;
-  const extPct = total > 0 ? 100 - intPct : 0;
+  const totalMd = internalMd + externalMd;
+  const intPct = totalMd > 0 ? Math.round((internalMd / totalMd) * 100) : 0;
+  const extPct = totalMd > 0 ? 100 - intPct : 0;
 
   const elIntVal = document.getElementById('pdca-kpi-md-internal');
   const elExtVal = document.getElementById('pdca-kpi-md-external');
@@ -4520,6 +4622,42 @@ return { problemCnt, problemImproved, activeImproveCnt, improveDist, reflectedRo
     elExtBar.style.width = '0%';
     requestAnimationFrame(() => requestAnimationFrame(() => { elExtBar.style.width = extPct + '%'; }));
   }
+
+  const extStats = computeExternalFactorStats(rows);
+  window._pdcaExternalStats = extStats;
+
+  const elReworkExt = document.getElementById('pdca-kpi-rework-ext');
+  if (elReworkExt) elReworkExt.textContent = extStats.reworkRate.toFixed(1) + '%';
+
+  const elReflectedExt = document.getElementById('pdca-kpi-reflected-ext');
+  if (elReflectedExt) elReflectedExt.textContent = extStats.problemImproved + '건';
+
+  const elUnreflectedExt = document.getElementById('pdca-kpi-unreflected-ext');
+  if (elUnreflectedExt) elUnreflectedExt.textContent = (extStats.problemCnt - extStats.problemImproved) + '건';
+
+  const elDelayedExt = document.getElementById('pdca-kpi-delayed-ext');
+  if (elDelayedExt) {
+    elDelayedExt.textContent = extStats.delayedCnt + '건';
+    elDelayedExt.style.color = extStats.delayedCnt > 0 ? '#dc2626' : '#0f172a';
+  }
+
+  const elAvgDelayExt = document.getElementById('pdca-kpi-avgdelay-ext');
+  if (elAvgDelayExt) elAvgDelayExt.textContent = extStats.avgDelay.toFixed(1) + '일';
+};
+
+window.showPdcaProblemDetailExternal = function(mode) {
+  const stats = window._pdcaExternalStats;
+  if (!stats) return;
+  const matched = mode === 'reflected' ? stats.reflectedRows : stats.unreflectedRows;
+
+  const rowsForDisplay = matched.map(r => ({
+    '프로젝트 코드': r._pName,
+    '접수일': r['접수일'] || '-',
+    ...r
+  }));
+
+  const title = mode === 'reflected' ? '✅ 외부요인 개선책 반영 완료 건' : '⚠️ 외부요인 개선책 미반영 건';
+  window.showDetailView(title, `총 ${matched.length}건`, rowsForDisplay);
 };
     window._mainTab = 'project';
 window.switchMainTab = function(which) {
