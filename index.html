@@ -2997,6 +2997,8 @@ orderList.forEach((cardId) => {
 renderProjectBlock(cardId, label, projColorMap[cardId] || '#94a3b8', flat, false, null, onDayClick);
   }
 });
+
+  window.applyGanttAnimation();
 };
 let indivGanttCursor = new Date();
 let indivGanttProject = null; // 👈 팝업 에러를 막아주는 핵심 변수 추가!
