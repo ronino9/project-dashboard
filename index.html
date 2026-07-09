@@ -4385,6 +4385,73 @@ const project = document.getElementById('gs-project').value;
 
   window.showDetailView('🔍 검색 결과', `총 ${matched.length}건`, rowsForDisplay); 
 };
+    // ==========================================
+// 개선책 반영/미반영/능동개선 집계 (그룹ID 단위)
+// - 그룹ID 있는 행은 그룹당 1건 (이슈가 나중에 완료돼도 그룹 내 어디든 있으면 카운트)
+// - 그룹ID 없는 행은 행 단위로 개별 판정
+// - 보류 상태 행은 문제 판정에서 제외
+// - 외부요인 태그 붙은 행은 그 행만 제외 (그룹 전체는 살아있음)
+// - 개선 태그는 유닛(그룹 또는 단독 행)당 1개만 집계 (중복 방지)
+// ==========================================
+function computeImprovementStats(rows) {
+  const isExternalFactor = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
+  const isHold = (r) => (r['진행상태'] || '').toString().trim() === '보류';
+  const hasImproveTag = (r) => /\[개선-[^\]]+\]/.test(r['분석 데이터'] || r['분석데이터'] || '');
+  const getImproveType = (r) => {
+    const a = r['분석 데이터'] || r['분석데이터'] || '';
+    const m = a.match(/\[개선-([^\]]+)\]/);
+    return m ? m[1].trim() : null;
+  };
+  const isEligibleRow = (r) => {
+    if (isHold(r)) return false;
+    if (isExternalFactor(r)) return false;
+    const st = (r['진행상태'] || '').toString().trim();
+    const task = (r['업무 구분'] || '').toString().trim();
+    const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
+    return task === 'Issue' || st === '지연중' || st === '지연완료' || yn === 'Y';
+  };
+
+  const groups = {};
+  const units = [];
+  rows.forEach(r => {
+    const gid = (r['그룹ID'] || '').toString().trim();
+    if (!gid) { units.push([r]); return; }
+    if (!groups[gid]) { groups[gid] = []; units.push(groups[gid]); }
+    groups[gid].push(r);
+  });
+
+  let problemCnt = 0, problemImproved = 0, activeImproveCnt = 0;
+  const improveDist = { '일정': 0, '품질': 0, '효율': 0, '동료기여': 0, '기타': 0 };
+  const reflectedRows = [];
+  const unreflectedRows = [];
+
+  units.forEach(unitRows => {
+    const usable = unitRows.filter(r => !isExternalFactor(r));
+    if (usable.length === 0) return;
+
+    const isProb = usable.some(isEligibleRow);
+    const taggedRows = usable.filter(hasImproveTag);
+    const tagged = taggedRows.length > 0;
+
+    if (isProb) {
+      problemCnt++;
+      if (tagged) {
+        problemImproved++;
+        reflectedRows.push(...usable);
+        const type = getImproveType(taggedRows[0]);
+        if (type) { improveDist[type] !== undefined ? improveDist[type]++ : improveDist['기타']++; }
+      } else {
+        unreflectedRows.push(...usable);
+      }
+    } else if (tagged) {
+      activeImproveCnt++;
+      const type = getImproveType(taggedRows[0]);
+      if (type) { improveDist[type] !== undefined ? improveDist[type]++ : improveDist['기타']++; }
+    }
+  });
+
+  return { problemCnt, problemImproved, activeImproveCnt, improveDist, reflectedRows, unreflectedRows };
+}
     window._mainTab = 'project';
 window.switchMainTab = function(which) {
   window._mainTab = which;
@@ -4455,67 +4522,26 @@ window.renderPdca = function() {
   });
   const complianceRate = total > 0 ? Math.round((compliant / total) * 100) : 0;
 
-  // ── 3) 재작업률: 재작업 여부(Y/N)='Y' ──
 // ── 외부요인 판별: 분석 데이터에 (외부요인) 표기가 있으면 제외 대상 ──
-  //    GAS calculateTaskTrends()의 isExternalFactor와 동일 기준으로 통일
   const isExternalFactor = (r) => {
     const a = r['분석 데이터'] || r['분석데이터'] || '';
     return /\(외부요인\)/.test(a);
   };
 
-  // ── 3) 재작업률: 재작업 여부(Y/N)='Y' ──
-  //    (a) 대표행(_isRep)만 집계해 그룹 다건 중복 방지
-  //    (b) 외부요인 건은 분모·분자 모두 제외 (우리 개선 대상이 아님)
+  // ── 3) 재작업률: 재작업 여부(Y/N)='Y' ── (대표행 기준, 기존 방식 그대로 유지)
   let reworkCnt = 0, reworkBase = 0;
   rows.forEach(r => {
-    if (r._isRep === false) return;        // 그룹 비대표행 제외
-    if (isExternalFactor(r)) return;       // 외부요인 제외
+    if (r._isRep === false) return;
+    if (isExternalFactor(r)) return;
     reworkBase++;
     const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
     if (yn === 'Y') reworkCnt++;
   });
   const reworkRate = reworkBase > 0 ? (reworkCnt / reworkBase * 100) : 0;
 
-// ── 4) 개선 분석: 문제 건 대응(개선책 반영률) + 능동 개선(건수) ──
-  const improveDist = { '일정':0, '품질':0, '효율':0, '동료기여':0, '기타':0 };
-
-  // 문제 건 판별: 진행상태 지연중/지연완료/Issue 또는 재작업='Y'
-  //   단, 대표행만 + 외부요인 제외 (재작업률과 동일 기준으로 통일)
-  const isProblem = (r) => {
-    if (r._isRep === false) return false;
-    if (isExternalFactor(r)) return false;
-    const st = (r['진행상태'] || '').toString().trim();
-    const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
-    return st === '지연중' || st === '지연완료' || st === 'Issue' || yn === 'Y';
-  };
-  const hasImproveTag = (r) => {
-    const a = r['분석 데이터'] || r['분석데이터'] || '';
-    return /\[개선-[^\]]+\]/.test(a);
-  };
-  const countTags = (r) => {
-    const a = r['분석 데이터'] || r['분석데이터'] || '';
-    const m = a.match(/\[개선-([^\]]+)\]/g) || [];
-    m.forEach(tag => {
-      const name = tag.replace(/\[개선-|\]/g, '').trim();
-      if (improveDist[name] !== undefined) improveDist[name]++;
-      else improveDist['기타']++;
-    });
-  };
-
-  let problemCnt = 0, problemImproved = 0, activeImproveCnt = 0;
-  rows.forEach(r => {
-    const prob = isProblem(r);
-    const tagged = hasImproveTag(r);
-    if (prob) {
-      problemCnt++;
-      if (tagged) problemImproved++;
-    } else {
-      if (tagged) activeImproveCnt++;
-    }
-    if (tagged) countTags(r);  // 유형 분포는 문제/능동 구분 없이 전체 집계
-  });
-
-  // 개선책 반영률 = 문제 건 중 개선 태그 달린 비율
+  // ── 4) 개선 분석: 그룹ID 단위 집계 ──
+  const improveStats = computeImprovementStats(rows);
+  const { problemCnt, problemImproved, activeImproveCnt, improveDist } = improveStats;
   const improveRate = problemCnt > 0 ? Math.round((problemImproved / problemCnt) * 100) : null;
   // ── 전월대비 재작업률 증감 ──
   const monthlyRework = {};
@@ -4692,7 +4718,7 @@ window._pdcaCalc = { total, execRate, execN, complianceRate, reworkRate, reworkC
   console.log('PDCA 집계:', window._pdcaCalc);
 
 // 3단계: 차트 & 액션 리스트 그리기
-  window.renderPdcaCharts(rows, improveDist, TARGET, isProblem, hasImproveTag);
+  window.renderPdcaCharts(rows, improveStats, TARGET);
 
   // 👉 이 두 줄 추가
   if (typeof window.renderDeviationTrendTest === 'function') window.renderDeviationTrendTest();
@@ -4704,7 +4730,8 @@ window._pdcaCalc = { total, execRate, execN, complianceRate, reworkRate, reworkC
 let pdcaReworkChartInstance = null;
 let pdcaImproveChartInstance = null;
 
-window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImproveTag) {
+window.renderPdcaCharts = function(rows, improveStats, TARGET) {
+  const { improveDist, problemImproved: defensiveTagCnt, activeImproveCnt: activeTagCnt } = improveStats;
   
 // 💡 1. 타이틀 영역을 "개선 효과 추이" 컨셉으로 개조
   const chartCanvas = document.getElementById('pdcaReworkChart');
@@ -4736,13 +4763,8 @@ window.renderPdcaCharts = function(rows, improveDist, TARGET, isProblem, hasImpr
   const impColors = ['#3b82f6', '#10b981', '#a855f7', '#f59e0b', '#94a3b8'];
   const impTotal = impData.reduce((a, b) => a + b, 0);
 
-  // 능동(자발) vs 방어(문제 대응) 집계: 태그된 건 중 isProblem이면 방어, 아니면 능동
-  let activeTagCnt = 0, defensiveTagCnt = 0;
-  rows.forEach(r => {
-    if (!hasImproveTag(r)) return;
-    if (isProblem(r)) defensiveTagCnt++; else activeTagCnt++;
-  });
-  const activeDefTotal = activeTagCnt + defensiveTagCnt;
+// 능동(자발) vs 방어(문제 대응) 집계: 그룹 단위 집계 결과를 그대로 사용
+  const activeDefTotal = activeTagCnt + defensiveTagCnt;t;
   const activeRatio = activeDefTotal > 0 ? Math.round((activeTagCnt / activeDefTotal) * 100) : null;
 
 if (pdcaImproveChartInstance) pdcaImproveChartInstance.destroy();
@@ -5069,21 +5091,8 @@ yCnt: {
 };
 window.showPdcaProblemDetail = function(mode) {
   const rows = window.allMasterData || [];
-  const isExtFactorLocal = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
-  const hasImproveTagLocal = (r) => /\[개선-[^\]]+\]/.test(r['분석 데이터'] || r['분석데이터'] || '');
-  const isProblemLocal = (r) => {
-    if (r._isRep === false) return false;
-    if (isExtFactorLocal(r)) return false;
-    const st = (r['진행상태'] || '').toString().trim();
-    const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
-    return st === '지연중' || st === '지연완료' || st === 'Issue' || yn === 'Y';
-  };
-
-  const matched = rows.filter(r => {
-    if (!isProblemLocal(r)) return false;
-    const tagged = hasImproveTagLocal(r);
-    return mode === 'reflected' ? tagged : !tagged;
-  });
+  const stats = computeImprovementStats(rows);
+  const matched = mode === 'reflected' ? stats.reflectedRows : stats.unreflectedRows;
 
   const rowsForDisplay = matched.map(r => ({
     '프로젝트 코드': r._pName,
