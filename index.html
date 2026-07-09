@@ -4867,11 +4867,13 @@ if (pdcaImproveChartInstance) pdcaImproveChartInstance.destroy();
         : '');
 
   // ── 5. 하단 To-Do 카드 (앞서 구현한 클릭 Drill-down 유지) ──
+const isExtFactorForGroup = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
   const groupRework = (colName) => {
     const g = {};
     rows.forEach(r => {
-      const key = (r[colName] || '').toString().trim();
-      if (!key) return;
+      if (r._isRep === false) return;
+      if (isExtFactorForGroup(r)) return;
+      const key = (r[colName] || '').toString().trim() || '해당 없음';
       if (!g[key]) g[key] = { total: 0, rework: 0 };
       g[key].total++;
       const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
