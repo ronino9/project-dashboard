@@ -4450,7 +4450,7 @@ function computeImprovementStats(rows) {
     }
   });
 
-  return { problemCnt, problemImproved, activeImproveCnt, improveDist, reflectedRows, unreflectedRows };
+return { problemCnt, problemImproved, activeImproveCnt, improveDist, reflectedRows, unreflectedRows, hasImproveTag };
 }
     window._mainTab = 'project';
 window.switchMainTab = function(which) {
@@ -4731,7 +4731,7 @@ let pdcaReworkChartInstance = null;
 let pdcaImproveChartInstance = null;
 
 window.renderPdcaCharts = function(rows, improveStats, TARGET) {
-  const { improveDist, problemImproved: defensiveTagCnt, activeImproveCnt: activeTagCnt } = improveStats;
+  const { improveDist, problemImproved: defensiveTagCnt, activeImproveCnt: activeTagCnt, hasImproveTag } = improveStats;
   
 // 💡 1. 타이틀 영역을 "개선 효과 추이" 컨셉으로 개조
   const chartCanvas = document.getElementById('pdcaReworkChart');
@@ -4764,7 +4764,7 @@ window.renderPdcaCharts = function(rows, improveStats, TARGET) {
   const impTotal = impData.reduce((a, b) => a + b, 0);
 
 // 능동(자발) vs 방어(문제 대응) 집계: 그룹 단위 집계 결과를 그대로 사용
-  const activeDefTotal = activeTagCnt + defensiveTagCnt;t;
+  const activeDefTotal = activeTagCnt + defensiveTagCnt;
   const activeRatio = activeDefTotal > 0 ? Math.round((activeTagCnt / activeDefTotal) * 100) : null;
 
 if (pdcaImproveChartInstance) pdcaImproveChartInstance.destroy();
