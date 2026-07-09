@@ -289,14 +289,7 @@
         <div style="font-size:22px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">🔄 전사 PDCA 현황</div>
         <span class="badge" style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe;">전체 프로젝트</span>
       </div>
-<div style="display:grid; grid-template-columns:1fr 380px; gap:16px; align-items:start;">
-  <div id="pdca-content" style="min-width:0;"><div style="padding:40px; text-align:center; color:#64748b;">PDCA 데이터 집계 중...</div></div>
-  <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:16px;">
-    <div style="font-size:13px; font-weight:800; color:#0f172a; margin-bottom:2px; display:flex; align-items:center; gap:6px;">✳️ 이달의 핵심 To-Do</div>
-    <div style="font-size:10px; color:#94a3b8; margin-bottom:10px;">재작업 집중 파트·단계 자동 지목</div>
-    <div id="pdca-action-list"></div>
-  </div>
-</div>
+<div id="pdca-content" style="min-width:0;"><div style="padding:40px; text-align:center; color:#64748b;">PDCA 데이터 집계 중...</div></div>
       <!-- ========================================================
      반복 업무 개선 추이 카드
      "재작업률 개선 추이" 그리드 바로 위에 삽입
@@ -4493,8 +4486,8 @@ window.renderPdca = function() {
   const activeComment = `💡 문제 없이 자발적으로 도출한 개선`;
 
   // 재작업률은 카드가 아니라 상단 KPI 줄로 (결과 지표라 P/D/C/A 어디에도 안 맞음)
-  const reworkTopKpi = `
-    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+const reworkTopKpi = `
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:stretch; margin-bottom:14px;">
       <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 16px;">
         <div style="font-size:11px; color:#64748b; font-weight:600;">재작업률</div>
         <div style="font-size:20px; font-weight:800; color:${reworkRate <= TARGET.rework ? '#0f766e' : '#dc2626'};">${reworkRate.toFixed(1)}%<span style="font-size:11px; color:#94a3b8; font-weight:600;"> / 목표 ${TARGET.rework}%</span></div>
@@ -4502,6 +4495,11 @@ window.renderPdca = function() {
       <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 16px;">
         <div style="font-size:11px; color:#64748b; font-weight:600;">문제 건</div>
         <div style="font-size:20px; font-weight:800; color:#0f172a;">${problemCnt}</div>
+      </div>
+      <div style="flex:1; min-width:260px; background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 14px;">
+        <div style="font-size:12px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:4px;">✳️ 이달의 핵심 To-Do</div>
+        <div style="font-size:10px; color:#94a3b8; margin-bottom:6px;">재작업 집중 파트·단계 자동 지목</div>
+        <div id="pdca-action-list" style="display:flex; gap:8px; overflow-x:auto;"></div>
       </div>
     </div>`;
 
@@ -4535,11 +4533,7 @@ const cardsHtml = `
         </div>
       </div>
 </div>
-    <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-      <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:4px; display:flex; align-items:center; gap:6px;">✳️ 이달의 핵심 To-Do</div>
-      <div style="font-size:12px; color:#64748b; margin-bottom:16px;">재작업이 몰린 파트·단계를 데이터가 자동 지목 (담당·기한 수동입력 없음)</div>
-      <div id="pdca-action-list"></div>
-    </div>`;
+`;
 
 document.getElementById('pdca-content').innerHTML = cardsHtml;
 
@@ -4727,7 +4721,7 @@ if (pdcaImproveChartInstance) pdcaImproveChartInstance.destroy();
   const byPart = groupRework('파트 구분');
 
 const actionItem = (icon, label, colName, x) => `
-    <div onclick="window.showReworkDrilldown('${colName}', '${x.key}')" style="background:#f8fafc; border:1px solid #e2e8f0; border-left:3px solid #a855f7; border-radius:6px; padding:8px 10px; margin-bottom:6px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.transform='translateX(3px)';" onmouseout="this.style.background='#f8fafc'; this.style.transform='none';">
+    <div onclick="window.showReworkDrilldown('${colName}', '${x.key}')" style="background:#f8fafc; border:1px solid #e2e8f0; border-left:3px solid #a855f7; border-radius:6px; padding:8px 10px; margin-right:6px; flex-shrink:0; min-width:190px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9';" onmouseout="this.style.background='#f8fafc';">
       <div style="font-size:11px; font-weight:700; color:#0f172a; margin-bottom:4px; line-height:1.4;">
         ${icon} ${label} <span style="color:#a855f7;">${x.key}</span> 재작업 집중
       </div>
