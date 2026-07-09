@@ -247,6 +247,17 @@
           <span>📋</span> 프로젝트 현황
         </button>
       </div>
+  
+      <div id="pdca-top-kpi" style="display:none; gap: 6px;">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 10px; text-align: center;">
+          <div style="font-size: 9px; color: #64748b; font-weight: 700;">재작업률</div>
+          <div id="pdca-kpi-rework" style="font-size: 15px; font-weight: 800; color: #0f172a;">0.0%</div>
+        </div>
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 10px; text-align: center;">
+          <div style="font-size: 9px; color: #64748b; font-weight: 700;">문제 건</div>
+          <div id="pdca-kpi-problem" style="font-size: 15px; font-weight: 800; color: #0f172a;">0</div>
+        </div>
+      </div>
       <div id="main-top-kpi" style="display: flex; gap: 6px;">
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 10px; text-align: center;">
           <div style="font-size: 9px; color: #64748b; font-weight: 700;">총 공수 MD</div>
@@ -289,7 +300,7 @@
         <div style="font-size:22px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">🔄 전사 PDCA 현황</div>
         <span class="badge" style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe;">전체 프로젝트</span>
       </div>
-<div id="pdca-content" style="min-width:0;"><div style="padding:40px; text-align:center; color:#64748b;">PDCA 데이터 집계 중...</div></div>
+<div id="pdca-content"><div style="padding:40px; text-align:center; color:#64748b;">PDCA 데이터 집계 중...</div></div>
       <!-- ========================================================
      반복 업무 개선 추이 카드
      "재작업률 개선 추이" 그리드 바로 위에 삽입
@@ -4311,6 +4322,7 @@ window.switchMainTab = function(which) {
   const btnProj = document.getElementById('btn-main-project');
   const topKpi = document.getElementById('main-top-kpi');
   const topSearch = document.getElementById('global-search-bar');
+  const topPdcaKpi = document.getElementById('pdca-top-kpi');
 
   // 💡 세련된 액티브 스타일 정의
   const activeStyle = "background:#3b82f6; color:#ffffff; box-shadow:0 2px 4px rgba(59, 130, 246, 0.25);";
@@ -4322,8 +4334,9 @@ window.switchMainTab = function(which) {
     if (btnPdca) btnPdca.style.cssText += activeStyle;
     if (btnProj) btnProj.style.cssText += inactiveStyle;
     
-    if (topKpi) topKpi.style.display = 'none';
+if (topKpi) topKpi.style.display = 'none';
     if (topSearch) topSearch.style.display = 'none';
+    if (topPdcaKpi) topPdcaKpi.style.display = 'flex';
     
     window.renderPdca();
   } else {
@@ -4332,8 +4345,9 @@ window.switchMainTab = function(which) {
     if (btnPdca) btnPdca.style.cssText += inactiveStyle;
     if (btnProj) btnProj.style.cssText += activeStyle;
     
-    if (topKpi) topKpi.style.display = 'flex';
+if (topKpi) topKpi.style.display = 'flex';
     if (topSearch) topSearch.style.display = 'flex';
+    if (topPdcaKpi) topPdcaKpi.style.display = 'none';
     
     window.renderMainDashboard();
     window.renderCalendar();
@@ -4486,25 +4500,15 @@ window.renderPdca = function() {
   const activeComment = `💡 문제 없이 자발적으로 도출한 개선`;
 
   // 재작업률은 카드가 아니라 상단 KPI 줄로 (결과 지표라 P/D/C/A 어디에도 안 맞음)
-const reworkTopKpi = `
-    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:stretch; margin-bottom:14px;">
-      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 16px;">
-        <div style="font-size:11px; color:#64748b; font-weight:600;">재작업률</div>
-        <div style="font-size:20px; font-weight:800; color:${reworkRate <= TARGET.rework ? '#0f766e' : '#dc2626'};">${reworkRate.toFixed(1)}%<span style="font-size:11px; color:#94a3b8; font-weight:600;"> / 목표 ${TARGET.rework}%</span></div>
-      </div>
-      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 16px;">
-        <div style="font-size:11px; color:#64748b; font-weight:600;">문제 건</div>
-        <div style="font-size:20px; font-weight:800; color:#0f172a;">${problemCnt}</div>
-      </div>
-      <div style="flex:1; min-width:260px; background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 14px;">
-        <div style="font-size:12px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:4px;">✳️ 이달의 핵심 To-Do</div>
-        <div style="font-size:10px; color:#94a3b8; margin-bottom:6px;">재작업 집중 파트·단계 자동 지목</div>
-        <div id="pdca-action-list" style="display:flex; gap:8px; overflow-x:auto;"></div>
-      </div>
-    </div>`;
+const kpiReworkEl = document.getElementById('pdca-kpi-rework');
+  if (kpiReworkEl) {
+    kpiReworkEl.textContent = reworkRate.toFixed(1) + '%';
+    kpiReworkEl.style.color = reworkRate <= TARGET.rework ? '#0f766e' : '#dc2626';
+  }
+  const kpiProblemEl = document.getElementById('pdca-kpi-problem');
+  if (kpiProblemEl) kpiProblemEl.textContent = problemCnt;
 
 const cardsHtml = `
-    ${reworkTopKpi}
     <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px;">
       ${card('P', '#64748b', '계획 수립률', planRate + '<span style="font-size:20px;">%</span>', '100%', planComment, planCommentColor)}
       ${card('D', '#3b82f6', '계획 대비 실행률', execVal, TARGET.exec + '%', execComment, execCommentColor)}
@@ -4532,8 +4536,12 @@ const cardsHtml = `
           <div id="pdca-improve-legend" style="flex:1; display:flex; flex-direction:column; gap:6px; justify-content:center;"></div>
         </div>
       </div>
-</div>
-`;
+    </div>
+    <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+      <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:4px; display:flex; align-items:center; gap:6px;">✳️ 이달의 핵심 To-Do</div>
+      <div style="font-size:12px; color:#64748b; margin-bottom:16px;">재작업이 몰린 파트·단계를 데이터가 자동 지목 (담당·기한 수동입력 없음)</div>
+      <div id="pdca-action-list"></div>
+    </div>`;
 
 document.getElementById('pdca-content').innerHTML = cardsHtml;
 
@@ -4720,14 +4728,15 @@ if (pdcaImproveChartInstance) pdcaImproveChartInstance.destroy();
   const byStage = groupRework('단계 구분');
   const byPart = groupRework('파트 구분');
 
-const actionItem = (icon, label, colName, x) => `
-    <div onclick="window.showReworkDrilldown('${colName}', '${x.key}')" style="background:#f8fafc; border:1px solid #e2e8f0; border-left:3px solid #a855f7; border-radius:6px; padding:8px 10px; margin-right:6px; flex-shrink:0; min-width:190px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9';" onmouseout="this.style.background='#f8fafc';">
-      <div style="font-size:11px; font-weight:700; color:#0f172a; margin-bottom:4px; line-height:1.4;">
-        ${icon} ${label} <span style="color:#a855f7;">${x.key}</span> 재작업 집중
+  const actionItem = (icon, label, colName, x) => `
+    <div onclick="window.showReworkDrilldown('${colName}', '${x.key}')" style="background:#f8fafc; border:1px solid #e2e8f0; border-left:4px solid #a855f7; border-radius:8px; padding:12px 16px; margin-bottom:8px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.transform='translateX(3px)';" onmouseout="this.style.background='#f8fafc'; this.style.transform='none';">
+      <div style="font-size:13px; font-weight:700; color:#0f172a; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
+        <span>${icon} ${label} <span style="color:#a855f7;">${x.key}</span> 재작업 집중 — 정밀 진단 필요</span>
+        <span style="font-size:11px; color:#3b82f6; font-weight:700;">상세 원인 보기 🔍</span>
       </div>
-      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-        <span style="background:#fef2f2; color:#dc2626; font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px;">재작업률 ${x.rate.toFixed(1)}%</span>
-        <span style="font-size:10px; color:#64748b;">${x.rework}/${x.total}건</span>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <span style="background:#fef2f2; color:#dc2626; font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px;">재작업률 ${x.rate.toFixed(1)}%</span>
+        <span style="font-size:11px; color:#64748b;">${x.rework}건 / 전체 ${x.total}건</span>
       </div>
     </div>`;
 
