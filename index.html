@@ -2686,43 +2686,37 @@ function renderPlanSegments(track, segs, windowStart, windowEnd, totalDays, dayO
   });
 }
 
-// 실행 막대(하루 단위 셀) 렌더링 - 색은 단계로 통일, 원격 여부는 색과 무관하게 인접일이면 이어붙임
+// 실행 막대(하루 단위 셀) 렌더링 - 병합 없이 하루하루 개별 막대로 렌더링
 function renderExecSegments(track, execDays, windowStart, windowEnd, totalDays, dayOffset, onDayClick, hlPrefix) {
   if (execDays.length === 0) return;
-  // 인접한 날짜 중 같은 단계끼리 묶어서 하나의 막대로 그림 (원격 여부는 색에 영향 없음)
-let i = 0;
-  while (i < execDays.length) {
-    const start = execDays[i];
-    let j = i;
-    const end = execDays[j];
-    if (end.date >= windowStart && start.date <= windowEnd) {
-      const cs = ganttClamp(start.date, windowStart, windowEnd);
-      const ce = ganttClamp(end.date, windowStart, windowEnd);
+  
+  // while 문(병합 로직)을 제거하고, 각 날짜마다 개별 막대를 생성합니다.
+  for (let i = 0; i < execDays.length; i++) {
+    const dayData = execDays[i];
+    
+    if (dayData.date >= windowStart && dayData.date <= windowEnd) {
+      const cs = ganttClamp(dayData.date, windowStart, windowEnd);
+      const ce = ganttClamp(dayData.date, windowStart, windowEnd); // 시작과 끝을 동일하게
       const startPct = (dayOffset(cs) / totalDays) * 100;
-      const widthPct = Math.max(((ganttDaysBetween(cs, ce) + 1) / totalDays) * 100, 0.4);
+      const widthPct = Math.max((1 / totalDays) * 100, 0.4); // 무조건 1일치 너비
+      
       const bar = document.createElement('div');
-      const color = STAGE_COLORS_EXEC[start.stage] || '#94a3b8';
+      const color = STAGE_COLORS_EXEC[dayData.stage] || '#94a3b8';
       bar.className = 'gantt-bar';
-      bar.dataset.hl = `${hlPrefix}_${start.stage}`;
+      bar.dataset.hl = `${hlPrefix}_${dayData.stage}`;
       bar.style.cssText = `position:absolute; top:4px; bottom:4px; left:${startPct}%; width:${widthPct}%; background:${color}; border-radius:2px; cursor:pointer; pointer-events:auto;`;
-bar.title = window.buildGanttTooltip ? window.buildGanttTooltip(hlPrefix, start.stage, start.date, end.date) : start.stage;
+      
+      bar.title = window.buildGanttTooltip ? window.buildGanttTooltip(hlPrefix, dayData.stage, dayData.date, dayData.date) : dayData.stage;
+      
       if (onDayClick) bar.onclick = (e) => {
         e.stopPropagation();
-        const rect = bar.getBoundingClientRect();
-        const fraction = Math.min(0.999, Math.max(0, (e.clientX - rect.left) / rect.width));
-        const segDays = ganttDaysBetween(cs, ce) + 1;
-        const dayIdx = Math.floor(fraction * segDays);
-        const clickedDateObj = new Date(cs);
-        clickedDateObj.setDate(clickedDateObj.getDate() + dayIdx);
-        const clickedDate = `${clickedDateObj.getFullYear()}-${String(clickedDateObj.getMonth() + 1).padStart(2, '0')}-${String(clickedDateObj.getDate()).padStart(2, '0')}`;
-        onDayClick(clickedDate, start.stage);
+        onDayClick(dayData.date, dayData.stage);
       };
       track.appendChild(bar);
     }
-    i = j + 1;
   }
 
-  // 원격 마커 (📶) - 막대 색과 별개로, 원격인 날짜 위에 얹는다
+  // 원격 마커 (📶) 로직
   const seenRemote = new Set();
   execDays.forEach(({ date, stage, isRemote }) => {
     if (!isRemote) return;
@@ -2966,6 +2960,7 @@ renderProjectBlock(cardId, label, projColorMap[cardId] || '#94a3b8', flat, false
 });
 };
 let indivGanttCursor = new Date();
+let indivGanttProject = null; // 👈 팝업 에러를 막아주는 핵심 변수 추가!
 
 // 개별 간트 막대 색: 업무구분 기준 (이슈=빨강 / 표준·기술지원·기능요구=파랑 / 그 외 전부 황토)
 // 단, 보류 상태는 이 색을 무시하고 무조건 회색으로 덮어씀 (아래 렌더 로직에서 처리)
