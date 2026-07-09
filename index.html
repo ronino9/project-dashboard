@@ -5069,8 +5069,7 @@ yCnt: {
   });
   }, 50);
 };
-    window.showReworkDrilldown = function(colName, keyVal) {
-      window.showPdcaProblemDetail = function(mode) {
+window.showPdcaProblemDetail = function(mode) {
   const rows = window.allMasterData || [];
   const isExtFactorLocal = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
   const hasImproveTagLocal = (r) => /\[개선-[^\]]+\]/.test(r['분석 데이터'] || r['분석데이터'] || '');
@@ -5097,6 +5096,8 @@ yCnt: {
   const title = mode === 'reflected' ? '✅ 개선책 반영 완료 건' : '⚠️ 개선책 미반영 건';
   window.showDetailView(title, `총 ${matched.length}건`, rowsForDisplay);
 };
+
+    window.showReworkDrilldown = function(colName, keyVal) {
   const rows = window._pdcaChartRows || [];
   const isExtFactorLocal = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
 
