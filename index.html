@@ -49,11 +49,14 @@
 .clamp-more-btn.clamp-show { display: inline-block; }  
 #main-panel .stage-fill { transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
     .tt-row:hover { background:#eff6ff !important; }
-    .pdca-kpi-badge { display:flex; align-items:center; gap:6px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:7px 14px; transition:all 0.15s ease; }
-.pdca-kpi-badge .pdca-kpi-label { font-size:11px; color:#64748b; font-weight:700; white-space:nowrap; }
-.pdca-kpi-badge .pdca-kpi-value { font-size:14px; font-weight:800; color:#0f172a; white-space:nowrap; }
-.pdca-kpi-badge.clickable { cursor:pointer; }
-.pdca-kpi-badge.clickable:hover { background:#eff6ff; border-color:#93c5fd; transform:translateX(2px); box-shadow:0 2px 6px rgba(59,130,246,0.15); }
+.pdca-kpi-group { position:relative; display:inline-flex; align-items:center; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:12px; padding:6px 12px; margin-top:8px; }
+.pdca-kpi-group-label { position:absolute; top:-9px; left:12px; background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe; font-size:10px; font-weight:700; padding:1px 8px; border-radius:8px; white-space:nowrap; }
+.pdca-kpi-item { display:flex; flex-direction:column; align-items:center; padding:2px 12px; border-radius:8px; transition:all 0.15s ease; }
+.pdca-kpi-item .pdca-kpi-label { font-size:10px; color:#64748b; font-weight:700; white-space:nowrap; }
+.pdca-kpi-item .pdca-kpi-value { font-size:14px; font-weight:800; color:#0f172a; white-space:nowrap; margin-top:1px; }
+.pdca-kpi-item.clickable { cursor:pointer; }
+.pdca-kpi-item.clickable:hover { background:#ffffff; box-shadow:0 2px 6px rgba(59,130,246,0.15); transform:translateY(-1px); }
+.pdca-kpi-divider { width:1px; align-self:stretch; background:#cbd5e1; margin:2px 4px; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 /* 👇 여기에 한 줄만 딱 추가해 주시면 됩니다 👇 */
     .hide-scroll::-webkit-scrollbar { display: none; }
@@ -254,33 +257,46 @@
           </button>
         </div>
 
-        <div id="pdca-top-kpi" style="display:none; align-items:center; gap:6px; flex-wrap:wrap;">
-          <div class="pdca-kpi-badge">
-            <span class="pdca-kpi-label">재작업률</span>
-            <span id="pdca-kpi-rework" class="pdca-kpi-value">0.0%</span>
+<div id="pdca-top-kpi" style="display:none; align-items:flex-end; gap:14px; flex-wrap:wrap;">
+          <div class="pdca-kpi-group">
+            <span class="pdca-kpi-group-label">📉 재작업</span>
+            <div class="pdca-kpi-item">
+              <span class="pdca-kpi-label">재작업률</span>
+              <span id="pdca-kpi-rework" class="pdca-kpi-value">0.0%</span>
+            </div>
+            <div class="pdca-kpi-divider"></div>
+            <div class="pdca-kpi-item" id="pdca-kpi-mom-item">
+              <span class="pdca-kpi-label">전월대비</span>
+              <span id="pdca-kpi-mom" class="pdca-kpi-value">-</span>
+            </div>
           </div>
-          <div class="pdca-kpi-badge clickable" onclick="window.showPdcaProblemDetail('reflected')" title="클릭 시 반영 건 상세 보기">
-            <span class="pdca-kpi-label">반영</span>
-            <span id="pdca-kpi-reflected" class="pdca-kpi-value" style="color:#16a34a;">0건</span>
+
+          <div class="pdca-kpi-group">
+            <span class="pdca-kpi-group-label">💡 개선책</span>
+            <div class="pdca-kpi-item clickable" onclick="window.showPdcaProblemDetail('reflected')" title="클릭 시 반영 건 상세 보기">
+              <span class="pdca-kpi-label">반영</span>
+              <span id="pdca-kpi-reflected" class="pdca-kpi-value" style="color:#16a34a;">0건</span>
+            </div>
+            <div class="pdca-kpi-divider"></div>
+            <div class="pdca-kpi-item clickable" onclick="window.showPdcaProblemDetail('unreflected')" title="클릭 시 미반영 건 상세 보기">
+              <span class="pdca-kpi-label">미반영</span>
+              <span id="pdca-kpi-unreflected" class="pdca-kpi-value" style="color:#dc2626;">0건</span>
+            </div>
           </div>
-          <div class="pdca-kpi-badge clickable" onclick="window.showPdcaProblemDetail('unreflected')" title="클릭 시 미반영 건 상세 보기">
-            <span class="pdca-kpi-label">미반영</span>
-            <span id="pdca-kpi-unreflected" class="pdca-kpi-value" style="color:#dc2626;">0건</span>
-          </div>
-          <div class="pdca-kpi-badge">
-            <span class="pdca-kpi-label">전월대비</span>
-            <span id="pdca-kpi-mom" class="pdca-kpi-value">-</span>
-          </div>
-          <div class="pdca-kpi-badge">
-            <span class="pdca-kpi-label">지연중</span>
-            <span id="pdca-kpi-delayed" class="pdca-kpi-value">0건</span>
-          </div>
-          <div class="pdca-kpi-badge">
-            <span class="pdca-kpi-label">평균지연일</span>
-            <span id="pdca-kpi-avgdelay" class="pdca-kpi-value">0일</span>
+
+          <div class="pdca-kpi-group">
+            <span class="pdca-kpi-group-label">⏱ 지연</span>
+            <div class="pdca-kpi-item">
+              <span class="pdca-kpi-label">지연중</span>
+              <span id="pdca-kpi-delayed" class="pdca-kpi-value">0건</span>
+            </div>
+            <div class="pdca-kpi-divider"></div>
+            <div class="pdca-kpi-item">
+              <span class="pdca-kpi-label">평균지연일</span>
+              <span id="pdca-kpi-avgdelay" class="pdca-kpi-value">0일</span>
+            </div>
           </div>
         </div>
-      </div>
       <div id="main-top-kpi" style="display: flex; gap: 6px;">
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 10px; text-align: center;">
           <div style="font-size: 9px; color: #64748b; font-weight: 700;">총 공수 MD</div>
@@ -4600,15 +4616,22 @@ const kpiReworkEl = document.getElementById('pdca-kpi-rework');
   const kpiUnreflectedEl = document.getElementById('pdca-kpi-unreflected');
   if (kpiUnreflectedEl) kpiUnreflectedEl.textContent = (problemCnt - problemImproved) + '건';
 
-  const kpiMomEl = document.getElementById('pdca-kpi-mom');
+const kpiMomEl = document.getElementById('pdca-kpi-mom');
+  const kpiMomItemEl = document.getElementById('pdca-kpi-mom-item');
   if (kpiMomEl) {
     if (momDiff === null) {
       kpiMomEl.textContent = '데이터 부족';
       kpiMomEl.style.color = '#94a3b8';
+      if (kpiMomItemEl) kpiMomItemEl.title = '비교할 이전 달 데이터가 없습니다';
     } else {
       const arrow = momDiff > 0 ? '▲' : (momDiff < 0 ? '▼' : '-');
       kpiMomEl.textContent = `${arrow} ${Math.abs(momDiff)}%p`;
       kpiMomEl.style.color = momDiff > 0 ? '#dc2626' : (momDiff < 0 ? '#16a34a' : '#64748b');
+      if (kpiMomItemEl) {
+        const prevLabel = mKeys[mKeys.length - 2].substring(2).replace('-', '.');
+        const curLabel = mKeys[mKeys.length - 1].substring(2).replace('-', '.');
+        kpiMomItemEl.title = `${prevLabel} → ${curLabel} 재작업률 비교`;
+      }
     }
   }
 
