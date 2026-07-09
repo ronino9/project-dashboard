@@ -49,6 +49,11 @@
 .clamp-more-btn.clamp-show { display: inline-block; }  
 #main-panel .stage-fill { transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
     .tt-row:hover { background:#eff6ff !important; }
+    .pdca-kpi-badge { display:flex; align-items:center; gap:6px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:7px 14px; transition:all 0.15s ease; }
+.pdca-kpi-badge .pdca-kpi-label { font-size:11px; color:#64748b; font-weight:700; white-space:nowrap; }
+.pdca-kpi-badge .pdca-kpi-value { font-size:14px; font-weight:800; color:#0f172a; white-space:nowrap; }
+.pdca-kpi-badge.clickable { cursor:pointer; }
+.pdca-kpi-badge.clickable:hover { background:#eff6ff; border-color:#93c5fd; transform:translateX(2px); box-shadow:0 2px 6px rgba(59,130,246,0.15); }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 /* 👇 여기에 한 줄만 딱 추가해 주시면 됩니다 👇 */
     .hide-scroll::-webkit-scrollbar { display: none; }
@@ -239,23 +244,41 @@
     <div id="main-panel">          <!-- ★ 이 줄 추가 -->
 <!-- 내부 탭: PDCA / 프로젝트 현황 -->
 <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
-<div style="display:inline-flex; background:#f1f5f9; padding:4px; border-radius:12px; border:1px solid #e2e8f0; gap:4px;">
-        <button id="btn-main-pdca" onclick="window.switchMainTab('pdca')" style="padding:8px 20px; border:none; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer; transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display:flex; align-items:center; gap:6px; background:transparent; color:#64748b;">
-          <span>🔄</span> PDCA 현황
-        </button>
-        <button id="btn-main-project" onclick="window.switchMainTab('project')" style="padding:8px 20px; border:none; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer; transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display:flex; align-items:center; gap:6px; background:#3b82f6; color:#ffffff; box-shadow:0 2px 4px rgba(59, 130, 246, 0.25);">
-          <span>📋</span> 프로젝트 현황
-        </button>
-      </div>
-  
-      <div id="pdca-top-kpi" style="display:none; gap: 6px;">
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 10px; text-align: center;">
-          <div style="font-size: 9px; color: #64748b; font-weight: 700;">재작업률</div>
-          <div id="pdca-kpi-rework" style="font-size: 15px; font-weight: 800; color: #0f172a;">0.0%</div>
+<div style="display:flex; align-items:center; gap:10px;">
+        <div style="display:inline-flex; background:#f1f5f9; padding:4px; border-radius:12px; border:1px solid #e2e8f0; gap:4px;">
+          <button id="btn-main-pdca" onclick="window.switchMainTab('pdca')" style="padding:8px 20px; border:none; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer; transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display:flex; align-items:center; gap:6px; background:transparent; color:#64748b;">
+            <span>🔄</span> PDCA 현황
+          </button>
+          <button id="btn-main-project" onclick="window.switchMainTab('project')" style="padding:8px 20px; border:none; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer; transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display:flex; align-items:center; gap:6px; background:#3b82f6; color:#ffffff; box-shadow:0 2px 4px rgba(59, 130, 246, 0.25);">
+            <span>📋</span> 프로젝트 현황
+          </button>
         </div>
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 10px; text-align: center;">
-          <div style="font-size: 9px; color: #64748b; font-weight: 700;">문제 건</div>
-          <div id="pdca-kpi-problem" style="font-size: 15px; font-weight: 800; color: #0f172a;">0</div>
+
+        <div id="pdca-top-kpi" style="display:none; align-items:center; gap:6px; flex-wrap:wrap;">
+          <div class="pdca-kpi-badge">
+            <span class="pdca-kpi-label">재작업률</span>
+            <span id="pdca-kpi-rework" class="pdca-kpi-value">0.0%</span>
+          </div>
+          <div class="pdca-kpi-badge clickable" onclick="window.showPdcaProblemDetail('reflected')" title="클릭 시 반영 건 상세 보기">
+            <span class="pdca-kpi-label">반영</span>
+            <span id="pdca-kpi-reflected" class="pdca-kpi-value" style="color:#16a34a;">0건</span>
+          </div>
+          <div class="pdca-kpi-badge clickable" onclick="window.showPdcaProblemDetail('unreflected')" title="클릭 시 미반영 건 상세 보기">
+            <span class="pdca-kpi-label">미반영</span>
+            <span id="pdca-kpi-unreflected" class="pdca-kpi-value" style="color:#dc2626;">0건</span>
+          </div>
+          <div class="pdca-kpi-badge">
+            <span class="pdca-kpi-label">전월대비</span>
+            <span id="pdca-kpi-mom" class="pdca-kpi-value">-</span>
+          </div>
+          <div class="pdca-kpi-badge">
+            <span class="pdca-kpi-label">지연중</span>
+            <span id="pdca-kpi-delayed" class="pdca-kpi-value">0건</span>
+          </div>
+          <div class="pdca-kpi-badge">
+            <span class="pdca-kpi-label">평균지연일</span>
+            <span id="pdca-kpi-avgdelay" class="pdca-kpi-value">0일</span>
+          </div>
         </div>
       </div>
       <div id="main-top-kpi" style="display: flex; gap: 6px;">
@@ -4478,6 +4501,38 @@ window.renderPdca = function() {
 
   // 개선책 반영률 = 문제 건 중 개선 태그 달린 비율
   const improveRate = problemCnt > 0 ? Math.round((problemImproved / problemCnt) * 100) : null;
+  // ── 전월대비 재작업률 증감 ──
+  const monthlyRework = {};
+  rows.forEach(r => {
+    if (r._isRep === false) return;
+    if (isExternalFactor(r)) return;
+    const d = (r['접수일'] || '').toString();
+    if (!d || d.length < 7) return;
+    const mKey = d.substring(0, 7);
+    if (!monthlyRework[mKey]) monthlyRework[mKey] = { base: 0, rework: 0 };
+    monthlyRework[mKey].base++;
+    const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
+    if (yn === 'Y') monthlyRework[mKey].rework++;
+  });
+  const mKeys = Object.keys(monthlyRework).sort();
+  let momDiff = null;
+  if (mKeys.length >= 2) {
+    const cur = monthlyRework[mKeys[mKeys.length - 1]];
+    const prev = monthlyRework[mKeys[mKeys.length - 2]];
+    const curRate = cur.base > 0 ? (cur.rework / cur.base * 100) : 0;
+    const prevRate = prev.base > 0 ? (prev.rework / prev.base * 100) : 0;
+    momDiff = +(curRate - prevRate).toFixed(1);
+  }
+
+  // ── 지연중 건수 / 평균 지연일 ──
+  let delayedCnt = 0, delaySum = 0, delayN = 0;
+  rows.forEach(r => {
+    if (r._isRep === false) return;
+    if ((r['진행상태'] || '') === '지연중') delayedCnt++;
+    const delay = parseFloat(r['지연일']);
+    if (!isNaN(delay) && delay > 0) { delaySum += delay; delayN++; }
+  });
+  const avgDelay = delayN > 0 ? (delaySum / delayN) : 0;
 
   // ===== 카드 렌더링 =====
 // ===== 카드 렌더링 (P/D/C/A 4카드 + 재작업률은 상단 KPI로) =====
@@ -4540,6 +4595,31 @@ const kpiReworkEl = document.getElementById('pdca-kpi-rework');
   }
   const kpiProblemEl = document.getElementById('pdca-kpi-problem');
   if (kpiProblemEl) kpiProblemEl.textContent = problemCnt;
+  const kpiReflectedEl = document.getElementById('pdca-kpi-reflected');
+  if (kpiReflectedEl) kpiReflectedEl.textContent = problemImproved + '건';
+  const kpiUnreflectedEl = document.getElementById('pdca-kpi-unreflected');
+  if (kpiUnreflectedEl) kpiUnreflectedEl.textContent = (problemCnt - problemImproved) + '건';
+
+  const kpiMomEl = document.getElementById('pdca-kpi-mom');
+  if (kpiMomEl) {
+    if (momDiff === null) {
+      kpiMomEl.textContent = '데이터 부족';
+      kpiMomEl.style.color = '#94a3b8';
+    } else {
+      const arrow = momDiff > 0 ? '▲' : (momDiff < 0 ? '▼' : '-');
+      kpiMomEl.textContent = `${arrow} ${Math.abs(momDiff)}%p`;
+      kpiMomEl.style.color = momDiff > 0 ? '#dc2626' : (momDiff < 0 ? '#16a34a' : '#64748b');
+    }
+  }
+
+  const kpiDelayedEl = document.getElementById('pdca-kpi-delayed');
+  if (kpiDelayedEl) {
+    kpiDelayedEl.textContent = delayedCnt + '건';
+    kpiDelayedEl.style.color = delayedCnt > 0 ? '#dc2626' : '#0f172a';
+  }
+
+  const kpiAvgDelayEl = document.getElementById('pdca-kpi-avgdelay');
+  if (kpiAvgDelayEl) kpiAvgDelayEl.textContent = avgDelay.toFixed(1) + '일';
 
 const cardsHtml = `
     <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px;">
@@ -4965,6 +5045,33 @@ yCnt: {
   }, 50);
 };
     window.showReworkDrilldown = function(colName, keyVal) {
+      window.showPdcaProblemDetail = function(mode) {
+  const rows = window.allMasterData || [];
+  const isExtFactorLocal = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
+  const hasImproveTagLocal = (r) => /\[개선-[^\]]+\]/.test(r['분석 데이터'] || r['분석데이터'] || '');
+  const isProblemLocal = (r) => {
+    if (r._isRep === false) return false;
+    if (isExtFactorLocal(r)) return false;
+    const st = (r['진행상태'] || '').toString().trim();
+    const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
+    return st === '지연중' || st === '지연완료' || st === 'Issue' || yn === 'Y';
+  };
+
+  const matched = rows.filter(r => {
+    if (!isProblemLocal(r)) return false;
+    const tagged = hasImproveTagLocal(r);
+    return mode === 'reflected' ? tagged : !tagged;
+  });
+
+  const rowsForDisplay = matched.map(r => ({
+    '프로젝트 코드': r._pName,
+    '접수일': r['접수일'] || '-',
+    ...r
+  }));
+
+  const title = mode === 'reflected' ? '✅ 개선책 반영 완료 건' : '⚠️ 개선책 미반영 건';
+  window.showDetailView(title, `총 ${matched.length}건`, rowsForDisplay);
+};
   const rows = window._pdcaChartRows || [];
   const isExtFactorLocal = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
 
