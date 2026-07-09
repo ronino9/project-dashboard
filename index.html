@@ -2679,17 +2679,10 @@ function renderPlanSegments(track, segs, windowStart, windowEnd, totalDays, dayO
 function renderExecSegments(track, execDays, windowStart, windowEnd, totalDays, dayOffset, onDayClick, hlPrefix) {
   if (execDays.length === 0) return;
   // 인접한 날짜 중 같은 단계끼리 묶어서 하나의 막대로 그림 (원격 여부는 색에 영향 없음)
-  let i = 0;
+let i = 0;
   while (i < execDays.length) {
     const start = execDays[i];
     let j = i;
-    while (
-      j + 1 < execDays.length &&
-      ganttDaysBetween(execDays[j].date, execDays[j + 1].date) === 1 &&
-      execDays[j + 1].stage === start.stage
-    ) {
-      j++;
-    }
     const end = execDays[j];
     if (end.date >= windowStart && start.date <= windowEnd) {
       const cs = ganttClamp(start.date, windowStart, windowEnd);
