@@ -1110,7 +1110,7 @@ if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') 
   if (h === '표준 제작 Item / Issue / 개선사항') {
     const gid = (row['그룹ID'] || '').toString().trim();
     if (gid) {
-      groupBadge = `<div style="margin-bottom:6px;"><span onclick="window.showGroupHistory('${gid}')" style="display:inline-flex; align-items:center; gap:4px; background:#1e293b; border:1px solid #3b82f6; color:#93c5fd; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; cursor:pointer;" title="이 그룹의 전체 이력 보기">🔗 ${gid}</span></div>`;
+      groupBadge = `<div style="margin-bottom:6px;"><span onclick="window.showGroupHistory('${gid}')" style="display:inline-flex; align-items:center; gap:4px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; cursor:pointer;" title="이 그룹의 전체 이력 보기">🔗 ${gid}</span></div>`;
     }
   }
   return `<td style="vertical-align: top; color: #e2e8f0; overflow:hidden;">
