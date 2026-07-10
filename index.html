@@ -970,7 +970,7 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows, _fromBack) {
   } else {
     // 1. 헤더 정의
 const headers = ['프로젝트 코드', '접수일', '진행상태', '업무/특이사항', '작업 시간', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터', '로그'];
-    const colWidths = [90, 100, 70, 80, 110, 60, 350, 350, 350, 160];
+    const colWidths = [90, 100, 70, 120, 70, 60, 350, 350, 350, 160];
     let html = '<colgroup>' + colWidths.map(w => `<col style="width:${w}px;">`).join('') + '</colgroup>';
 const centerHeaders = ['접수일', '진행상태', '업무 구분', '작업 시간', '공수(MD)'];
     html += '<tr>' + headers.map(h => {
