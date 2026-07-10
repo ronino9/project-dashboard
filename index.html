@@ -997,7 +997,7 @@ if (h === '진행상태') {
 
           const delayDays = parseFloat(row['지연일']);
           if (!isNaN(delayDays) && delayDays > 0) {
-            badges.push(`<span class="badge" style="background:#7f1d1d; color:#fecaca; font-weight:700;">${delayDays}일 지연</span>`);
+            badges.push(`<span class="badge" style="background:#1e293b; border:1px solid #7f1d1d; color:#f87171; font-weight:700;">${delayDays}일 지연</span>`);
           }
 
           return `<td style="text-align: center; vertical-align: top; white-space: nowrap;"><div style="display:flex; flex-direction:column; gap:4px; align-items:center;">${badges.join('')}</div></td>`;
@@ -1087,15 +1087,16 @@ if (h === '업무/특이사항') {
   }
 
   const reworkYN = (row['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
-  if (reworkYN === 'Y') {
-    badges.push(`<span class="badge" style="background:#7c2d12; color:#fed7aa; font-weight:700;">재작업</span>`);
+if (reworkYN === 'Y') {
+    badges.push(`<span class="badge" style="background:#1e293b; border:1px solid #b45309; color:#fbbf24; font-weight:700;">재작업</span>`);
   }
 
   const dev = parseFloat(row['작업 시간 편차']);
   if (!isNaN(dev) && dev !== 0) {
-    const devColor = dev > 0 ? { bg: '#7f1d1d', text: '#fecaca' } : { bg: '#14532d', text: '#bbf7d0' };
+    const devBorder = dev > 0 ? '#7f1d1d' : '#14532d';
+    const devText = dev > 0 ? '#f87171' : '#4ade80';
     const devSign = dev > 0 ? '+' : '';
-    badges.push(`<span class="badge" style="background:${devColor.bg}; color:${devColor.text}; font-weight:700;">편차 ${devSign}${dev}H</span>`);
+    badges.push(`<span class="badge" style="background:#1e293b; border:1px solid ${devBorder}; color:${devText}; font-weight:700;">편차 ${devSign}${dev}H</span>`);
   }
 
   if (badges.length === 0) return `<td style="text-align: center; vertical-align: top; color: #cbd5e1;">-</td>`;
