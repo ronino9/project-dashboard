@@ -969,7 +969,7 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows, _fromBack) {
     detailTable.innerHTML = '<tr><td style="text-align:center;">데이터가 없습니다.</td></tr>';
   } else {
     // 1. 헤더 정의
-const headers = ['프로젝트 코드', '접수일', '진행상태', '업무 구분', '작업 시간', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터', '로그'];
+const headers = ['프로젝트 코드', '접수일', '진행상태', '업무/특이사항', '작업 시간', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터', '로그'];
     const colWidths = [90, 100, 70, 80, 110, 60, 350, 350, 350, 160];
     let html = '<colgroup>' + colWidths.map(w => `<col style="width:${w}px;">`).join('') + '</colgroup>';
 const centerHeaders = ['접수일', '진행상태', '업무 구분', '작업 시간', '공수(MD)'];
@@ -1068,12 +1068,30 @@ if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') 
     </div>
   </td>`;
 }
-        if (h === '업무 구분') {
-  let val = row[h] || '-';
+if (h === '업무/특이사항') {
+  const val = row['업무 구분'] || '-';
   const taskColorMap = { '표준': '#64748b', '개선': '#16a34a', 'Issue': '#dc2626', '이슈': '#dc2626', '기술지원': '#d97706', '기능요구': '#2563eb', '미팅': '#7c3aed', '일정': '#0891b2' };
-  let tColor = taskColorMap[val] || '#475569';
-  if (val === '-') return `<td style="text-align: center; vertical-align: top; color: #cbd5e1;">-</td>`;
-  return `<td style="text-align: center; vertical-align: top; white-space: nowrap;"><span class="badge" style="background:${tColor}; color:#ffffff; font-weight:700;">${val}</span></td>`;
+  const tColor = taskColorMap[val] || '#475569';
+
+  const badges = [];
+  if (val !== '-') {
+    badges.push(`<span class="badge" style="background:${tColor}; color:#ffffff; font-weight:700;">${val}</span>`);
+  }
+
+  const reworkYN = (row['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
+  if (reworkYN === 'Y') {
+    badges.push(`<span class="badge" style="background:#7c2d12; color:#fed7aa; font-weight:700;">재작업</span>`);
+  }
+
+  const dev = parseFloat(row['작업 시간 편차']);
+  if (!isNaN(dev) && dev !== 0) {
+    const devColor = dev > 0 ? { bg: '#7f1d1d', text: '#fecaca' } : { bg: '#14532d', text: '#bbf7d0' };
+    const devSign = dev > 0 ? '+' : '';
+    badges.push(`<span class="badge" style="background:${devColor.bg}; color:${devColor.text}; font-weight:700;">편차 ${devSign}${dev}H</span>`);
+  }
+
+  if (badges.length === 0) return `<td style="text-align: center; vertical-align: top; color: #cbd5e1;">-</td>`;
+  return `<td style="text-align: left; vertical-align: top; white-space: nowrap;"><div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">${badges.join('')}</div></td>`;
 }
         return `<td style="vertical-align: top; text-align: center;">${row[h] || '-'}</td>`;
       }).join('') + '</tr>';
