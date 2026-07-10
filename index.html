@@ -1088,15 +1088,15 @@ if (h === '업무/특이사항') {
 
   const reworkYN = (row['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
 if (reworkYN === 'Y') {
-    badges.push(`<span class="badge" style="background:#1e293b; border:1px solid #b45309; color:#fbbf24; font-weight:700;">재작업</span>`);
+    badges.push(`<span style="background:#fef3e2; color:#b45309; font-size:11px; font-weight:600; padding:1px 6px; border-radius:4px;">재작업</span>`);
   }
 
   const dev = parseFloat(row['작업 시간 편차']);
   if (!isNaN(dev) && dev !== 0) {
-    const devBorder = dev > 0 ? '#7f1d1d' : '#14532d';
-    const devText = dev > 0 ? '#f87171' : '#4ade80';
+    const devBg = dev > 0 ? '#fef3e2' : '#ecfdf5';
+    const devText = dev > 0 ? '#b91c1c' : '#15803d';
     const devSign = dev > 0 ? '+' : '';
-    badges.push(`<span class="badge" style="background:#1e293b; border:1px solid ${devBorder}; color:${devText}; font-weight:700;">편차 ${devSign}${dev}H</span>`);
+    badges.push(`<span style="background:${devBg}; color:${devText}; font-size:11px; font-weight:600; padding:1px 6px; border-radius:4px;">편차 ${devSign}${dev}H</span>`);
   }
 
   if (badges.length === 0) return `<td style="text-align: center; vertical-align: top; color: #cbd5e1;">-</td>`;
