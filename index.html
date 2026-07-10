@@ -997,7 +997,7 @@ if (h === '진행상태') {
 
           const delayDays = parseFloat(row['지연일']);
           if (!isNaN(delayDays) && delayDays > 0) {
-            badges.push(`<span class="badge" style="background:#1e293b; border:1px solid #7f1d1d; color:#f87171; font-weight:700;">${delayDays}일 지연</span>`);
+            badges.push(`<span style="background:#fef3e2; color:#b91c1c; font-size:11px; font-weight:600; padding:1px 6px; border-radius:4px;">${delayDays}일 지연</span>`);
           }
 
           return `<td style="text-align: center; vertical-align: top; white-space: nowrap;"><div style="display:flex; flex-direction:column; gap:4px; align-items:center;">${badges.join('')}</div></td>`;
