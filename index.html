@@ -4831,19 +4831,21 @@ window.renderPdca = function() {
   let planSetCount = 0;
   rows.forEach(r => { if ((parseFloat(r['예상 작업 시간(H)']) || 0) > 0) planSetCount++; });
   const planRate = total > 0 ? Math.round((planSetCount / total) * 100) : 0;
-  const planComment = planRate >= 80 ? '대부분 예상 시간을 산정하고 착수' : '예상 시간 없이 착수한 건이 남아있음';
-  const planCommentColor = planRate >= 80 ? '#16a34a' : '#d97706';
+const planComment = planRate >= 80 ? '대부분 예상 시간을 산정하고 착수' : (planRate >= 50 ? '예상 시간 없이 착수한 건이 남아있음' : '예상 시간 산정 없이 착수하는 경우가 많음');
+  const planCommentColor = planRate >= 80 ? '#16a34a' : (planRate >= 50 ? '#d97706' : '#dc2626');
 
   // D: 실행률 코멘트
-  let execVal, execComment, execCommentColor;
+let execVal, execComment, execCommentColor;
   if (execRate === null) {
     execVal = '<span style="color:#94a3b8;">—</span>';
     execComment = '⚪ 예상시간 데이터 축적 중';
     execCommentColor = '#94a3b8';
   } else {
     execVal = `${execRate}<span style="font-size:20px;">%</span>`;
-    if (execRate <= 105) { execComment = `📊 ${execN}건 기준 · 계획 근접`; execCommentColor = '#16a34a'; }
-    else { execComment = `📊 ${execN}건 기준 · 계획 대비 초과`; execCommentColor = '#dc2626'; }
+    const execDev = Math.abs(execRate - 100);
+    if (execDev <= 20) { execComment = `📊 ${execN}건 기준 · 계획 근접`; execCommentColor = '#16a34a'; }
+    else if (execDev <= 50) { execComment = `📊 ${execN}건 기준 · 계획 대비 편차 있음`; execCommentColor = '#d97706'; }
+    else { execComment = `📊 ${execN}건 기준 · 계획 대비 큰 편차`; execCommentColor = '#dc2626'; }
   }
 
   // C: 준수율 코멘트
@@ -4912,7 +4914,7 @@ const cardsHtml = `
       ${card('D', '#3b82f6', '계획 대비 실행률', execVal, TARGET.exec + '%', execComment, execCommentColor)}
       ${card('C', '#0f766e', '일정 준수율', complianceRate + '<span style="font-size:20px;">%</span>', TARGET.compliance + '%', compComment, compColor)}
       ${card('A', '#7c3aed', '개선책 반영률', improveVal, TARGET.improve + '%', improveComment, improveCommentColor)}
-      ${card('A', '#0ea5e9', '능동 개선', activeImproveCnt + '<span style="font-size:20px;">건</span>', '추이↗', activeComment, '#0284c7')}
+      ${card('A', '#0ea5e9', '능동 개선', activeImproveCnt + '<span style="font-size:20px;">건</span>', '추이↗', activeComment, '#16a34a')}
     </div>
 <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-bottom:16px;">
       <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
