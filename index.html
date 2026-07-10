@@ -455,43 +455,8 @@
     </table>
   </div>
 </div>
+
 <div id="ttModal" onclick="if(event.target===this) window.closeTaskTrendsModal()" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); z-index:9999; align-items:center; justify-content:center; padding:20px;">
-  <div style="background:#ffffff; border-radius:12px; padding:20px; width:95vw; max-width:1100px; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(15,23,42,0.25);">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-shrink:0;">
-      <div style="font-size:16px; font-weight:800; color:#0f172a;">🔁 반복 업무 개선 추이 — 전체보기</div>
-      <span onclick="window.closeTaskTrendsModal()" style="cursor:pointer; color:#94a3b8; font-size:20px; font-weight:bold;">✕</span>
-    </div>
-    <div style="overflow:auto; flex:1; min-height:0;">
-      <table style="width:100%; border-collapse:collapse; font-size:12px;">
-        <thead>
-          <tr style="border-bottom:2px solid #e2e8f0; position:sticky; top:0; background:#fff;">
-            <th style="text-align:left; padding:8px 10px; color:#64748b; font-weight:700;">업무 유형</th>
-            <th style="text-align:center; padding:8px 10px; color:#64748b; font-weight:700;">파트</th>
-            <th style="text-align:center; padding:8px 10px; color:#64748b; font-weight:700;">건수</th>
-            <th style="text-align:center; padding:8px 10px; color:#64748b; font-weight:700;">편차 개선</th>
-            <th style="text-align:center; padding:8px 10px; color:#64748b; font-weight:700;">지연 개선</th>
-            <th style="text-align:center; padding:8px 10px; color:#64748b; font-weight:700;">재작업률</th>
-          </tr>
-        </thead>
-        <tbody id="task-trends-tbody-modal"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<script>
-window.openTaskTrendsModal = function() {
-  document.getElementById('ttModal').style.display = 'flex';
-  window.renderTaskTrends();
-};
-window.closeTaskTrendsModal = function() {
-  document.getElementById('ttModal').style.display = 'none';
-};
-
-window._taskTrendsSort = 'count';
-
-window.sortTaskTrends = function(mode) {
-<div id="ttModal" onclick="if(event.target===this) window.closeTaskTrendsModal()" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(15,23,42,0.5); z-index:9999; align-items:center; justify-content:center; padding:20px;">
   <div style="background:#ffffff; border-radius:12px; padding:20px; width:95vw; max-width:1100px; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(15,23,42,0.25);">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-shrink:0;">
       <div style="font-size:16px; font-weight:800; color:#0f172a;">🔁 반복 업무 개선 추이 — 전체보기</div>
