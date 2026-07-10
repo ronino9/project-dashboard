@@ -565,21 +565,19 @@ window.renderTaskTrends = function() {
     return;
   }
 
-const previewN = topN.slice(0, 5);
-  tbody.innerHTML = previewN.map((r, idx) => {
-    const shortTitle = (r.대표제목 || '').replace(/\n/g, ' ').slice(0, 30);
+  function buildRowHtml(r, idx, titleMaxLen) {
+    const shortTitle = (r.대표제목 || '').replace(/\n/g, ' ').slice(0, titleMaxLen);
     const stripe = idx % 2 === 1 ? 'background:#f8fafc;' : '';
     const holdNote = r.보류건수 > 0 ? `<span style="color:#94a3b8; font-size:10px;"> (보류${r.보류건수})</span>` : '';
     const extNote = r.외부요인건수 > 0 ? `<span style="color:#94a3b8; font-size:10px;"> (외부${r.외부요인건수})</span>` : '';
-const reworkColor = (r.재작업대상건수 > 0 && r.재작업률 > 0) ? '#dc2626' : '#0f172a';
+    const reworkColor = (r.재작업대상건수 > 0 && r.재작업률 > 0) ? '#dc2626' : '#0f172a';
     const reworkText = r.재작업대상건수 > 0
       ? `<span style="color:${reworkColor}; font-weight:700;">${r.재작업률}%</span><span style="color:#94a3b8; font-size:10px;"> (${r.재작업건수}/${r.재작업대상건수})</span>`
       : `<span style="color:#cbd5e1;">-</span>`;
 
     return `
-return `
       <tr class="tt-row" style="border-bottom:1px solid #f1f5f9; ${stripe}" title="${(r.대표제목 || '').replace(/"/g, '&quot;')}">
-        <td style="padding:8px 10px; color:#0f172a; font-weight:600;">${shortTitle}${shortTitle.length >= 30 ? '…' : ''}</td>
+        <td style="padding:8px 10px; color:#0f172a; font-weight:600;">${shortTitle}${shortTitle.length >= titleMaxLen ? '…' : ''}</td>
         <td style="padding:8px 10px; text-align:center;"><span style="background:#eff6ff; color:#1d4ed8; font-size:10px; font-weight:700; padding:2px 8px; border-radius:8px;">${r.파트 || '-'}</span></td>
         <td style="padding:8px 10px; text-align:center; color:#475569; font-weight:700;">${r.전체건수}${holdNote}${extNote}</td>
         <td style="padding:8px 10px; text-align:center;">${renderTrendBadge(r.편차개선폭, 'H', 2, r.편차건수)}</td>
@@ -587,55 +585,14 @@ return `
         <td style="padding:8px 10px; text-align:center; color:#334155; font-weight:600;">${reworkText}</td>
       </tr>
     `;
-  }).join('');
+  }
+
+  const previewN = topN.slice(0, 5);
+  tbody.innerHTML = previewN.map((r, idx) => buildRowHtml(r, idx, 30)).join('');
 
   const modalTbody = document.getElementById('task-trends-tbody-modal');
   if (modalTbody) {
-const previewN = topN.slice(0, 5);
-  tbody.innerHTML = previewN.map((r, idx) => {
-    const shortTitle = (r.대표제목 || '').replace(/\n/g, ' ').slice(0, 30);
-      const stripe = idx % 2 === 1 ? 'background:#f8fafc;' : '';
-      const holdNote = r.보류건수 > 0 ? `<span style="color:#94a3b8; font-size:10px;"> (보류${r.보류건수})</span>` : '';
-      const extNote = r.외부요인건수 > 0 ? `<span style="color:#94a3b8; font-size:10px;"> (외부${r.외부요인건수})</span>` : '';
-      const reworkColor = (r.재작업대상건수 > 0 && r.재작업률 > 0) ? '#dc2626' : '#0f172a';
-      const reworkText = r.재작업대상건수 > 0
-        ? `<span style="color:${reworkColor}; font-weight:700;">${r.재작업률}%</span><span style="color:#94a3b8; font-size:10px;"> (${r.재작업건수}/${r.재작업대상건수})</span>`
-        : `<span style="color:#cbd5e1;">-</span>`;
-
-      return `
-        <tr class="tt-row" style="border-bottom:1px solid #f1f5f9; ${stripe}" title="${(r.대표제목 || '').replace(/"/g, '&quot;')}">
-          <td style="padding:8px 10px; color:#0f172a; font-weight:600;">${shortTitle}${shortTitle.length >= 40 ? '…' : ''}</td>
-          <td style="padding:8px 10px; text-align:center;"><span style="background:#eff6ff; color:#1d4ed8; font-size:10px; font-weight:700; padding:2px 8px; border-radius:8px;">${r.파트 || '-'}</span></td>
-          <td style="padding:8px 10px; text-align:center; color:#475569; font-weight:700;">${r.전체건수}${holdNote}${extNote}</td>
-          <td style="padding:8px 10px; text-align:center;">${renderTrendBadge(r.편차개선폭, 'H', 2, r.편차건수)}</td>
-          <td style="padding:8px 10px; text-align:center;">${renderTrendBadge(r.지연개선폭, '일', 2, r.지연건수)}</td>
-<td style="padding:8px 10px; text-align:center; color:#334155; font-weight:600;">${reworkText}</td>
-      </tr>
-    `;
-  }).join('');
-
-  const modalTbody = document.getElementById('task-trends-tbody-modal');
-  if (modalTbody) {
-    modalTbody.innerHTML = topN.map((r, idx) => {
-      const shortTitle = (r.대표제목 || '').replace(/\n/g, ' ').slice(0, 40);
-      const stripe = idx % 2 === 1 ? 'background:#f8fafc;' : '';
-      const holdNote = r.보류건수 > 0 ? `<span style="color:#94a3b8; font-size:10px;"> (보류${r.보류건수})</span>` : '';
-      const extNote = r.외부요인건수 > 0 ? `<span style="color:#94a3b8; font-size:10px;"> (외부${r.외부요인건수})</span>` : '';
-      const reworkColor = (r.재작업대상건수 > 0 && r.재작업률 > 0) ? '#dc2626' : '#0f172a';
-      const reworkText = r.재작업대상건수 > 0
-        ? `<span style="color:${reworkColor}; font-weight:700;">${r.재작업률}%</span><span style="color:#94a3b8; font-size:10px;"> (${r.재작업건수}/${r.재작업대상건수})</span>`
-        : `<span style="color:#cbd5e1;">-</span>`;
-      return `
-        <tr style="border-bottom:1px solid #f1f5f9; ${stripe}">
-          <td style="padding:8px 10px; color:#0f172a; font-weight:600;">${shortTitle}${shortTitle.length >= 40 ? '…' : ''}</td>
-          <td style="padding:8px 10px; text-align:center;"><span style="background:#eff6ff; color:#1d4ed8; font-size:10px; font-weight:700; padding:2px 8px; border-radius:8px;">${r.파트 || '-'}</span></td>
-          <td style="padding:8px 10px; text-align:center; color:#475569; font-weight:700;">${r.전체건수}${holdNote}${extNote}</td>
-          <td style="padding:8px 10px; text-align:center;">${renderTrendBadge(r.편차개선폭, 'H', 2, r.편차건수)}</td>
-          <td style="padding:8px 10px; text-align:center;">${renderTrendBadge(r.지연개선폭, '일', 2, r.지연건수)}</td>
-          <td style="padding:8px 10px; text-align:center; color:#334155; font-weight:600;">${reworkText}</td>
-        </tr>
-      `;
-    }).join('');
+    modalTbody.innerHTML = topN.map((r, idx) => buildRowHtml(r, idx, 40)).join('');
   }
 };
 </script>
