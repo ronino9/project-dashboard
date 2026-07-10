@@ -428,13 +428,15 @@
       <span style="font-size:11px; font-weight:600; color:#64748b; background:#f1f5f9; padding:2px 8px; border-radius:10px;">같은 업무 유형이 반복될 때 편차·지연·재작업이 줄고 있는가</span>
     </div>
     <span id="tt-last-update" style="font-size:11px; color:#94a3b8; font-weight:600; white-space:nowrap;"></span>
-    <div style="display:flex; gap:6px;">
+<div style="display:flex; gap:6px;">
       <button id="tt-sort-count" onclick="window.sortTaskTrends('count')" style="padding:4px 12px; font-size:12px; font-weight:700; border-radius:8px; border:1px solid #3b82f6; background:#3b82f6; color:#fff; cursor:pointer;">빈도순</button>
       <button id="tt-sort-improve" onclick="window.sortTaskTrends('improve')" style="padding:4px 12px; font-size:12px; font-weight:700; border-radius:8px; border:1px solid #e2e8f0; background:#fff; color:#475569; cursor:pointer;">개선폭순</button>
       <button id="tt-sort-worse" onclick="window.sortTaskTrends('worse')" style="padding:4px 12px; font-size:12px; font-weight:700; border-radius:8px; border:1px solid #e2e8f0; background:#fff; color:#475569; cursor:pointer;">악화순</button>
+      <button onclick="window.openTaskTrendsModal()" style="padding:4px 12px; font-size:12px; font-weight:700; border-radius:8px; border:1px solid #0f172a; background:#0f172a; color:#fff; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='#0f172a'">전체보기 🔍</button>
     </div>
   </div>
-  <div style="overflow-x:auto;">
+<div id="tt-preview-wrap" style="overflow-x:auto; max-height:220px; overflow-y:hidden; position:relative;">
+    <div style="position:absolute; bottom:0; left:0; right:0; height:40px; background:linear-gradient(to bottom, transparent, #ffffff); pointer-events:none;"></div>
     <table style="width:100%; border-collapse:collapse; font-size:12px; margin-top:12px;">
       <thead>
         <tr style="border-bottom:2px solid #e2e8f0;">
@@ -452,7 +454,42 @@
     </table>
   </div>
 </div>
+<div id="ttModal" onclick="if(event.target===this) window.closeTaskTrendsModal()" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:#ffffff; border-radius:12px; padding:20px; width:95vw; max-width:1100px; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(15,23,42,0.25);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-shrink:0;">
+      <div style="font-size:16px; font-weight:800; color:#0f172a;">🔁 반복 업무 개선 추이 — 전체보기</div>
+      <span onclick="window.closeTaskTrendsModal()" style="cursor:pointer; color:#94a3b8; font-size:20px; font-weight:bold;">✕</span>
+    </div>
+    <div style="overflow:auto; flex:1; min-height:0;">
+      <table style="width:100%; border-collapse:collapse; font-size:12px;">
+        <thead>
+          <tr style="border-bottom:2px solid #e2e8f0; position:sticky; top:0; background:#fff;">
+            <th style="text-align:left; padding:8px 10px; color:#64748b; font-weight:700;">업무 유형</th>
+            <th style="text-align:center; padding:8px 10px; color:#64748b; font-weight:700;">파트</th>
+            <th style="text-align:center; padding:8px 10px; color:#64748b; font-weight:700;">건수</th>
+            <th style="text-align:center; padding:8px 10px; color:#64748b; font-weight:700;">편차 개선</th>
+            <th style="text-align:center; padding:8px 10px; color:#64748b; font-weight:700;">지연 개선</th>
+            <th style="text-align:center; padding:8px 10px; color:#64748b; font-weight:700;">재작업률</th>
+          </tr>
+        </thead>
+        <tbody id="task-trends-tbody-modal"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
+<script>
+window.openTaskTrendsModal = function() {
+  document.getElementById('ttModal').style.display = 'flex';
+  window.renderTaskTrends();
+};
+window.closeTaskTrendsModal = function() {
+  document.getElementById('ttModal').style.display = 'none';
+};
+
+window._taskTrendsSort = 'count';
+
+window.sortTaskTrends = function(mode) {
 <script>
 window._taskTrendsSort = 'count';
 
@@ -528,7 +565,8 @@ window.renderTaskTrends = function() {
     return;
   }
 
-  tbody.innerHTML = topN.map((r, idx) => {
+const previewN = topN.slice(0, 5);
+  tbody.innerHTML = previewN.map((r, idx) => {
     const shortTitle = (r.대표제목 || '').replace(/\n/g, ' ').slice(0, 30);
     const stripe = idx % 2 === 1 ? 'background:#f8fafc;' : '';
     const holdNote = r.보류건수 > 0 ? `<span style="color:#94a3b8; font-size:10px;"> (보류${r.보류건수})</span>` : '';
@@ -539,6 +577,7 @@ const reworkColor = (r.재작업대상건수 > 0 && r.재작업률 > 0) ? '#dc26
       : `<span style="color:#cbd5e1;">-</span>`;
 
     return `
+return `
       <tr class="tt-row" style="border-bottom:1px solid #f1f5f9; ${stripe}" title="${(r.대표제목 || '').replace(/"/g, '&quot;')}">
         <td style="padding:8px 10px; color:#0f172a; font-weight:600;">${shortTitle}${shortTitle.length >= 30 ? '…' : ''}</td>
         <td style="padding:8px 10px; text-align:center;"><span style="background:#eff6ff; color:#1d4ed8; font-size:10px; font-weight:700; padding:2px 8px; border-radius:8px;">${r.파트 || '-'}</span></td>
@@ -549,6 +588,31 @@ const reworkColor = (r.재작업대상건수 > 0 && r.재작업률 > 0) ? '#dc26
       </tr>
     `;
   }).join('');
+
+  const modalTbody = document.getElementById('task-trends-tbody-modal');
+  if (modalTbody) {
+    modalTbody.innerHTML = topN.map((r, idx) => {
+      const shortTitle = (r.대표제목 || '').replace(/\n/g, ' ').slice(0, 40);
+      const stripe = idx % 2 === 1 ? 'background:#f8fafc;' : '';
+      const holdNote = r.보류건수 > 0 ? `<span style="color:#94a3b8; font-size:10px;"> (보류${r.보류건수})</span>` : '';
+      const extNote = r.외부요인건수 > 0 ? `<span style="color:#94a3b8; font-size:10px;"> (외부${r.외부요인건수})</span>` : '';
+      const reworkColor = (r.재작업대상건수 > 0 && r.재작업률 > 0) ? '#dc2626' : '#0f172a';
+      const reworkText = r.재작업대상건수 > 0
+        ? `<span style="color:${reworkColor}; font-weight:700;">${r.재작업률}%</span><span style="color:#94a3b8; font-size:10px;"> (${r.재작업건수}/${r.재작업대상건수})</span>`
+        : `<span style="color:#cbd5e1;">-</span>`;
+
+      return `
+        <tr class="tt-row" style="border-bottom:1px solid #f1f5f9; ${stripe}" title="${(r.대표제목 || '').replace(/"/g, '&quot;')}">
+          <td style="padding:8px 10px; color:#0f172a; font-weight:600;">${shortTitle}${shortTitle.length >= 40 ? '…' : ''}</td>
+          <td style="padding:8px 10px; text-align:center;"><span style="background:#eff6ff; color:#1d4ed8; font-size:10px; font-weight:700; padding:2px 8px; border-radius:8px;">${r.파트 || '-'}</span></td>
+          <td style="padding:8px 10px; text-align:center; color:#475569; font-weight:700;">${r.전체건수}${holdNote}${extNote}</td>
+          <td style="padding:8px 10px; text-align:center;">${renderTrendBadge(r.편차개선폭, 'H', 2, r.편차건수)}</td>
+          <td style="padding:8px 10px; text-align:center;">${renderTrendBadge(r.지연개선폭, '일', 2, r.지연건수)}</td>
+          <td style="padding:8px 10px; text-align:center; color:#334155; font-weight:600;">${reworkText}</td>
+        </tr>
+      `;
+    }).join('');
+  }
 };
 </script>
 <script>
