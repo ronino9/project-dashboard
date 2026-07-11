@@ -4541,13 +4541,11 @@ const project = document.getElementById('gs-project').value;
 // - 개선 태그는 유닛(그룹 또는 단독 행)당 1개만 집계 (중복 방지)
 // ==========================================
 function computeImprovementStats(rows) {
-  const isExternalFactor = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
+const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
   const isHold = (r) => (r['진행상태'] || '').toString().trim() === '보류';
-  const hasImproveTag = (r) => /\[개선-[^\]]+\]/.test(r['분석 데이터'] || r['분석데이터'] || '');
+  const hasImproveTag = (r) => !!(r['개선유형'] && r['개선유형'] !== '해당없음');
   const getImproveType = (r) => {
-    const a = r['분석 데이터'] || r['분석데이터'] || '';
-    const m = a.match(/\[개선-([^\]]+)\]/);
-    return m ? m[1].trim() : null;
+    return (r['개선유형'] && r['개선유형'] !== '해당없음') ? r['개선유형'].toString().trim() : null;
   };
   const isEligibleRow = (r) => {
     if (isHold(r)) return false;
@@ -4600,9 +4598,9 @@ function computeImprovementStats(rows) {
 return { problemCnt, problemImproved, activeImproveCnt, improveDist, reflectedRows, unreflectedRows, hasImproveTag };
 }
 function computeExternalFactorStats(rows) {
-  const isExternalFactor = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
+const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
   const isHold = (r) => (r['진행상태'] || '').toString().trim() === '보류';
-  const hasImproveTag = (r) => /\[개선-[^\]]+\]/.test(r['분석 데이터'] || r['분석데이터'] || '');
+  const hasImproveTag = (r) => !!(r['개선유형'] && r['개선유형'] !== '해당없음');
   const isEligibleRow = (r) => {
     if (isHold(r)) return false;
     if (!isExternalFactor(r)) return false;
@@ -4664,7 +4662,7 @@ function computeExternalFactorStats(rows) {
 }
 
 window.renderPdcaFactorSplit = function(rows) {
-  const isExternalFactor = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
+  const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
 
   let internalMd = 0, externalMd = 0;
   rows.forEach(r => {
@@ -4804,10 +4802,7 @@ window.renderPdca = function() {
   const complianceRate = total > 0 ? Math.round((compliant / total) * 100) : 0;
 
 // ── 외부요인 판별: 분석 데이터에 (외부요인) 표기가 있으면 제외 대상 ──
-  const isExternalFactor = (r) => {
-    const a = r['분석 데이터'] || r['분석데이터'] || '';
-    return /\(외부요인\)/.test(a);
-  };
+const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
 
   // ── 3) 재작업률: 재작업 여부(Y/N)='Y' ── (대표행 기준, 기존 방식 그대로 유지)
   let reworkCnt = 0, reworkBase = 0;
@@ -5151,7 +5146,7 @@ if (pdcaImproveChartInstance) pdcaImproveChartInstance.destroy();
         : '');
 
   // ── 5. 하단 To-Do 카드 (앞서 구현한 클릭 Drill-down 유지) ──
-const isExtFactorForGroup = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
+const isExtFactorForGroup = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
   const groupRework = (colName) => {
     const g = {};
     rows.forEach(r => {
@@ -5231,7 +5226,7 @@ window.setPdcaTrendUnit = function(unit) {
 
 window.renderPdcaTrendChart = function(rows, hasImproveTagFn) {
   const unit = window._pdcaTrendUnit || 'month';
-  const isExtFactorLocal = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
+  const isExtFactorLocal = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
   const agg = {};
 
   rows.forEach(r => {
@@ -5392,7 +5387,7 @@ window.showPdcaProblemDetail = function(mode) {
 
     window.showReworkDrilldown = function(colName, keyVal) {
   const rows = window._pdcaChartRows || [];
-  const isExtFactorLocal = (r) => /\(외부요인\)/.test(r['분석 데이터'] || r['분석데이터'] || '');
+  const isExtFactorLocal = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
 
   const matched = rows.filter(r => {
     if (r._isRep === false) return false;
