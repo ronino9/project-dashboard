@@ -1045,6 +1045,11 @@ if (h === '진행상태') {
             badges.push(`<span style="background:#fef3e2; color:#b91c1c; font-size:11px; font-weight:600; padding:1px 6px; border-radius:4px;">${delayDays}일 지연</span>`);
           }
 
+          const extFactor = (row['외부요인'] || '').toString().trim();
+          if (extFactor && extFactor !== '해당없음') {
+            badges.push(`<span style="background:#f1f5f9; color:#475569; font-size:11px; font-weight:600; padding:1px 6px; border-radius:4px; border:1px solid #cbd5e1;">🌩️ ${extFactor}</span>`);
+          }
+
           return `<td style="text-align: center; vertical-align: top; white-space: nowrap;"><div style="display:flex; flex-direction:column; gap:4px; align-items:center;">${badges.join('')}</div></td>`;
         }
         if (h === '작업 시간') {
@@ -1142,6 +1147,11 @@ if (reworkYN === 'Y') {
     const devText = dev > 0 ? '#b91c1c' : '#15803d';
     const devSign = dev > 0 ? '+' : '';
     badges.push(`<span style="background:${devBg}; color:${devText}; font-size:11px; font-weight:600; padding:1px 6px; border-radius:4px;">편차 ${devSign}${dev}H</span>`);
+  }
+
+  const improveType = (row['개선유형'] || '').toString().trim();
+  if (improveType && improveType !== '해당없음') {
+    badges.push(`<span style="background:#eef2ff; color:#4338ca; font-size:11px; font-weight:600; padding:1px 6px; border-radius:4px; border:1px solid #c7d2fe;">💡 ${improveType}</span>`);
   }
 
   if (badges.length === 0) return `<td style="text-align: center; vertical-align: top; color: #cbd5e1;">-</td>`;
