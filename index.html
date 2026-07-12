@@ -4965,7 +4965,7 @@ const cardsHtml = `
             <button id="pdca-trend-week" onclick="window.setPdcaTrendUnit('week')" style="padding:3px 10px; font-size:11px; font-weight:700; border-radius:8px; border:1px solid #e2e8f0; background:#fff; color:#475569; cursor:pointer;">주별</button>
           </div>
         </div>
-        <div style="font-size:12px; color:#64748b; margin-bottom:16px;">회색 막대(개선책 마련)가 늘어난 뒤로 편차·지연 라인이 0선 아래로 내려가면 개선이 효과를 낸 것 · 대표행·외부요인 제외 기준</div>
+        <div style="font-size:12px; color:#64748b; margin-bottom:16px;">막대(개선책 마련)가 늘어난 뒤로 편차·지연 라인이 0선 아래로 내려가면 개선이 효과를 낸 것 · 하늘색=능동, 회색=방어 · 대표행·외부요인 제외 기준</div>
         <div style="position:relative; height:230px;"><canvas id="pdcaReworkChart"></canvas></div>
       </div>
 <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column;">
@@ -5229,7 +5229,7 @@ window.renderPdcaTrendChart = function(rows, hasImproveTagFn) {
   const isExtFactorLocal = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
   const agg = {};
 
-  rows.forEach(r => {
+rows.forEach(r => {
     if (r._isRep === false) return;
     if (isExtFactorLocal(r)) return;
 
@@ -5237,9 +5237,16 @@ window.renderPdcaTrendChart = function(rows, hasImproveTagFn) {
     if (!rawDate || rawDate.length < 10) return;
     const key = unit === 'week' ? getIsoWeekKey(rawDate) : rawDate.substring(0, 7);
     if (!key) return;
-    if (!agg[key]) agg[key] = { improveCnt: 0, devSum: 0, devN: 0, delaySum: 0, delayN: 0 };
+    if (!agg[key]) agg[key] = { activeCnt: 0, defensiveCnt: 0, devSum: 0, devN: 0, delaySum: 0, delayN: 0 };
 
-    if (hasImproveTagFn(r)) agg[key].improveCnt++;
+    if (hasImproveTagFn(r)) {
+      const st = (r['진행상태'] || '').toString().trim();
+      const task = (r['업무 구분'] || '').toString().trim();
+      const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
+      const isProblemRow = task === 'Issue' || st === '지연중' || st === '지연완료' || yn === 'Y';
+      if (isProblemRow) agg[key].defensiveCnt++;
+      else agg[key].activeCnt++;
+    }
 
     const dev = parseFloat(r['작업 시간 편차']);
     if (!isNaN(dev)) { agg[key].devSum += dev; agg[key].devN++; }
@@ -5252,7 +5259,8 @@ window.renderPdcaTrendChart = function(rows, hasImproveTagFn) {
   const maxPoints = 12; // 월별=최근 12개월, 주별=최근 12주
   const sortedKeys = allSortedKeys.slice(-maxPoints);
 
-  const improveCntArr = sortedKeys.map(k => agg[k].improveCnt);
+  const activeCntArr = sortedKeys.map(k => agg[k].activeCnt);
+  const defensiveCntArr = sortedKeys.map(k => agg[k].defensiveCnt);
   const avgDevArr = sortedKeys.map(k => agg[k].devN > 0 ? +(agg[k].devSum / agg[k].devN).toFixed(2) : null);
   const avgDelayArr = sortedKeys.map(k => agg[k].delayN > 0 ? +(agg[k].delaySum / agg[k].delayN).toFixed(2) : null);
   const labels = unit === 'week'
@@ -5271,10 +5279,24 @@ if (pdcaReworkChartInstance) { pdcaReworkChartInstance.destroy(); pdcaReworkChar
 datasets: [
         {
           type: 'bar',
-          label: '개선책 마련 건수',
-          data: improveCntArr,
+          label: '개선책(능동)',
+          data: activeCntArr,
+          backgroundColor: '#0ea5e9',
+          borderRadius: 4,
+          stack: 'improve',
+          yAxisID: 'yCnt',
+          order: 3,
+          animation: {
+            y: { duration: 1200, easing: 'easeOutQuart', from: (ctx) => ctx.chart.scales.yCnt.getPixelForValue(0) }
+          }
+        },
+        {
+          type: 'bar',
+          label: '개선책(방어)',
+          data: defensiveCntArr,
           backgroundColor: 'rgba(148,163,184,0.35)',
           borderRadius: 4,
+          stack: 'improve',
           yAxisID: 'yCnt',
           order: 3,
           animation: {
@@ -5343,7 +5365,7 @@ interaction: { mode: 'index', intersect: false },
         tooltip: {
           callbacks: {
             label: (ctx) => {
-              if (ctx.dataset.yAxisID === 'yCnt') return `개선책 ${ctx.parsed.y}건`;
+              if (ctx.dataset.yAxisID === 'yCnt') return `${ctx.dataset.label} ${ctx.parsed.y}건`;
               const v = ctx.parsed.y;
               if (v === null) return `${ctx.dataset.label}: 데이터 없음`;
               const tag = v < 0 ? ' (개선)' : (v > 0 ? ' (악화)' : '');
@@ -5353,7 +5375,7 @@ interaction: { mode: 'index', intersect: false },
         }
       },
       scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 10, weight: 700 }, color: '#0f172a', maxRotation: unit === 'week' ? 45 : 0 } },
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10, weight: 700 }, color: '#0f172a', maxRotation: unit === 'week' ? 45 : 0 } },
         yDev: {
           type: 'linear', display: true, position: 'left',
           title: { display: true, text: '편차 (H / 일, 0=기준)', font: { size: 10, weight: 700 } },
@@ -5362,7 +5384,7 @@ interaction: { mode: 'index', intersect: false },
 yCnt: {
           type: 'linear', display: true, position: 'right',
           title: { display: true, text: '개선책 건수', font: { size: 10, weight: 700 } },
-          grid: { display: false }, min: 0,
+          grid: { display: false }, min: 0, stacked: true,
           ticks: { stepSize: 1 }
         }
       }
