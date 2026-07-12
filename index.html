@@ -1724,13 +1724,13 @@ document.getElementById('kpi-master-md').textContent = totalMd.toFixed(1);
   document.getElementById('kpi-master-delay').textContent = delayCount;
   document.getElementById('kpi-master-imminent').textContent = imminentCount;
   document.getElementById('kpi-master-hold').textContent = holdCount;
-  document.getElementById('kpi-master-compliance').textContent = totalItems > 0 ? Math.round(((totalItems - delayCount - imminentCount) / totalItems) * 100) + '%' : '100%';
+  document.getElementById('kpi-master-compliance').textContent = totalItems > 0 ? (((totalItems - delayCount - imminentCount) / totalItems) * 100).toFixed(1) + '%' : '100.0%';
 
   const hdrMd = document.getElementById('kpi-master-md-hdr'); if (hdrMd) hdrMd.textContent = totalMd.toFixed(1);
   const hdrDelay = document.getElementById('kpi-master-delay-hdr'); if (hdrDelay) hdrDelay.textContent = delayCount;
   const hdrImminent = document.getElementById('kpi-master-imminent-hdr'); if (hdrImminent) hdrImminent.textContent = imminentCount;
   const hdrHold = document.getElementById('kpi-master-hold-hdr'); if (hdrHold) hdrHold.textContent = holdCount;
-  const hdrCompliance = document.getElementById('kpi-master-compliance-hdr'); if (hdrCompliance) hdrCompliance.textContent = totalItems > 0 ? Math.round(((totalItems - delayCount - imminentCount) / totalItems) * 100) + '%' : '100%';
+  const hdrCompliance = document.getElementById('kpi-master-compliance-hdr'); if (hdrCompliance) hdrCompliance.textContent = totalItems > 0 ? (((totalItems - delayCount - imminentCount) / totalItems) * 100).toFixed(1) + '%' : '100.0%';
 
 const colors = ['#d97757', '#8cc63f', '#3b82f6', '#06b6d4', '#a855f7', '#f59e0b', '#db2777', '#64748b'];
 const pKeys  = ['OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2', 'CP'];
