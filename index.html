@@ -4569,6 +4569,7 @@ const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '�
   const improveDist = { '일정': 0, '품질': 0, '효율': 0, '동료기여': 0, '기타': 0 };
   const reflectedRows = [];
   const unreflectedRows = [];
+  const activeRows = [];
 
   units.forEach(unitRows => {
     const usable = unitRows.filter(r => !isExternalFactor(r));
@@ -4590,12 +4591,13 @@ const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '�
       }
     } else if (tagged) {
       activeImproveCnt++;
+      activeRows.push(...usable);
       const type = getImproveType(taggedRows[0]);
       if (type) { improveDist[type] !== undefined ? improveDist[type]++ : improveDist['기타']++; }
     }
   });
 
-return { problemCnt, problemImproved, activeImproveCnt, improveDist, reflectedRows, unreflectedRows, hasImproveTag };
+return { problemCnt, problemImproved, activeImproveCnt, improveDist, reflectedRows, unreflectedRows, activeRows, hasImproveTag };
 }
 function computeExternalFactorStats(rows) {
 const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
@@ -4817,6 +4819,7 @@ const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '�
 
   // ── 4) 개선 분석: 그룹ID 단위 집계 ──
   const improveStats = computeImprovementStats(rows);
+  window._pdcaImprovementStats = improveStats;
   const { problemCnt, problemImproved, activeImproveCnt, improveDist } = improveStats;
   const improveRate = problemCnt > 0 ? Math.round((problemImproved / problemCnt) * 100) : null;
   // ── 전월대비 재작업률 증감 ──
@@ -4854,8 +4857,8 @@ const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '�
 
   // ===== 카드 렌더링 =====
 // ===== 카드 렌더링 (P/D/C/A 4카드 + 재작업률은 상단 KPI로) =====
-  const card = (phase, phaseColor, title, valueHtml, target, comment, commentColor) => `
-    <div style="flex:1; min-width:230px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:8px;">
+  const card = (phase, phaseColor, title, valueHtml, target, comment, commentColor, onClick) => `
+    <div ${onClick ? `onclick="${onClick}"` : ''} style="flex:1; min-width:230px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:8px; ${onClick ? 'cursor:pointer; transition:transform 0.2s ease, box-shadow 0.2s ease;' : ''}" ${onClick ? `onmouseover="this.style.transform='translateX(3px)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';"` : ''}>
 <div style="display:flex; align-items:center; gap:8px;">
         <span style="background:#f1f5f9; color:#64748b; font-size:11px; font-weight:800; padding:2px 8px; border-radius:6px; letter-spacing:0.5px;">${phase}</span>
         <span style="font-size:14px; font-weight:700; color:#334155;">${title}</span>
@@ -4953,8 +4956,8 @@ const cardsHtml = `
       ${card('P', '#64748b', '계획 수립률', planRate + '<span style="font-size:20px;">%</span>', '100%', planComment, planCommentColor)}
       ${card('D', '#3b82f6', '계획 대비 실행률', execVal, TARGET.exec + '%', execComment, execCommentColor)}
       ${card('C', '#0f766e', '일정 준수율', complianceRate + '<span style="font-size:20px;">%</span>', TARGET.compliance + '%', compComment, compColor)}
-      ${card('A', '#7c3aed', '개선책 반영률', improveVal, TARGET.improve + '%', improveComment, improveCommentColor)}
-      ${card('A', '#0ea5e9', '능동 개선', activeImproveCnt + '<span style="font-size:20px;">건</span>', '추이↗', activeComment, '#16a34a')}
+      ${card('A', '#7c3aed', '개선책 반영률', improveVal, TARGET.improve + '%', improveComment, improveCommentColor, "window.showPdcaCardDetail('problem')")}
+      ${card('A', '#0ea5e9', '능동 개선', activeImproveCnt + '<span style="font-size:20px;">건</span>', '추이↗', activeComment, '#16a34a', "window.showPdcaCardDetail('active')")}
     </div>
 <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-bottom:16px;">
       <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
@@ -5281,7 +5284,7 @@ datasets: [
           type: 'bar',
           label: '개선책(능동)',
           data: activeCntArr,
-          backgroundColor: '#0ea5e9',
+          backgroundColor: 'rgba(59, 130, 246, 0.45)',
           borderRadius: 4,
           stack: 'improve',
           yAxisID: 'yCnt',
@@ -5392,6 +5395,35 @@ yCnt: {
   });
   }, 50);
 };
+window.showPdcaCardDetail = function(type) {
+  const stats = window._pdcaImprovementStats;
+  if (!stats) return;
+
+  let matched, title;
+  if (type === 'problem') {
+    matched = [...stats.reflectedRows, ...stats.unreflectedRows];
+    title = '📝 개선책 반영률 대상 (문제 건 전체)';
+  } else if (type === 'active') {
+    matched = stats.activeRows;
+    title = '💡 능동 개선 상세';
+  } else {
+    return;
+  }
+
+  if (matched.length === 0) {
+    alert('해당 조건에 맞는 데이터가 없습니다.');
+    return;
+  }
+
+  const rowsForDisplay = matched.map(r => ({
+    '프로젝트 코드': r._pName,
+    '접수일': r['접수일'] || '-',
+    ...r
+  }));
+
+  window.showDetailView(title, `총 ${matched.length}건`, rowsForDisplay);
+};
+
 window.showPdcaProblemDetail = function(mode) {
   const rows = window.allMasterData || [];
   const stats = computeImprovementStats(rows);
