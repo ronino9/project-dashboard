@@ -415,6 +415,7 @@
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
         <div style="font-size:22px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">📊 PDCA 종합 지표</div>
         <span class="badge" style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe;">전체 프로젝트</span>
+        <span style="font-size:12px; color:#94a3b8; font-weight:600;">그룹ID로 묶인 항목(다중 세션·재작업 등)은 그룹당 1건으로 집계됩니다</span>>
       </div>
 <div id="pdca-content"><div style="padding:40px; text-align:center; color:#64748b;">PDCA 데이터 집계 중...</div></div>
       <!-- ========================================================
@@ -4580,6 +4581,8 @@ const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '�
   const reflectedRows = [];
   const unreflectedRows = [];
   const activeRows = [];
+  const defensiveTaggedRows = [];
+  const activeTaggedRows = [];
 
   units.forEach(unitRows => {
     const usable = unitRows.filter(r => !isExternalFactor(r));
@@ -4594,6 +4597,7 @@ const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '�
       if (tagged) {
         problemImproved++;
         reflectedRows.push(...usable);
+        defensiveTaggedRows.push(taggedRows[0]);
         const type = getImproveType(taggedRows[0]);
         if (type) { improveDist[type] !== undefined ? improveDist[type]++ : improveDist['기타']++; }
       } else {
@@ -4602,12 +4606,13 @@ const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '�
     } else if (tagged) {
       activeImproveCnt++;
       activeRows.push(...usable);
+      activeTaggedRows.push(taggedRows[0]);
       const type = getImproveType(taggedRows[0]);
       if (type) { improveDist[type] !== undefined ? improveDist[type]++ : improveDist['기타']++; }
     }
   });
 
-return { problemCnt, problemImproved, activeImproveCnt, improveDist, reflectedRows, unreflectedRows, activeRows, hasImproveTag };
+return { problemCnt, problemImproved, activeImproveCnt, improveDist, reflectedRows, unreflectedRows, activeRows, defensiveTaggedRows, activeTaggedRows, hasImproveTag };
 }
 function computeExternalFactorStats(rows) {
 const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
@@ -5046,8 +5051,8 @@ window.renderPdcaCharts = function(rows, improveStats, TARGET) {
 
 // ── 개선 효과 추이 차트 (월/주 단위 토글 지원) ──
   window._pdcaChartRows = rows;
-  window._pdcaHasImproveTagFn = hasImproveTag;
-  window.renderPdcaTrendChart(rows, hasImproveTag);
+  window._pdcaTrendStats = improveStats;
+  window.renderPdcaTrendChart(rows, improveStats);
 
 // ── 4. 개선 유형 분포 (하이브리드: 바깥 링=유형별 분포 유지, 안쪽 링=능동/방어 비중 신규) ──
   const impLabels = Object.keys(improveDist);
@@ -5234,38 +5239,51 @@ window.setPdcaTrendUnit = function(unit) {
   const btnW = document.getElementById('pdca-trend-week');
   if (btnM) { btnM.style.background = unit === 'month' ? '#3b82f6' : '#fff'; btnM.style.color = unit === 'month' ? '#fff' : '#475569'; btnM.style.borderColor = unit === 'month' ? '#3b82f6' : '#e2e8f0'; }
   if (btnW) { btnW.style.background = unit === 'week' ? '#3b82f6' : '#fff'; btnW.style.color = unit === 'week' ? '#fff' : '#475569'; btnW.style.borderColor = unit === 'week' ? '#3b82f6' : '#e2e8f0'; }
-  if (window._pdcaChartRows) window.renderPdcaTrendChart(window._pdcaChartRows, window._pdcaHasImproveTagFn);
+  if (window._pdcaChartRows) window.renderPdcaTrendChart(window._pdcaChartRows, window._pdcaTrendStats);
 };
 
-window.renderPdcaTrendChart = function(rows, hasImproveTagFn) {
+window.renderPdcaTrendChart = function(rows, stats) {
   const unit = window._pdcaTrendUnit || 'month';
   const isExtFactorLocal = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
   const agg = {};
 
-rows.forEach(r => {
+  const ensureKey = (key) => {
+    if (!agg[key]) agg[key] = { activeCnt: 0, defensiveCnt: 0, devSum: 0, devN: 0, delaySum: 0, delayN: 0 };
+  };
+  const dateToKey = (rawDate) => {
+    if (!rawDate || rawDate.toString().length < 10) return null;
+    const norm = rawDate.toString().replace(/[./]/g, '-').substring(0, 10);
+    return unit === 'week' ? getIsoWeekKey(norm) : norm.substring(0, 7);
+  };
+
+  rows.forEach(r => {
     if (r._isRep === false) return;
     if (isExtFactorLocal(r)) return;
 
-    const rawDate = (r['접수일'] || '').toString();
-    if (!rawDate || rawDate.length < 10) return;
-    const key = unit === 'week' ? getIsoWeekKey(rawDate) : rawDate.substring(0, 7);
+    const key = dateToKey(r['접수일']);
     if (!key) return;
-    if (!agg[key]) agg[key] = { activeCnt: 0, defensiveCnt: 0, devSum: 0, devN: 0, delaySum: 0, delayN: 0 };
-
-    if (hasImproveTagFn(r)) {
-      const st = (r['진행상태'] || '').toString().trim();
-      const task = (r['업무 구분'] || '').toString().trim();
-      const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
-      const isProblemRow = task === 'Issue' || st === '지연중' || st === '지연완료' || yn === 'Y';
-      if (isProblemRow) agg[key].defensiveCnt++;
-      else agg[key].activeCnt++;
-    }
+    ensureKey(key);
 
     const dev = parseFloat(r['작업 시간 편차']);
     if (!isNaN(dev)) { agg[key].devSum += dev; agg[key].devN++; }
 
     const delay = parseFloat(r['지연일']);
     if (!isNaN(delay)) { agg[key].delaySum += delay; agg[key].delayN++; }
+  });
+
+  // 개선책(능동/방어)은 KPI 카드와 동일하게 "그룹 단위로 이미 판정된" 태그 행만 사용
+  // (그룹 대표행이 아닌 행에 태그가 붙어도 누락되지 않도록)
+  (stats.defensiveTaggedRows || []).forEach(r => {
+    const key = dateToKey(r['접수일']);
+    if (!key) return;
+    ensureKey(key);
+    agg[key].defensiveCnt++;
+  });
+  (stats.activeTaggedRows || []).forEach(r => {
+    const key = dateToKey(r['접수일']);
+    if (!key) return;
+    ensureKey(key);
+    agg[key].activeCnt++;
   });
 
   const allSortedKeys = Object.keys(agg).sort();
