@@ -695,9 +695,13 @@ window.renderDeviationTrendTest = function() {
     <button onclick="window.ganttToday()" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; padding:4px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;">오늘</button>
 <button onclick="window.ganttMove(1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:15px;">›</button>
 
-    <div style="display:inline-flex; background:#f1f5f9; padding:3px; border-radius:8px; border:1px solid #e2e8f0; gap:2px; margin-left:4px;">
+    <div id="gantt-mode-macro-group" style="display:inline-flex; background:#f1f5f9; padding:3px; border-radius:8px; border:1px solid #e2e8f0; gap:2px; margin-left:4px;">
       <button id="gantt-mode-year" onclick="window.ganttSetMode('year')" class="cal-mode-btn" style="font-size:12px; padding:4px 12px;">연간</button>
       <button id="gantt-mode-zoom" onclick="window.ganttSetMode('zoom')" class="cal-mode-btn cal-mode-active" style="font-size:12px; padding:4px 12px;">월간</button>
+    </div>
+    <div id="gantt-mode-indiv-group" style="display:none; background:#f1f5f9; padding:3px; border-radius:8px; border:1px solid #e2e8f0; gap:2px; margin-left:4px;">
+      <button id="gantt-indiv-mode-month" onclick="window.ganttSetIndivMode('month')" class="cal-mode-btn cal-mode-active" style="font-size:12px; padding:4px 12px;">월간</button>
+      <button id="gantt-indiv-mode-week" onclick="window.ganttSetIndivMode('week')" class="cal-mode-btn" style="font-size:12px; padding:4px 12px;">주간</button>
     </div>
 
     <div id="gantt-period-label" style="font-size:14px; font-weight:700; color:#0f172a;"></div>
@@ -2632,7 +2636,11 @@ window.ganttMove = function(dir) {
     if (typeof indivGanttCursor === 'undefined' || !indivGanttCursor) {
       indivGanttCursor = new Date();
     }
-    indivGanttCursor.setMonth(indivGanttCursor.getMonth() + dir);
+    if (indivGanttMode === 'week') {
+      indivGanttCursor.setDate(indivGanttCursor.getDate() + dir * 7);
+    } else {
+      indivGanttCursor.setMonth(indivGanttCursor.getMonth() + dir);
+    }
     window.indivGanttCursor = indivGanttCursor; // 동기화 보장
     window.renderProjectGantt();
     return;
@@ -2681,6 +2689,11 @@ if (typeof window.renderMacroGanttAsIndiv === 'function') {
   const legendIndivEl = document.getElementById('gantt-legend-indiv');
   if (legendMacroEl) legendMacroEl.style.display = 'flex';
   if (legendIndivEl) legendIndivEl.style.display = 'none';
+
+  const modeGroupMacroEl = document.getElementById('gantt-mode-macro-group');
+  const modeGroupIndivEl = document.getElementById('gantt-mode-indiv-group');
+  if (modeGroupMacroEl) modeGroupMacroEl.style.display = 'inline-flex';
+  if (modeGroupIndivEl) modeGroupIndivEl.style.display = 'none';
 
   const stageGantt = allData.stageGantt;
   if (!stageGantt) return;
@@ -3158,6 +3171,16 @@ renderProjectBlock(cardId, label, projColorMap[cardId] || '#94a3b8', flat, false
 };
 let indivGanttCursor = new Date();
 let indivGanttProject = null; // 👈 팝업 에러를 막아주는 핵심 변수 추가!
+let indivGanttMode = 'month';
+
+window.ganttSetIndivMode = function(mode) {
+  indivGanttMode = mode;
+  const btnMonth = document.getElementById('gantt-indiv-mode-month');
+  const btnWeek = document.getElementById('gantt-indiv-mode-week');
+  if (btnMonth) btnMonth.classList.toggle('cal-mode-active', mode === 'month');
+  if (btnWeek) btnWeek.classList.toggle('cal-mode-active', mode === 'week');
+  window.renderProjectGantt();
+};
 
 // 개별 간트 막대 색: 업무구분 기준 (이슈=빨강 / 표준·기술지원·기능요구=파랑 / 그 외 전부 황토)
 // 단, 보류 상태는 이 색을 무시하고 무조건 회색으로 덮어씀 (아래 렌더 로직에서 처리)
@@ -3223,7 +3246,7 @@ window.lightenColor = function(hex, ratio) {
 };
 function lightenColor(hex, ratio) { return window.lightenColor(hex, ratio); }
     window.renderMacroGanttAsIndiv = function(code) {
-  if (indivGanttProject !== code) indivGanttCursor = new Date();   // 프로젝트가 바뀌면 이번 달로 리셋
+  if (indivGanttProject !== code) indivGanttCursor = new Date();   // 프로젝트가 바뀌면 오늘 기준으로 리셋
   indivGanttProject = code;
   if (!indivGanttCursor) indivGanttCursor = new Date();
 
@@ -3232,14 +3255,34 @@ function lightenColor(hex, ratio) { return window.lightenColor(hex, ratio); }
   if (legendMacroEl) legendMacroEl.style.display = 'none';
   if (legendIndivEl) legendIndivEl.style.display = 'flex';
 
+  const modeGroupMacroEl = document.getElementById('gantt-mode-macro-group');
+  const modeGroupIndivEl = document.getElementById('gantt-mode-indiv-group');
+  if (modeGroupMacroEl) modeGroupMacroEl.style.display = 'none';
+  if (modeGroupIndivEl) modeGroupIndivEl.style.display = 'inline-flex';
+
   const titleLabel = document.getElementById('gantt-period-label');
   const y = indivGanttCursor.getFullYear();
   const m = indivGanttCursor.getMonth();
-  const monthStart = calYMD(new Date(y, m, 1));
-  const monthEnd = calYMD(new Date(y, m + 1, 0));
+
+  let monthStart, monthEnd;
+  if (indivGanttMode === 'week') {
+    const ws = new Date(indivGanttCursor);
+    ws.setDate(ws.getDate() - ws.getDay());
+    const we = new Date(ws);
+    we.setDate(we.getDate() + 6);
+    monthStart = calYMD(ws);
+    monthEnd = calYMD(we);
+  } else {
+    monthStart = calYMD(new Date(y, m, 1));
+    monthEnd = calYMD(new Date(y, m + 1, 0));
+  }
   const totalDays = Math.max(ganttDaysBetween(monthStart, monthEnd) + 1, 1);
   const todayStr = calYMD(CAL_TODAY);
-  if (titleLabel) titleLabel.textContent = `📋 ${code} 세부 · ${y}.${String(m + 1).padStart(2, '0')} (도넛 재클릭 시 전체로)`;
+  if (titleLabel) {
+    titleLabel.textContent = indivGanttMode === 'week'
+      ? `📋 ${code} 세부 · ${monthStart.substring(2).replace(/-/g,'.')} ~ ${monthEnd.substring(2).replace(/-/g,'.')} (도넛 재클릭 시 전체로)`
+      : `📋 ${code} 세부 · ${y}.${String(m + 1).padStart(2, '0')} (도넛 재클릭 시 전체로)`;
+  }
 
   const dayOffset = (dateStr) => ganttDaysBetween(monthStart, dateStr);
   const ticksEl = document.getElementById('gantt-month-ticks');
@@ -3252,7 +3295,7 @@ function lightenColor(hex, ratio) { return window.lightenColor(hex, ratio); }
   if (headerLeft) {
     headerLeft.style.width = '120px';
     headerLeft.style.cssText += 'display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#0f172a;';
-    headerLeft.textContent = `${y}년 ${m + 1}월`;
+    headerLeft.textContent = indivGanttMode === 'week' ? `${monthStart.substring(2).replace(/-/g,'.')}~` : `${y}년 ${m + 1}월`;
   }
   const dateHeaderLeft = document.querySelector('#gantt-date-ticks-row > div:first-child');
   if (dateHeaderLeft) dateHeaderLeft.style.width = '120px';
