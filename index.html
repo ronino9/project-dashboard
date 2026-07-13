@@ -4597,17 +4597,29 @@ const project = document.getElementById('gs-project').value;
 function computeImprovementStats(rows) {
 const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
   const isHold = (r) => (r['진행상태'] || '').toString().trim() === '보류';
+  const isImprove = (r) => (r['업무 구분'] || '').toString().trim() === '개선';
   const hasImproveTag = (r) => !!(r['개선유형'] && r['개선유형'] !== '해당없음');
   const getImproveType = (r) => {
     return (r['개선유형'] && r['개선유형'] !== '해당없음') ? r['개선유형'].toString().trim() : null;
   };
+  // 완료 판정: 완료여부='O'만 완료로 인정
+  const isDoneRow = (r) => (r['완료여부'] || '').toString().trim() === 'O';
+  // 보류인 개선 행은 완료 판정에서 아예 제외(없는 셈)
+  const isHoldRow = (r) => {
+    const cw = (r['완료여부'] || '').toString().trim();
+    const st = (r['진행상태'] || '').toString().trim();
+    return cw === '보류' || st === '보류';
+  };
+  // 문제 트리거 자격: 업무구분='개선'인 행은 절대 트리거가 될 수 없음
   const isEligibleRow = (r) => {
     if (isHold(r)) return false;
     if (isExternalFactor(r)) return false;
+    if (isImprove(r)) return false;
     const st = (r['진행상태'] || '').toString().trim();
     const task = (r['업무 구분'] || '').toString().trim();
     const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
-    return task === 'Issue' || st === '지연중' || st === '지연완료' || yn === 'Y';
+    const dev = parseFloat(r['작업 시간 편차']);
+    return task === 'Issue' || st === '지연중' || st === '지연완료' || yn === 'Y' || (!isNaN(dev) && dev > 0);
   };
 
   const groups = {};
@@ -4619,13 +4631,21 @@ const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '�
     groups[gid].push(r);
   });
 
-  let problemCnt = 0, problemImproved = 0, activeImproveCnt = 0;
+  let problemCnt = 0, problemImproved = 0, activeImproveCnt = 0, activeImproveOngoingCnt = 0;
   const improveDist = { '일정': 0, '품질': 0, '효율': 0, '동료기여': 0, '기타': 0 };
   const reflectedRows = [];
   const unreflectedRows = [];
   const activeRows = [];
+  const activeOngoingRows = [];
   const defensiveTaggedRows = [];
   const activeTaggedRows = [];
+
+  // 그룹(유닛) 안의 개선유형 태그 행들이 전부 완료(보류 제외)인지 판정
+  const groupImproveAllDone = (taggedRows) => {
+    const nonHold = taggedRows.filter(r => !isHoldRow(r));
+    if (nonHold.length === 0) return false; // 전부 보류면 완료로 인정 안 함(판정 불가)
+    return nonHold.every(isDoneRow);
+  };
 
   units.forEach(unitRows => {
     const usable = unitRows.filter(r => !isExternalFactor(r));
@@ -4637,25 +4657,31 @@ const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '�
 
     if (isProb) {
       problemCnt++;
-      if (tagged) {
+      if (tagged && groupImproveAllDone(taggedRows)) {
         problemImproved++;
         reflectedRows.push(...usable);
         defensiveTaggedRows.push(taggedRows[0]);
         const type = getImproveType(taggedRows[0]);
         if (type) { improveDist[type] !== undefined ? improveDist[type]++ : improveDist['기타']++; }
       } else {
+        // 태그 없음 OR 태그는 있는데 아직 미완료 → 둘 다 미반영으로 취급
         unreflectedRows.push(...usable);
       }
     } else if (tagged) {
-      activeImproveCnt++;
-      activeRows.push(...usable);
-      activeTaggedRows.push(taggedRows[0]);
-      const type = getImproveType(taggedRows[0]);
-      if (type) { improveDist[type] !== undefined ? improveDist[type]++ : improveDist['기타']++; }
+      if (groupImproveAllDone(taggedRows)) {
+        activeImproveCnt++;
+        activeRows.push(...usable);
+        activeTaggedRows.push(taggedRows[0]);
+        const type = getImproveType(taggedRows[0]);
+        if (type) { improveDist[type] !== undefined ? improveDist[type]++ : improveDist['기타']++; }
+      } else {
+        activeImproveOngoingCnt++;
+        activeOngoingRows.push(...usable);
+      }
     }
   });
 
-return { problemCnt, problemImproved, activeImproveCnt, improveDist, reflectedRows, unreflectedRows, activeRows, defensiveTaggedRows, activeTaggedRows, hasImproveTag };
+return { problemCnt, problemImproved, activeImproveCnt, activeImproveOngoingCnt, improveDist, reflectedRows, unreflectedRows, activeRows, activeOngoingRows, defensiveTaggedRows, activeTaggedRows, hasImproveTag };
 }
 function computeExternalFactorStats(rows) {
 const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
@@ -5015,7 +5041,7 @@ const cardsHtml = `
       ${card('D', '#3b82f6', '계획 대비 실행률', execVal, TARGET.exec + '%', execComment, execCommentColor)}
       ${card('C', '#0f766e', '일정 준수율', complianceRate + '<span style="font-size:20px;">%</span>', TARGET.compliance + '%', compComment, compColor)}
       ${card('A', '#7c3aed', '개선책 반영률', improveVal, TARGET.improve + '%', improveComment, improveCommentColor, "window.showPdcaCardDetail('problem')")}
-      ${card('A', '#0ea5e9', '능동 개선', activeImproveCnt + '<span style="font-size:20px;">건</span>', '추이↗', activeComment, '#16a34a', "window.showPdcaCardDetail('active')")}
+      ${card('A', '#0ea5e9', '능동 개선', activeImproveCnt + '<span style="font-size:20px;">건</span>', '추이↗', activeComment + (improveStats.activeImproveOngoingCnt > 0 ? ` · <span onclick="event.stopPropagation(); window.showPdcaCardDetail('activeOngoing')" style="text-decoration:underline; cursor:pointer; color:#0ea5e9;">진행중 ${improveStats.activeImproveOngoingCnt}건</span>` : ''), '#16a34a', "window.showPdcaCardDetail('active')")}
     </div>
 <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-bottom:16px;">
       <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
@@ -5477,6 +5503,9 @@ let matched, title;
   } else if (type === 'active') {
     matched = stats.activeRows;
     title = '💡 능동 개선 상세';
+  } else if (type === 'activeOngoing') {
+    matched = stats.activeOngoingRows;
+    title = '⏳ 능동 개선 진행중';
   } else {
     return;
   }
