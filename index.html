@@ -62,7 +62,20 @@
     .hide-scroll::-webkit-scrollbar { display: none; }
     /* 기본 테마는 기존 다크 모드로 복구 */
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; }
-    .container { max-width: 1780px; margin: 0 auto; padding: 16px; }
+    .container { max-width: 1780px; margin: 0 auto; padding: 16px; flex: 1; min-width: 0; }
+    .app-shell { display: flex; align-items: flex-start; min-height: 100vh; }
+    .sidebar { width: 200px; flex-shrink: 0; background: #ffffff; border-right: 1px solid #e2e8f0; min-height: 100vh; padding: 16px 12px; position: sticky; top: 0; display: flex; flex-direction: column; gap: 18px; }
+    .sidebar-logo { font-size: 14px; font-weight: 800; color: #0f172a; padding: 4px 8px 12px; border-bottom: 1px solid #f1f5f9; margin-bottom: 4px; }
+    .sidebar-group { display: flex; flex-direction: column; gap: 4px; }
+    .sidebar-group-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; padding: 0 8px; margin-bottom: 2px; }
+    .sidebar-btn { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; background: transparent; border: none; color: #475569; padding: 9px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
+    .sidebar-btn:hover { background: #f1f5f9; color: #0f172a; }
+    .sidebar-btn.active { background: #eff6ff; color: #1d4ed8; font-weight: 700; }
+    .sidebar-icon { font-size: 14px; flex-shrink: 0; }
+    .sidebar-sub { font-size: 10px; color: #94a3b8; font-weight: 600; margin-left: auto; }
+    .sidebar-btn.active .sidebar-sub { color: #1d4ed8; }
+    body.light-page { background: #f1f5f9; }
+    @media(max-width: 1024px) { .sidebar { width: 64px; } .sidebar-btn span:not(.sidebar-icon) { display: none; } .sidebar-group-label { display: none; } }
 
     /* Master MD 도넛 범례 스크롤 고정 */
     #main-md-legend {
@@ -230,25 +243,34 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="tabs">
-      <button id="btn-main" class="tab-btn active" onclick="window.switchTab('main')">🎛️ 메인 대시보드</button>
-      <button id="btn-project8" class="tab-btn" onclick="window.switchTab('project8')">OP8 · Ongoing</button>
-      <button id="btn-project7" class="tab-btn" onclick="window.switchTab('project7')">OP7 · Ongoing</button>
-      <button id="btn-project6" class="tab-btn" onclick="window.switchTab('project6')">OP6 · Ongoing</button>
-      <button id="btn-project5" class="tab-btn" onclick="window.switchTab('project5')">OP5 · Ongoing</button>
-      <button id="btn-project4" class="tab-btn" onclick="window.switchTab('project4')">OP4 · Ongoing</button>
-      <button id="btn-project3" class="tab-btn" onclick="window.switchTab('project3')">OP3 · Ongoing</button>
-      <button id="btn-project2" class="tab-btn" onclick="window.switchTab('project2')">OP2 · Ongoing</button>
-      <button id="btn-project1cs" class="tab-btn" onclick="window.switchTab('project1cs')">CP_All · Complete</button>
-      <button id="btn-daily" class="tab-btn" onclick="window.switchTab('daily')">📅 기간별 업무 내역</button>
-    </div>
-
+  <div class="app-shell">
+    <aside class="sidebar" id="app-sidebar">
+      <div class="sidebar-logo">🎛️ Control Tower</div>
+      <div class="sidebar-group">
+        <button id="sbtn-pdca" class="sidebar-btn" onclick="window.sidebarGoMain('pdca')"><span class="sidebar-icon">🔄</span>PDCA 현황</button>
+        <button id="sbtn-project" class="sidebar-btn" onclick="window.sidebarGoMain('project')"><span class="sidebar-icon">📋</span>프로젝트 현황</button>
+      </div>
+      <div class="sidebar-group">
+        <div class="sidebar-group-label">프로젝트</div>
+        <button id="btn-project8" class="sidebar-btn" onclick="window.switchTab('project8')"><span class="sidebar-icon">🏗️</span>OP8<span class="sidebar-sub">Ongoing</span></button>
+        <button id="btn-project7" class="sidebar-btn" onclick="window.switchTab('project7')"><span class="sidebar-icon">🏗️</span>OP7<span class="sidebar-sub">Ongoing</span></button>
+        <button id="btn-project6" class="sidebar-btn" onclick="window.switchTab('project6')"><span class="sidebar-icon">🏗️</span>OP6<span class="sidebar-sub">Ongoing</span></button>
+        <button id="btn-project5" class="sidebar-btn" onclick="window.switchTab('project5')"><span class="sidebar-icon">🏗️</span>OP5<span class="sidebar-sub">Ongoing</span></button>
+        <button id="btn-project4" class="sidebar-btn" onclick="window.switchTab('project4')"><span class="sidebar-icon">🏗️</span>OP4<span class="sidebar-sub">Ongoing</span></button>
+        <button id="btn-project3" class="sidebar-btn" onclick="window.switchTab('project3')"><span class="sidebar-icon">🏗️</span>OP3<span class="sidebar-sub">Ongoing</span></button>
+        <button id="btn-project2" class="sidebar-btn" onclick="window.switchTab('project2')"><span class="sidebar-icon">🏗️</span>OP2<span class="sidebar-sub">Ongoing</span></button>
+        <button id="btn-project1cs" class="sidebar-btn" onclick="window.switchTab('project1cs')"><span class="sidebar-icon">✅</span>CP_All<span class="sidebar-sub">Complete</span></button>
+      </div>
+      <div class="sidebar-group">
+        <button id="btn-daily" class="sidebar-btn" onclick="window.switchTab('daily')"><span class="sidebar-icon">📅</span>기간별 업무 내역</button>
+      </div>
+    </aside>
+    <div class="container">
     <div id="main-panel">          <!-- ★ 이 줄 추가 -->
 <!-- 내부 탭: PDCA / 프로젝트 현황 -->
 <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
 <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
-<div style="display:inline-flex; background:#f1f5f9; padding:4px; border-radius:12px; border:1px solid #e2e8f0; gap:4px;">
+<div style="display:none; background:#f1f5f9; padding:4px; border-radius:12px; border:1px solid #e2e8f0; gap:4px;">
           <button id="btn-main-pdca" onclick="window.switchMainTab('pdca')" style="padding:8px 20px; border:none; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer; transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display:flex; align-items:center; gap:6px; background:transparent; color:#64748b;">
             <span>🔄</span> PDCA 현황
           </button>
@@ -971,6 +993,7 @@ window.renderDeviationTrendTest = function() {
         </div>
       </div>
     </div>
+  </div>
   </div>
 
   <script>
@@ -2043,7 +2066,7 @@ window.showIssueDetail = function(idx) {
       const docPanel = document.getElementById('doc-hub-panel');
       const pdcaPanel = document.getElementById('pdca-panel');
 
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
 
       // 모든 섹션 숨김 처리
       mainPanel.style.display = 'none';
@@ -2058,26 +2081,21 @@ window.showIssueDetail = function(idx) {
       aiPanel.style.display = 'none';
       pdcaPanel.style.display = 'none';
 
-if (tabId === 'main') {
-        document.getElementById('btn-main').classList.add('active');
+      document.body.classList.toggle('light-page', tabId === 'main');
+
+      if (tabId === 'main') {
         mainPanel.style.display = 'block';
         window.switchMainTab(window._mainTab || 'project');
-      }
-      if (tabId === 'main') {
-        document.getElementById('btn-main').classList.add('active');
-        mainPanel.style.display = 'block';
-        window.renderMainDashboard();
-        window.renderCalendar();
       } else if (tabId === 'project1cs') {
-        document.getElementById('btn-project1cs').classList.add('active');
+        const b = document.getElementById('btn-project1cs'); if (b) b.classList.add('active');
         csPanel.style.display = 'grid';
         setTimeout(() => renderCsBubbleChart(), 100);
       } else if (tabId === 'daily') {
-        document.getElementById('btn-daily').classList.add('active');
+        const b = document.getElementById('btn-daily'); if (b) b.classList.add('active');
         dailyPanel.style.display = 'block';
-                window.renderCalendar();   // ← 추가
+        window.renderCalendar();
       } else {
-        document.getElementById('btn-' + tabId).classList.add('active');
+        const b = document.getElementById('btn-' + tabId); if (b) b.classList.add('active');
         header.style.display = 'block';
         tools.style.display = 'flex';
         slicers.style.display = 'grid';
@@ -2086,6 +2104,11 @@ if (tabId === 'main') {
         window.switchProject(tabId);
       }
     }
+
+    window.sidebarGoMain = function(view) {
+      window._mainTab = view;
+      window.switchTab('main');
+    };
 
     window.switchProject = function(projectId) {
       currentProjectId = projectId;
@@ -4847,6 +4870,9 @@ window.showPdcaProblemDetailExternal = function(mode) {
     window._mainTab = 'project';
 window.switchMainTab = function(which) {
   window._mainTab = which;
+  document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+  const sBtn = document.getElementById(which === 'pdca' ? 'sbtn-pdca' : 'sbtn-project');
+  if (sBtn) sBtn.classList.add('active');
   const pdcaPanel = document.getElementById('pdca-panel');
   const projContent = document.getElementById('project-content');
   const btnPdca = document.getElementById('btn-main-pdca');
