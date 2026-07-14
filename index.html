@@ -89,7 +89,7 @@
     .search-popover-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
     .search-popover select { font-size: 11px; padding: 3px 4px; height: 24px; line-height: 1; border: 1px solid #cbd5e1; border-radius: 5px; color: #334155; background: #f8fafc; }
     .kpi-strip { display: flex; gap: 12px; margin-bottom: 16px; }
-    .kpi-strip-item { flex: 1 1 0; min-width: 0; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; height: 56px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: box-shadow 0.15s ease, transform 0.15s ease; }
+    .kpi-strip-item { flex: 0 1 0; width: calc(50% - 5px); min-width: 0; background: #fbfcfd; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; height: 56px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: box-shadow 0.15s ease, transform 0.15s ease; }
     .kpi-strip-icon { font-size: 18px; flex-shrink: 0; color: #94a3b8 !important; }
     .kpi-strip-item:hover { box-shadow: 0 4px 10px rgba(15,23,42,0.08); transform: translateY(-1px); }
     .kpi-strip-icon { font-size: 16px; flex-shrink: 0; }
@@ -135,7 +135,7 @@
     #main-panel .donuts-row::-webkit-scrollbar { height: 8px; }
     #main-panel .donuts-row::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     #main-panel .donuts-row::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-    #main-panel .main-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    #main-panel .main-card { background: #fbfcfd; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     #main-panel .main-card { transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease; }
 #main-panel .main-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); border-color: #cbd5e1; }
     #main-panel .main-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
@@ -307,19 +307,7 @@
     <div class="container">
     <div id="main-panel">          <!-- ★ 이 줄 추가 -->
 <!-- 내부 탭: PDCA / 프로젝트 현황 -->
-<div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-<div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
-<div style="display:none; background:#f1f5f9; padding:4px; border-radius:12px; border:1px solid #e2e8f0; gap:4px;">
-          <button id="btn-main-pdca" onclick="window.switchMainTab('pdca')" style="padding:8px 20px; border:none; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer; transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display:flex; align-items:center; gap:6px; background:transparent; color:#64748b;">
-            <span>🔄</span> PDCA 현황
-          </button>
-          <button id="btn-main-project" onclick="window.switchMainTab('project')" style="padding:8px 20px; border:none; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer; transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display:flex; align-items:center; gap:6px; background:#3b82f6; color:#ffffff; box-shadow:0 2px 4px rgba(59, 130, 246, 0.25);">
-            <span>📋</span> 프로젝트 현황
-          </button>
-        </div>
-
-      </div>
-
+<div style="display:flex; flex-direction:column; gap:16px;">
     <div class="kpi-strip" id="main-top-kpi">
       <div class="kpi-strip-item" style="cursor:default;">
         <div style="min-width:0;">
@@ -770,13 +758,13 @@ window.renderDeviationTrendTest = function() {
 
     <!-- 프로젝트 현황 콘텐츠 (기존 메인 내용 전체를 감쌈) -->
 <div id="project-content">
-      <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:16px;">
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:16px;">
         <div class="donuts-row" id="main-summary-cards" style="margin-bottom: 0;">
           <div style="padding: 20px; color: #64748b;">데이터 로드 중...</div>
         </div>
       </div>
       <!-- ▼▼▼ 프로젝트 간트차트 (계획 vs 실행) ▼▼▼ -->
-<div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:16px;">
+<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:16px;">
 <div class="chart-card" style="margin-top:0; border:none; padding:0; box-shadow:none;">
   <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
     <button onclick="window.ganttMove(-1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:15px;">‹</button>
@@ -847,7 +835,7 @@ window.renderDeviationTrendTest = function() {
 </div>
 <!-- ▲▲▲ 프로젝트 간트차트 끝 ▲▲▲ -->
 
-<div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:14px;">
+<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:14px;">
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
 
 <div class="chart-card" style="min-height: 440px; display: flex; flex-direction: column; box-shadow:none;">
