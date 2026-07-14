@@ -784,21 +784,13 @@ window.renderDeviationTrendTest = function() {
 
     <div id="gantt-period-label" style="font-size:14px; font-weight:700; color:#0f172a;"></div>
     
-<div id="gantt-legend-macro" style="display:flex; flex-direction:column; gap:4px; margin-left:8px; font-size:11px; color:#64748b;">
-      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
-        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#c7ddf5; margin-right:4px;"></span>제작 계획</span>
-        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#f5e9b8; margin-right:4px;"></span>FAT 계획</span>
-        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#f7dcc0; margin-right:4px;"></span>SET-UP 계획</span>
-        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#c9e8d1; margin-right:4px;"></span>SAT 계획</span>
-        <span style="margin-left:4px;">📶 원격</span>
-      </div>
-      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
-        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#5b9bd5; margin-right:4px;"></span>제작 실행</span>
-        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#d9b84a; margin-right:4px;"></span>FAT 실행</span>
-        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#e0975a; margin-right:4px;"></span>SET-UP 실행</span>
-        <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#6fb583; margin-right:4px;"></span>SAT 실행</span>
-        <span style="margin-left:4px;">🚨 이슈 발생일</span>
-      </div>
+<div id="gantt-legend-macro" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-left:8px; font-size:11px; color:#64748b;">
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#5b9bd5; margin-right:4px;"></span>제작</span>
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#d9b84a; margin-right:4px;"></span>FAT</span>
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#e0975a; margin-right:4px;"></span>SET-UP</span>
+      <span><span style="display:inline-block; width:12px; height:7px; border-radius:2px; background:#6fb583; margin-right:4px;"></span>SAT</span>
+      <span style="margin-left:4px;">📶 원격</span>
+      <span>🚨 이슈</span>
     </div>
 <div id="gantt-legend-indiv" style="display:none; align-items:center; gap:6px; margin-left:8px; font-size:11px; flex-wrap:wrap;">
       <button id="btn-filter-ALL" onclick="window.filterIndivGantt('ALL')" class="indiv-filter-btn" data-filter="ALL" style="padding:3px 10px; border-radius:12px; border:1px solid #0f172a; background:#0f172a; color:#fff; font-weight:700; cursor:pointer; transition:0.2s;">전체보기</button>
