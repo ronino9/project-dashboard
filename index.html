@@ -4310,10 +4310,12 @@ window.renderTowerMap = function() {
       subdomains: 'abcd'
     }).addTo(towerMapInstance);
     towerMapInstance.fitWorld();
+    towerMapInstance.setMinZoom(towerMapInstance.getZoom());
   } else {
     towerMapInstance.eachLayer(layer => { if (layer instanceof L.Marker) towerMapInstance.removeLayer(layer); });
     towerMapInstance.invalidateSize();
     towerMapInstance.fitWorld();
+    towerMapInstance.setMinZoom(towerMapInstance.getZoom());
   }
 
   Object.values(groups).forEach(g => {
