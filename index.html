@@ -1155,11 +1155,11 @@ if (h === '진행상태') {
           return `<td style="text-align: center; vertical-align: top; white-space: nowrap;"><div style="display:flex; flex-direction:column; gap:4px; align-items:center;">${badges.join('')}</div></td>`;
         }
         if (h === '작업 시간') {
-          const start = row['시작 시간'] || '';
-          const end = row['종료 시간'] || '';
-          let val = start && end ? `${start} ~ ${end}` : (start || end || '-');
-          return `<td style="text-align: center; font-size: 11px; color: #94a3b8; white-space: nowrap; vertical-align: top; padding-top: 12px;">${val}</td>`;
-        }
+  const start = row['시작 시간'] || '';
+  const end = row['종료 시간'] || '';
+  let val = start && end ? `${start}<br>~ ${end}` : (start || end || '-');
+  return `<td style="text-align: center; font-size: 11px; color: #94a3b8; vertical-align: top; padding-top: 12px; line-height: 1.4;">${val}</td>`;
+}
         if (h === '분석 데이터') {
           let val = row[h] || '-';
           if (val === '-') return `<td style="vertical-align: top; color: #94a3b8;">-</td>`;
