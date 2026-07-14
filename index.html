@@ -4299,19 +4299,21 @@ window.renderTowerMap = function() {
     towerMapInstance = L.map('tower-map', {
       scrollWheelZoom: true,
       worldCopyJump: false,
-      minZoom: 2,
+      minZoom: 0,
       maxBounds: [[-85, -180], [85, 180]],
       maxBoundsViscosity: 1.0
-    }).setView([20, 20], 1);
+    });
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap &copy; CARTO',
       maxZoom: 18,
       noWrap: true,
       subdomains: 'abcd'
     }).addTo(towerMapInstance);
+    towerMapInstance.fitWorld();
   } else {
     towerMapInstance.eachLayer(layer => { if (layer instanceof L.Marker) towerMapInstance.removeLayer(layer); });
     towerMapInstance.invalidateSize();
+    towerMapInstance.fitWorld();
   }
 
   Object.values(groups).forEach(g => {
