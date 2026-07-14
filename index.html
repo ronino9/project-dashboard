@@ -80,12 +80,13 @@
     .sidebar-search-input { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; cursor: pointer; color: #94a3b8; font-size: 12px; }
     .sidebar-search-input:hover { border-color: #cbd5e1; background: #f1f5f9; }
     .sidebar-search-input i { font-size: 14px; flex-shrink: 0; }
-    .search-popover { display: none; position: absolute; left: 100%; top: 0; margin-left: 8px; width: 620px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 12px 32px rgba(15,23,42,0.18); padding: 16px; z-index: 9999; }
+    .search-popover { display: none; position: absolute; left: 100%; top: 0; margin-left: 8px; width: 340px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 12px 32px rgba(15,23,42,0.18); padding: 10px; z-index: 9999; }
     body.search-open #mainMdChart, body.search-open #mainTrendChart, body.search-open #pdcaReworkChart, body.search-open #pdcaImproveChart { visibility: hidden; }
-    .search-popover.open { display: block; }
-    .search-popover-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-    .search-popover input[type="text"] { flex: 1; min-width: 160px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; }
-    .search-popover select { padding: 7px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc; }
+    .search-popover-row { display: flex; gap: 6px; margin-bottom: 8px; }
+    .search-popover input[type="text"] { flex: 1; height: 30px; box-sizing: border-box; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; }
+    .search-popover-row button { white-space: nowrap; height: 30px; padding: 0 10px; font-size: 12px; }
+    .search-popover-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+    .search-popover select { font-size: 11px; padding: 3px 4px; height: 24px; line-height: 1; border: 1px solid #cbd5e1; border-radius: 5px; color: #334155; background: #f8fafc; }
     .kpi-strip { display: flex; gap: 12px; margin-bottom: 16px; }
     .kpi-strip-item { flex: 1 1 0; min-width: 0; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; height: 56px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: box-shadow 0.15s ease, transform 0.15s ease; }
     .kpi-strip-icon { font-size: 18px; flex-shrink: 0; color: #94a3b8 !important; }
@@ -270,17 +271,16 @@
         <div class="search-popover" id="search-popover">
           <div class="search-popover-row">
             <input type="text" id="gs-keyword" placeholder="검색어" onkeydown="if(event.key==='Enter') window.runGlobalSearch()">
-            <select id="gs-project"><option value="">프로젝트 전체</option></select>
+            <button onclick="window.runGlobalSearch()" style="background:#3b82f6; color:#fff; border:none; border-radius:6px; font-weight:700; cursor:pointer;">검색</button>
           </div>
-          <div class="search-popover-row">
-            <select id="gs-status"><option value="">진행상태 전체</option></select>
-            <select id="gs-stage"><option value="">단계 전체</option></select>
-            <select id="gs-response"><option value="">대응 전체</option></select>
-            <select id="gs-task"><option value="">업무 전체</option></select>
-            <select id="gs-paid"><option value="">유/무상 전체</option></select>
-            <select id="gs-part"><option value="">파트 전체</option></select>
+          <div class="search-popover-grid">
+            <select id="gs-project"><option value="">프로젝트</option></select>
+            <select id="gs-status"><option value="">진행상태</option></select>
+            <select id="gs-stage"><option value="">단계 구분</option></select>
+            <select id="gs-response"><option value="">대응 구분</option></select>
+            <select id="gs-task"><option value="">업무 구분</option></select>
+            <select id="gs-part"><option value="">파트 구분</option></select>
           </div>
-          <button onclick="window.runGlobalSearch()" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:8px; border-radius:6px; font-weight:700; cursor:pointer; font-size:13px;">검색</button>
         </div>
       </div>
       <div class="sidebar-group">
@@ -4626,7 +4626,7 @@ window.populateGlobalSearchFilters = function() {
 
   const map = {
     'gs-stage': '단계 구분', 'gs-response': '대응 구분',
-    'gs-task': '업무 구분', 'gs-paid': '유/무상', 'gs-part': '파트 구분',
+    'gs-task': '업무 구분', 'gs-part': '파트 구분',
     'gs-status': '진행상태'
   };
   Object.entries(map).forEach(([elId, col]) => {
@@ -4650,10 +4650,9 @@ const project = document.getElementById('gs-project').value;
   const stage = document.getElementById('gs-stage').value;
   const response = document.getElementById('gs-response').value;
   const task = document.getElementById('gs-task').value;
-  const paid = document.getElementById('gs-paid').value;
   const part = document.getElementById('gs-part').value;
 
-  if (!keyword && !project && !status && !stage && !response && !task && !paid && !part) {
+  if (!keyword && !project && !status && !stage && !response && !task && !part) {
     alert('검색어 또는 필터 조건을 하나 이상 입력해주세요.');
     return;
   }
@@ -4664,7 +4663,6 @@ const project = document.getElementById('gs-project').value;
     if (stage && r['단계 구분'] !== stage) return false;
     if (response && r['대응 구분'] !== response) return false;
     if (task && r['업무 구분'] !== task) return false;
-    if (paid && (r['유/무상'] || r['유무상']) !== paid) return false;
     if (part && r['파트 구분'] !== part) return false;
     if (keyword) {
       const text = [
