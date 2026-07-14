@@ -86,8 +86,9 @@
     .search-popover-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
     .search-popover input[type="text"] { flex: 1; min-width: 160px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; }
     .search-popover select { padding: 7px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc; }
-    .kpi-strip { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 12px; margin-bottom: 16px; }
-    .kpi-strip-item { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; height: 56px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: box-shadow 0.15s ease, transform 0.15s ease; }
+    .kpi-strip { display: flex; gap: 12px; margin-bottom: 16px; }
+    .kpi-strip-item { flex: 1 1 0; min-width: 0; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; height: 56px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: box-shadow 0.15s ease, transform 0.15s ease; }
+    .kpi-strip-icon { font-size: 18px; flex-shrink: 0; color: #94a3b8 !important; }
     .kpi-strip-item:hover { box-shadow: 0 4px 10px rgba(15,23,42,0.08); transform: translateY(-1px); }
     .kpi-strip-icon { font-size: 16px; flex-shrink: 0; }
     .kpi-strip-label { font-size: 10px; color: #64748b; font-weight: 600; white-space: nowrap; }
@@ -319,36 +320,31 @@
 
     <div class="kpi-strip" id="main-top-kpi">
       <div class="kpi-strip-item" style="cursor:default;">
-        <i class="ti ti-briefcase kpi-strip-icon" style="color:#64748b;"></i>
-        <div>
+        <div style="min-width:0;">
           <div class="kpi-strip-label">총 공수</div>
           <div class="kpi-strip-value" id="kpi-master-md-hdr">0.0<span class="kpi-strip-unit">MD</span></div>
         </div>
       </div>
       <div class="kpi-strip-item" onclick="window.showKpiDetail('delay')">
-        <i class="ti ti-alert-triangle kpi-strip-icon" style="color:#dc2626;"></i>
-        <div>
+        <div style="min-width:0;">
           <div class="kpi-strip-label">지연</div>
           <div class="kpi-strip-value" id="kpi-master-delay-hdr" style="color:#dc2626;">0<span class="kpi-strip-unit">건</span></div>
         </div>
       </div>
       <div class="kpi-strip-item" onclick="window.showKpiDetail('imminent')">
-        <i class="ti ti-clock-exclamation kpi-strip-icon" style="color:#d97706;"></i>
-        <div>
+        <div style="min-width:0;">
           <div class="kpi-strip-label">임박</div>
           <div class="kpi-strip-value" id="kpi-master-imminent-hdr" style="color:#d97706;">0<span class="kpi-strip-unit">건</span></div>
         </div>
       </div>
       <div class="kpi-strip-item" onclick="window.showKpiDetail('hold')">
-        <i class="ti ti-player-pause kpi-strip-icon" style="color:#64748b;"></i>
-        <div>
+        <div style="min-width:0;">
           <div class="kpi-strip-label">보류</div>
           <div class="kpi-strip-value" id="kpi-master-hold-hdr">0<span class="kpi-strip-unit">건</span></div>
         </div>
       </div>
       <div class="kpi-strip-item" style="cursor:default;">
-        <i class="ti ti-circle-check kpi-strip-icon" style="color:#16a34a;"></i>
-        <div>
+        <div style="min-width:0;">
           <div class="kpi-strip-label">일정 준수율</div>
           <div class="kpi-strip-value" id="kpi-master-compliance-hdr" style="color:#16a34a;">0<span class="kpi-strip-unit">%</span></div>
         </div>
