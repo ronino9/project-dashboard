@@ -4308,11 +4308,10 @@ window.renderTowerMap = function() {
     towerMapInstance = L.map('tower-map', {
       scrollWheelZoom: true,
       worldCopyJump: false,
-      minZoom: 1,
       maxBounds: [[-85, -180], [85, 180]],
       maxBoundsViscosity: 1.0,
       zoomControl: false
-    }).setView([20, 30], 1);
+    });
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap &copy; CARTO',
       maxZoom: 18,
@@ -4349,13 +4348,10 @@ window.renderTowerMap = function() {
     });
   });
 
-  const allCoords = Object.values(groups).map(g => g.coords);
-
   setTimeout(() => {
     towerMapInstance.invalidateSize();
-    if (allCoords.length > 0) {
-      towerMapInstance.fitBounds(allCoords, { padding: [50, 50], maxZoom: 5 });
-    }
+    towerMapInstance.fitBounds([[-58, -180], [78, 180]], { padding: [0, 0] });
+    towerMapInstance.setMinZoom(towerMapInstance.getZoom());
   }, 100);
 
   window.renderTowerSidebar(groups);
