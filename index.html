@@ -483,6 +483,7 @@
   </div>
 </div>
 
+<script>
 window.toggleInfoBox = function(id) {
   const el = document.getElementById('info-' + id);
   if (!el) return;
@@ -505,7 +506,8 @@ window.showPdcaKpiInfo = function(type) {
     panel.style.display = 'block';
     panel.dataset.current = type;
   }
-};      
+};
+</script>
 <script>
 window.openTaskTrendsModal = function() {
   var m = document.getElementById('ttModal');
