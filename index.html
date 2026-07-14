@@ -1081,6 +1081,21 @@ window.closeDetail = function() {
 
     // (기존 showDetailView 함수 그대로 유지 - 생략 없이 포함)
 
+    function escapeRegExp(str) {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function highlightKeyword(html, keyword) {
+      if (!keyword || !html) return html;
+      const escaped = escapeRegExp(keyword);
+      const re = new RegExp(`(${escaped})`, 'gi');
+      const parts = html.split(/(<[^>]*>)/g);
+      return parts.map(part => {
+        if (part.startsWith('<')) return part;
+        return part.replace(re, '<mark style="background:#fef08a; color:#78350f; border-radius:2px; padding:0 1px;">$1</mark>');
+      }).join('');
+    }
+
     // (기존 showDetailView 함수 그대로 유지 - 생략 없이 포함)
 window.showDetailView = function(dateLabel, typeLabel, dataRows, _fromBack) {
   const detailView = document.getElementById('detailView');
@@ -1153,6 +1168,7 @@ if (h === '진행상태') {
         if (h === '분석 데이터') {
           let val = row[h] || '-';
           if (val === '-') return `<td style="vertical-align: top; color: #94a3b8;">-</td>`;
+          val = highlightKeyword(val, window._searchHighlightKeyword);
           let lines = val.split('\n');
           let blocks = [];
           let currentBlock = null;
@@ -1200,6 +1216,7 @@ const analysisCellId = `clamp-analysis-${rowIdx}`;
 }
 if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') {
   let val = row[h] || '-';
+  val = highlightKeyword(val, window._searchHighlightKeyword);
   const colKey = (h === '진행 사항') ? 'prog' : 'item';
   const cellId = `clamp-${colKey}-${rowIdx}`;
   // 제목 셀에만 그룹ID 배지 (그룹ID 있는 행 한정)
@@ -4685,7 +4702,9 @@ const project = document.getElementById('gs-project').value;
     ...r
   }));
 
-  window.showDetailView('🔍 검색 결과', `총 ${matched.length}건`, rowsForDisplay); 
+  window._searchHighlightKeyword = keyword || '';
+  window.showDetailView('🔍 검색 결과', `총 ${matched.length}건`, rowsForDisplay);
+  window._searchHighlightKeyword = '';
 };
     // ==========================================
 // 개선책 반영/미반영/능동개선 집계 (그룹ID 단위)
