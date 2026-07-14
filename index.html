@@ -196,8 +196,8 @@
 #detailBackBtn { background:#f8fafc !important; border:1px solid #e2e8f0 !important; color:#3b82f6 !important; }
 #detailBackBtn:hover { background:#eff6ff !important; border-color:#93c5fd !important; }
 #detailTable { border-collapse:separate; border-spacing:0; table-layout:fixed; width:1720px; font-size:12px; }
-#detailTable th { position:sticky; top:0; z-index:4; text-align:left; padding:8px; background:#f8fafc !important; border-bottom:1px solid #e2e8f0 !important; color:#64748b !important; font-weight:700; }
-#detailTable td { padding:8px; border-bottom:1px solid #f1f5f9 !important; color:#334155 !important; background:#ffffff; }
+#detailTable th { position:sticky; top:0; z-index:4; text-align:left; padding:8px; background:#f8fafc !important; border-bottom:1px solid #e2e8f0 !important; border-right:1px solid #e2e8f0 !important; color:#64748b !important; font-weight:700; }
+#detailTable td { padding:8px; border-bottom:1px solid #f1f5f9 !important; border-right:1px solid #eef1f5 !important; color:#334155 !important; background:#ffffff; }
 #detailTable th:nth-child(1), #detailTable td:nth-child(1) { position:sticky; left:0; width:90px; min-width:90px; max-width:90px; background:#f8fafc !important; z-index:2; }
 #detailTable th:nth-child(2), #detailTable td:nth-child(2) { position:sticky; left:90px; width:100px; min-width:100px; max-width:100px; background:#f8fafc !important; z-index:2; }
 #detailTable th:nth-child(1), #detailTable th:nth-child(2) { z-index:5; background:#f1f5f9 !important; }
@@ -1119,7 +1119,7 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows, _fromBack) {
 const headers = ['프로젝트 코드', '접수일', '진행상태', '업무/특이사항', '작업 시간', '공수(MD)', '표준 제작 Item / Issue / 개선사항', '진행 사항', '분석 데이터', '로그'];
     const colWidths = [90, 100, 70, 120, 70, 60, 350, 350, 350, 160];
     let html = '<colgroup>' + colWidths.map(w => `<col style="width:${w}px;">`).join('') + '</colgroup>';
-const centerHeaders = ['접수일', '진행상태', '업무 구분', '작업 시간', '공수(MD)'];
+const centerHeaders = ['접수일', '진행상태', '업무/특이사항', '작업 시간', '공수(MD)'];
     html += '<tr>' + headers.map(h => {
   if (centerHeaders.includes(h)) return `<th style="text-align: center; white-space: nowrap;">${h}</th>`;
   return `<th>${h}</th>`;
@@ -1259,7 +1259,7 @@ if (reworkYN === 'Y') {
   }
 
   if (badges.length === 0) return `<td style="text-align: center; vertical-align: top; color: #cbd5e1;">-</td>`;
-  return `<td style="text-align: left; vertical-align: top; white-space: nowrap;"><div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">${badges.join('')}</div></td>`;
+  return `<td style="text-align: center; vertical-align: top; white-space: nowrap;"><div style="display:flex; flex-direction:column; gap:4px; align-items:center;">${badges.join('')}</div></td>`;
 }
         return `<td style="vertical-align: top; text-align: center;">${row[h] || '-'}</td>`;
       }).join('') + '</tr>';
