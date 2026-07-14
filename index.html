@@ -49,6 +49,8 @@
 }
 .clamp-more-btn.clamp-show { display: inline-block; }  
 #main-panel .stage-fill { transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes riskDotPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.risk-dot-active { animation: riskDotPulse 2.4s ease-in-out infinite; }
     .tt-row:hover { background:#eff6ff !important; }
 .pdca-kpi-group { position:relative; display:inline-flex; align-items:center; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:12px; padding:6px 12px; margin-top:8px; }
 .pdca-kpi-group-label { position:absolute; top:-9px; left:12px; background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe; font-size:10px; font-weight:700; padding:1px 8px; border-radius:8px; white-space:nowrap; }
@@ -1400,8 +1402,8 @@ const summaryCardsHtml = projectList.map((proj, cardIdx) => {
     const _isStable = !_hasDelay && !_hasImminent;
 const riskLampHtml = `
       <div style="display:flex; gap:5px; align-items:center;">
-        <span title="지연" style="width:11px; height:11px; border-radius:50%; background:${_hasDelay ? '#ef4444' : '#e2e8f0'}; box-shadow:${_hasDelay ? '0 0 6px #ef4444' : 'none'};"></span>
-        <span title="임박" style="width:11px; height:11px; border-radius:50%; background:${_hasImminent ? '#f59e0b' : '#e2e8f0'}; box-shadow:${_hasImminent ? '0 0 6px #f59e0b' : 'none'};"></span>
+        <span title="지연" class="${_hasDelay ? 'risk-dot-active' : ''}" style="width:11px; height:11px; border-radius:50%; background:${_hasDelay ? '#ef4444' : '#e2e8f0'}; box-shadow:${_hasDelay ? '0 0 6px #ef4444' : 'none'};"></span>
+        <span title="임박" class="${_hasImminent ? 'risk-dot-active' : ''}" style="width:11px; height:11px; border-radius:50%; background:${_hasImminent ? '#f59e0b' : '#e2e8f0'}; box-shadow:${_hasImminent ? '0 0 6px #f59e0b' : 'none'};"></span>
         <span title="안정" style="width:11px; height:11px; border-radius:50%; background:${_isStable ? '#10b981' : '#e2e8f0'}; box-shadow:${_isStable ? '0 0 6px #10b981' : 'none'};"></span>
       </div>`;
 
