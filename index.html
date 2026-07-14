@@ -4263,25 +4263,6 @@ function towerNormalize(raw, aliasTable) {
   const found = Object.keys(aliasTable).find(k => k.toLowerCase() === key);
   return found ? aliasTable[found] : (raw || '').toString().trim();
 }
-// ===== 관제탑(Control Tower) - 글로벌 프로젝트 지도 =====
-const TOWER_COUNTRY_ALIAS = {
-  '한국': '대한민국', '대한민국': '대한민국', 'korea': '대한민국', 'south korea': '대한민국',
-  '말레이시아': '말레이시아', 'malaysia': '말레이시아',
-  '중국': '중국', 'china': '중국',
-  '루마니아': '루마니아', 'romania': '루마니아'
-};
-const TOWER_CITY_ALIAS = {
-  'penang': '페낭', '페낭': '페낭',
-  'kuala lumpur': '쿠알라룸푸르', 'kl': '쿠알라룸푸르', '쿠알라룸푸르': '쿠알라룸푸르',
-  'huizhou': '후이저우', '후이저우': '후이저우', '후이조우': '후이저우', '후이주': '후이저우',
-  'dongtan': '동탄', '동탄': '동탄'
-};
-function towerNormalize(raw, aliasTable) {
-  const key = (raw || '').toString().trim().toLowerCase();
-  if (!key) return '';
-  const found = Object.keys(aliasTable).find(k => k.toLowerCase() === key);
-  return found ? aliasTable[found] : (raw || '').toString().trim();
-}
 const TOWER_COUNTRY_COORDS = {
   '루마니아': [45.9432, 24.9668],
   '말레이시아': [4.2105, 101.9758],
