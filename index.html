@@ -4314,14 +4314,14 @@ window.renderTowerMap = function() {
       subdomains: 'abcd'
     }).addTo(towerMapInstance);
     towerMapInstance.fitWorld();
-    towerMapInstance.setZoom(towerMapInstance.getZoom() + 0.6); /* 👈 0.6단계 살짝 확대 (원하는 대로 0.5나 0.8로 조절 가능!) */
-    towerMapInstance.setMinZoom(towerMapInstance.getZoom());
+    towerMapInstance.setZoom(towerMapInstance.getZoom() - 0.5); /* 👈 정확히 0.5단계 축소 */
+    towerMapInstance.setMinZoom(towerMapInstance.getZoom());    /* 👈 더 이상 못 줄이게 축소 한계선도 여기에 딱 고정 */
   } else {
     towerMapInstance.eachLayer(layer => { if (layer instanceof L.Marker) towerMapInstance.removeLayer(layer); });
     towerMapInstance.invalidateSize();
     towerMapInstance.fitWorld();
-    towerMapInstance.setZoom(towerMapInstance.getZoom() + 0.6); /* 👈 0.6단계 살짝 확대 (원하는 대로 0.5나 0.8로 조절 가능!) */
-    towerMapInstance.setMinZoom(towerMapInstance.getZoom());
+    towerMapInstance.setZoom(towerMapInstance.getZoom() - 0.5); /* 👈 정확히 0.5단계 축소 */
+    towerMapInstance.setMinZoom(towerMapInstance.getZoom());    /* 👈 더 이상 못 줄이게 축소 한계선도 여기에 딱 고정 */
   }
 
   Object.values(groups).forEach(g => {
