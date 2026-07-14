@@ -771,11 +771,16 @@ window.renderDeviationTrendTest = function() {
 
     <!-- 프로젝트 현황 콘텐츠 (기존 메인 내용 전체를 감쌈) -->
 <div id="project-content">
-      <div class="donuts-row" id="main-summary-cards" style="margin-bottom: 15px;">
-        <div style="padding: 20px; color: #64748b;">데이터 로드 중...</div>
+      <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:16px;">
+        <div style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:10px;">프로젝트 현황</div>
+        <div class="donuts-row" id="main-summary-cards" style="margin-bottom: 0;">
+          <div style="padding: 20px; color: #64748b;">데이터 로드 중...</div>
+        </div>
       </div>
       <!-- ▼▼▼ 프로젝트 간트차트 (계획 vs 실행) ▼▼▼ -->
-<div class="chart-card" style="margin-top:7px;">
+<div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:16px;">
+  <div style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:10px;">일정 간트차트</div>
+<div class="chart-card" style="margin-top:0; border:none; padding:0; box-shadow:none;">
   <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
     <button onclick="window.ganttMove(-1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:15px;">‹</button>
     <button onclick="window.ganttToday()" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; padding:4px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;">오늘</button>
@@ -842,11 +847,14 @@ window.renderDeviationTrendTest = function() {
     </div>
   </div>
 </div>
+</div>
 <!-- ▲▲▲ 프로젝트 간트차트 끝 ▲▲▲ -->
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;">
+<div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:14px;">
+  <div style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:10px;">이슈 현황</div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
 
-<div class="chart-card" style="min-height: 440px; display: flex; flex-direction: column;">
+<div class="chart-card" style="min-height: 440px; display: flex; flex-direction: column; box-shadow:none;">
     <div class="chart-title">⏳ 처리 대기 Top 5 <span style="font-size: 11px; font-weight: 600; color: #475569; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; border: 1px solid #e2e8f0;">지연일 순</span></div>
     <div id="main-issue-pending" style="overflow-y: auto; flex: 1;">
         <div style="color: #64748b; font-size: 13px;">대기 중인 이슈를 불러오고 있습니다...</div>
@@ -882,7 +890,8 @@ window.renderDeviationTrendTest = function() {
 </div>
 
       </div>
-    </div>    
+    </div>
+    </div>
     </div>
 
     <div class="header" id="project-header" style="display: none;">
@@ -1378,14 +1387,14 @@ window.animateMainCards = function() {
   // 1. 프로젝트 리스트 (상단 카드 생성) — 순서는 window.cardOrder에 저장(드래그로 변경 가능)
 if (!window.cardOrder) {
     window.cardOrder = [
-      { id: 'OP8', title: 'OP8 프로젝트명', d: allData.project8, color: '#d97757' },
-      { id: 'OP7', title: 'OP7 프로젝트명', d: allData.project7, color: '#8cc63f' },
-      { id: 'OP6', title: 'OP6 프로젝트명', d: allData.project6, color: '#3b82f6' },
-      { id: 'OP5', title: 'OP5 프로젝트명', d: allData.project5, color: '#06b6d4' },
-      { id: 'OP4', title: 'OP4 프로젝트명', d: allData.project4, color: '#a855f7' },
-      { id: 'OP3', title: 'OP3 프로젝트명', d: allData.project3, color: '#f59e0b' },
-      { id: 'OP2', title: 'OP2 프로젝트명', d: allData.project2, color: '#db2777' },
-      { id: 'CP_ALL', title: 'C/S Consolidated', d: allData.project1, color: '#059669' },
+      { id: 'OP8', title: 'OP8 프로젝트명', d: allData.project8, color: '#64748b' },
+      { id: 'OP7', title: 'OP7 프로젝트명', d: allData.project7, color: '#64748b' },
+      { id: 'OP6', title: 'OP6 프로젝트명', d: allData.project6, color: '#64748b' },
+      { id: 'OP5', title: 'OP5 프로젝트명', d: allData.project5, color: '#64748b' },
+      { id: 'OP4', title: 'OP4 프로젝트명', d: allData.project4, color: '#64748b' },
+      { id: 'OP3', title: 'OP3 프로젝트명', d: allData.project3, color: '#64748b' },
+      { id: 'OP2', title: 'OP2 프로젝트명', d: allData.project2, color: '#64748b' },
+      { id: 'CP_ALL', title: 'C/S Consolidated', d: allData.project1, color: '#64748b' },
       { id: 'projectEtc', title: '기타업무', d: allData.projectEtc, color: '#64748b' }
     ];
     // 저장된 순서가 있으면 복원
@@ -3245,7 +3254,7 @@ function buildFlatSegments(pName) {
 }
 
 // ── 여기서부터 실제 렌더 루프: cardOrder 순서를 그대로 따라감 ──
-const projColorMap = { OP8:'#d97757', OP7:'#8cc63f', OP6:'#3b82f6', OP5:'#06b6d4', OP4:'#a855f7', OP3:'#f59e0b', OP2:'#db2777', CP_ALL:'#059669', projectEtc:'#64748b' };
+const projColorMap = { OP8:'#94a3b8', OP7:'#94a3b8', OP6:'#94a3b8', OP5:'#94a3b8', OP4:'#94a3b8', OP3:'#94a3b8', OP2:'#94a3b8', CP_ALL:'#94a3b8', projectEtc:'#94a3b8' };
 const orderList = (window.cardOrder && window.cardOrder.length) ? window.cardOrder.map(c => c.id) : ['OP8','OP7','OP6','OP5','OP4','OP3','OP2','CP_ALL','projectEtc'];
 
 orderList.forEach((cardId) => {
