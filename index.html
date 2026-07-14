@@ -123,8 +123,9 @@
       gap: 12px;
       margin-bottom: 20px;
       overflow-x: auto;
+      overflow-y: visible;
       scroll-snap-type: x mandatory;   /* 카드 단위로 착착 멈춤 */
-      padding-bottom: 8px;             /* 스크롤바 공간 */
+      padding: 6px 2px 8px;             /* 스크롤바 공간 + hover 여유 */
     }
     #main-panel .donuts-row .main-card {
       flex: 0 0 280px;                 /* 카드 폭 고정, 줄어들지 않음 */
@@ -770,14 +771,12 @@ window.renderDeviationTrendTest = function() {
     <!-- 프로젝트 현황 콘텐츠 (기존 메인 내용 전체를 감쌈) -->
 <div id="project-content">
       <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:16px;">
-        <div style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:10px;">프로젝트 현황</div>
         <div class="donuts-row" id="main-summary-cards" style="margin-bottom: 0;">
           <div style="padding: 20px; color: #64748b;">데이터 로드 중...</div>
         </div>
       </div>
       <!-- ▼▼▼ 프로젝트 간트차트 (계획 vs 실행) ▼▼▼ -->
 <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:16px;">
-  <div style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:10px;">일정 간트차트</div>
 <div class="chart-card" style="margin-top:0; border:none; padding:0; box-shadow:none;">
   <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
     <button onclick="window.ganttMove(-1)" style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:15px;">‹</button>
@@ -849,7 +848,6 @@ window.renderDeviationTrendTest = function() {
 <!-- ▲▲▲ 프로젝트 간트차트 끝 ▲▲▲ -->
 
 <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:14px;">
-  <div style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:10px;">이슈 현황</div>
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
 
 <div class="chart-card" style="min-height: 440px; display: flex; flex-direction: column; box-shadow:none;">
