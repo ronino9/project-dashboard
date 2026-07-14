@@ -266,7 +266,6 @@
       cursor: pointer;
     }
     .tower-shell { background:#020617; border:1px solid #0e7490; border-radius:12px; padding:20px; box-shadow:0 0 24px rgba(6,182,212,0.15); }
-    .tower-shell-wrap { max-width:70%; margin:0 auto; }
     .tower-title { font-size:16px; font-weight:800; color:#67e8f9; text-shadow:0 0 8px rgba(103,232,249,0.5); margin-bottom:16px; letter-spacing:0.5px; }
     .tower-grid { display:grid; grid-template-columns:220px minmax(0,1fr) 240px; gap:16px; align-items:start; }
     .tower-side { display:flex; flex-direction:column; gap:12px; }
@@ -287,7 +286,7 @@
     .tower-delay-badge.hot { color:#fca5a5; background:#1f0a0a; border:1px solid #7f1d1d; }
     .tower-delay-badge.cold { color:#64748b; background:transparent; }
     .tower-map-wrap { display:flex; align-items:center; justify-content:center; width:100%; }
-    .tower-map-frame { position:relative; width:100%; aspect-ratio:1/1; margin:0 auto; }
+    .tower-map-frame { position:relative; width:70%; aspect-ratio:1/1; margin:0 auto; }
     .tower-ring { position:absolute; inset:0; border-radius:12px; border:1px solid rgba(45,212,191,0.3); pointer-events:none; }
     .tower-ring::before { content:''; position:absolute; inset:16px; border-radius:8px; border:1px solid rgba(45,212,191,0.18); }
     .tower-reticle { position:absolute; width:700px; height:500px; pointer-events:none; }
@@ -1047,7 +1046,6 @@ window.renderDeviationTrendTest = function() {
     </div>
 
       <div id="tower-panel" style="display:none;">
-      <div class="tower-shell-wrap">
       <div class="tower-shell">
         <div class="tower-title">🗼 관제탑 — 프로젝트 글로벌 현황</div>
         <div class="tower-grid">
@@ -1074,7 +1072,6 @@ window.renderDeviationTrendTest = function() {
             <div class="tower-placeholder">지도의 마커를 클릭하면<br>프로젝트 카드가<br>표시됩니다</div>
           </div>
         </div>
-      </div>
       </div>
     </div>
     <div id="daily-panel" style="display:none;">
