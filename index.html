@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Real-time Control Tower - Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
   <style>
     /* PDCA 현황 / 프로젝트 현황 버튼 Hover 애니메이션 */
@@ -263,6 +264,7 @@
       font-weight: 700;
       cursor: pointer;
     }
+    .tower-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.3); }
     .clamp-more-btn.clamp-show { display: inline-block; }
   </style>
 </head>
@@ -304,6 +306,7 @@
       </div>
       <div class="sidebar-group">
         <button id="btn-daily" class="sidebar-btn" onclick="window.switchTab('daily')">기간별 업무 내역</button>
+        <button id="btn-tower" class="sidebar-btn" onclick="window.switchTab('tower')">🗼 관제탑</button>
       </div>
     </aside>
     <div class="container">
@@ -1001,6 +1004,16 @@ window.renderDeviationTrendTest = function() {
       </div>
     </div>
 
+      <div id="tower-panel" style="display:none;">
+      <div style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div style="font-size:18px; font-weight:800; color:#f8fafc;">🗼 관제탑 — 프로젝트 글로벌 현황</div>
+          <span style="font-size:12px; color:#94a3b8;">마커를 클릭하면 프로젝트 카드가 펼쳐집니다</span>
+        </div>
+        <div id="tower-map" style="width:100%; height:480px; border-radius:8px; overflow:hidden;"></div>
+        <div id="tower-cards" style="margin-top:16px; display:flex; flex-wrap:wrap; gap:12px;"></div>
+      </div>
+    </div>
     <div id="daily-panel" style="display:none;">
       <div style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:24px;">
         <div style="display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
@@ -2102,6 +2115,7 @@ window.showIssueDetail = function(idx) {
       const charts = document.getElementById('project-charts');
       const detailView = document.getElementById('detailView');
       const dailyPanel = document.getElementById('daily-panel');
+      const towerPanel = document.getElementById('tower-panel');
       const csPanel = document.getElementById('cs-view');
       const aiPanel = document.getElementById('ai-panel');  
       const docPanel = document.getElementById('doc-hub-panel');
@@ -2118,6 +2132,7 @@ window.showIssueDetail = function(idx) {
       detailView.classList.remove('active');
       csPanel.style.display = 'none';
       dailyPanel.style.display = 'none';
+      towerPanel.style.display = 'none';
       docPanel.style.display = 'none';
       aiPanel.style.display = 'none';
       pdcaPanel.style.display = 'none';
@@ -2135,6 +2150,10 @@ window.showIssueDetail = function(idx) {
         const b = document.getElementById('btn-daily'); if (b) b.classList.add('active');
         dailyPanel.style.display = 'block';
         window.renderCalendar();
+      } else if (tabId === 'tower') {
+        const b = document.getElementById('btn-tower'); if (b) b.classList.add('active');
+        towerPanel.style.display = 'block';
+        setTimeout(() => window.renderTowerMap(), 50);
       } else {
         const b = document.getElementById('btn-' + tabId); if (b) b.classList.add('active');
         header.style.display = 'block';
@@ -4162,6 +4181,107 @@ window.calShowEvent = function(evIdx) {
   box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 };
 // ===== 캘린더 뷰 끝 =====
+    // ===== 관제탑(Control Tower) - 글로벌 프로젝트 지도 =====
+const TOWER_COUNTRY_COORDS = {
+  '루마니아': [45.9432, 24.9668],
+  '말레이시아': [4.2105, 101.9758],
+  '중국': [23.1115, 114.4152],
+  '대한민국': [37.2003, 127.0871]
+};
+const TOWER_CITY_COORDS = {
+  '말레이시아-페낭': [5.4141, 100.3288],
+  '말레이시아-쿠알라룸푸르': [3.1390, 101.6869],
+  '중국-후이저우': [23.1115, 114.4152],
+  '대한민국-동탄': [37.2003, 127.0871]
+};
+function getTowerCoords(country, city) {
+  const key = `${country || ''}-${city || ''}`;
+  if (TOWER_CITY_COORDS[key]) return TOWER_CITY_COORDS[key];
+  if (TOWER_COUNTRY_COORDS[country]) return TOWER_COUNTRY_COORDS[country];
+  return null;
+}
+
+let towerMapInstance = null;
+const TOWER_PKEY_MAP = { OP2:'project2', OP3:'project3', OP4:'project4', OP5:'project5', OP6:'project6', OP7:'project7', OP8:'project8', ETC:'projectEtc' };
+const TOWER_LABEL_MAP = { OP2:'OP2', OP3:'OP3', OP4:'OP4', OP5:'OP5', OP6:'OP6', OP7:'OP7', OP8:'OP8', ETC:'기타업무' };
+
+window.renderTowerMap = function() {
+  const towerData = allData.controlTower || {};
+  if (!document.getElementById('tower-map')) return;
+
+  const groups = {};
+  Object.keys(towerData).forEach(code => {
+    const info = towerData[code];
+    if (!info) return;
+    const coords = getTowerCoords(info.country, info.city);
+    if (!coords) return;
+    const key = coords.join(',');
+    if (!groups[key]) groups[key] = { coords, country: info.country, city: info.city, projects: [] };
+    groups[key].projects.push(code);
+  });
+
+  if (!towerMapInstance) {
+    towerMapInstance = L.map('tower-map', { scrollWheelZoom: true }).setView([15, 100], 3);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 18
+    }).addTo(towerMapInstance);
+  } else {
+    towerMapInstance.eachLayer(layer => { if (layer instanceof L.Marker) towerMapInstance.removeLayer(layer); });
+  }
+
+  Object.values(groups).forEach(g => {
+    let hasDelay = false;
+    g.projects.forEach(code => {
+      const pKey = TOWER_PKEY_MAP[code];
+      const hist = (allData[pKey] && allData[pKey].history) || [];
+      if (hist.some(r => r['진행상태'] === '지연중')) hasDelay = true;
+    });
+    const markerColor = hasDelay ? '#ef4444' : '#10b981';
+    const size = g.projects.length > 1 ? 34 : 28;
+
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="background:${markerColor}; color:#fff; font-size:11px; font-weight:800; border-radius:50%; width:${size}px; height:${size}px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.4); border:2px solid #fff; cursor:pointer;">${g.projects.length > 1 ? g.projects.length : '●'}</div>`,
+      iconSize: [size, size]
+    });
+
+    const marker = L.marker(g.coords, { icon }).addTo(towerMapInstance);
+    marker.bindTooltip(`${g.country} ${g.city || ''} · ${g.projects.map(c => TOWER_LABEL_MAP[c]).join(', ')}`);
+    marker.on('click', () => window.renderTowerCards(g));
+  });
+};
+
+window.renderTowerCards = function(group) {
+  const container = document.getElementById('tower-cards');
+  if (!container) return;
+
+  container.innerHTML = group.projects.map(code => {
+    const pKey = TOWER_PKEY_MAP[code];
+    const d = allData[pKey] || {};
+    const summary = d.summary || {};
+    const overall = summary.overall || '0%';
+    const hist = d.history || [];
+    const hasDelay = hist.some(r => r['진행상태'] === '지연중');
+    const compliant = hist.length > 0 ? Math.round((hist.filter(r => (parseInt(r['지연일']) || 0) <= 0).length / hist.length) * 100) : 100;
+    const clickable = code !== 'ETC';
+    const clickAttr = clickable ? `onclick="window.switchTab('${pKey}')" style="cursor:pointer;"` : `style="cursor:default;"`;
+
+    return `
+      <div ${clickAttr} class="tower-card" style="flex:1; min-width:220px; background:#0f172a; border:1px solid #334155; border-radius:10px; padding:16px; transition:transform 0.15s ease, box-shadow 0.15s ease;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:15px; font-weight:800; color:#f8fafc;">${TOWER_LABEL_MAP[code]}</span>
+          <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; background:${hasDelay ? '#7f1d1d' : '#064e3b'}; color:${hasDelay ? '#fca5a5' : '#6ee7b7'};">${hasDelay ? '지연중' : '정상'}</span>
+        </div>
+        <div style="font-size:24px; font-weight:800; color:#3b82f6; margin-bottom:4px;">${overall}</div>
+        <div style="font-size:11px; color:#94a3b8;">진행률 · 일정 준수율 ${compliant}%</div>
+        <div style="margin-top:8px; font-size:11px; color:#64748b;">${group.country} ${group.city || ''}</div>
+      </div>
+    `;
+  }).join('');
+
+  container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+};
     document.addEventListener('DOMContentLoaded', () => {
       const slider = document.getElementById('spacingSlider');
       if (slider) {
