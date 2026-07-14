@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Real-time Control Tower - Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
   <style>
     /* PDCA 현황 / 프로젝트 현황 버튼 Hover 애니메이션 */
 #btn-main-pdca:hover, #btn-main-project:hover {
@@ -76,7 +77,11 @@
     .sidebar-btn.active .sidebar-sub { color: #1d4ed8; }
     body.light-page { background: #f1f5f9; }
     .sidebar-search-wrap { position: relative; }
-    .search-popover { display: none; position: absolute; left: 100%; top: 0; margin-left: 8px; width: 620px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 12px 32px rgba(15,23,42,0.18); padding: 16px; z-index: 200; }
+    .sidebar-search-input { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; cursor: pointer; color: #94a3b8; font-size: 12px; }
+    .sidebar-search-input:hover { border-color: #cbd5e1; background: #f1f5f9; }
+    .sidebar-search-input i { font-size: 14px; flex-shrink: 0; }
+    .search-popover { display: none; position: absolute; left: 100%; top: 0; margin-left: 8px; width: 620px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 12px 32px rgba(15,23,42,0.18); padding: 16px; z-index: 9999; }
+    body.search-open #mainMdChart, body.search-open #mainTrendChart, body.search-open #pdcaReworkChart, body.search-open #pdcaImproveChart { visibility: hidden; }
     .search-popover.open { display: block; }
     .search-popover-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
     .search-popover input[type="text"] { flex: 1; min-width: 160px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; }
@@ -84,7 +89,7 @@
     .kpi-strip { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; margin-bottom: 16px; }
     .kpi-strip-item { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: box-shadow 0.15s ease, transform 0.15s ease; }
     .kpi-strip-item:hover { box-shadow: 0 4px 10px rgba(15,23,42,0.08); transform: translateY(-1px); }
-    .kpi-strip-icon { font-size: 15px; flex-shrink: 0; }
+    .kpi-strip-icon { font-size: 16px; flex-shrink: 0; }
     .kpi-strip-label { font-size: 10px; color: #64748b; font-weight: 600; white-space: nowrap; }
     .kpi-strip-value { font-size: 16px; font-weight: 800; line-height: 1.2; }
     .kpi-strip-unit { font-size: 10px; color: #94a3b8; font-weight: 600; margin-left: 2px; }
@@ -258,12 +263,12 @@
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="app-sidebar">
-      <div class="sidebar-logo">🎛️ Control Tower</div>
+      <div class="sidebar-logo">Control Tower</div>
       <div class="sidebar-group sidebar-search-wrap">
-        <button id="sbtn-search" class="sidebar-btn" onclick="window.toggleSearchPopover(event)"><span class="sidebar-icon">🔍</span>검색</button>
+        <button id="sbtn-search" class="sidebar-btn" onclick="window.toggleSearchPopover(event)"><i class="ti ti-search sidebar-icon"></i>검색</button>
         <div class="search-popover" id="search-popover">
           <div class="search-popover-row">
-            <input type="text" id="gs-keyword" placeholder="🔍 검색어" onkeydown="if(event.key==='Enter') window.runGlobalSearch()">
+            <input type="text" id="gs-keyword" placeholder="검색어" onkeydown="if(event.key==='Enter') window.runGlobalSearch()">
             <select id="gs-project"><option value="">프로젝트 전체</option></select>
           </div>
           <div class="search-popover-row">
@@ -278,22 +283,22 @@
         </div>
       </div>
       <div class="sidebar-group">
-        <button id="sbtn-pdca" class="sidebar-btn" onclick="window.sidebarGoMain('pdca')"><span class="sidebar-icon">🔄</span>PDCA 현황</button>
-        <button id="sbtn-project" class="sidebar-btn" onclick="window.sidebarGoMain('project')"><span class="sidebar-icon">📋</span>프로젝트 현황</button>
+        <button id="sbtn-pdca" class="sidebar-btn" onclick="window.sidebarGoMain('pdca')"><i class="ti ti-refresh sidebar-icon"></i>PDCA 현황</button>
+        <button id="sbtn-project" class="sidebar-btn" onclick="window.sidebarGoMain('project')"><i class="ti ti-list-details sidebar-icon"></i>프로젝트 현황</button>
       </div>
       <div class="sidebar-group">
         <div class="sidebar-group-label">프로젝트</div>
-        <button id="btn-project8" class="sidebar-btn" onclick="window.switchTab('project8')"><span class="sidebar-icon">🏗️</span>OP8<span class="sidebar-sub">Ongoing</span></button>
-        <button id="btn-project7" class="sidebar-btn" onclick="window.switchTab('project7')"><span class="sidebar-icon">🏗️</span>OP7<span class="sidebar-sub">Ongoing</span></button>
-        <button id="btn-project6" class="sidebar-btn" onclick="window.switchTab('project6')"><span class="sidebar-icon">🏗️</span>OP6<span class="sidebar-sub">Ongoing</span></button>
-        <button id="btn-project5" class="sidebar-btn" onclick="window.switchTab('project5')"><span class="sidebar-icon">🏗️</span>OP5<span class="sidebar-sub">Ongoing</span></button>
-        <button id="btn-project4" class="sidebar-btn" onclick="window.switchTab('project4')"><span class="sidebar-icon">🏗️</span>OP4<span class="sidebar-sub">Ongoing</span></button>
-        <button id="btn-project3" class="sidebar-btn" onclick="window.switchTab('project3')"><span class="sidebar-icon">🏗️</span>OP3<span class="sidebar-sub">Ongoing</span></button>
-        <button id="btn-project2" class="sidebar-btn" onclick="window.switchTab('project2')"><span class="sidebar-icon">🏗️</span>OP2<span class="sidebar-sub">Ongoing</span></button>
-        <button id="btn-project1cs" class="sidebar-btn" onclick="window.switchTab('project1cs')"><span class="sidebar-icon">✅</span>CP_All<span class="sidebar-sub">Complete</span></button>
+        <button id="btn-project8" class="sidebar-btn" onclick="window.switchTab('project8')"><i class="ti ti-building sidebar-icon"></i>OP8<span class="sidebar-sub">Ongoing</span></button>
+        <button id="btn-project7" class="sidebar-btn" onclick="window.switchTab('project7')"><i class="ti ti-building sidebar-icon"></i>OP7<span class="sidebar-sub">Ongoing</span></button>
+        <button id="btn-project6" class="sidebar-btn" onclick="window.switchTab('project6')"><i class="ti ti-building sidebar-icon"></i>OP6<span class="sidebar-sub">Ongoing</span></button>
+        <button id="btn-project5" class="sidebar-btn" onclick="window.switchTab('project5')"><i class="ti ti-building sidebar-icon"></i>OP5<span class="sidebar-sub">Ongoing</span></button>
+        <button id="btn-project4" class="sidebar-btn" onclick="window.switchTab('project4')"><i class="ti ti-building sidebar-icon"></i>OP4<span class="sidebar-sub">Ongoing</span></button>
+        <button id="btn-project3" class="sidebar-btn" onclick="window.switchTab('project3')"><i class="ti ti-building sidebar-icon"></i>OP3<span class="sidebar-sub">Ongoing</span></button>
+        <button id="btn-project2" class="sidebar-btn" onclick="window.switchTab('project2')"><i class="ti ti-building sidebar-icon"></i>OP2<span class="sidebar-sub">Ongoing</span></button>
+        <button id="btn-project1cs" class="sidebar-btn" onclick="window.switchTab('project1cs')"><i class="ti ti-circle-check sidebar-icon"></i>CP_All<span class="sidebar-sub">Complete</span></button>
       </div>
       <div class="sidebar-group">
-        <button id="btn-daily" class="sidebar-btn" onclick="window.switchTab('daily')"><span class="sidebar-icon">📅</span>기간별 업무 내역</button>
+        <button id="btn-daily" class="sidebar-btn" onclick="window.switchTab('daily')"><i class="ti ti-calendar sidebar-icon"></i>기간별 업무 내역</button>
       </div>
     </aside>
     <div class="container">
@@ -314,35 +319,35 @@
 
     <div class="kpi-strip" id="main-top-kpi">
       <div class="kpi-strip-item" style="cursor:default;">
-        <i class="kpi-strip-icon">💼</i>
+        <i class="ti ti-briefcase kpi-strip-icon" style="color:#64748b;"></i>
         <div>
           <div class="kpi-strip-label">총 공수</div>
           <div class="kpi-strip-value" id="kpi-master-md-hdr">0.0<span class="kpi-strip-unit">MD</span></div>
         </div>
       </div>
       <div class="kpi-strip-item" onclick="window.showKpiDetail('delay')">
-        <i class="kpi-strip-icon">⚠️</i>
+        <i class="ti ti-alert-triangle kpi-strip-icon" style="color:#dc2626;"></i>
         <div>
           <div class="kpi-strip-label">지연</div>
           <div class="kpi-strip-value" id="kpi-master-delay-hdr" style="color:#dc2626;">0<span class="kpi-strip-unit">건</span></div>
         </div>
       </div>
       <div class="kpi-strip-item" onclick="window.showKpiDetail('imminent')">
-        <i class="kpi-strip-icon">⏰</i>
+        <i class="ti ti-clock-exclamation kpi-strip-icon" style="color:#d97706;"></i>
         <div>
           <div class="kpi-strip-label">임박</div>
           <div class="kpi-strip-value" id="kpi-master-imminent-hdr" style="color:#d97706;">0<span class="kpi-strip-unit">건</span></div>
         </div>
       </div>
       <div class="kpi-strip-item" onclick="window.showKpiDetail('hold')">
-        <i class="kpi-strip-icon">⏸️</i>
+        <i class="ti ti-player-pause kpi-strip-icon" style="color:#64748b;"></i>
         <div>
           <div class="kpi-strip-label">보류</div>
           <div class="kpi-strip-value" id="kpi-master-hold-hdr">0<span class="kpi-strip-unit">건</span></div>
         </div>
       </div>
       <div class="kpi-strip-item" style="cursor:default;">
-        <i class="kpi-strip-icon">✅</i>
+        <i class="ti ti-circle-check kpi-strip-icon" style="color:#16a34a;"></i>
         <div>
           <div class="kpi-strip-label">일정 준수율</div>
           <div class="kpi-strip-value" id="kpi-master-compliance-hdr" style="color:#16a34a;">0<span class="kpi-strip-unit">%</span></div>
@@ -2150,12 +2155,14 @@ window.showIssueDetail = function(idx) {
       const pop = document.getElementById('search-popover');
       if (!pop) return;
       pop.classList.toggle('open');
+      document.body.classList.toggle('search-open', pop.classList.contains('open'));
     };
     document.addEventListener('click', function(e) {
       const pop = document.getElementById('search-popover');
       const wrap = document.querySelector('.sidebar-search-wrap');
       if (pop && pop.classList.contains('open') && wrap && !wrap.contains(e.target)) {
         pop.classList.remove('open');
+        document.body.classList.remove('search-open');
       }
     });
 
