@@ -75,6 +75,19 @@
     .sidebar-sub { font-size: 10px; color: #94a3b8; font-weight: 600; margin-left: auto; }
     .sidebar-btn.active .sidebar-sub { color: #1d4ed8; }
     body.light-page { background: #f1f5f9; }
+    .sidebar-search-wrap { position: relative; }
+    .search-popover { display: none; position: absolute; left: 100%; top: 0; margin-left: 8px; width: 620px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 12px 32px rgba(15,23,42,0.18); padding: 16px; z-index: 200; }
+    .search-popover.open { display: block; }
+    .search-popover-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .search-popover input[type="text"] { flex: 1; min-width: 160px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; }
+    .search-popover select { padding: 7px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; background: #f8fafc; }
+    .kpi-strip { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; margin-bottom: 16px; }
+    .kpi-strip-item { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: box-shadow 0.15s ease, transform 0.15s ease; }
+    .kpi-strip-item:hover { box-shadow: 0 4px 10px rgba(15,23,42,0.08); transform: translateY(-1px); }
+    .kpi-strip-icon { font-size: 15px; flex-shrink: 0; }
+    .kpi-strip-label { font-size: 10px; color: #64748b; font-weight: 600; white-space: nowrap; }
+    .kpi-strip-value { font-size: 16px; font-weight: 800; line-height: 1.2; }
+    .kpi-strip-unit { font-size: 10px; color: #94a3b8; font-weight: 600; margin-left: 2px; }
     @media(max-width: 1024px) { .sidebar { width: 64px; } .sidebar-btn span:not(.sidebar-icon) { display: none; } .sidebar-group-label { display: none; } }
 
     /* Master MD 도넛 범례 스크롤 고정 */
@@ -246,6 +259,24 @@
   <div class="app-shell">
     <aside class="sidebar" id="app-sidebar">
       <div class="sidebar-logo">🎛️ Control Tower</div>
+      <div class="sidebar-group sidebar-search-wrap">
+        <button id="sbtn-search" class="sidebar-btn" onclick="window.toggleSearchPopover(event)"><span class="sidebar-icon">🔍</span>검색</button>
+        <div class="search-popover" id="search-popover">
+          <div class="search-popover-row">
+            <input type="text" id="gs-keyword" placeholder="🔍 검색어" onkeydown="if(event.key==='Enter') window.runGlobalSearch()">
+            <select id="gs-project"><option value="">프로젝트 전체</option></select>
+          </div>
+          <div class="search-popover-row">
+            <select id="gs-status"><option value="">진행상태 전체</option></select>
+            <select id="gs-stage"><option value="">단계 전체</option></select>
+            <select id="gs-response"><option value="">대응 전체</option></select>
+            <select id="gs-task"><option value="">업무 전체</option></select>
+            <select id="gs-paid"><option value="">유/무상 전체</option></select>
+            <select id="gs-part"><option value="">파트 전체</option></select>
+          </div>
+          <button onclick="window.runGlobalSearch()" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:8px; border-radius:6px; font-weight:700; cursor:pointer; font-size:13px;">검색</button>
+        </div>
+      </div>
       <div class="sidebar-group">
         <button id="sbtn-pdca" class="sidebar-btn" onclick="window.sidebarGoMain('pdca')"><span class="sidebar-icon">🔄</span>PDCA 현황</button>
         <button id="sbtn-project" class="sidebar-btn" onclick="window.sidebarGoMain('project')"><span class="sidebar-icon">📋</span>프로젝트 현황</button>
@@ -279,39 +310,43 @@
           </button>
         </div>
 
-      <div id="main-top-kpi" style="display: flex; gap: 6px;">
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 10px; text-align: center;">
-          <div style="font-size: 9px; color: #64748b; font-weight: 700;">총 공수 MD</div>
-          <div id="kpi-master-md-hdr" style="font-size: 15px; font-weight: 800; color: #0f172a;">0.0</div>
-        </div>
-        <div onclick="window.showKpiDetail('delay')" style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 4px 10px; text-align: center; cursor: pointer;">
-          <div style="font-size: 9px; color: #b91c1c; font-weight: 700;">지연</div>
-          <div id="kpi-master-delay-hdr" style="font-size: 15px; font-weight: 800; color: #dc2626;">0</div>
-        </div>
-        <div onclick="window.showKpiDetail('imminent')" style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 4px 10px; text-align: center; cursor: pointer;">
-          <div style="font-size: 9px; color: #b45309; font-weight: 700;">임박</div>
-          <div id="kpi-master-imminent-hdr" style="font-size: 15px; font-weight: 800; color: #d97706;">0</div>
-        </div>
-        <div onclick="window.showKpiDetail('hold')" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 10px; text-align: center; cursor: pointer;">
-          <div style="font-size: 9px; color: #475569; font-weight: 700;">보류</div>
-          <div id="kpi-master-hold-hdr" style="font-size: 15px; font-weight: 800; color: #64748b;">0</div>
-        </div>
-        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 4px 10px; text-align: center;">
-          <div style="font-size: 9px; color: #15803d; font-weight: 700;">일정 준수율</div>
-          <div id="kpi-master-compliance-hdr" style="font-size: 15px; font-weight: 800; color: #16a34a;">0%</div>
+      </div>
+
+    <div class="kpi-strip" id="main-top-kpi">
+      <div class="kpi-strip-item" style="cursor:default;">
+        <i class="kpi-strip-icon">💼</i>
+        <div>
+          <div class="kpi-strip-label">총 공수</div>
+          <div class="kpi-strip-value" id="kpi-master-md-hdr">0.0<span class="kpi-strip-unit">MD</span></div>
         </div>
       </div>
-      
-      <div id="global-search-bar" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; background: #ffffff; padding: 6px 12px; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-        <input type="text" id="gs-keyword" placeholder="🔍 검색어" style="padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; width: 130px;" onkeydown="if(event.key==='Enter') window.runGlobalSearch()">
-        <select id="gs-project" style="padding: 5px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; color: #334155; background: #f8fafc; font-weight: 700;"><option value="">프로젝트 전체</option></select>
-        <select id="gs-status" style="padding: 5px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">진행상태 전체</option></select>
-        <select id="gs-stage" style="padding: 5px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">단계 전체</option></select>
-        <select id="gs-response" style="padding: 5px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">대응 전체</option></select>
-        <select id="gs-task" style="padding: 5px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">업무 전체</option></select>
-        <select id="gs-paid" style="padding: 5px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">유/무상 전체</option></select>
-        <select id="gs-part" style="padding: 5px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; color: #334155; background: #f8fafc;"><option value="">파트 전체</option></select>
-<button onclick="window.runGlobalSearch()" style="background: #3b82f6; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;">검색</button>
+      <div class="kpi-strip-item" onclick="window.showKpiDetail('delay')">
+        <i class="kpi-strip-icon">⚠️</i>
+        <div>
+          <div class="kpi-strip-label">지연</div>
+          <div class="kpi-strip-value" id="kpi-master-delay-hdr" style="color:#dc2626;">0<span class="kpi-strip-unit">건</span></div>
+        </div>
+      </div>
+      <div class="kpi-strip-item" onclick="window.showKpiDetail('imminent')">
+        <i class="kpi-strip-icon">⏰</i>
+        <div>
+          <div class="kpi-strip-label">임박</div>
+          <div class="kpi-strip-value" id="kpi-master-imminent-hdr" style="color:#d97706;">0<span class="kpi-strip-unit">건</span></div>
+        </div>
+      </div>
+      <div class="kpi-strip-item" onclick="window.showKpiDetail('hold')">
+        <i class="kpi-strip-icon">⏸️</i>
+        <div>
+          <div class="kpi-strip-label">보류</div>
+          <div class="kpi-strip-value" id="kpi-master-hold-hdr">0<span class="kpi-strip-unit">건</span></div>
+        </div>
+      </div>
+      <div class="kpi-strip-item" style="cursor:default;">
+        <i class="kpi-strip-icon">✅</i>
+        <div>
+          <div class="kpi-strip-label">일정 준수율</div>
+          <div class="kpi-strip-value" id="kpi-master-compliance-hdr" style="color:#16a34a;">0<span class="kpi-strip-unit">%</span></div>
+        </div>
       </div>
     </div>
 
@@ -2109,6 +2144,20 @@ window.showIssueDetail = function(idx) {
       window._mainTab = view;
       window.switchTab('main');
     };
+
+    window.toggleSearchPopover = function(e) {
+      e.stopPropagation();
+      const pop = document.getElementById('search-popover');
+      if (!pop) return;
+      pop.classList.toggle('open');
+    };
+    document.addEventListener('click', function(e) {
+      const pop = document.getElementById('search-popover');
+      const wrap = document.querySelector('.sidebar-search-wrap');
+      if (pop && pop.classList.contains('open') && wrap && !wrap.contains(e.target)) {
+        pop.classList.remove('open');
+      }
+    });
 
     window.switchProject = function(projectId) {
       currentProjectId = projectId;
