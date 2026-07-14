@@ -4304,24 +4304,28 @@ window.renderTowerMap = function() {
       maxBounds: [[-85, -180], [85, 180]],
       maxBoundsViscosity: 1.0,
       zoomControl: false,
-      zoomSnap: 0.1,    /* 👈 핵심: 0.1 단위의 미세한 줌 허용 */
-      zoomDelta: 0.5    /* 👈 마우스 휠을 굴릴 때 0.5단계씩 부드럽게 확대/축소 */
+      zoomSnap: 0.1,
+      zoomDelta: 0.5
     });
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap &copy; CARTO',
       maxZoom: 18,
-      noWrap: true,
       subdomains: 'abcd'
     }).addTo(towerMapInstance);
-    towerMapInstance.fitWorld();
-    towerMapInstance.setZoom(towerMapInstance.getZoom() - 0.5); /* 👈 정확히 0.5단계 축소 */
-    towerMapInstance.setMinZoom(towerMapInstance.getZoom());    /* 👈 더 이상 못 줄이게 축소 한계선도 여기에 딱 고정 */
+    
+    // ✨ 첫 번째 렌더링 (애니메이션 끄기)
+    towerMapInstance.fitWorld({ animate: false });
+    towerMapInstance.setZoom(towerMapInstance.getZoom() - 0.5, { animate: false });
+    towerMapInstance.setMinZoom(towerMapInstance.getZoom());
   } else {
+    // ✨ 두 번째 렌더링 (탭 전환 등 - 락 해제 후 재계산)
     towerMapInstance.eachLayer(layer => { if (layer instanceof L.Marker) towerMapInstance.removeLayer(layer); });
     towerMapInstance.invalidateSize();
-    towerMapInstance.fitWorld();
-    towerMapInstance.setZoom(towerMapInstance.getZoom() - 0.5); /* 👈 정확히 0.5단계 축소 */
-    towerMapInstance.setMinZoom(towerMapInstance.getZoom());    /* 👈 더 이상 못 줄이게 축소 한계선도 여기에 딱 고정 */
+    
+    towerMapInstance.setMinZoom(0); /* 기존 락 해제 */
+    towerMapInstance.fitWorld({ animate: false }); 
+    towerMapInstance.setZoom(towerMapInstance.getZoom() - 0.5, { animate: false });
+    towerMapInstance.setMinZoom(towerMapInstance.getZoom()); /* 새로운 락 걸기 */
   }
 
   Object.values(groups).forEach(g => {
