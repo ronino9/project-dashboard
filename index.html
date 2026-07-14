@@ -4350,7 +4350,7 @@ window.renderTowerMap = function() {
 
   setTimeout(() => {
     towerMapInstance.invalidateSize();
-    towerMapInstance.fitBounds([[-10, -180], [78, 180]], { padding: [0, 0] });
+    towerMapInstance.setView([35, 30], 2);
     towerMapInstance.setMinZoom(towerMapInstance.getZoom());
   }, 100);
 
