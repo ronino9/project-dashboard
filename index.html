@@ -4317,17 +4317,15 @@ window.renderTowerMap = function() {
     
     // ✨ 첫 번째 렌더링 (애니메이션 끄기)
     towerMapInstance.fitWorld({ animate: false });
-    towerMapInstance.setZoom(towerMapInstance.getZoom() - 0.5, { animate: false });
     towerMapInstance.setMinZoom(towerMapInstance.getZoom());
   } else {
     // ✨ 두 번째 렌더링 (탭 전환 등 - 락 해제 후 재계산)
     towerMapInstance.eachLayer(layer => { if (layer instanceof L.Marker) towerMapInstance.removeLayer(layer); });
     towerMapInstance.invalidateSize();
     
-    towerMapInstance.setMinZoom(0); /* 기존 락 해제 */
+    towerMapInstance.setMinZoom(0);
     towerMapInstance.fitWorld({ animate: false }); 
-    towerMapInstance.setZoom(towerMapInstance.getZoom() - 0.5, { animate: false });
-    towerMapInstance.setMinZoom(towerMapInstance.getZoom()); /* 새로운 락 걸기 */
+    towerMapInstance.setMinZoom(towerMapInstance.getZoom()); */
   }
 
   Object.values(groups).forEach(g => {
