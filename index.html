@@ -265,7 +265,8 @@
       font-weight: 700;
       cursor: pointer;
     }
-    .tower-shell { background:#020617; border:1px solid #0e7490; border-radius:12px; padding:20px; box-shadow:0 0 24px rgba(6,182,212,0.15); transform:scale(0.7); transform-origin:top left; width:142.85%; }
+    .tower-shell { background:#020617; border:1px solid #0e7490; border-radius:12px; padding:20px; box-shadow:0 0 24px rgba(6,182,212,0.15); }
+    .tower-shell-wrap { max-width:70%; margin:0 auto; }
     .tower-title { font-size:16px; font-weight:800; color:#67e8f9; text-shadow:0 0 8px rgba(103,232,249,0.5); margin-bottom:16px; letter-spacing:0.5px; }
     .tower-grid { display:grid; grid-template-columns:220px minmax(0,1fr) 240px; gap:16px; align-items:start; }
     .tower-side { display:flex; flex-direction:column; gap:12px; }
@@ -1046,6 +1047,7 @@ window.renderDeviationTrendTest = function() {
     </div>
 
       <div id="tower-panel" style="display:none;">
+      <div class="tower-shell-wrap">
       <div class="tower-shell">
         <div class="tower-title">🗼 관제탑 — 프로젝트 글로벌 현황</div>
         <div class="tower-grid">
@@ -1072,6 +1074,7 @@ window.renderDeviationTrendTest = function() {
             <div class="tower-placeholder">지도의 마커를 클릭하면<br>프로젝트 카드가<br>표시됩니다</div>
           </div>
         </div>
+      </div>
       </div>
     </div>
     <div id="daily-panel" style="display:none;">
