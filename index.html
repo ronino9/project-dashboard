@@ -4349,12 +4349,14 @@ window.renderTowerMap = function() {
     });
   });
 
-  setTimeout(() => { towerMapInstance.invalidateSize(); }, 100);
-
   const allCoords = Object.values(groups).map(g => g.coords);
-  if (allCoords.length > 0) {
-    towerMapInstance.fitBounds(allCoords, { padding: [50, 50], maxZoom: 5 });
-  }
+
+  setTimeout(() => {
+    towerMapInstance.invalidateSize();
+    if (allCoords.length > 0) {
+      towerMapInstance.fitBounds(allCoords, { padding: [50, 50], maxZoom: 5 });
+    }
+  }, 100);
 
   window.renderTowerSidebar(groups);
 };
