@@ -265,7 +265,7 @@
       font-weight: 700;
       cursor: pointer;
     }
-    .tower-shell { background:#020617; border:1px solid #0e7490; border-radius:12px; padding:20px; box-shadow:0 0 24px rgba(6,182,212,0.15); }
+    .tower-shell { background:#020617; border:1px solid #0e7490; border-radius:12px; padding:20px; box-shadow:0 0 24px rgba(6,182,212,0.15); transform:scale(0.7); transform-origin:top left; width:142.85%; }
     .tower-title { font-size:16px; font-weight:800; color:#67e8f9; text-shadow:0 0 8px rgba(103,232,249,0.5); margin-bottom:16px; letter-spacing:0.5px; }
     .tower-grid { display:grid; grid-template-columns:220px minmax(0,1fr) 240px; gap:16px; align-items:start; }
     .tower-side { display:flex; flex-direction:column; gap:12px; }
@@ -4350,7 +4350,7 @@ window.renderTowerMap = function() {
 
   setTimeout(() => {
     towerMapInstance.invalidateSize();
-    towerMapInstance.setView([40, 40], 3);
+    towerMapInstance.setView([20, 20], 2);
     towerMapInstance.setMinZoom(towerMapInstance.getZoom());
   }, 100);
 
