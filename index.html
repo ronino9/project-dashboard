@@ -4296,14 +4296,16 @@ window.renderTowerMap = function() {
   if (!document.getElementById('tower-map')) return;
   const groups = towerBuildGroups();
 
-  if (!towerMapInstance) {
+ if (!towerMapInstance) {
     towerMapInstance = L.map('tower-map', {
       scrollWheelZoom: true,
       worldCopyJump: false,
       minZoom: 0,
       maxBounds: [[-85, -180], [85, 180]],
       maxBoundsViscosity: 1.0,
-      zoomControl: false
+      zoomControl: false,
+      zoomSnap: 0.1,    /* 👈 핵심: 0.1 단위의 미세한 줌 허용 */
+      zoomDelta: 0.5    /* 👈 마우스 휠을 굴릴 때 0.5단계씩 부드럽게 확대/축소 */
     });
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap &copy; CARTO',
@@ -4312,11 +4314,13 @@ window.renderTowerMap = function() {
       subdomains: 'abcd'
     }).addTo(towerMapInstance);
     towerMapInstance.fitWorld();
+    towerMapInstance.setZoom(towerMapInstance.getZoom() + 0.6); /* 👈 0.6단계 살짝 확대 (원하는 대로 0.5나 0.8로 조절 가능!) */
     towerMapInstance.setMinZoom(towerMapInstance.getZoom());
   } else {
     towerMapInstance.eachLayer(layer => { if (layer instanceof L.Marker) towerMapInstance.removeLayer(layer); });
     towerMapInstance.invalidateSize();
     towerMapInstance.fitWorld();
+    towerMapInstance.setZoom(towerMapInstance.getZoom() + 0.6); /* 👈 0.6단계 살짝 확대 (원하는 대로 0.5나 0.8로 조절 가능!) */
     towerMapInstance.setMinZoom(towerMapInstance.getZoom());
   }
 
