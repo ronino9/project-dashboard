@@ -4372,11 +4372,20 @@ function getTowerCoords(country, city) {
 let towerMapInstance = null;
 let towerCurrentBlinkLayer = null;
 function towerSetBlink(geoLayer, on) {
-  geoLayer.eachLayer(sub => {
-    const el = sub.getElement && sub.getElement();
-    if (!el) return;
-    el.classList.toggle('tower-region-blink', on);
-  });
+  if (!geoLayer) return;
+  
+  // 1. 도형(GeoJSON 폴리곤 등)처럼 내부 레이어가 여러 개인 경우
+  if (geoLayer.eachLayer && typeof geoLayer.eachLayer === 'function') {
+    geoLayer.eachLayer(sub => {
+      const el = sub.getElement && sub.getElement();
+      if (el) el.classList.toggle('tower-region-blink', on);
+    });
+  } 
+  // 2. 단일 마커(Marker 등)인 경우
+  else if (geoLayer.getElement && typeof geoLayer.getElement === 'function') {
+    const el = geoLayer.getElement();
+    if (el) el.classList.toggle('tower-region-blink', on);
+  }
 }
 const TOWER_PKEY_MAP = { OP2:'project2', OP3:'project3', OP4:'project4', OP5:'project5', OP6:'project6', OP7:'project7', OP8:'project8', ETC:'projectEtc' };
 const TOWER_LABEL_MAP = { OP2:'OP2', OP3:'OP3', OP4:'OP4', OP5:'OP5', OP6:'OP6', OP7:'OP7', OP8:'OP8', ETC:'기타업무' };
