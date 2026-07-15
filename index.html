@@ -291,6 +291,7 @@
   0%, 100% { fill-opacity: 0.5; }
   50% { fill-opacity: 0.15; }
 }
+ .tower-callout-pulse { animation: towerPulse 2s ease-out infinite; }   
 @keyframes towerPulse {
   0% { transform: scale(0.6); opacity: 0.9; }
   70% { transform: scale(2.2); opacity: 0; }
@@ -310,11 +311,11 @@
 .tower-hud-corner.bl { bottom:6px; left:6px; border-bottom:3px solid; border-left:3px solid; animation-delay:1.8s; }
 .tower-hud-corner.br { bottom:6px; right:6px; border-bottom:3px solid; border-right:3px solid; animation-delay:1.2s; }
 @keyframes towerHudBlink { 0%,100% { opacity:0.35; } 50% { opacity:1; } }
-.tower-hud-status { position:absolute; top:12px; left:44px; display:flex; align-items:center; gap:6px; font-family:monospace; font-size:13px; font-weight:800; color:#67e8f9; letter-spacing:1.5px; text-shadow:0 0 8px rgba(103,232,249,0.6); }
+.tower-hud-status { position:absolute; top:26px; left:60px; display:flex; align-items:center; gap:6px; font-family:monospace; font-size:13px; font-weight:800; color:#67e8f9; letter-spacing:1.5px; text-shadow:0 0 8px rgba(103,232,249,0.6); }
 .tower-hud-status-dot { width:8px; height:8px; border-radius:50%; background:#67e8f9; box-shadow:0 0 6px #67e8f9; animation:towerHudBlink 1.4s ease-in-out infinite; }
-.tower-hud-sys { position:absolute; bottom:12px; left:44px; font-family:monospace; font-size:12px; font-weight:700; color:#67e8f9; letter-spacing:0.5px; text-shadow:0 0 6px rgba(103,232,249,0.5); animation:towerHudTextBlink 3s steps(1) infinite; }
+.tower-hud-sys { position:absolute; bottom:26px; left:60px; font-family:monospace; font-size:12px; font-weight:700; color:#67e8f9; letter-spacing:0.5px; text-shadow:0 0 6px rgba(103,232,249,0.5); animation:towerHudTextBlink 3s steps(1) infinite; }
 @keyframes towerHudTextBlink { 0%,45% { opacity:0.9; } 50%,55% { opacity:0.15; } 60%,100% { opacity:0.9; } }
-.tower-hud-location { position:absolute; top:12px; right:44px; font-family:monospace; font-size:15px; font-weight:800; color:#e0fbfa; letter-spacing:1px; text-shadow:0 0 10px rgba(103,232,249,0.7); text-align:right; }
+.tower-hud-location { position:absolute; top:26px; right:60px; font-family:monospace; font-size:13px; font-weight:800; color:#67e8f9; letter-spacing:1.5px; text-shadow:0 0 8px rgba(103,232,249,0.6); text-align:right; animation:towerHudTextBlink 3s steps(1) infinite; }
 .tower-hud-scan { position:absolute; top:50%; left:50%; width:1px; height:1px; }
 .tower-hud-scan::before { content:''; position:absolute; top:0; left:0; width:2.5px; height:50%; background:linear-gradient(to top, rgba(103,232,249,0.7), transparent); transform-origin:bottom center; animation:towerHudScan 6s linear infinite; }
 @keyframes towerHudScan { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
