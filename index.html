@@ -318,14 +318,17 @@
 .tower-hud-scan { position:absolute; top:50%; left:50%; width:1px; height:1px; }
 .tower-hud-scan::before { content:''; position:absolute; top:0; left:0; width:2.5px; height:50%; background:linear-gradient(to top, rgba(103,232,249,0.7), transparent); transform-origin:bottom center; animation:towerHudScan 6s linear infinite; }
 @keyframes towerHudScan { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
-.tower-hud-tracer { position:absolute; inset:-4px; border-radius:12px; pointer-events:none; z-index:5002; }
-.tower-hud-tracer svg { width:100%; height:100%; overflow:visible; }
-.tower-hud-tracer rect {
-  fill:none; stroke:#a5f3fc; stroke-width:2.5;
-  stroke-dasharray:60 900; stroke-linecap:round;
-  filter:drop-shadow(0 0 4px rgba(165,243,252,0.9));
-  animation:towerHudTrace 5s linear infinite;
+.tower-hud-tracer { position:absolute; inset:14px; border-radius:10px; pointer-events:none; z-index:5002; }
+.tower-hud-tracer-dot {
+  position:absolute; top:0; left:0; width:80px; height:5px;
+  background:linear-gradient(to right, transparent, #5eead4 60%, #ecfeff);
+  border-radius:3px;
+  filter:drop-shadow(0 0 6px rgba(94,234,212,0.9));
+  offset-path:inset(0 round 10px);
+  offset-rotate:0deg;
+  animation:towerHudTrace 8s linear infinite;
 }
+@keyframes towerHudTrace { to { offset-distance:100%; } }
 @keyframes towerHudTrace { to { stroke-dashoffset:-960; } }
 .tower-hud-ticks { position:absolute; inset:0; pointer-events:none; z-index:5001; }
 .tower-hud-tick { position:absolute; background:rgba(165,243,252,0.55); }
@@ -1107,9 +1110,7 @@ window.renderDeviationTrendTest = function() {
               <div class="tower-hud-overlay">
               <div class="tower-hud-outer-glow"></div>
               <div class="tower-hud-tracer">
-                <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <rect x="1" y="1" width="98" height="98" rx="2" vector-effect="non-scaling-stroke"/>
-                </svg>
+                <div class="tower-hud-tracer-dot"></div>
               </div>
               <div class="tower-hud-ticks" id="tower-hud-ticks"></div>
               <div class="tower-hud-frame">
