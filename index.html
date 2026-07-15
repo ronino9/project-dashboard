@@ -324,8 +324,27 @@
 .tower-hud-tick { position:absolute; background:rgba(165,243,252,0.55); }
 .tower-hud-tick.v { width:1.5px; height:8px; }
 .tower-hud-tick.h { height:1.5px; width:8px; }    
-.tower-hud-outer-glow { position:absolute; inset:-4px; border:2px solid #67e8f9; border-radius:12px; pointer-events:none; z-index:5001; animation:towerOuterGlow 2.4s ease-in-out infinite; }
-@keyframes towerOuterGlow {
+.tower-hud-tracer { 
+  position: absolute; 
+  inset: -2px; 
+  border-radius: 12px; 
+  pointer-events: none; 
+  z-index: 5002; 
+}
+.tower-hud-tracer-dot {
+  position: absolute; 
+  top: 0; left: 0; 
+  width: 250px; 
+  height: 3px;  
+  background: linear-gradient(90deg, transparent 0%, rgba(103,232,249,0.3) 60%, #67e8f9 95%, #ffffff 100%);
+  filter: drop-shadow(0 0 8px rgba(103,232,249, 0.9));
+  offset-path: inset(0px round 12px); 
+  animation: towerHudTrace 5s linear infinite; 
+}
+@keyframes towerHudTrace { 
+  0% { offset-distance: 0%; }
+  100% { offset-distance: 100%; } 
+}
   0%,100% { box-shadow:0 0 6px rgba(103,232,249,0.4), inset 0 0 6px rgba(103,232,249,0.2); opacity:0.6; }
   50% { box-shadow:0 0 24px rgba(103,232,249,0.95), inset 0 0 16px rgba(103,232,249,0.5); opacity:1; }
 }
