@@ -4322,7 +4322,16 @@ const TOWER_CITY_ALIAS = {
   'kuala lumpur': '쿠알라룸푸르', 'kl': '쿠알라룸푸르', '쿠알라룸푸르': '쿠알라룸푸르',
   'huizhou': '후이저우', '후이저우': '후이저우', '후이조우': '후이저우', '후이주': '후이저우',
   'dongtan': '동탄', '동탄': '동탄',
-  'pyeongtaek': '평택', '평택': '평택'
+  'pyeongtaek': '평택', '평택': '평택',
+  'nanjing': '난징', '난징': '난징',
+  'changzhou': '창저우', '창저우': '창저우',
+  'huaian': '화이안', "huai'an": '화이안', '화이안': '화이안',
+  'nanyang': '난양', '난양': '난양',
+  'jingmen': '징먼', '징먼': '징먼',
+  'bucharest': '부쿠레슈티', 'bucuresti': '부쿠레슈티', '부쿠레슈티': '부쿠레슈티'
+
+};
+  
 };
 function towerNormalize(raw, aliasTable) {
   const key = (raw || '').toString().trim().toLowerCase();
@@ -4346,19 +4355,27 @@ let TOWER_REGION_GEOJSON = {};
 let _towerGeoJSONLoaded = false;
 async function loadTowerGeoJSON() {
   if (_towerGeoJSONLoaded) return;
-  const [kr, my, cn] = await Promise.all([
+  const [kr, my, cn, ro] = await Promise.all([
     fetch('/geojson/korea.json').then(r => r.json()),
     fetch('/geojson/malaysia.json').then(r => r.json()),
-    fetch('/geojson/china.json').then(r => r.json())
+    fetch('/geojson/china.json').then(r => r.json()),
+    fetch('/geojson/romania.json').then(r => r.json())
   ]);
-  TOWER_REGION_GEOJSON = { ...kr, ...my, ...cn };
+  TOWER_REGION_GEOJSON = { ...kr, ...my, ...cn, ...ro };
   _towerGeoJSONLoaded = true;
 }
 const TOWER_CITY_TO_REGION = {
   '말레이시아-페낭': '말레이시아-페낭',
   '말레이시아-쿠알라룸푸르': '말레이시아-쿠알라룸푸르',
   '대한민국-동탄': '대한민국-화성시',
-  '대한민국-평택': '대한민국-평택시'
+  '대한민국-평택': '대한민국-평택시',
+  '중국-후이저우': '중국-후이저우',
+  '중국-난징': '중국-난징',
+  '중국-창저우': '중국-창저우',
+  '중국-화이안': '중국-화이안',
+  '중국-난양': '중국-난양',
+  '중국-징먼': '중국-징먼',
+  '루마니아-부쿠레슈티': '루마니아-부쿠레슈티'
 };
 function getTowerRegionGeoJSON(country, city) {
   const normCountry = towerNormalize(country, TOWER_COUNTRY_ALIAS);
