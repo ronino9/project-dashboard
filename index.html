@@ -302,6 +302,7 @@
     #tower-map .leaflet-tile-pane { filter: hue-rotate(150deg) saturate(2.2) brightness(1.15) contrast(1.2); }
     #tower-map .tower-tint { position:absolute; inset:0; background:#0d9488; mix-blend-mode:color; opacity:0.35; pointer-events:none; z-index:401; }
     #tower-map .tower-tint-light { position:absolute; inset:0; background:#5eead4; mix-blend-mode:soft-light; opacity:0.5; pointer-events:none; z-index:402; }
+    .tower-hud-overlay { position:absolute; top:0; left:12.5%; right:12.5%; bottom:0; pointer-events:none; }
     .tower-hud-frame { position:absolute; inset:0; pointer-events:none; z-index:5000; }
 .tower-hud-corner { position:absolute; width:30px; height:30px; border-color:#67e8f9; animation:towerHudBlink 2.4s ease-in-out infinite; }
 .tower-hud-corner.tl { top:6px; left:6px; border-top:3px solid; border-left:3px solid; }
@@ -1090,6 +1091,7 @@ window.renderDeviationTrendTest = function() {
                 <div class="tower-tint"></div>
                 <div class="tower-tint-light"></div>
               </div>
+              <div class="tower-hud-overlay">
               <div class="tower-hud-outer-glow"></div>
               <div class="tower-hud-frame">
                 <div class="tower-hud-corner tl"></div>
@@ -1100,6 +1102,7 @@ window.renderDeviationTrendTest = function() {
                 <div class="tower-hud-sys" id="tower-hud-sys-text">SECTOR: GLOBAL · SYS OK</div>
                 <div class="tower-hud-location" id="tower-hud-location-text">EARTH</div>
                 <div class="tower-hud-scan"></div>
+              </div>
               </div>
               </div>
             </div>
@@ -4436,7 +4439,8 @@ window.renderTowerMap = function() {
       towerCurrentBlinkLayer = layer;
       const normCountry = towerNormalize(g.country, TOWER_COUNTRY_ALIAS);
       const normCity = towerNormalize(g.city, TOWER_CITY_ALIAS);
-      towerSetHudLocation(`EARTH → ${(TOWER_COUNTRY_EN[normCountry] || normCountry).toUpperCase()} → ${(TOWER_CITY_EN[normCity] || normCity).toUpperCase()}`);
+      const cityAbbr = (TOWER_CITY_EN[normCity] || normCity).toUpperCase().substring(0, 3);
+      towerSetHudLocation(`EARTH : ${(TOWER_COUNTRY_EN[normCountry] || normCountry).toUpperCase()} : ${cityAbbr}`);
     });
     layer.on('mouseover', () => layer.setStyle({ fillOpacity: 0.7 }));
     layer.on('mouseout', () => layer.setStyle({ fillOpacity: 0.5 }));
@@ -4579,11 +4583,13 @@ function towerBuildCountryIcon(g) {
   });
   const color = hasDelay ? '#f87171' : '#22e0d8';
   const size = 24;
-  const html = `<div style="position:relative; width:${size}px; height:${size}px; cursor:pointer;">
-      <div class="tower-callout-pulse" style="position:absolute; inset:0; border-radius:50%; background:${color};"></div>
-      <div style="position:absolute; inset:0; border-radius:50%; background:${color}; box-shadow:0 0 12px ${color}; border:2px solid #020617;"></div>
+  const wrap = size * 3;
+  const off = (wrap - size) / 2;
+  const html = `<div style="position:relative; width:${wrap}px; height:${wrap}px; cursor:pointer;">
+      <div class="tower-callout-pulse" style="position:absolute; left:${off}px; top:${off}px; width:${size}px; height:${size}px; border-radius:50%; background:${color};"></div>
+      <div style="position:absolute; left:${off}px; top:${off}px; width:${size}px; height:${size}px; border-radius:50%; background:${color}; box-shadow:0 0 12px ${color}; border:2px solid #020617;"></div>
     </div>`;
-  return L.divIcon({ className: '', html, iconSize: [size, size], iconAnchor: [size/2, size/2] });
+  return L.divIcon({ className: '', html, iconSize: [wrap, wrap], iconAnchor: [wrap/2, wrap/2] });
 }
 
 window.renderTowerCountryCircles = function(map) {
@@ -4599,7 +4605,7 @@ window.renderTowerCountryCircles = function(map) {
       L.DomEvent.stopPropagation(e);
       const targetZoom = TOWER_COUNTRY_ZOOM_LEVEL[g.country] || (map.getMinZoom() + TOWER_COUNTRY_ZOOM_DEFAULT);
       map.flyTo(g.coords, targetZoom, { duration: 1.2, easeLinearity: 0.25 });
-      towerSetHudLocation(`EARTH → ${(TOWER_COUNTRY_EN[g.country] || g.country).toUpperCase()}`);
+      towerSetHudLocation(`EARTH : ${(TOWER_COUNTRY_EN[g.country] || g.country).toUpperCase()}`);
     });
   });
 
