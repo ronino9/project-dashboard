@@ -4489,7 +4489,13 @@ window.renderTowerCards = function(group) {
 
     // ===== 관제탑: 국가 단위 원(펄스) — 줌 레벨에 따라 표시/숨김 =====
 let towerCountryLayerGroup = null;
-const TOWER_COUNTRY_VIEW_ZOOM_OFFSET = 1.5;
+const TOWER_COUNTRY_ZOOM_LEVEL = {
+  '대한민국': 6,
+  '중국': 4,
+  '말레이시아': 6,
+  '루마니아': 6
+};
+const TOWER_COUNTRY_ZOOM_DEFAULT = 5;
 
 function towerBuildCountryGroups() {
   const towerData = allData.controlTower || {};
@@ -4514,7 +4520,7 @@ function towerBuildCountryIcon(g) {
   const color = hasDelay ? '#f87171' : '#22e0d8';
   const size = 24;
   const html = `<div style="position:relative; width:${size}px; height:${size}px; cursor:pointer;">
-      <div class="tower-callout-pulse" style="position:absolute; left:8px; top:8px; width:${size}px; height:${size}px; border-radius:50%; background:${color};"></div>
+      <div class="tower-callout-pulse" style="position:absolute; inset:0; border-radius:50%; background:${color};"></div>
       <div style="position:absolute; inset:0; border-radius:50%; background:${color}; box-shadow:0 0 12px ${color}; border:2px solid #020617;"></div>
     </div>`;
   return L.divIcon({ className: '', html, iconSize: [size, size], iconAnchor: [size/2, size/2] });
@@ -4531,7 +4537,8 @@ window.renderTowerCountryCircles = function(map) {
     marker.bindTooltip(`${g.country} · ${g.projects.map(c => TOWER_LABEL_MAP[c] || c).join(' · ')}`);
     marker.on('click', (e) => {
       L.DomEvent.stopPropagation(e);
-      map.flyTo(g.coords, map.getMinZoom() + 3, { duration: 1.2, easeLinearity: 0.25 });
+      const targetZoom = TOWER_COUNTRY_ZOOM_LEVEL[g.country] || (map.getMinZoom() + TOWER_COUNTRY_ZOOM_DEFAULT);
+      map.flyTo(g.coords, targetZoom, { duration: 1.2, easeLinearity: 0.25 });
     });
   });
 
