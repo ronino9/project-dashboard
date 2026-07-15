@@ -4356,9 +4356,7 @@ window.renderTowerMap = function() {
     towerMapInstance.fitWorld({ animate: false });
     towerMapInstance.setMinZoom(towerMapInstance.getZoom());
     towerMapInstance.on('zoomend moveend', () => {
-      if (window._towerLastGroups) {
-        window.renderTowerCallouts(towerMapInstance, window._towerLastGroups.polygonGroups, window._towerLastGroups.pointGroups);
-      }
+      window.towerUpdateCountryVisibility(towerMapInstance);
     });
   } else {
     towerMapInstance.eachLayer(layer => {
@@ -4423,8 +4421,7 @@ window.renderTowerMap = function() {
   setTimeout(() => { towerMapInstance.invalidateSize(); }, 300);
 
   window.renderTowerSidebar({ ...polygonGroups, ...pointGroups });
-  window._towerLastGroups = { polygonGroups, pointGroups };
-  window.renderTowerCallouts(towerMapInstance, polygonGroups, pointGroups);
+  window.renderTowerCountryCircles(towerMapInstance);
 };
 
 window.renderTowerSidebar = function(groups) {
@@ -4489,76 +4486,66 @@ window.renderTowerCards = function(group) {
     `;
   }).join('');
 };
-    // ===== 관제탑 콜아웃 (클러스터 자동 감지 + 사이버 라벨 + 3중 도넛) =====
-const TOWER_CALLOUT_PX_THRESHOLD = 45;
-let towerCalloutLayerGroup = null;
 
-function towerGroupCenterLatLng(g) {
-  if (g.geojson) { try { return L.geoJSON(g.geojson).getBounds().getCenter(); } catch(e) { return null; } }
-  if (g.coords) return L.latLng(g.coords[0], g.coords[1]);
-  return null;
+    // ===== 관제탑: 국가 단위 원(펄스) — 줌 레벨에 따라 표시/숨김 =====
+let towerCountryLayerGroup = null;
+const TOWER_COUNTRY_VIEW_ZOOM_OFFSET = 1.5;
+
+function towerBuildCountryGroups() {
+  const towerData = allData.controlTower || {};
+  const groups = {};
+  Object.keys(towerData).forEach(code => {
+    const info = towerData[code];
+    if (!info) return;
+    const normCountry = towerNormalize(info.country, TOWER_COUNTRY_ALIAS);
+    if (!normCountry || !TOWER_COUNTRY_COORDS[normCountry]) return;
+    if (!groups[normCountry]) groups[normCountry] = { coords: TOWER_COUNTRY_COORDS[normCountry], country: normCountry, projects: [] };
+    groups[normCountry].projects.push(code);
+  });
+  return groups;
 }
 
-function towerComputeClusters(map, allGroups) {
-  const pts = allGroups.map(g => {
-    const ll = towerGroupCenterLatLng(g);
-    if (!ll || isNaN(ll.lat) || isNaN(ll.lng)) return null;
-    const p = map.latLngToContainerPoint(ll);
-    if (isNaN(p.x) || isNaN(p.y)) return null;
-    return { g, ll, p };
-  }).filter(Boolean);
-
-  const clusters = [];
-  const visited = new Array(pts.length).fill(false);
-  for (let i = 0; i < pts.length; i++) {
-    if (visited[i]) continue;
-    const cluster = [pts[i]];
-    visited[i] = true;
-    for (let j = i + 1; j < pts.length; j++) {
-      if (visited[j]) continue;
-      if (pts[i].p.distanceTo(pts[j].p) <= TOWER_CALLOUT_PX_THRESHOLD) {
-        cluster.push(pts[j]);
-        visited[j] = true;
-      }
-    }
-    if (cluster.length >= 2) clusters.push(cluster);
-  }
-  return clusters;
-}
-
-function towerBuildCalloutIcon(codes) {
-  const labelText = codes.map(c => TOWER_LABEL_MAP[c] || c).join(' · ');
-  const html = `
-    <div style="position:relative; width:1px; height:1px; cursor:pointer;">
-      <div class="tower-callout-pulse" style="position:absolute; left:-9px; top:-9px; width:18px; height:18px; border-radius:50%; background:#22e0d8;"></div>
-      <div style="position:absolute; left:-4px; top:-4px; width:8px; height:8px; border-radius:50%; background:#22e0d8; box-shadow:0 0 6px #22e0d8;"></div>
-      <svg width="220" height="80" viewBox="0 0 220 80" style="position:absolute; left:8px; top:-55px; overflow:visible;">
-        <line x1="0" y1="50" x2="34" y2="25" stroke="#22e0d8" stroke-width="1.5"/>
-        <line x1="34" y1="25" x2="190" y2="25" stroke="#22e0d8" stroke-width="1.5"/>
-        <text x="40" y="18" font-size="12" fill="#22e0d8" font-family="monospace" font-weight="700">${labelText}</text>
-      </svg>
+function towerBuildCountryIcon(g) {
+  const hasDelay = g.projects.some(code => {
+    const pKey = TOWER_PKEY_MAP[code];
+    const hist = (allData[pKey] && allData[pKey].history) || [];
+    return hist.some(r => r['진행상태'] === '지연중');
+  });
+  const color = hasDelay ? '#f87171' : '#22e0d8';
+  const size = 24;
+  const html = `<div style="position:relative; width:${size}px; height:${size}px; cursor:pointer;">
+      <div class="tower-callout-pulse" style="position:absolute; left:8px; top:8px; width:${size}px; height:${size}px; border-radius:50%; background:${color};"></div>
+      <div style="position:absolute; inset:0; border-radius:50%; background:${color}; box-shadow:0 0 12px ${color}; border:2px solid #020617;"></div>
     </div>`;
-  return L.divIcon({ className: '', html, iconSize: [1,1], iconAnchor: [0, 0] });
+  return L.divIcon({ className: '', html, iconSize: [size, size], iconAnchor: [size/2, size/2] });
 }
 
-window.renderTowerCallouts = function(map, polygonGroups, pointGroups) {
-  if (!towerCalloutLayerGroup) towerCalloutLayerGroup = L.layerGroup().addTo(map);
-  else towerCalloutLayerGroup.clearLayers();
+window.renderTowerCountryCircles = function(map) {
+  if (!towerCountryLayerGroup) towerCountryLayerGroup = L.layerGroup();
+  towerCountryLayerGroup.clearLayers();
 
-  const allGroups = [...Object.values(polygonGroups), ...Object.values(pointGroups)];
-  const clusters = towerComputeClusters(map, allGroups);
-
-  clusters.forEach(cluster => {
-    const anchor = cluster[0].ll;
-    const codes = [];
-    cluster.forEach(c => c.g.projects.forEach(code => codes.push(code)));
-
-    const icon = towerBuildCalloutIcon(codes);
-    const marker = L.marker(anchor, { icon, interactive: true, zIndexOffset: 1000 }).addTo(towerCalloutLayerGroup);
-    marker.on('click', () => {
-      map.flyTo(anchor, 5, { duration: 1.2, easeLinearity: 0.25 });
+  const groups = towerBuildCountryGroups();
+  Object.values(groups).forEach(g => {
+    const icon = towerBuildCountryIcon(g);
+    const marker = L.marker(g.coords, { icon, interactive: true, zIndexOffset: 900 }).addTo(towerCountryLayerGroup);
+    marker.bindTooltip(`${g.country} · ${g.projects.map(c => TOWER_LABEL_MAP[c] || c).join(' · ')}`);
+    marker.on('click', (e) => {
+      L.DomEvent.stopPropagation(e);
+      map.flyTo(g.coords, map.getMinZoom() + 3, { duration: 1.2, easeLinearity: 0.25 });
     });
   });
+
+  window.towerUpdateCountryVisibility(map);
+};
+
+window.towerUpdateCountryVisibility = function(map) {
+  if (!towerCountryLayerGroup) return;
+  const threshold = map.getMinZoom() + TOWER_COUNTRY_VIEW_ZOOM_OFFSET;
+  if (map.getZoom() <= threshold) {
+    if (!map.hasLayer(towerCountryLayerGroup)) towerCountryLayerGroup.addTo(map);
+  } else {
+    if (map.hasLayer(towerCountryLayerGroup)) map.removeLayer(towerCountryLayerGroup);
+  }
 };
     document.addEventListener('DOMContentLoaded', () => {
       const slider = document.getElementById('spacingSlider');
