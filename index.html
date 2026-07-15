@@ -4443,8 +4443,8 @@ window.renderTowerMap = function() {
       const hist = (allData[pKey] && allData[pKey].history) || [];
       if (hist.some(r => r['진행상태'] === '지연중')) hasDelay = true;
     });
-    const fillColor = hasDelay ? '#f87171' : '#22d3ee';
-    const lineColor = hasDelay ? '#fca5a5' : '#67e8f9';
+    const fillColor = hasDelay ? '#f87171' : '#4ade80';
+    const lineColor = hasDelay ? '#fca5a5' : '#86efac';
 
     const layer = L.geoJSON(g.geojson, {
       style: { fillColor, fillOpacity: 0.5, color: lineColor, weight: 1.5 }
@@ -4474,7 +4474,7 @@ window.renderTowerMap = function() {
       const hist = (allData[pKey] && allData[pKey].history) || [];
       if (hist.some(r => r['진행상태'] === '지연중')) hasDelay = true;
     });
-    const markerColor = hasDelay ? '#f87171' : '#22d3ee';
+    const markerColor = hasDelay ? '#f87171' : '#4ade80';
     const glow = hasDelay ? 'rgba(248,113,113,0.7)' : 'rgba(34,211,238,0.7)';
     const size = g.projects.length > 1 ? 30 : 22;
 
