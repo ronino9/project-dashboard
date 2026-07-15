@@ -4586,9 +4586,9 @@ function towerBuildCountryIcon(g) {
   const size = 24;
   const wrap = size * 3;
   const off = (wrap - size) / 2;
-  const html = `<div style="position:relative; width:${wrap}px; height:${wrap}px; cursor:pointer;">
-      <div class="tower-callout-pulse" style="position:absolute; left:${off}px; top:${off}px; width:${size}px; height:${size}px; border-radius:50%; background:${color};"></div>
-      <div style="position:absolute; left:${off}px; top:${off}px; width:${size}px; height:${size}px; border-radius:50%; background:${color}; box-shadow:0 0 12px ${color}; border:2px solid #020617;"></div>
+  const html = `<div style="position:relative; width:${wrap}px; height:${wrap}px; pointer-events:none;">
+      <div class="tower-callout-pulse" style="position:absolute; left:${off}px; top:${off}px; width:${size}px; height:${size}px; border-radius:50%; background:${color}; pointer-events:none;"></div>
+      <div style="position:absolute; left:${off}px; top:${off}px; width:${size}px; height:${size}px; border-radius:50%; background:${color}; box-shadow:0 0 12px ${color}; border:2px solid #020617; cursor:pointer; pointer-events:auto;"></div>
     </div>`;
   return L.divIcon({ className: '', html, iconSize: [wrap, wrap], iconAnchor: [wrap/2, wrap/2] });
 }
