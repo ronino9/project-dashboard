@@ -4622,27 +4622,35 @@ window.renderTowerCountryCircles = function(map) {
     const icon = towerBuildCountryIcon(g);
     const marker = L.marker(g.coords, { icon, interactive: true, zIndexOffset: 900 }).addTo(towerCountryLayerGroup);
     marker.bindTooltip(`${g.country} · ${g.projects.map(c => TOWER_LABEL_MAP[c] || c).join(' · ')}`);
-    
+
     marker.on('click', (e) => {
       L.DomEvent.stopPropagation(e);
+      // 1. 딱 '국가' 레벨까지만 카메라 줌인
       const targetZoom = TOWER_COUNTRY_ZOOM_LEVEL[g.country] || (map.getMinZoom() + TOWER_COUNTRY_ZOOM_DEFAULT);
       map.flyTo(g.coords, targetZoom, { duration: 1.2, easeLinearity: 0.25 });
       towerSetHudLocation(`EARTH : ${(TOWER_COUNTRY_EN[g.country] || g.country).toUpperCase()}`);
-      
-      // 👇 국가 마커 클릭 시, 그 국가의 도시를 자동으로 찾아 클릭(점멸)해주는 코드 추가
+
+      // 2. 우측 패널에 해당 국가에 속한 '전체' 프로젝트 리스트 띄우기
+      window.renderTowerCards({ projects: g.projects, country: g.country, city: '전체' });
+
+      // 3. 카메라 강제 이동 없이, 순수하게 색칠된 도시들의 점멸 효과만 켜기
       setTimeout(() => {
-        let clicked = false;
+        // 기존에 점멸 중이던 다른 지역 끄기
+        document.querySelectorAll('.tower-region-blink').forEach(el => el.classList.remove('tower-region-blink'));
+
         map.eachLayer(layer => {
-          if (clicked || layer === marker) return; // 자기 자신(국가 원)은 제외
+          if (layer === marker) return; 
           if (layer.getTooltip) {
             const tooltip = layer.getTooltip();
             if (tooltip && tooltip.getContent().includes(g.country)) {
-              layer.fire('click'); // 도시 폴리곤 강제 클릭 (점멸 효과 및 패널 정보 켜짐)
-              clicked = true;
+              // 강제 클릭 이벤트를 빼고, 점멸 디자인 함수만 직접 호출합니다.
+              if (typeof towerSetBlink === 'function') {
+                towerSetBlink(layer, true);
+              }
             }
           }
         });
-      }, 800); // 줌인 애니메이션 중간쯤에 자연스럽게 켜지도록 0.8초 지연
+      }, 800);
     });
   });
 
