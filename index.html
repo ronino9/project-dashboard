@@ -286,6 +286,18 @@
     .tower-delay-badge.hot { color:#fca5a5; background:#1f0a0a; border:1px solid #7f1d1d; }
     .tower-delay-badge.cold { color:#64748b; background:transparent; }
     .tower-map-wrap { width:84%; margin:0 auto; }
+    .tower-callout-pulse { animation: towerPulse 2s ease-out infinite; }
+@keyframes towerPulse {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  70% { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.tower-callout-mid-ring { animation: towerMidRingLoop 3s linear infinite; }
+@keyframes towerMidRingLoop {
+  0% { stroke-dashoffset: var(--circ); }
+  95% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: var(--circ); }
+}
     .tower-map-frame { position: relative; width: 100%; }
     /* width를 75%로 줄이고, margin: 0 auto; 로 가운데 정렬 */
     #tower-map { width: 75%; margin: 0 auto; height: auto; aspect-ratio: 1 / 1; border-radius: 8px; overflow: hidden; }
@@ -4349,6 +4361,11 @@ window.renderTowerMap = function() {
 
     towerMapInstance.fitWorld({ animate: false });
     towerMapInstance.setMinZoom(towerMapInstance.getZoom());
+    towerMapInstance.on('zoomend moveend', () => {
+      if (window._towerLastGroups) {
+        window.renderTowerCallouts(towerMapInstance, window._towerLastGroups.polygonGroups, window._towerLastGroups.pointGroups);
+      }
+    });
   } else {
     towerMapInstance.eachLayer(layer => {
       if (layer instanceof L.Marker || layer instanceof L.GeoJSON) towerMapInstance.removeLayer(layer);
@@ -4412,6 +4429,8 @@ window.renderTowerMap = function() {
   setTimeout(() => { towerMapInstance.invalidateSize(); }, 300);
 
   window.renderTowerSidebar({ ...polygonGroups, ...pointGroups });
+  window._towerLastGroups = { polygonGroups, pointGroups };
+  window.renderTowerCallouts(towerMapInstance, polygonGroups, pointGroups);
 };
 
 window.renderTowerSidebar = function(groups) {
@@ -4475,6 +4494,97 @@ window.renderTowerCards = function(group) {
       </div>
     `;
   }).join('');
+};
+    // ===== 관제탑 콜아웃 (클러스터 자동 감지 + 사이버 라벨 + 3중 도넛) =====
+const TOWER_CALLOUT_PX_THRESHOLD = 45;
+let towerCalloutLayerGroup = null;
+
+function towerGroupCenterLatLng(g) {
+  if (g.geojson) { try { return L.geoJSON(g.geojson).getBounds().getCenter(); } catch(e) { return null; } }
+  if (g.coords) return L.latLng(g.coords[0], g.coords[1]);
+  return null;
+}
+
+function towerComputeClusters(map, allGroups) {
+  const pts = allGroups.map(g => {
+    const ll = towerGroupCenterLatLng(g);
+    if (!ll) return null;
+    return { g, ll, p: map.latLngToContainerPoint(ll) };
+  }).filter(Boolean);
+
+  const clusters = [];
+  const visited = new Array(pts.length).fill(false);
+  for (let i = 0; i < pts.length; i++) {
+    if (visited[i]) continue;
+    const cluster = [pts[i]];
+    visited[i] = true;
+    for (let j = i + 1; j < pts.length; j++) {
+      if (visited[j]) continue;
+      if (pts[i].p.distanceTo(pts[j].p) <= TOWER_CALLOUT_PX_THRESHOLD) {
+        cluster.push(pts[j]);
+        visited[j] = true;
+      }
+    }
+    if (cluster.length >= 2) clusters.push(cluster);
+  }
+  return clusters;
+}
+
+function towerBuildCalloutIcon(labelText, progressPct) {
+  const r = 16, rMid = 22, rOuter = 27;
+  const circMid = 2 * Math.PI * rMid;
+  const circInner = 2 * Math.PI * r;
+  const innerOffset = circInner - (circInner * (progressPct / 100));
+
+  const html = `
+    <div style="position:relative; width:1px; height:1px;">
+      <div class="tower-callout-pulse" style="position:absolute; left:-9px; top:-9px; width:18px; height:18px; border-radius:50%; background:#22e0d8;"></div>
+      <div style="position:absolute; left:-4px; top:-4px; width:8px; height:8px; border-radius:50%; background:#22e0d8; box-shadow:0 0 6px #22e0d8;"></div>
+      <svg width="220" height="120" viewBox="0 0 220 120" style="position:absolute; left:8px; top:-95px; overflow:visible;">
+        <line x1="0" y1="90" x2="34" y2="65" stroke="#22e0d8" stroke-width="1.5"/>
+        <line x1="34" y1="65" x2="98" y2="65" stroke="#22e0d8" stroke-width="1.5"/>
+        <text x="40" y="58" font-size="12" fill="#22e0d8" font-family="monospace" font-weight="700">${labelText}</text>
+        <g transform="translate(160,60)">
+          <circle r="${rOuter}" fill="none" stroke="#0e2a26" stroke-width="1.5"/>
+          <circle r="${rMid}" fill="none" stroke="#123a35" stroke-width="3"/>
+          <circle class="tower-callout-mid-ring" r="${rMid}" fill="none" stroke="#22e0d8" stroke-width="3"
+            stroke-dasharray="${circMid}" stroke-dashoffset="${circMid}" style="--circ:${circMid}px; transform:rotate(-90deg); transform-origin:center;"/>
+          <circle r="${r}" fill="none" stroke="#0e2a26" stroke-width="6"/>
+          <circle r="${r}" fill="none" stroke="#22e0d8" stroke-width="6"
+            stroke-dasharray="${circInner}" stroke-dashoffset="${innerOffset}"
+            style="transform:rotate(-90deg); transform-origin:center;"/>
+          <text x="0" y="5" font-size="14" fill="#e0fbfa" font-family="monospace" font-weight="700" text-anchor="middle">${Math.round(progressPct)}%</text>
+        </g>
+      </svg>
+    </div>`;
+  return L.divIcon({ className: '', html, iconSize: [1,1] });
+}
+
+window.renderTowerCallouts = function(map, polygonGroups, pointGroups) {
+  if (!towerCalloutLayerGroup) towerCalloutLayerGroup = L.layerGroup().addTo(map);
+  else towerCalloutLayerGroup.clearLayers();
+
+  const allGroups = [...Object.values(polygonGroups), ...Object.values(pointGroups)];
+  const clusters = towerComputeClusters(map, allGroups);
+
+  clusters.forEach(cluster => {
+    const anchor = cluster[0].ll;
+    const codes = [];
+    cluster.forEach(c => c.g.projects.forEach(code => codes.push(code)));
+    const label = codes.map(c => TOWER_LABEL_MAP[c] || c).join(' / ');
+
+    let sum = 0, n = 0;
+    codes.forEach(code => {
+      const pKey = TOWER_PKEY_MAP[code];
+      const d = allData[pKey] || {};
+      const overall = (d.summary && d.summary.overall) ? parseFloat(d.summary.overall) : 0;
+      if (!isNaN(overall)) { sum += overall; n++; }
+    });
+    const avgProgress = n > 0 ? (sum / n) : 0;
+
+    const icon = towerBuildCalloutIcon(label, avgProgress);
+    L.marker(anchor, { icon, interactive: false, zIndexOffset: 1000 }).addTo(towerCalloutLayerGroup);
+  });
 };
     document.addEventListener('DOMContentLoaded', () => {
       const slider = document.getElementById('spacingSlider');
