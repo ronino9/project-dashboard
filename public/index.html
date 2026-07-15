@@ -1161,7 +1161,7 @@ window.renderDeviationTrendTest = function() {
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxAYtfAWdSrcUF5R_k_Hdv1v8MuwYOnF8e0RIUlDNlpctJDAxvluL8Tt80YWBV9hHzn4Q/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyEPL8AkBRto4BDmGJ5omRzxkyLGZUpV4-6liWoKTLDWN0h3qQrvr0b6H6q5ZHwVmCKeA/exec';
 
     let allData = {}; 
     let documentLinksData = [];
@@ -4415,6 +4415,16 @@ function towerSetBlink(geoLayer, on) {
 }
 const TOWER_PKEY_MAP = { OP2:'project2', OP3:'project3', OP4:'project4', OP5:'project5', OP6:'project6', OP7:'project7', OP8:'project8', ETC:'projectEtc' };
 const TOWER_LABEL_MAP = { OP2:'OP2', OP3:'OP3', OP4:'OP4', OP5:'OP5', OP6:'OP6', OP7:'OP7', OP8:'OP8', ETC:'기타업무' };
+    // 👉 신규: CP1~CP7 지연 여부 판정 (project1CsRiskMap의 status 활용, '안정' 아니면 지연 취급)
+function towerIsDelayed(code) {
+  if (code.startsWith('CP')) {
+    const info = (allData.project1CsRiskMap || []).find(p => p.name === code);
+    return info ? info.status !== '안정' : false;
+  }
+  const pKey = TOWER_PKEY_MAP[code];
+  const hist = (allData[pKey] && allData[pKey].history) || [];
+  return hist.some(r => r['진행상태'] === '지연중');
+}
 
 function towerBuildGroups() {
   const towerData = allData.controlTower || {};
@@ -4484,12 +4494,7 @@ window.renderTowerMap = function() {
 
   // ── 폴리곤(경계선 색칠) 지역 렌더링 ──
   Object.values(polygonGroups).forEach(g => {
-    let hasDelay = false;
-    g.projects.forEach(code => {
-      const pKey = TOWER_PKEY_MAP[code];
-      const hist = (allData[pKey] && allData[pKey].history) || [];
-      if (hist.some(r => r['진행상태'] === '지연중')) hasDelay = true;
-    });
+    const hasDelay = g.projects.some(code => towerIsDelayed(code));
     const fillColor = hasDelay ? '#f87171' : '#4ade80';
     const lineColor = hasDelay ? '#fca5a5' : '#86efac';
 
@@ -4517,14 +4522,8 @@ window.renderTowerMap = function() {
 
   // ── 폴리곤 없는 지역: 기존 포인트 마커 폴백 ──
   Object.values(pointGroups).forEach(g => {
-    let hasDelay = false;
-    g.projects.forEach(code => {
-      const pKey = TOWER_PKEY_MAP[code];
-      const hist = (allData[pKey] && allData[pKey].history) || [];
-      if (hist.some(r => r['진행상태'] === '지연중')) hasDelay = true;
-    });
-    // 이렇게 수정하세요!
-const markerColor = hasDelay ? '#f87171' : '#22e0d8';
+    const hasDelay = g.projects.some(code => towerIsDelayed(code));
+    const markerColor = hasDelay ? '#f87171' : '#22e0d8';
     const glow = hasDelay ? 'rgba(248,113,113,0.7)' : 'rgba(34,211,238,0.7)';
     const size = g.projects.length > 1 ? 30 : 22;
 
@@ -4567,12 +4566,18 @@ window.renderTowerSidebar = function(groups) {
   if (!totalEl || !listEl) return;
 
   const items = [];
-  Object.keys(TOWER_PKEY_MAP).forEach(code => {
+  Object.keys(allData.controlTower || {}).forEach(code => {
     if (code === 'ETC') return;
-    const pKey = TOWER_PKEY_MAP[code];
-    const hist = (allData[pKey] && allData[pKey].history) || [];
-    const delays = hist.map(r => parseInt(r['지연일']) || 0).filter(d => d > 0);
-    const maxDelay = delays.length > 0 ? Math.max(...delays) : 0;
+    let maxDelay = 0;
+    if (code.startsWith('CP')) {
+      const info = (allData.project1CsRiskMap || []).find(p => p.name === code);
+      maxDelay = info ? Math.round(parseFloat(info.y) || 0) : 0;
+    } else {
+      const pKey = TOWER_PKEY_MAP[code];
+      const hist = (allData[pKey] && allData[pKey].history) || [];
+      const delays = hist.map(r => parseInt(r['지연일']) || 0).filter(d => d > 0);
+      maxDelay = delays.length > 0 ? Math.max(...delays) : 0;
+    }
     const towerInfo = (allData.controlTower && allData.controlTower[code]) || {};
     items.push({ code, maxDelay, city: towerInfo.city || towerInfo.country || '' });
   });
@@ -4587,7 +4592,7 @@ window.renderTowerSidebar = function(groups) {
   const top = items.slice(0, 5);
   listEl.innerHTML = top.map(it => `
     <div class="tower-delay-row">
-      <span class="tower-delay-name">${TOWER_LABEL_MAP[it.code]} · ${it.city}</span>
+      <span class="tower-delay-name">${TOWER_LABEL_MAP[it.code] || it.code} · ${it.city}</span>
       <span class="tower-delay-badge ${it.maxDelay > 0 ? 'hot' : 'cold'}">${it.maxDelay}일</span>
     </div>
   `).join('');
@@ -4598,29 +4603,44 @@ window.renderTowerCards = function(group) {
   if (!container) return;
 
   container.innerHTML = group.projects.map(code => {
-    const pKey = TOWER_PKEY_MAP[code];
-    const d = allData[pKey] || {};
-    const summary = d.summary || {};
-    const overall = summary.overall || '0%';
-    const hist = d.history || [];
-    const hasDelay = hist.some(r => r['진행상태'] === '지연중');
-    const compliant = hist.length > 0 ? Math.round((hist.filter(r => (parseInt(r['지연일']) || 0) <= 0).length / hist.length) * 100) : 100;
+    const label = TOWER_LABEL_MAP[code] || code;
+    let overall, hasDelay, subLine2, clickTarget;
+
+    if (code.startsWith('CP')) {
+      const info = (allData.project1CsRiskMap || []).find(p => p.name === code) || {};
+      overall = `${Math.round(info.progress || 0)}%`;
+      hasDelay = (info.status || '안정') !== '안정';
+      const delaySum = Math.round(parseFloat(info.y) || 0);
+      subLine2 = `지연일 합계 ${delaySum}일`;
+      clickTarget = 'project1cs';
+    } else {
+      const pKey = TOWER_PKEY_MAP[code];
+      const d = allData[pKey] || {};
+      const summary = d.summary || {};
+      overall = summary.overall || '0%';
+      const hist = d.history || [];
+      hasDelay = hist.some(r => r['진행상태'] === '지연중');
+      const compliant = hist.length > 0 ? Math.round((hist.filter(r => (parseInt(r['지연일']) || 0) <= 0).length / hist.length) * 100) : 100;
+      subLine2 = `일정 준수율 ${compliant}%`;
+      clickTarget = pKey;
+    }
+
     const clickable = code !== 'ETC';
-    const clickAttr = clickable ? `onclick="window.switchTab('${pKey}')"` : '';
+    const clickAttr = clickable ? `onclick="window.switchTab('${clickTarget}')"` : '';
 
     return `
       <div class="tower-card" ${clickAttr}>
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span class="tower-card-code">${TOWER_LABEL_MAP[code]}</span>
+          <span class="tower-card-code">${label}</span>
           <span class="tower-card-status" style="background:${hasDelay ? '#1f0a0a' : '#052e21'}; color:${hasDelay ? '#fca5a5' : '#6ee7b7'}; border:1px solid ${hasDelay ? '#7f1d1d' : '#065f46'};">${hasDelay ? '지연중' : '정상'}</span>
         </div>
         <div class="tower-card-progress">${overall}</div>
-        <div class="tower-card-sub">일정 준수율 ${compliant}%</div>
+        <div class="tower-card-sub">${subLine2}</div>
         <div class="tower-card-sub">${group.country} ${group.city || ''}</div>
       </div>
     `;
   }).join('');
-};
+};;
 
     // ===== 관제탑: 국가 단위 원(펄스) — 줌 레벨에 따라 표시/숨김 =====
 let towerCountryLayerGroup = null;
@@ -4654,11 +4674,7 @@ function towerBuildCountryGroups() {
 }
 
 function towerBuildCountryIcon(g) {
-  const hasDelay = g.projects.some(code => {
-    const pKey = TOWER_PKEY_MAP[code];
-    const hist = (allData[pKey] && allData[pKey].history) || [];
-    return hist.some(r => r['진행상태'] === '지연중');
-  });
+  const hasDelay = g.projects.some(code => towerIsDelayed(code));
   const color = hasDelay ? '#f87171' : '#22e0d8';
   const glow = hasDelay ? 'rgba(248,113,113,0.7)' : 'rgba(34,224,216,0.7)';
   const size = 40;
