@@ -4328,7 +4328,9 @@ const TOWER_CITY_ALIAS = {
   'huaian': '화이안', "huai'an": '화이안', '화이안': '화이안',
   'nanyang': '난양', '난양': '난양',
   'jingmen': '징먼', '징먼': '징먼',
-'bucharest': '부쿠레슈티', 'bucuresti': '부쿠레슈티', '부쿠레슈티': '부쿠레슈티'
+'bucharest': '부쿠레슈티', 'bucuresti': '부쿠레슈티', '부쿠레슈티': '부쿠레슈티',
+  'zhangjiajie': '장가장', '장가장': '장가장', '장자제': '장가장',
+  'seosan': '서산', '서산': '서산'
 };
 function towerNormalize(raw, aliasTable) {
   const key = (raw || '').toString().trim().toLowerCase();
@@ -4372,7 +4374,9 @@ const TOWER_CITY_TO_REGION = {
   '중국-화이안': '중국-화이안',
   '중국-난양': '중국-난양',
   '중국-징먼': '중국-징먼',
-  '루마니아-부쿠레슈티': '루마니아-부쿠레슈티'
+  '루마니아-부쿠레슈티': '루마니아-부쿠레슈티',
+  '중국-장가장': '중국-장가장',
+  '대한민국-서산': '대한민국-서산'
 };
 function getTowerRegionGeoJSON(country, city) {
   const normCountry = towerNormalize(country, TOWER_COUNTRY_ALIAS);
