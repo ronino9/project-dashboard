@@ -286,7 +286,11 @@
     .tower-delay-badge.hot { color:#fca5a5; background:#1f0a0a; border:1px solid #7f1d1d; }
     .tower-delay-badge.cold { color:#64748b; background:transparent; }
     .tower-map-wrap { width:84%; margin:0 auto; }
-    .tower-callout-pulse { animation: towerPulse 2s ease-out infinite; }
+    .tower-region-blink { animation: towerRegionBlink 1.1s ease-in-out infinite; }
+@keyframes towerRegionBlink {
+  0%, 100% { fill-opacity: 0.5; }
+  50% { fill-opacity: 0.15; }
+}
 @keyframes towerPulse {
   0% { transform: scale(0.6); opacity: 0.9; }
   70% { transform: scale(2.2); opacity: 0; }
@@ -4299,6 +4303,14 @@ function getTowerCoords(country, city) {
 }
 
 let towerMapInstance = null;
+let towerCurrentBlinkLayer = null;
+function towerSetBlink(geoLayer, on) {
+  geoLayer.eachLayer(sub => {
+    const el = sub.getElement && sub.getElement();
+    if (!el) return;
+    el.classList.toggle('tower-region-blink', on);
+  });
+}
 const TOWER_PKEY_MAP = { OP2:'project2', OP3:'project3', OP4:'project4', OP5:'project5', OP6:'project6', OP7:'project7', OP8:'project8', ETC:'projectEtc' };
 const TOWER_LABEL_MAP = { OP2:'OP2', OP3:'OP3', OP4:'OP4', OP5:'OP5', OP6:'OP6', OP7:'OP7', OP8:'OP8', ETC:'기타업무' };
 
@@ -4387,6 +4399,9 @@ window.renderTowerMap = function() {
     layer.on('click', () => {
       towerMapInstance.flyToBounds(layer.getBounds(), { duration: 1.2, easeLinearity: 0.25 });
       window.renderTowerCards(g);
+      if (towerCurrentBlinkLayer && towerCurrentBlinkLayer !== layer) towerSetBlink(towerCurrentBlinkLayer, false);
+      towerSetBlink(layer, true);
+      towerCurrentBlinkLayer = layer;
     });
     layer.on('mouseover', () => layer.setStyle({ fillOpacity: 0.7 }));
     layer.on('mouseout', () => layer.setStyle({ fillOpacity: 0.5 }));
