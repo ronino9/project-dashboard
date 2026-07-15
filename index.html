@@ -4467,7 +4467,8 @@ window.renderTowerMap = function() {
       const hist = (allData[pKey] && allData[pKey].history) || [];
       if (hist.some(r => r['진행상태'] === '지연중')) hasDelay = true;
     });
-    const markerColor = hasDelay ? '#f87171' : '#4ade80';
+    // 이렇게 수정하세요!
+const markerColor = hasDelay ? '#f87171' : '#22e0d8';
     const glow = hasDelay ? 'rgba(248,113,113,0.7)' : 'rgba(34,211,238,0.7)';
     const size = g.projects.length > 1 ? 30 : 22;
 
