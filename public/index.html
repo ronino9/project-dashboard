@@ -4667,8 +4667,8 @@ function towerBuildCountryIcon(g) {
     : `box-shadow:0 0 14px ${glowSoft}, inset 0 0 8px ${glowSoft};`;
 
   const html = `<div style="position:relative; width:${size}px; height:${size}px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-      <div class="tower-callout-pulse" style="position:absolute; inset:-4px; border-radius:50%; border:1px solid ${color}; opacity:${hasDelay ? 0.95 : 0.8}; pointer-events:none;"></div>
-      <div style="position:absolute; inset:${ringInset}px; border-radius:50%; border:2.5px solid ${color}; ${glowLayer} pointer-events:none;"></div>
+      <div class="tower-callout-pulse" style="position:absolute; inset:-4px; border-radius:50%; border:${hasDelay ? '2.5px' : '1px'} solid ${color}; opacity:${hasDelay ? 1 : 0.8}; pointer-events:none;"></div>
+      <div style="position:absolute; inset:${ringInset}px; border-radius:50%; border:${hasDelay ? '4px' : '2.5px'} solid ${color}; ${glowLayer} pointer-events:none;"></div>
       <div style="width:${coreSize}px; height:${coreSize}px; border-radius:50%; background:${color}; opacity:1; box-shadow:0 0 ${hasDelay ? 14 : 8}px ${glowStrong}; pointer-events:none;"></div>
     </div>`;
   return L.divIcon({ className: '', html, iconSize: [size, size], iconAnchor: [size/2, size/2] });
