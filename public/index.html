@@ -1090,7 +1090,34 @@ window.renderDeviationTrendTest = function() {
 
       <div id="tower-panel" style="display:none;">
       <div class="tower-shell">
-        <div class="tower-title">🗼 관제탑 — 프로젝트 글로벌 현황</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div class="tower-title" style="margin-bottom:0;">🗼 관제탑 — 프로젝트 글로벌 현황</div>
+          <button onclick="window.toggleTowerFilterPanel()" style="background:transparent; border:1px solid #0e7490; color:#67e8f9; font-size:11px; font-weight:700; padding:5px 12px; border-radius:6px; cursor:pointer;">🎛️ 지도 색상 조절</button>
+        </div>
+        <div id="tower-filter-panel" style="display:none; background:#0a1628; border:1px solid #0e7490; border-radius:10px; padding:14px; margin:12px 0 16px;">
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:12px;">
+            <div>
+              <label style="font-size:10px; color:#94a3b8; display:block; margin-bottom:4px;">Hue <span id="tf-hue-val">160</span>°</label>
+              <input type="range" id="tf-hue" min="0" max="360" value="160" style="width:100%;" oninput="window.updateTowerFilter()">
+            </div>
+            <div>
+              <label style="font-size:10px; color:#94a3b8; display:block; margin-bottom:4px;">Saturate <span id="tf-sat-val">2.6</span></label>
+              <input type="range" id="tf-sat" min="0" max="5" step="0.1" value="2.6" style="width:100%;" oninput="window.updateTowerFilter()">
+            </div>
+            <div>
+              <label style="font-size:10px; color:#94a3b8; display:block; margin-bottom:4px;">Brightness <span id="tf-bri-val">1.5</span></label>
+              <input type="range" id="tf-bri" min="0" max="3" step="0.05" value="1.5" style="width:100%;" oninput="window.updateTowerFilter()">
+            </div>
+            <div>
+              <label style="font-size:10px; color:#94a3b8; display:block; margin-bottom:4px;">Contrast <span id="tf-con-val">1.05</span></label>
+              <input type="range" id="tf-con" min="0" max="3" step="0.05" value="1.05" style="width:100%;" oninput="window.updateTowerFilter()">
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <code id="tf-output" style="flex:1; background:#0f172a; color:#6ee7b7; font-size:11px; padding:7px 10px; border-radius:6px; overflow-x:auto; white-space:nowrap;">hue-rotate(160deg) saturate(2.6) brightness(1.5) contrast(1.05)</code>
+            <button onclick="window.copyTowerFilterValue()" style="background:#0e7490; border:none; color:#fff; font-size:11px; font-weight:700; padding:7px 14px; border-radius:6px; cursor:pointer; white-space:nowrap; flex-shrink:0;">복사</button>
+          </div>
+        </div>
         <div class="tower-grid">
           <div class="tower-side">
             <div class="tower-kpi-group">
@@ -4453,7 +4480,40 @@ function towerBuildGroups() {
 
   return { polygonGroups, pointGroups };
 }
+<script>
+window.toggleTowerFilterPanel = function() {
+  const panel = document.getElementById('tower-filter-panel');
+  if (!panel) return;
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+};
 
+window.updateTowerFilter = function() {
+  const hue = document.getElementById('tf-hue').value;
+  const sat = document.getElementById('tf-sat').value;
+  const bri = document.getElementById('tf-bri').value;
+  const con = document.getElementById('tf-con').value;
+
+  document.getElementById('tf-hue-val').textContent = hue;
+  document.getElementById('tf-sat-val').textContent = sat;
+  document.getElementById('tf-bri-val').textContent = bri;
+  document.getElementById('tf-con-val').textContent = con;
+
+  const filterStr = `hue-rotate(${hue}deg) saturate(${sat}) brightness(${bri}) contrast(${con})`;
+  document.getElementById('tf-output').textContent = filterStr;
+
+  const tilePane = document.querySelector('#tower-map .leaflet-tile-pane');
+  if (tilePane) tilePane.style.filter = filterStr;
+};
+
+window.copyTowerFilterValue = function() {
+  const text = document.getElementById('tf-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('✅ 필터 값이 복사되었습니다!\n\n' + text + '\n\nCSS의 #tower-map .leaflet-tile-pane { filter: ... } 부분에 붙여넣으세요.');
+  }).catch(() => {
+    alert('복사에 실패했습니다. 직접 선택해서 복사해주세요.');
+  });
+};
+</script>
 window.renderTowerMap = function() {
   if (!document.getElementById('tower-map')) return;
   const { polygonGroups, pointGroups } = towerBuildGroups();
