@@ -5008,22 +5008,31 @@ window.travelStepNext = function() {
   const entry = st.data[st.index];
   const coords = getTowerCoords(entry.country, entry.city);
 
-  if (typeof window.travelUpdateDateDisplay === 'function') {
-    window.travelUpdateDateDisplay(entry.date || entry.접수일 || entry.날짜 || '');
-  }
-  if (typeof window.travelUpdateInfoDisplay === 'function') {
-    window.travelUpdateInfoDisplay(entry);
-  }
-  if (typeof window.travelUpdateProgress === 'function') {
-    window.travelUpdateProgress(st.index, st.data.length);
-  }
-
-  const goNext = () => {
-    st.index++;
-    window.travelStepNext();
+  // 일정 표시는 이번 스텝의 이동이 완료된 뒤에 갱신 (showEntry에서 처리)
+  const showEntry = () => {
+    if (typeof window.travelUpdateDateDisplay === 'function') {
+      window.travelUpdateDateDisplay(entry.date || entry.접수일 || entry.날짜 || '');
+    }
+    if (typeof window.travelUpdateInfoDisplay === 'function') {
+      window.travelUpdateInfoDisplay(entry);
+    }
+    if (typeof window.travelUpdateProgress === 'function') {
+      window.travelUpdateProgress(st.index, st.data.length);
+    }
   };
 
-  if (!coords) { window.travelWait(300, goNext); return; }
+  // 이동 완료 → 이번 일정 표시 → 잠시 확인 시간 → 다음 스텝
+  const goNext = () => {
+    showEntry();
+    const t = setTimeout(() => {
+      if (!st.playing) return;
+      st.index++;
+      window.travelStepNext();
+    }, 2000);
+    st.seqTimers.push(t);
+  };
+
+  if (!coords) { showEntry(); window.travelWait(300, () => { st.index++; window.travelStepNext(); }); return; }
 
   // 현재 위치 마커 갱신
   if (st.markerLayer) towerMapInstance.removeLayer(st.markerLayer);
