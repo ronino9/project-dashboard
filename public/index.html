@@ -333,8 +333,11 @@
 .travel-speed-btn { padding:3px 10px; font-size:11px; font-weight:700; border-radius:8px; border:1px solid #0e7490; background:transparent; color:#67e8f9; cursor:pointer; transition:0.2s; }
 .travel-speed-btn:hover { background:#0e293f; }
 .travel-speed-btn.travel-speed-active { background:#67e8f9; color:#02131a; }
-#travel-date-wrap { position:relative; overflow:hidden; height:24px; width:110px; flex-shrink:0; }
-.travel-date-line { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; font-family:'Courier New',monospace; font-size:19px; font-weight:800; color:#67e8f9; text-shadow:0 0 4px rgba(103,232,249,0.6); transition:transform 0.4s cubic-bezier(0.16,1,0.3,1); }
+.travel-date-block { display:flex; flex-direction:column; gap:3px; flex-shrink:0; }
+#travel-date-wrap { position:relative; overflow:hidden; height:24px; width:150px; }
+.travel-date-line { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; white-space:nowrap; font-family:'Courier New',monospace; font-size:19px; font-weight:800; color:#67e8f9; text-shadow:0 0 4px rgba(103,232,249,0.6); transition:transform 0.4s cubic-bezier(0.16,1,0.3,1); }
+#travel-info-wrap { position:relative; overflow:hidden; height:16px; width:230px; }
+.travel-info-line { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; white-space:nowrap; font-size:11px; font-weight:700; color:#94a3b8; transition:transform 0.4s cubic-bezier(0.16,1,0.3,1); }
 .travel-progress-wrap { flex:1; display:flex; flex-direction:column; gap:4px; min-width:120px; }
 .travel-progress-track { height:5px; background:#0e293f; border-radius:3px; overflow:hidden; }
 .travel-progress-fill { height:100%; background:linear-gradient(90deg,#0e7490,#67e8f9); width:0%; transition:width 0.5s cubic-bezier(0.16,1,0.3,1); }
@@ -1088,15 +1091,19 @@ window.renderDeviationTrendTest = function() {
 
       <div id="tower-panel" style="display:none;">
       <div class="tower-shell">
-        <div class="tower-title">🗼 관제탑 — 프로젝트 글로벌 현황</div>
+        <div class="tower-title"> 관제탑 — 프로젝트 글로벌 현황</div>
         <div class="travel-control-bar">
+  <button id="travel-restart-btn" class="travel-play-btn" onclick="window.travelRestart()" title="처음부터 다시 재생" style="font-size:13px;">⟲</button>
   <button id="travel-play-btn" class="travel-play-btn" onclick="window.travelPlayToggle()" title="재생">▶</button>
   <div class="travel-speed-group">
     <button id="travel-speed-slow" class="travel-speed-btn" onclick="window.travelSetSpeed('slow')">느리게</button>
     <button id="travel-speed-normal" class="travel-speed-btn travel-speed-active" onclick="window.travelSetSpeed('normal')">보통</button>
     <button id="travel-speed-fast" class="travel-speed-btn" onclick="window.travelSetSpeed('fast')">빠르게</button>
   </div>
-  <div id="travel-date-wrap"></div>
+  <div class="travel-date-block">
+    <div id="travel-date-wrap"></div>
+    <div id="travel-info-wrap"></div>
+  </div>
   <div class="travel-progress-wrap">
     <div class="travel-progress-track"><div id="travel-progress-fill" class="travel-progress-fill"></div></div>
     <div id="travel-progress-label">0 / 0일</div>
@@ -1163,7 +1170,7 @@ window.renderDeviationTrendTest = function() {
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyYPL7VqC6jC8X_sEnN9ZOkc4RJuHcxPYjYTDH3P5e5732odBErY7sXmwrlkR4MkRol3w/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyTG8__8iNfbxnVIp6OjVn8Cp5LfYMFxtymyKmxR7iMlMlQTZjPzsfnR7kcpfGBYRKEbg/exec';
 
     let allData = {}; 
     let documentLinksData = [];
@@ -4797,8 +4804,8 @@ window.travelPlayStart = function() {
   if (!towerMapInstance) window.renderTowerMap();
 
   const atEnd = st.index >= (allData.travelLog.length - 1);
-  if (atEnd) {
-    st.index = 0;
+  if (atEnd || !st.pathLayer) {
+    if (atEnd) st.index = 0;
     window.travelResetVisuals();
   }
   st.data = allData.travelLog;
@@ -4824,9 +4831,6 @@ window.travelStepNext = function() {
   }
 
   const entry = st.data[st.index];
-  const coords = getTowerCoords(entry.country, entry.city);
-  window.travelUpdateDateDisplay(entry.date);
-  window.travelUpdateProgress(st.index, st.data.length);
 
   if (!coords) {
     st.index++;
@@ -4899,6 +4903,39 @@ window.travelUpdateProgress = function(idx, total) {
   fill.style.width = pct + '%';
   if (label) label.textContent = `${idx + 1} / ${total}일`;
 };
+  window.travelUpdateInfoDisplay = function(entry) {
+  const stageLabel = entry.stage ? ` · ${entry.stage}` : '';
+  const projLabel = entry.project || '';
+  const locLabel = `${entry.country || ''} ${entry.city || ''}`.trim();
+  const text = [projLabel + stageLabel, locLabel].filter(Boolean).join(' · ');
+  const wrap = document.getElementById('travel-info-wrap');
+  if (!wrap) return;
+  const oldEl = wrap.querySelector('.travel-info-line');
+  const newEl = document.createElement('div');
+  newEl.className = 'travel-info-line';
+  newEl.textContent = text;
+  newEl.style.transform = 'translateY(100%)';
+  wrap.appendChild(newEl);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (oldEl) oldEl.style.transform = 'translateY(-100%)';
+      newEl.style.transform = 'translateY(0)';
+    });
+  });
+  if (oldEl) setTimeout(() => oldEl.remove(), 450);
+};
+
+window.travelRestart = function() {
+  const st = window.travelPlayState;
+  if (st.timer) clearTimeout(st.timer);
+  st.index = 0;
+  window.travelResetVisuals();
+  if (!towerMapInstance) window.renderTowerMap();
+  st.data = allData.travelLog || [];
+  st.playing = true;
+  window.travelUpdatePlayButton();
+  window.travelStepNext();
+};  
     document.addEventListener('DOMContentLoaded', () => {
       const slider = document.getElementById('spacingSlider');
       if (slider) {
