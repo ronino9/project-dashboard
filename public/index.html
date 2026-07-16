@@ -4765,7 +4765,7 @@ window.towerUpdateCountryVisibility = function(map) {
 };
     // ===== 이동경로 애니메이션 (travelLog 재생) =====
 const TRAVEL_SPEED_MS = { slow: 3200, normal: 1800, fast: 900 };
-window.travelPlayState = { data: [], index: 0, playing: false, timer: null, speed: 'normal', pathLayer: null, markerLayer: null, pastSegments: [] };
+window.travelPlayState = { data: [], index: 0, playing: false, timer: null, speed: 'normal', pathLayer: null, markerLayer: null, pastSegments: [], seqTimers: [], moveEndHandler: null };
 
 window.travelSetSpeed = function(spd) {
   window.travelPlayState.speed = spd;
@@ -4802,8 +4802,7 @@ window.travelResetVisuals = function() {
   if (st.pathLayer) towerMapInstance.removeLayer(st.pathLayer);
   st.pathLayer = L.layerGroup().addTo(towerMapInstance);
   st.pastSegments = [];
-  if (st.laserDelayTimer) clearTimeout(st.laserDelayTimer);
-  if (st.continentSwitchTimer) clearTimeout(st.continentSwitchTimer);
+  window.travelClearSeq();
   if (st.markerLayer) towerMapInstance.removeLayer(st.markerLayer);
   st.markerLayer = null;
 
@@ -4871,37 +4870,95 @@ window.setMapInterlock = function(locked) {
   }
 };
 
-window.travelStepNext = function() {
-  window.drawLaserTail = function(layerGroup, start, end, color) {
-  layerGroup.clearLayers();
-  const segments = 14;
-  const lat0 = start[0], lng0 = start[1];
-  const lat1 = end[0], lng1 = end[1];
-  for (let i = 0; i < segments; i++) {
-    const t0 = i / segments;
-    const t1 = (i + 1) / segments;
-    const p0 = [lat0 + (lat1 - lat0) * t0, lng0 + (lng1 - lng0) * t0];
-    const p1 = [lat0 + (lat1 - lat0) * t1, lng0 + (lng1 - lng0) * t1];
-    const opacity = Math.pow((i + 1) / segments, 1.8);
-    L.polyline([p0, p1], {
-      color, weight: 3.2, opacity, lineCap: 'round'
-    }).addTo(layerGroup);
+    // 시퀀스 진행 중 걸린 모든 타이머/핸들러 정리
+window.travelClearSeq = function() {
+  const st = window.travelPlayState;
+  (st.seqTimers || []).forEach(t => clearTimeout(t));
+  st.seqTimers = [];
+  if (st.moveEndHandler && towerMapInstance) {
+    towerMapInstance.off('moveend', st.moveEndHandler);
+    st.moveEndHandler = null;
+  }
+  if (st.animationFrame) {
+    cancelAnimationFrame(st.animationFrame);
+    st.animationFrame = null;
   }
 };
+
+// 대기 후 콜백 (재생 중일 때만)
+window.travelWait = function(ms, cb) {
   const st = window.travelPlayState;
+  const t = setTimeout(() => { if (st.playing) cb(); }, ms);
+  st.seqTimers.push(t);
+};
+
+// flyTo 실행 → moveend 감지 → 콜백 (3초 안에 못 받으면 강제 진행)
+window.travelFlyThen = function(center, zoom, durationSec, cb) {
+  const st = window.travelPlayState;
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    if (st.moveEndHandler) {
+      towerMapInstance.off('moveend', st.moveEndHandler);
+      st.moveEndHandler = null;
+    }
+    if (st.playing) cb();
+  };
+  st.moveEndHandler = finish;
+  towerMapInstance.on('moveend', finish);
+  const guard = setTimeout(finish, (durationSec * 1000) + 3000);
+  st.seqTimers.push(guard);
+  towerMapInstance.flyTo(center, zoom, { duration: durationSec, easeLinearity: 0.25 });
+};
+
+// 레이저 이동 실행 → 완료되면 콜백
+window.travelRunLaser = function(from, to, cb) {
+  const st = window.travelPlayState;
+  if (st.activePath && st.lastCoords) {
+    towerMapInstance.removeLayer(st.activePath);
+    st.pastSegments.push(st.lastCoords);
+    window.redrawPastSegments();
+  }
+  st.activePath = L.layerGroup().addTo(towerMapInstance);
+  st.lastCoords = [from, to];
+
+  const duration = TRAVEL_SPEED_MS[st.speed] || TRAVEL_SPEED_MS.normal;
+  const startTime = performance.now();
+
+  function animateLine(now) {
+    if (!st.playing) return;
+    let progress = (now - startTime) / duration;
+    if (progress > 1) progress = 1;
+    const easeOut = 1 - Math.pow(1 - progress, 3);
+    const lat = from[0] + (to[0] - from[0]) * easeOut;
+    const lng = from[1] + (to[1] - from[1]) * easeOut;
+    window.drawLaserTail(st.activePath, from, [lat, lng], '#facc15');
+    if (progress < 1) {
+      st.animationFrame = requestAnimationFrame(animateLine);
+    } else {
+      st.animationFrame = null;
+      cb();
+    }
+  }
+  if (st.animationFrame) cancelAnimationFrame(st.animationFrame);
+  st.animationFrame = requestAnimationFrame(animateLine);
+};
+window.travelStepNext = function() {
+  const st = window.travelPlayState;
+  window.travelClearSeq();
+
   if (!st.playing) {
-    window.setMapInterlock(false); // 💡 정지/일시정지 시 지도 조작 잠금 해제
+    window.setMapInterlock(false);
     return;
   }
-  
   if (st.index >= st.data.length) {
     st.playing = false;
     window.travelUpdatePlayButton();
-    window.setMapInterlock(false); // 💡 재생 완료 시 지도 조작 잠금 해제
+    window.setMapInterlock(false);
     return;
   }
 
-  // 💡 재생 중일 때는 지도 조작 잠금 (인터락)
   window.setMapInterlock(true);
 
   const entry = st.data[st.index];
@@ -4917,105 +4974,75 @@ window.travelStepNext = function() {
     window.travelUpdateProgress(st.index, st.data.length);
   }
 
-  if (!coords) {
+  const goNext = () => {
     st.index++;
-    st.timer = setTimeout(window.travelStepNext, 300);
-    return;
-  }
+    window.travelStepNext();
+  };
+
+  if (!coords) { window.travelWait(300, goNext); return; }
+
+  // 현재 위치 마커 갱신
+  if (st.markerLayer) towerMapInstance.removeLayer(st.markerLayer);
+  const icon = L.divIcon({ className: '', html: `<div class="travel-current-marker"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] });
+  st.markerLayer = L.marker(coords, { icon, zIndexOffset: 1000 }).addTo(towerMapInstance);
 
   const prevEntry = st.index > 0 ? st.data[st.index - 1] : null;
   const prevCoords = prevEntry ? getTowerCoords(prevEntry.country, prevEntry.city) : null;
   const moved = !prevCoords || prevCoords[0] !== coords[0] || prevCoords[1] !== coords[1];
 
-  let nextStepWait = 300;
+  const PAUSE = 2000;
+  const CITY_ZOOM = 8;
+  const ZOOM_SEC = 1.1;
 
-  if (moved) {
-    const normCountryCurr = towerNormalize(entry.country, TOWER_COUNTRY_ALIAS);
-    const normCountryPrev = prevEntry ? towerNormalize(prevEntry.country, TOWER_COUNTRY_ALIAS) : null;
-    const isDomestic = !!(prevCoords && normCountryPrev && normCountryCurr && normCountryPrev === normCountryCurr);
-    const CITY_ZOOM = 8;
-    const POST_ZOOM_DELAY = 2000;        // 줌 완료 후 레이저 시작까지 여유
-    const POST_LASER_DELAY = 2000;       // 레이저 완료 후 다음 동작까지 여유
-    const CONTINENT_SWITCH_WAIT = 900;   // 해외 이동: 도시줌 → 대륙줌 전환까지 대기시간
-    const DOMESTIC_ZOOM_MS = 1100;
-    const CITY_ZOOM_MS = 1000;
-    const CONTINENT_ZOOM_MS = 1300;
-    const baseDelay = TRAVEL_SPEED_MS[st.speed] || TRAVEL_SPEED_MS.normal;
-    const laserDuration = baseDelay;
-
-    let totalZoomTime;
-
-    if (!prevCoords) {
-      towerMapInstance.flyTo(coords, CITY_ZOOM, { duration: DOMESTIC_ZOOM_MS / 1000, easeLinearity: 0.25 });
-      totalZoomTime = DOMESTIC_ZOOM_MS;
-      nextStepWait = totalZoomTime + POST_ZOOM_DELAY;
-    } else if (isDomestic) {
-      // 같은 나라 내 이동: 국가 원 클릭했을 때와 동일한 줌/좌표
-      const targetZoom = TOWER_COUNTRY_ZOOM_LEVEL[normCountryCurr] || (towerMapInstance.getMinZoom() + TOWER_COUNTRY_ZOOM_DEFAULT);
-      const targetCenter = TOWER_COUNTRY_COORDS[normCountryCurr] || coords;
-      towerMapInstance.flyTo(targetCenter, targetZoom, { duration: DOMESTIC_ZOOM_MS / 1000, easeLinearity: 0.25 });
-      totalZoomTime = DOMESTIC_ZOOM_MS;
-      nextStepWait = totalZoomTime + POST_ZOOM_DELAY + laserDuration + POST_LASER_DELAY;
-    } else {
-      // 해외 이동: 출발 도시 줌 → 잠시 후 대륙(광역) 줌으로 전환
-      towerMapInstance.flyTo(prevCoords, CITY_ZOOM, { duration: CITY_ZOOM_MS / 1000, easeLinearity: 0.25 });
-      const bounds = L.latLngBounds([prevCoords, coords]);
-      let continentZoom = towerMapInstance.getBoundsZoom(bounds) - 2;
-      continentZoom = Math.max(towerMapInstance.getMinZoom(), Math.min(continentZoom, 6));
-      st.continentSwitchTimer = setTimeout(() => {
-        if (!st.playing) return;
-        towerMapInstance.flyTo(bounds.getCenter(), continentZoom, { duration: CONTINENT_ZOOM_MS / 1000, easeLinearity: 0.25 });
-      }, CONTINENT_SWITCH_WAIT);
-      totalZoomTime = CONTINENT_SWITCH_WAIT + CONTINENT_ZOOM_MS;
-      nextStepWait = totalZoomTime + POST_ZOOM_DELAY + laserDuration + POST_LASER_DELAY;
-    }
-
-    if (prevCoords) {
-      if (st.activePath && st.lastCoords) {
-        towerMapInstance.removeLayer(st.activePath);
-        st.pastSegments.push(st.lastCoords);
-        window.redrawPastSegments();
-      }
-
-      st.activePath = L.layerGroup().addTo(towerMapInstance);
-      st.lastCoords = [prevCoords, coords];
-
-      const laserStartDelay = totalZoomTime + POST_ZOOM_DELAY;
-
-      st.laserDelayTimer = setTimeout(() => {
-        if (!st.playing) return;
-        const startTime = performance.now();
-
-        function animateLine(currentTime) {
-          let progress = (currentTime - startTime) / laserDuration;
-          if (progress > 1) progress = 1;
-
-          const easeOut = 1 - Math.pow(1 - progress, 3);
-          const currentLat = prevCoords[0] + (coords[0] - prevCoords[0]) * easeOut;
-          const currentLng = prevCoords[1] + (coords[1] - prevCoords[1]) * easeOut;
-
-          window.drawLaserTail(st.activePath, prevCoords, [currentLat, currentLng], '#facc15');
-
-          if (progress < 1) {
-            st.animationFrame = requestAnimationFrame(animateLine);
-          }
-        }
-        if (st.animationFrame) cancelAnimationFrame(st.animationFrame);
-        st.animationFrame = requestAnimationFrame(animateLine);
-      }, laserStartDelay);
-    }
-  }
-
-  if (st.markerLayer) towerMapInstance.removeLayer(st.markerLayer);
-  const icon = L.divIcon({ className: '', html: `<div class="travel-current-marker"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] });
-  st.markerLayer = L.marker(coords, { icon, zIndexOffset: 1000 }).addTo(towerMapInstance);
-
-  st.index++;
+  // 같은 위치면 짧게 쉬고 다음
   if (!moved) {
-    const baseDelay = TRAVEL_SPEED_MS[st.speed] || TRAVEL_SPEED_MS.normal;
-    nextStepWait = Math.round(baseDelay * 0.5);
+    window.travelWait(Math.round((TRAVEL_SPEED_MS[st.speed] || TRAVEL_SPEED_MS.normal) * 0.5), goNext);
+    return;
   }
-  st.timer = setTimeout(window.travelStepNext, nextStepWait);
+
+  const normCountryCurr = towerNormalize(entry.country, TOWER_COUNTRY_ALIAS);
+  const normCountryPrev = prevEntry ? towerNormalize(prevEntry.country, TOWER_COUNTRY_ALIAS) : null;
+
+  // ① 최초: 도시 줌 → 2초 → 다음
+  if (!prevCoords) {
+    window.travelFlyThen(coords, CITY_ZOOM, ZOOM_SEC, () => {
+      window.travelWait(PAUSE, goNext);
+    });
+    return;
+  }
+
+  const isDomestic = normCountryPrev && normCountryCurr && normCountryPrev === normCountryCurr;
+
+  // ② 국내: 국가 줌 → 2초 → 레이저 → 2초 → 다음
+  if (isDomestic) {
+    const targetZoom = TOWER_COUNTRY_ZOOM_LEVEL[normCountryCurr] || (towerMapInstance.getMinZoom() + TOWER_COUNTRY_ZOOM_DEFAULT);
+    const targetCenter = TOWER_COUNTRY_COORDS[normCountryCurr] || coords;
+    window.travelFlyThen(targetCenter, targetZoom, ZOOM_SEC, () => {
+      window.travelWait(PAUSE, () => {
+        window.travelRunLaser(prevCoords, coords, () => {
+          window.travelWait(PAUSE, goNext);
+        });
+      });
+    });
+    return;
+  }
+
+  // ③ 해외: 출발 도시 줌 → 2초 → 대륙 줌 → 2초 → 레이저 → 2초 → 다음
+  const bounds = L.latLngBounds([prevCoords, coords]);
+  let continentZoom = towerMapInstance.getBoundsZoom(bounds) - 2;
+  continentZoom = Math.max(towerMapInstance.getMinZoom(), Math.min(continentZoom, 6));
+
+  window.travelFlyThen(prevCoords, CITY_ZOOM, ZOOM_SEC, () => {
+    window.travelWait(PAUSE, () => {
+      window.travelFlyThen(bounds.getCenter(), continentZoom, 1.3, () => {
+        window.travelWait(PAUSE, () => {
+          window.travelRunLaser(prevCoords, coords, () => {
+            window.travelWait(PAUSE, goNext);
+          });
+        });
+      });
+    });
+  });
 };
 
 window.travelUpdateDateDisplay = function(dateStr) {
