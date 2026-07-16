@@ -4654,12 +4654,10 @@ function towerBuildCountryIcon(g) {
   const hasDelay = g.projects.some(code => towerIsDelayed(code));
   const count = g.projects.length;
 
-  // 지연=네온 레드 / 정상=시안, 코어는 항상 완전 불투명
- const color = hasDelay ? '#ff073a' : '#22e0d8';
+  const color = hasDelay ? '#ff073a' : '#22e0d8';
   const glowSoft = hasDelay ? 'rgba(255,7,58,0.85)' : 'rgba(34,224,216,0.55)';
   const glowStrong = hasDelay ? 'rgba(255,7,58,1)' : 'rgba(34,224,216,0.85)';
 
-  // 프로젝트 개수에 비례해 전체 크기 확대 (40px ~ 68px)
   const size = Math.min(40 + (count - 1) * 7, 68);
   const ringInset = Math.round(size * 0.1);
   const coreSize = Math.min(16 + (count - 1) * 3, 30);
@@ -4671,7 +4669,7 @@ function towerBuildCountryIcon(g) {
   const html = `<div style="position:relative; width:${size}px; height:${size}px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
       <div class="tower-callout-pulse" style="position:absolute; inset:-4px; border-radius:50%; border:1px solid ${color}; opacity:${hasDelay ? 0.95 : 0.8}; pointer-events:none;"></div>
       <div style="position:absolute; inset:${ringInset}px; border-radius:50%; border:2.5px solid ${color}; ${glowLayer} pointer-events:none;"></div>
-      <div style="width:${coreSize}px; height:${coreSize}px; border-radius:50%; background:${color}; opacity:0.6; box-shadow:0 0 ${hasDelay ? 14 : 8}px ${glowStrong}; pointer-events:none;"></div>
+      <div style="width:${coreSize}px; height:${coreSize}px; border-radius:50%; background:${color}; opacity:1; box-shadow:0 0 ${hasDelay ? 14 : 8}px ${glowStrong}; pointer-events:none;"></div>
     </div>`;
   return L.divIcon({ className: '', html, iconSize: [size, size], iconAnchor: [size/2, size/2] });
 }
