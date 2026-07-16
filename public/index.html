@@ -4765,7 +4765,7 @@ window.towerUpdateCountryVisibility = function(map) {
 };
     // ===== 이동경로 애니메이션 (travelLog 재생) =====
 const TRAVEL_SPEED_MS = { slow: 3200, normal: 1800, fast: 900 };
-window.travelPlayState = { data: [], index: 0, playing: false, timer: null, speed: 'normal', pathLayer: null, markerLayer: null, pastSegments: [], seqTimers: [], moveEndHandler: null };
+window.travelPlayState = { data: [], index: 0, playing: false, timer: null, speed: 'normal', pathLayer: null, markerLayer: null, pastSegments: [], seqTimers: [], moveEndHandlers: [] };
 
 window.travelSetSpeed = function(spd) {
   window.travelPlayState.speed = spd;
@@ -4891,10 +4891,10 @@ window.travelClearSeq = function() {
   const st = window.travelPlayState;
   (st.seqTimers || []).forEach(t => clearTimeout(t));
   st.seqTimers = [];
-  if (st.moveEndHandler && towerMapInstance) {
-    towerMapInstance.off('moveend', st.moveEndHandler);
-    st.moveEndHandler = null;
+  if (towerMapInstance && st.moveEndHandlers) {
+    st.moveEndHandlers.forEach(h => towerMapInstance.off('moveend', h));
   }
+  st.moveEndHandlers = [];
   if (st.animationFrame) {
     cancelAnimationFrame(st.animationFrame);
     st.animationFrame = null;
@@ -4911,21 +4911,38 @@ window.travelWait = function(ms, cb) {
 // flyTo 실행 → moveend 감지 → 콜백 (3초 안에 못 받으면 강제 진행)
 window.travelFlyThen = function(center, zoom, durationSec, cb) {
   const st = window.travelPlayState;
+  if (!st.moveEndHandlers) st.moveEndHandlers = [];
+
+  // 이전에 남아있는 핸들러 전부 제거 (겹침 방지)
+  st.moveEndHandlers.forEach(h => towerMapInstance.off('moveend', h));
+  st.moveEndHandlers = [];
+
   let done = false;
-  const finish = () => {
+  const handler = () => {
     if (done) return;
     done = true;
-    if (st.moveEndHandler) {
-      towerMapInstance.off('moveend', st.moveEndHandler);
-      st.moveEndHandler = null;
-    }
+    towerMapInstance.off('moveend', handler);
+    st.moveEndHandlers = st.moveEndHandlers.filter(h => h !== handler);
     if (st.playing) cb();
   };
-  st.moveEndHandler = finish;
-  towerMapInstance.on('moveend', finish);
-  const guard = setTimeout(finish, (durationSec * 1000) + 3000);
+
+  st.moveEndHandlers.push(handler);
+
+  // flyTo 시작을 다음 프레임으로 미뤄, 직전 동작의 moveend가 섞이지 않게 함
+  requestAnimationFrame(() => {
+    if (!st.playing) return;
+    towerMapInstance.on('moveend', handler);
+    towerMapInstance.flyTo(center, zoom, { duration: durationSec, easeLinearity: 0.25 });
+  });
+
+  const guard = setTimeout(() => {
+    if (done) return;
+    done = true;
+    towerMapInstance.off('moveend', handler);
+    st.moveEndHandlers = st.moveEndHandlers.filter(h => h !== handler);
+    if (st.playing) cb();
+  }, (durationSec * 1000) + 3000);
   st.seqTimers.push(guard);
-  towerMapInstance.flyTo(center, zoom, { duration: durationSec, easeLinearity: 0.25 });
 };
 // 레이저를 fromRatio → toRatio 구간만 그림 (0~1). 완료되면 콜백
 window.travelRunLaserPartial = function(from, to, fromRatio, toRatio, isFirst, cb) {
