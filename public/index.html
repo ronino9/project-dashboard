@@ -344,10 +344,11 @@
 #travel-progress-label { font-size:10px; color:#67e8f9; font-weight:700; text-align:right; }
 .travel-current-marker { width:14px; height:14px; border-radius:50%; background:#fef08a; box-shadow:0 0 8px rgba(254,240,138,0.9), 0 0 16px rgba(254,240,138,0.6); animation: towerHudBlink 1.2s ease-in-out infinite; }
     /* 이동 경로 전용 외곽선 점멸 애니메이션 */
-.travel-outline-blink path {
-  stroke: #fef08a !important; /* 노란색 */
+/* path를 지우고 클래스명에 바로 속성 적용 */
+.travel-outline-blink {
+  stroke: #fef08a !important; 
   stroke-width: 3px !important;
-  fill: none !important;      /* 내부는 투명하게 */
+  fill: none !important;      
   animation: travelOutlinePulse 1.2s ease-in-out infinite;
 }
 
