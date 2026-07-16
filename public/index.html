@@ -4915,24 +4915,7 @@ window.travelFlyThen = function(center, zoom, durationSec, cb) {
   st.seqTimers.push(t);
 };
 
-  st.moveEndHandlers.push(handler);
-
-  // flyTo 시작을 다음 프레임으로 미뤄, 직전 동작의 moveend가 섞이지 않게 함
-  requestAnimationFrame(() => {
-    if (!st.playing) return;
-    towerMapInstance.on('moveend', handler);
-    towerMapInstance.flyTo(center, zoom, { duration: durationSec, easeLinearity: 0.25 });
-  });
-
-  const guard = setTimeout(() => {
-    if (done) return;
-    done = true;
-    towerMapInstance.off('moveend', handler);
-    st.moveEndHandlers = st.moveEndHandlers.filter(h => h !== handler);
-    if (st.playing) cb();
-  }, (durationSec * 1000) + 3000);
-  st.seqTimers.push(guard);
-};
+  
 // 레이저를 fromRatio → toRatio 구간만 그림 (0~1). 완료되면 콜백
 window.travelRunLaserPartial = function(from, to, fromRatio, toRatio, isFirst, cb) {
   const st = window.travelPlayState;
