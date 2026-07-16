@@ -4889,6 +4889,7 @@ window.drawLaserTail = function(layerGroup, start, end, color) {
     // 시퀀스 진행 중 걸린 모든 타이머/핸들러 정리
 window.travelClearSeq = function() {
   const st = window.travelPlayState;
+  console.log('[CLEAR 호출] 타이머', (st.seqTimers || []).length, '개 제거 시각=', new Date().toLocaleTimeString());
   (st.seqTimers || []).forEach(t => clearTimeout(t));
   st.seqTimers = [];
   if (st.animationFrame) {
@@ -4900,7 +4901,11 @@ window.travelClearSeq = function() {
 // 대기 후 콜백 (재생 중일 때만)
 window.travelWait = function(ms, cb) {
   const st = window.travelPlayState;
-  const t = setTimeout(() => { if (st.playing) cb(); }, ms);
+  console.log('[WAIT 시작]', ms, 'ms 시각=', new Date().toLocaleTimeString());
+  const t = setTimeout(() => {
+    console.log('[WAIT 완료] playing=', st.playing, '시각=', new Date().toLocaleTimeString());
+    if (st.playing) cb();
+  }, ms);
   st.seqTimers.push(t);
 };
 
