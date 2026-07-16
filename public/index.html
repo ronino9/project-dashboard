@@ -4832,6 +4832,15 @@ window.travelStepNext = function() {
 
   const entry = st.data[st.index];
 
+  // 💡 수정 1: 현재 엔트리(entry)에서 좌표(coords)를 가져오는 변수 선언
+  const coords = getTowerCoords(entry.country, entry.city);
+
+  // 💡 수정 2: 화면의 날짜, 정보, 프로그레스 바를 갱신하는 함수 호출 추가
+  // (백엔드 데이터 키값에 따라 date, 접수일, 날짜 등을 호환하도록 처리)
+  window.travelUpdateDateDisplay(entry.date || entry.접수일 || entry.날짜 || '');
+  window.travelUpdateInfoDisplay(entry);
+  window.travelUpdateProgress(st.index, st.data.length);
+
   if (!coords) {
     st.index++;
     st.timer = setTimeout(window.travelStepNext, 300);
