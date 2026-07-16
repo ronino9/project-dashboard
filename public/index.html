@@ -4853,6 +4853,22 @@ window.setMapInterlock = function(locked) {
 };
 
 window.travelStepNext = function() {
+  window.drawLaserTail = function(layerGroup, start, end, color) {
+  layerGroup.clearLayers();
+  const segments = 14;
+  const lat0 = start[0], lng0 = start[1];
+  const lat1 = end[0], lng1 = end[1];
+  for (let i = 0; i < segments; i++) {
+    const t0 = i / segments;
+    const t1 = (i + 1) / segments;
+    const p0 = [lat0 + (lat1 - lat0) * t0, lng0 + (lng1 - lng0) * t0];
+    const p1 = [lat0 + (lat1 - lat0) * t1, lng0 + (lng1 - lng0) * t1];
+    const opacity = Math.pow((i + 1) / segments, 1.8);
+    L.polyline([p0, p1], {
+      color, weight: 3.2, opacity, lineCap: 'round'
+    }).addTo(layerGroup);
+  }
+};
   const st = window.travelPlayState;
   if (!st.playing) {
     window.setMapInterlock(false); // 💡 정지/일시정지 시 지도 조작 잠금 해제
@@ -4915,16 +4931,7 @@ window.travelStepNext = function() {
         }).addTo(st.pathLayer);
       }
 
-      const pathOptions = { color: '#facc15', weight: 3.5, opacity: 1.0 };
-      if (typeof L.polyline.antPath === 'function') {
-        pathOptions.dashArray = [10, 15];
-        pathOptions.delay = 600;
-        pathOptions.pulseColor = '#ffffff';
-        st.activePath = L.polyline.antPath([prevCoords, prevCoords], pathOptions).addTo(towerMapInstance);
-      } else {
-        pathOptions.dashArray = '6,8';
-        st.activePath = L.polyline([prevCoords, prevCoords], pathOptions).addTo(towerMapInstance);
-      }
+      st.activePath = L.layerGroup().addTo(towerMapInstance);
       st.lastCoords = [prevCoords, coords];
 
       const drawDuration = 1000;
@@ -4938,7 +4945,7 @@ window.travelStepNext = function() {
         const currentLat = prevCoords[0] + (coords[0] - prevCoords[0]) * easeOut;
         const currentLng = prevCoords[1] + (coords[1] - prevCoords[1]) * easeOut;
 
-        st.activePath.setLatLngs([prevCoords, [currentLat, currentLng]]);
+        window.drawLaserTail(st.activePath, prevCoords, [currentLat, currentLng], '#facc15');
 
         if (progress < 1) {
           st.animationFrame = requestAnimationFrame(animateLine);
