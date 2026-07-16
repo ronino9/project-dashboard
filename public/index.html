@@ -4789,6 +4789,16 @@ window.travelResetVisuals = function() {
   st.pathLayer = L.layerGroup().addTo(towerMapInstance);
   if (st.markerLayer) towerMapInstance.removeLayer(st.markerLayer);
   st.markerLayer = null;
+
+  if (st.activePath) {
+    towerMapInstance.removeLayer(st.activePath);
+    st.activePath = null;
+  }
+  // 💡 추가: 진행 중인 선 그리기 애니메이션 정지
+  if (st.animationFrame) {
+    cancelAnimationFrame(st.animationFrame);
+    st.animationFrame = null;
+  }
 };
 
 window.travelPlayToggle = function() {
@@ -4865,16 +4875,53 @@ window.travelStepNext = function() {
     towerMapInstance.flyTo(targetCenter, targetZoom, { duration: 1.1, easeLinearity: 0.25 });
 
     if (prevCoords) {
-      if (typeof L.polyline.antPath === 'function') {
-        L.polyline.antPath([prevCoords, coords], {
-          color: '#67e8f9', weight: 2.5, dashArray: [8, 12], delay: 800, pulseColor: '#ffffff', opacity: 0.85
+      const st = window.travelPlayState;
+
+      // 💡 1. 기존 선은 은은한 잔상으로 강등 (투명도 0.25)
+      if (st.activePath && st.lastCoords) {
+        towerMapInstance.removeLayer(st.activePath);
+        L.polyline(st.lastCoords, {
+          color: '#0891b2', weight: 1.5, dashArray: '4,6', opacity: 0.25
         }).addTo(st.pathLayer);
-      } else {
-        L.polyline([prevCoords, coords], { color: '#67e8f9', weight: 2, dashArray: '6,8', opacity: 0.7 }).addTo(st.pathLayer);
       }
+
+      // 💡 2. 새로운 레이저 선 뼈대 생성 (시작점만 찍어둠)
+      const pathOptions = { color: '#facc15', weight: 3.5, opacity: 1.0 };
+      if (typeof L.polyline.antPath === 'function') {
+        pathOptions.dashArray = [10, 15];
+        pathOptions.delay = 600;
+        pathOptions.pulseColor = '#ffffff';
+        st.activePath = L.polyline.antPath([prevCoords, prevCoords], pathOptions).addTo(towerMapInstance);
+      } else {
+        pathOptions.dashArray = '6,8';
+        st.activePath = L.polyline([prevCoords, prevCoords], pathOptions).addTo(towerMapInstance);
+      }
+      st.lastCoords = [prevCoords, coords];
+
+      // 💡 3. 선이 목적지를 향해 쭉 늘어나는 프레임 애니메이션
+      const drawDuration = 1000;
+      const startTime = performance.now();
+
+      function animateLine(currentTime) {
+        let progress = (currentTime - startTime) / drawDuration;
+        if (progress > 1) progress = 1;
+
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const currentLat = prevCoords[0] + (coords[0] - prevCoords[0]) * easeOut;
+        const currentLng = prevCoords[1] + (coords[1] - prevCoords[1]) * easeOut;
+
+        st.activePath.setLatLngs([prevCoords, [currentLat, currentLng]]);
+
+        if (progress < 1) {
+          st.animationFrame = requestAnimationFrame(animateLine);
+        }
+      }
+      if (st.animationFrame) cancelAnimationFrame(st.animationFrame);
+      st.animationFrame = requestAnimationFrame(animateLine);
     }
   }
 
+  // 👇 이 아래는 원래 있던 마커 및 타이머 로직 (그대로 유지) 👇
   if (st.markerLayer) towerMapInstance.removeLayer(st.markerLayer);
   const icon = L.divIcon({ className: '', html: `<div class="travel-current-marker"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] });
   st.markerLayer = L.marker(coords, { icon, zIndexOffset: 1000 }).addTo(towerMapInstance);
@@ -4883,25 +4930,6 @@ window.travelStepNext = function() {
   const baseDelay = TRAVEL_SPEED_MS[st.speed] || TRAVEL_SPEED_MS.normal;
   const waitTime = moved ? baseDelay + 1100 : Math.round(baseDelay * 0.5);
   st.timer = setTimeout(window.travelStepNext, waitTime);
-};
-
-window.travelUpdateDateDisplay = function(dateStr) {
-  const displayStr = (dateStr || '').replace(/-/g, '.');
-  const wrap = document.getElementById('travel-date-wrap');
-  if (!wrap) return;
-  const oldEl = wrap.querySelector('.travel-date-line');
-  const newEl = document.createElement('div');
-  newEl.className = 'travel-date-line';
-  newEl.textContent = displayStr;
-  newEl.style.transform = 'translateY(100%)';
-  wrap.appendChild(newEl);
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      if (oldEl) oldEl.style.transform = 'translateY(-100%)';
-      newEl.style.transform = 'translateY(0)';
-    });
-  });
-  if (oldEl) setTimeout(() => oldEl.remove(), 450);
 };
 
 window.travelUpdateProgress = function(idx, total) {
