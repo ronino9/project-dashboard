@@ -4470,14 +4470,15 @@ window.renderTowerMap = function() {
   // ── 폴리곤(경계선 색칠) 지역 렌더링 ──
   Object.values(polygonGroups).forEach(g => {
     const hasDelay = g.projects.some(code => towerIsDelayed(code));
-    const fillColor = hasDelay ? '#f87171' : '#4ade80';
+    const fillColor = hasDelay ? '#ef4444' : '#4ade80';
     const lineColor = hasDelay ? '#fca5a5' : '#86efac';
-
+    const glowFilter = hasDelay ? 'drop-shadow(0 0 6px rgba(239,68,68,0.85))' : 'none';
     const layer = L.geoJSON(g.geojson, {
-      style: { fillColor, fillOpacity: 0.5, color: lineColor, weight: 1.5 }
+      style: { fillColor, fillOpacity: hasDelay ? 0.65 : 0.5, color: lineColor, weight: hasDelay ? 2 : 1.5 }
     }).addTo(towerMapInstance);
 
     layer.bindTooltip(`${g.country} ${g.city || ''} · ${g.projects.map(c => TOWER_LABEL_MAP[c]).join(', ')}`);
+    layer.getElement && layer.eachLayer(sub => { const el = sub.getElement && sub.getElement(); if (el) el.style.filter = glowFilter; });
     layer.on('click', () => {
       // 💡 도형 크기에 맞춘 자동 줌 레벨에서 '- 1'을 하여 한 칸 덜 줌인되도록 수정
       const autoZoom = towerMapInstance.getBoundsZoom(layer.getBounds());
@@ -4498,21 +4499,22 @@ window.renderTowerMap = function() {
   // ── 폴리곤 없는 지역: 기존 포인트 마커 폴백 ──
   Object.values(pointGroups).forEach(g => {
     const hasDelay = g.projects.some(code => towerIsDelayed(code));
-    const markerColor = hasDelay ? '#f87171' : '#22e0d8';
-    const glow = hasDelay ? 'rgba(248,113,113,0.7)' : 'rgba(34,211,238,0.7)';
-    const size = g.projects.length > 1 ? 30 : 22;
+    const markerColor = hasDelay ? '#ef4444' : '#22e0d8';
+    const glow = hasDelay ? 'rgba(239,68,68,0.9)' : 'rgba(34,211,238,0.7)';
+    const size = Math.min(22 + (g.projects.length - 1) * 6, 40);
+    const coreSize = Math.min(14 + (g.projects.length - 1) * 4, 26);
 
     const numText = g.projects.length > 1 ? g.projects.length : '';
             const icon = L.divIcon({
               className: '',
-              html: `<div style="position:relative; width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+              html: `<div style="position:relative; width:${size + 14}px; height:${size + 14}px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
                 <div class="tower-callout-pulse" style="position:absolute; inset:-4px; border-radius:50%; border:1px solid ${markerColor}; opacity:0.8; pointer-events:none;"></div>
-                <div style="position:absolute; inset:3px; border-radius:50%; border:2px solid ${markerColor}; box-shadow:0 0 12px ${glow}, inset 0 0 8px ${glow}; pointer-events:none;"></div>
-                <div style="width:14px; height:14px; border-radius:50%; background:${markerColor}; opacity:0.45; pointer-events:none;"></div>
+                <div style="position:absolute; width:${size}px; height:${size}px; border-radius:50%; border:2px solid ${markerColor}; box-shadow:0 0 12px ${glow}, inset 0 0 8px ${glow}; pointer-events:none;"></div>
+                <div style="width:${coreSize}px; height:${coreSize}px; border-radius:50%; background:${markerColor}; opacity:1; box-shadow:0 0 10px ${glow}; pointer-events:none;"></div>
                 <div style="position:absolute; color:#fff; font-size:12px; font-weight:800; text-shadow:0 0 4px #000; pointer-events:none;">${numText}</div>
               </div>`,
-              iconSize: [36, 36],
-              iconAnchor: [18, 18]
+              iconSize: [size + 14, size + 14],
+              iconAnchor: [(size + 14) / 2, (size + 14) / 2]
             });
 
     const marker = L.marker(g.coords, { icon }).addTo(towerMapInstance);
