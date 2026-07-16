@@ -5055,9 +5055,11 @@ window.travelStepNext = function() {
   const normCountryCurr = towerNormalize(entry.country, TOWER_COUNTRY_ALIAS);
   const normCountryPrev = prevEntry ? towerNormalize(prevEntry.country, TOWER_COUNTRY_ALIAS) : null;
 
-  // ① 최초: 도시 줌 → 2초 → 다음
+  // ① 최초: 국가 줌 → 2초 → 다음
   if (!prevCoords) {
-    window.travelFlyThen(coords, CITY_ZOOM, ZOOM_SEC, () => {
+    const firstZoom = TOWER_COUNTRY_ZOOM_LEVEL[normCountryCurr] || (towerMapInstance.getMinZoom() + TOWER_COUNTRY_ZOOM_DEFAULT);
+    const firstCenter = TOWER_COUNTRY_COORDS[normCountryCurr] || coords;
+    window.travelFlyThen(firstCenter, firstZoom, ZOOM_SEC, () => {
       window.travelWait(PAUSE, goNext);
     });
     return;
@@ -5085,7 +5087,10 @@ window.travelStepNext = function() {
   continentZoom = Math.max(towerMapInstance.getMinZoom(), Math.min(continentZoom, 6));
   const CITY_LASER_RATIO = 0.12;   // 도시 뷰에서 그릴 레이저 비율
 
-  window.travelFlyThen(prevCoords, CITY_ZOOM, ZOOM_SEC, () => {
+  const departZoom = TOWER_COUNTRY_ZOOM_LEVEL[normCountryPrev] || (towerMapInstance.getMinZoom() + TOWER_COUNTRY_ZOOM_DEFAULT);
+  const departCenter = TOWER_COUNTRY_COORDS[normCountryPrev] || prevCoords;
+
+  window.travelFlyThen(departCenter, departZoom, ZOOM_SEC, () => {
     window.travelWait(PAUSE, () => {
       window.travelRunLaserPartial(prevCoords, coords, 0, CITY_LASER_RATIO, true, () => {
         window.travelWait(PAUSE, () => {
