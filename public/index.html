@@ -4654,9 +4654,9 @@ function towerBuildCountryIcon(g) {
   const hasDelay = g.projects.some(code => towerIsDelayed(code));
   const count = g.projects.length;
 
-  const color = hasDelay ? '#ff073a' : '#22e0d8';
-  const glowSoft = hasDelay ? 'rgba(255,7,58,0.85)' : 'rgba(34,224,216,0.55)';
-  const glowStrong = hasDelay ? 'rgba(255,7,58,1)' : 'rgba(34,224,216,0.85)';
+  const color = hasDelay ? '#ff2d55' : '#22e0d8';
+  const glowSoft = hasDelay ? 'rgba(255,45,85,0.85)' : 'rgba(34,224,216,0.55)';
+  const glowStrong = hasDelay ? 'rgba(255,45,85,1)' : 'rgba(34,224,216,0.85)';
 
   const size = Math.min(40 + (count - 1) * 7, 68);
   const ringInset = Math.round(size * 0.1);
