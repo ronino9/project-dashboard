@@ -4908,8 +4908,10 @@ window.travelWait = function(ms, cb) {
 // flyTo 실행 → (줌 시간 + 여유) 만큼 무조건 대기 → 콜백
 window.travelFlyThen = function(center, zoom, durationSec, cb) {
   const st = window.travelPlayState;
+  console.log('[FLY 시작]', center, 'zoom=', zoom, '시각=', new Date().toLocaleTimeString());
   towerMapInstance.flyTo(center, zoom, { duration: durationSec, easeLinearity: 0.25 });
   const t = setTimeout(() => {
+    console.log('[FLY 콜백]', center, '시각=', new Date().toLocaleTimeString());
     if (st.playing) cb();
   }, durationSec * 1000 + 300);
   st.seqTimers.push(t);
@@ -4947,6 +4949,7 @@ window.travelRunLaserPartial = function(from, to, fromRatio, toRatio, isFirst, c
       st.animationFrame = requestAnimationFrame(animateLine);
     } else {
       st.animationFrame = null;
+      console.log('[레이저 완료] 시각=', new Date().toLocaleTimeString());
       cb();
     }
   }
