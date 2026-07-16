@@ -4918,7 +4918,7 @@ window.travelFlyThen = function(center, zoom, durationSec, cb) {
   const t = setTimeout(() => {
     console.log('[FLY 콜백]', center, '시각=', new Date().toLocaleTimeString());
     if (st.playing) cb();
-  }, durationSec * 1000 + 300);
+  }, durationSec * 1000 + 150);
   st.seqTimers.push(t);
 };
 
@@ -5033,7 +5033,7 @@ window.travelStepNext = function() {
       if (!st.playing) return;
       st.index++;
       window.travelStepNext();
-    }, 2000);
+    }, 500);
     st.seqTimers.push(t);
   };
 
@@ -5048,13 +5048,13 @@ window.travelStepNext = function() {
   const prevCoords = prevEntry ? getTowerCoords(prevEntry.country, prevEntry.city) : null;
   const moved = !prevCoords || prevCoords[0] !== coords[0] || prevCoords[1] !== coords[1];
 
-  const PAUSE = 2000;
+  const PAUSE = 700;
   const CITY_ZOOM = 8;
   const ZOOM_SEC = 1.1;
 
   // 같은 위치면 짧게 쉬고 다음
   if (!moved) {
-    window.travelWait(Math.round((TRAVEL_SPEED_MS[st.speed] || TRAVEL_SPEED_MS.normal) * 0.5), goNext);
+    window.travelWait(Math.round((TRAVEL_SPEED_MS[st.speed] || TRAVEL_SPEED_MS.normal) * 0.25), goNext);
     return;
   }
 
