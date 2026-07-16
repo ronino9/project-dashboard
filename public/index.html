@@ -4891,10 +4891,6 @@ window.travelClearSeq = function() {
   const st = window.travelPlayState;
   (st.seqTimers || []).forEach(t => clearTimeout(t));
   st.seqTimers = [];
-  if (towerMapInstance && st.moveEndHandlers) {
-    st.moveEndHandlers.forEach(h => towerMapInstance.off('moveend', h));
-  }
-  st.moveEndHandlers = [];
   if (st.animationFrame) {
     cancelAnimationFrame(st.animationFrame);
     st.animationFrame = null;
@@ -4909,22 +4905,15 @@ window.travelWait = function(ms, cb) {
 };
 
 // flyTo 실행 → moveend 감지 → 콜백 (3초 안에 못 받으면 강제 진행)
+// flyTo 실행 → (줌 시간 + 여유) 만큼 무조건 대기 → 콜백
 window.travelFlyThen = function(center, zoom, durationSec, cb) {
   const st = window.travelPlayState;
-  if (!st.moveEndHandlers) st.moveEndHandlers = [];
-
-  // 이전에 남아있는 핸들러 전부 제거 (겹침 방지)
-  st.moveEndHandlers.forEach(h => towerMapInstance.off('moveend', h));
-  st.moveEndHandlers = [];
-
-  let done = false;
-  const handler = () => {
-    if (done) return;
-    done = true;
-    towerMapInstance.off('moveend', handler);
-    st.moveEndHandlers = st.moveEndHandlers.filter(h => h !== handler);
+  towerMapInstance.flyTo(center, zoom, { duration: durationSec, easeLinearity: 0.25 });
+  const t = setTimeout(() => {
     if (st.playing) cb();
-  };
+  }, durationSec * 1000 + 300);
+  st.seqTimers.push(t);
+};
 
   st.moveEndHandlers.push(handler);
 
@@ -5028,7 +5017,7 @@ window.travelStepNext = function() {
     return;
   }
 
-  window.setMapInterlock(true);
+  // window.setMapInterlock(true);
 
   const entry = st.data[st.index];
   const coords = getTowerCoords(entry.country, entry.city);
