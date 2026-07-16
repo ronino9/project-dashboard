@@ -5103,7 +5103,13 @@ window.travelStepNext = function() {
           window.travelFlyThen(bounds.getCenter(), continentZoom, 1.3, () => {
             window.travelWait(PAUSE, () => {
               window.travelRunLaserPartial(prevCoords, coords, CITY_LASER_RATIO, 1, false, () => {
-                window.travelWait(PAUSE, goNext);
+                window.travelWait(PAUSE, () => {
+                  const arriveZoom = TOWER_COUNTRY_ZOOM_LEVEL[normCountryCurr] || (towerMapInstance.getMinZoom() + TOWER_COUNTRY_ZOOM_DEFAULT);
+                  const arriveCenter = TOWER_COUNTRY_COORDS[normCountryCurr] || coords;
+                  window.travelFlyThen(arriveCenter, arriveZoom, ZOOM_SEC, () => {
+                    window.travelWait(PAUSE, goNext);
+                  });
+                });
               });
             });
           });
