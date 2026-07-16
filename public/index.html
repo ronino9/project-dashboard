@@ -7,6 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet-ant-path@1.4.0/dist/leaflet-ant-path.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
   <style>
     /* PDCA 현황 / 프로젝트 현황 버튼 Hover 애니메이션 */
@@ -325,6 +326,20 @@
 .tower-hud-tick.h { height:1.5px; width:8px; }    
 
   .tower-placeholder { color:#475569; font-size:12px; text-align:center; padding:40px 10px; line-height:1.6; }
+    .travel-control-bar { display:flex; align-items:center; gap:14px; margin-bottom:14px; background:#0a1628; border:1px solid #0e7490; border-radius:10px; padding:10px 16px; flex-wrap:wrap; }
+.travel-play-btn { width:34px; height:34px; border-radius:50%; background:#0e293f; border:1px solid #0e7490; color:#67e8f9; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s; flex-shrink:0; }
+.travel-play-btn:hover { background:#0e7490; color:#02131a; box-shadow:0 0 10px rgba(103,232,249,0.5); }
+.travel-speed-group { display:flex; gap:4px; }
+.travel-speed-btn { padding:3px 10px; font-size:11px; font-weight:700; border-radius:8px; border:1px solid #0e7490; background:transparent; color:#67e8f9; cursor:pointer; transition:0.2s; }
+.travel-speed-btn:hover { background:#0e293f; }
+.travel-speed-btn.travel-speed-active { background:#67e8f9; color:#02131a; }
+#travel-date-wrap { position:relative; overflow:hidden; height:24px; width:110px; flex-shrink:0; }
+.travel-date-line { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; font-family:'Courier New',monospace; font-size:19px; font-weight:800; color:#67e8f9; text-shadow:0 0 4px rgba(103,232,249,0.6); transition:transform 0.4s cubic-bezier(0.16,1,0.3,1); }
+.travel-progress-wrap { flex:1; display:flex; flex-direction:column; gap:4px; min-width:120px; }
+.travel-progress-track { height:5px; background:#0e293f; border-radius:3px; overflow:hidden; }
+.travel-progress-fill { height:100%; background:linear-gradient(90deg,#0e7490,#67e8f9); width:0%; transition:width 0.5s cubic-bezier(0.16,1,0.3,1); }
+#travel-progress-label { font-size:10px; color:#67e8f9; font-weight:700; text-align:right; }
+.travel-current-marker { width:14px; height:14px; border-radius:50%; background:#fef08a; box-shadow:0 0 8px rgba(254,240,138,0.9), 0 0 16px rgba(254,240,138,0.6); animation: towerHudBlink 1.2s ease-in-out infinite; }
     .tower-card { background:#0a1628; border:1px solid #0e7490; border-radius:10px; padding:14px; margin-bottom:10px; transition:transform 0.15s ease, box-shadow 0.15s ease; cursor:pointer; }
     .tower-card:hover { transform:translateX(-3px); box-shadow:0 0 16px rgba(6,182,212,0.3); }
     .tower-card-code { font-size:14px; font-weight:800; color:#67e8f9; }
@@ -1074,6 +1089,19 @@ window.renderDeviationTrendTest = function() {
       <div id="tower-panel" style="display:none;">
       <div class="tower-shell">
         <div class="tower-title">🗼 관제탑 — 프로젝트 글로벌 현황</div>
+        <div class="travel-control-bar">
+  <button id="travel-play-btn" class="travel-play-btn" onclick="window.travelPlayToggle()" title="재생">▶</button>
+  <div class="travel-speed-group">
+    <button id="travel-speed-slow" class="travel-speed-btn" onclick="window.travelSetSpeed('slow')">느리게</button>
+    <button id="travel-speed-normal" class="travel-speed-btn travel-speed-active" onclick="window.travelSetSpeed('normal')">보통</button>
+    <button id="travel-speed-fast" class="travel-speed-btn" onclick="window.travelSetSpeed('fast')">빠르게</button>
+  </div>
+  <div id="travel-date-wrap"></div>
+  <div class="travel-progress-wrap">
+    <div class="travel-progress-track"><div id="travel-progress-fill" class="travel-progress-fill"></div></div>
+    <div id="travel-progress-label">0 / 0일</div>
+  </div>
+</div>
         <div class="tower-grid">
           <div class="tower-side">
             <div class="tower-kpi-group">
@@ -1135,7 +1163,7 @@ window.renderDeviationTrendTest = function() {
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyEPL8AkBRto4BDmGJ5omRzxkyLGZUpV4-6liWoKTLDWN0h3qQrvr0b6H6q5ZHwVmCKeA/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyYPL7VqC6jC8X_sEnN9ZOkc4RJuHcxPYjYTDH3P5e5732odBErY7sXmwrlkR4MkRol3w/exec';
 
     let allData = {}; 
     let documentLinksData = [];
@@ -4727,6 +4755,149 @@ window.towerUpdateCountryVisibility = function(map) {
   } else {
     if (map.hasLayer(towerCountryLayerGroup)) map.removeLayer(towerCountryLayerGroup);
   }
+};
+    // ===== 이동경로 애니메이션 (travelLog 재생) =====
+const TRAVEL_SPEED_MS = { slow: 3200, normal: 1800, fast: 900 };
+window.travelPlayState = { data: [], index: 0, playing: false, timer: null, speed: 'normal', pathLayer: null, markerLayer: null };
+
+window.travelSetSpeed = function(spd) {
+  window.travelPlayState.speed = spd;
+  ['slow', 'normal', 'fast'].forEach(s => {
+    const btn = document.getElementById('travel-speed-' + s);
+    if (btn) btn.classList.toggle('travel-speed-active', s === spd);
+  });
+};
+
+window.travelUpdatePlayButton = function() {
+  const btn = document.getElementById('travel-play-btn');
+  if (!btn) return;
+  const st = window.travelPlayState;
+  btn.innerHTML = st.playing ? '⏸' : '▶';
+  btn.title = st.playing ? '일시정지' : '재생';
+};
+
+window.travelResetVisuals = function() {
+  const st = window.travelPlayState;
+  if (st.pathLayer) towerMapInstance.removeLayer(st.pathLayer);
+  st.pathLayer = L.layerGroup().addTo(towerMapInstance);
+  if (st.markerLayer) towerMapInstance.removeLayer(st.markerLayer);
+  st.markerLayer = null;
+};
+
+window.travelPlayToggle = function() {
+  window.travelPlayState.playing ? window.travelPlayPause() : window.travelPlayStart();
+};
+
+window.travelPlayStart = function() {
+  const st = window.travelPlayState;
+  if (!allData.travelLog || allData.travelLog.length === 0) {
+    alert('이동 기록 데이터가 없습니다.');
+    return;
+  }
+  if (!towerMapInstance) window.renderTowerMap();
+
+  const atEnd = st.index >= (allData.travelLog.length - 1);
+  if (atEnd) {
+    st.index = 0;
+    window.travelResetVisuals();
+  }
+  st.data = allData.travelLog;
+  st.playing = true;
+  window.travelUpdatePlayButton();
+  window.travelStepNext();
+};
+
+window.travelPlayPause = function() {
+  const st = window.travelPlayState;
+  st.playing = false;
+  if (st.timer) clearTimeout(st.timer);
+  window.travelUpdatePlayButton();
+};
+
+window.travelStepNext = function() {
+  const st = window.travelPlayState;
+  if (!st.playing) return;
+  if (st.index >= st.data.length) {
+    st.playing = false;
+    window.travelUpdatePlayButton();
+    return;
+  }
+
+  const entry = st.data[st.index];
+  const coords = getTowerCoords(entry.country, entry.city);
+  window.travelUpdateDateDisplay(entry.date);
+  window.travelUpdateProgress(st.index, st.data.length);
+
+  if (!coords) {
+    st.index++;
+    st.timer = setTimeout(window.travelStepNext, 300);
+    return;
+  }
+
+  const prevEntry = st.index > 0 ? st.data[st.index - 1] : null;
+  const prevCoords = prevEntry ? getTowerCoords(prevEntry.country, prevEntry.city) : null;
+  const moved = !prevCoords || prevCoords[0] !== coords[0] || prevCoords[1] !== coords[1];
+
+  if (moved) {
+    let targetZoom, targetCenter;
+    if (prevCoords) {
+      const bounds = L.latLngBounds([prevCoords, coords]);
+      targetZoom = towerMapInstance.getBoundsZoom(bounds) - 0.5;
+      targetCenter = bounds.getCenter();
+    } else {
+      targetZoom = 6;
+      targetCenter = coords;
+    }
+    targetZoom = Math.max(towerMapInstance.getMinZoom(), Math.min(targetZoom, 10));
+    towerMapInstance.flyTo(targetCenter, targetZoom, { duration: 1.1, easeLinearity: 0.25 });
+
+    if (prevCoords) {
+      if (typeof L.polyline.antPath === 'function') {
+        L.polyline.antPath([prevCoords, coords], {
+          color: '#67e8f9', weight: 2.5, dashArray: [8, 12], delay: 800, pulseColor: '#ffffff', opacity: 0.85
+        }).addTo(st.pathLayer);
+      } else {
+        L.polyline([prevCoords, coords], { color: '#67e8f9', weight: 2, dashArray: '6,8', opacity: 0.7 }).addTo(st.pathLayer);
+      }
+    }
+  }
+
+  if (st.markerLayer) towerMapInstance.removeLayer(st.markerLayer);
+  const icon = L.divIcon({ className: '', html: `<div class="travel-current-marker"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] });
+  st.markerLayer = L.marker(coords, { icon, zIndexOffset: 1000 }).addTo(towerMapInstance);
+
+  st.index++;
+  const baseDelay = TRAVEL_SPEED_MS[st.speed] || TRAVEL_SPEED_MS.normal;
+  const waitTime = moved ? baseDelay + 1100 : Math.round(baseDelay * 0.5);
+  st.timer = setTimeout(window.travelStepNext, waitTime);
+};
+
+window.travelUpdateDateDisplay = function(dateStr) {
+  const displayStr = (dateStr || '').replace(/-/g, '.');
+  const wrap = document.getElementById('travel-date-wrap');
+  if (!wrap) return;
+  const oldEl = wrap.querySelector('.travel-date-line');
+  const newEl = document.createElement('div');
+  newEl.className = 'travel-date-line';
+  newEl.textContent = displayStr;
+  newEl.style.transform = 'translateY(100%)';
+  wrap.appendChild(newEl);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (oldEl) oldEl.style.transform = 'translateY(-100%)';
+      newEl.style.transform = 'translateY(0)';
+    });
+  });
+  if (oldEl) setTimeout(() => oldEl.remove(), 450);
+};
+
+window.travelUpdateProgress = function(idx, total) {
+  const fill = document.getElementById('travel-progress-fill');
+  const label = document.getElementById('travel-progress-label');
+  if (!fill || total <= 0) return;
+  const pct = total > 1 ? Math.round((idx / (total - 1)) * 100) : 100;
+  fill.style.width = pct + '%';
+  if (label) label.textContent = `${idx + 1} / ${total}일`;
 };
     document.addEventListener('DOMContentLoaded', () => {
       const slider = document.getElementById('spacingSlider');
