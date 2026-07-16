@@ -4831,25 +4831,56 @@ window.travelPlayPause = function() {
   window.travelUpdatePlayButton();
 };
 
+// 👇 여기서부터 복사해서 덮어쓰세요 👇
+
+window.setMapInterlock = function(locked) {
+  if (!towerMapInstance) return;
+  if (locked) {
+    towerMapInstance.dragging.disable();
+    towerMapInstance.touchZoom.disable();
+    towerMapInstance.doubleClickZoom.disable();
+    towerMapInstance.scrollWheelZoom.disable();
+    towerMapInstance.boxZoom.disable();
+    towerMapInstance.keyboard.disable();
+  } else {
+    towerMapInstance.dragging.enable();
+    towerMapInstance.touchZoom.enable();
+    towerMapInstance.doubleClickZoom.enable();
+    towerMapInstance.scrollWheelZoom.enable();
+    towerMapInstance.boxZoom.enable();
+    towerMapInstance.keyboard.enable();
+  }
+};
+
 window.travelStepNext = function() {
   const st = window.travelPlayState;
-  if (!st.playing) return;
+  if (!st.playing) {
+    window.setMapInterlock(false); // 💡 정지/일시정지 시 지도 조작 잠금 해제
+    return;
+  }
+  
   if (st.index >= st.data.length) {
     st.playing = false;
     window.travelUpdatePlayButton();
+    window.setMapInterlock(false); // 💡 재생 완료 시 지도 조작 잠금 해제
     return;
   }
 
-  const entry = st.data[st.index];
+  // 💡 재생 중일 때는 지도 조작 잠금 (인터락)
+  window.setMapInterlock(true);
 
-  // 💡 수정 1: 현재 엔트리(entry)에서 좌표(coords)를 가져오는 변수 선언
+  const entry = st.data[st.index];
   const coords = getTowerCoords(entry.country, entry.city);
 
-  // 💡 수정 2: 화면의 날짜, 정보, 프로그레스 바를 갱신하는 함수 호출 추가
-  // (백엔드 데이터 키값에 따라 date, 접수일, 날짜 등을 호환하도록 처리)
-  window.travelUpdateDateDisplay(entry.date || entry.접수일 || entry.날짜 || '');
-  window.travelUpdateInfoDisplay(entry);
-  window.travelUpdateProgress(st.index, st.data.length);
+  if (typeof window.travelUpdateDateDisplay === 'function') {
+    window.travelUpdateDateDisplay(entry.date || entry.접수일 || entry.날짜 || '');
+  }
+  if (typeof window.travelUpdateInfoDisplay === 'function') {
+    window.travelUpdateInfoDisplay(entry);
+  }
+  if (typeof window.travelUpdateProgress === 'function') {
+    window.travelUpdateProgress(st.index, st.data.length);
+  }
 
   if (!coords) {
     st.index++;
@@ -4877,7 +4908,6 @@ window.travelStepNext = function() {
     if (prevCoords) {
       const st = window.travelPlayState;
 
-      // 💡 1. 기존 선은 은은한 잔상으로 강등 (투명도 0.25)
       if (st.activePath && st.lastCoords) {
         towerMapInstance.removeLayer(st.activePath);
         L.polyline(st.lastCoords, {
@@ -4885,7 +4915,6 @@ window.travelStepNext = function() {
         }).addTo(st.pathLayer);
       }
 
-      // 💡 2. 새로운 레이저 선 뼈대 생성 (시작점만 찍어둠)
       const pathOptions = { color: '#facc15', weight: 3.5, opacity: 1.0 };
       if (typeof L.polyline.antPath === 'function') {
         pathOptions.dashArray = [10, 15];
@@ -4898,7 +4927,6 @@ window.travelStepNext = function() {
       }
       st.lastCoords = [prevCoords, coords];
 
-      // 💡 3. 선이 목적지를 향해 쭉 늘어나는 프레임 애니메이션
       const drawDuration = 1000;
       const startTime = performance.now();
 
@@ -4921,7 +4949,6 @@ window.travelStepNext = function() {
     }
   }
 
-  // 👇 이 아래는 원래 있던 마커 및 타이머 로직 (그대로 유지) 👇
   if (st.markerLayer) towerMapInstance.removeLayer(st.markerLayer);
   const icon = L.divIcon({ className: '', html: `<div class="travel-current-marker"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] });
   st.markerLayer = L.marker(coords, { icon, zIndexOffset: 1000 }).addTo(towerMapInstance);
@@ -4932,6 +4959,25 @@ window.travelStepNext = function() {
   st.timer = setTimeout(window.travelStepNext, waitTime);
 };
 
+window.travelUpdateDateDisplay = function(dateStr) {
+  const displayStr = (dateStr || '').replace(/-/g, '.');
+  const wrap = document.getElementById('travel-date-wrap');
+  if (!wrap) return;
+  const oldEl = wrap.querySelector('.travel-date-line');
+  const newEl = document.createElement('div');
+  newEl.className = 'travel-date-line';
+  newEl.textContent = displayStr;
+  newEl.style.transform = 'translateY(100%)';
+  wrap.appendChild(newEl);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (oldEl) oldEl.style.transform = 'translateY(-100%)';
+      newEl.style.transform = 'translateY(0)';
+    });
+  });
+  if (oldEl) setTimeout(() => oldEl.remove(), 450);
+};
+
 window.travelUpdateProgress = function(idx, total) {
   const fill = document.getElementById('travel-progress-fill');
   const label = document.getElementById('travel-progress-label');
@@ -4940,7 +4986,8 @@ window.travelUpdateProgress = function(idx, total) {
   fill.style.width = pct + '%';
   if (label) label.textContent = `${idx + 1} / ${total}일`;
 };
-  window.travelUpdateInfoDisplay = function(entry) {
+
+window.travelUpdateInfoDisplay = function(entry) {
   const stageLabel = entry.stage ? ` · ${entry.stage}` : '';
   const projLabel = entry.project || '';
   const locLabel = `${entry.country || ''} ${entry.city || ''}`.trim();
@@ -4970,9 +5017,13 @@ window.travelRestart = function() {
   if (!towerMapInstance) window.renderTowerMap();
   st.data = allData.travelLog || [];
   st.playing = true;
+  window.setMapInterlock(true); // 💡 재시작 시 잠금
   window.travelUpdatePlayButton();
   window.travelStepNext();
-};  
+};
+
+// 👆 여기까지 복사하세요 👆
+// (이 바로 아랫줄이 document.addEventListener('DOMContentLoaded', () => { ... 여야 합니다!)
     document.addEventListener('DOMContentLoaded', () => {
       const slider = document.getElementById('spacingSlider');
       if (slider) {
