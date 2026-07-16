@@ -4870,6 +4870,22 @@ window.setMapInterlock = function(locked) {
   }
 };
 
+window.drawLaserTail = function(layerGroup, start, end, color) {
+  layerGroup.clearLayers();
+  const segments = 14;
+  const lat0 = start[0], lng0 = start[1];
+  const lat1 = end[0], lng1 = end[1];
+  for (let i = 0; i < segments; i++) {
+    const t0 = i / segments;
+    const t1 = (i + 1) / segments;
+    const p0 = [lat0 + (lat1 - lat0) * t0, lng0 + (lng1 - lng0) * t0];
+    const p1 = [lat0 + (lat1 - lat0) * t1, lng0 + (lng1 - lng0) * t1];
+    const opacity = Math.pow((i + 1) / segments, 1.8);
+    L.polyline([p0, p1], {
+      color, weight: 3.2, opacity, lineCap: 'round'
+    }).addTo(layerGroup);
+  }
+};    
     // 시퀀스 진행 중 걸린 모든 타이머/핸들러 정리
 window.travelClearSeq = function() {
   const st = window.travelPlayState;
@@ -4911,7 +4927,43 @@ window.travelFlyThen = function(center, zoom, durationSec, cb) {
   st.seqTimers.push(guard);
   towerMapInstance.flyTo(center, zoom, { duration: durationSec, easeLinearity: 0.25 });
 };
+// 레이저를 fromRatio → toRatio 구간만 그림 (0~1). 완료되면 콜백
+window.travelRunLaserPartial = function(from, to, fromRatio, toRatio, isFirst, cb) {
+  const st = window.travelPlayState;
 
+  if (isFirst) {
+    if (st.activePath && st.lastCoords) {
+      towerMapInstance.removeLayer(st.activePath);
+      st.pastSegments.push(st.lastCoords);
+      window.redrawPastSegments();
+    }
+    st.activePath = L.layerGroup().addTo(towerMapInstance);
+    st.lastCoords = [from, to];
+  }
+
+  const baseDuration = TRAVEL_SPEED_MS[st.speed] || TRAVEL_SPEED_MS.normal;
+  const duration = Math.max(baseDuration * (toRatio - fromRatio), 200);
+  const startTime = performance.now();
+
+  function animateLine(now) {
+    if (!st.playing) return;
+    let progress = (now - startTime) / duration;
+    if (progress > 1) progress = 1;
+    const easeOut = 1 - Math.pow(1 - progress, 3);
+    const ratio = fromRatio + (toRatio - fromRatio) * easeOut;
+    const lat = from[0] + (to[0] - from[0]) * ratio;
+    const lng = from[1] + (to[1] - from[1]) * ratio;
+    window.drawLaserTail(st.activePath, from, [lat, lng], '#facc15');
+    if (progress < 1) {
+      st.animationFrame = requestAnimationFrame(animateLine);
+    } else {
+      st.animationFrame = null;
+      cb();
+    }
+  }
+  if (st.animationFrame) cancelAnimationFrame(st.animationFrame);
+  st.animationFrame = requestAnimationFrame(animateLine);
+};
 // 레이저 이동 실행 → 완료되면 콜백
 window.travelRunLaser = function(from, to, cb) {
   const st = window.travelPlayState;
@@ -5027,17 +5079,22 @@ window.travelStepNext = function() {
     return;
   }
 
-  // ③ 해외: 출발 도시 줌 → 2초 → 대륙 줌 → 2초 → 레이저 → 2초 → 다음
+  // ③ 해외: 도시 줌 → 2초 → 레이저 일부 → 2초 → 대륙 줌 → 2초 → 레이저 나머지 → 2초 → 다음
   const bounds = L.latLngBounds([prevCoords, coords]);
   let continentZoom = towerMapInstance.getBoundsZoom(bounds) - 2;
   continentZoom = Math.max(towerMapInstance.getMinZoom(), Math.min(continentZoom, 6));
+  const CITY_LASER_RATIO = 0.12;   // 도시 뷰에서 그릴 레이저 비율
 
   window.travelFlyThen(prevCoords, CITY_ZOOM, ZOOM_SEC, () => {
     window.travelWait(PAUSE, () => {
-      window.travelFlyThen(bounds.getCenter(), continentZoom, 1.3, () => {
+      window.travelRunLaserPartial(prevCoords, coords, 0, CITY_LASER_RATIO, true, () => {
         window.travelWait(PAUSE, () => {
-          window.travelRunLaser(prevCoords, coords, () => {
-            window.travelWait(PAUSE, goNext);
+          window.travelFlyThen(bounds.getCenter(), continentZoom, 1.3, () => {
+            window.travelWait(PAUSE, () => {
+              window.travelRunLaserPartial(prevCoords, coords, CITY_LASER_RATIO, 1, false, () => {
+                window.travelWait(PAUSE, goNext);
+              });
+            });
           });
         });
       });
