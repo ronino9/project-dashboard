@@ -4918,7 +4918,7 @@ window.travelFlyThen = function(center, zoom, durationSec, cb) {
   const t = setTimeout(() => {
     console.log('[FLY 콜백]', center, '시각=', new Date().toLocaleTimeString());
     if (st.playing) cb();
-  }, durationSec * 1000 + 150);
+  }, durationSec * 1000 + 80);
   st.seqTimers.push(t);
 };
 
@@ -5033,7 +5033,7 @@ window.travelStepNext = function() {
       if (!st.playing) return;
       st.index++;
       window.travelStepNext();
-    }, 500);
+    }, 300);
     st.seqTimers.push(t);
   };
 
@@ -5048,13 +5048,13 @@ window.travelStepNext = function() {
   const prevCoords = prevEntry ? getTowerCoords(prevEntry.country, prevEntry.city) : null;
   const moved = !prevCoords || prevCoords[0] !== coords[0] || prevCoords[1] !== coords[1];
 
-  const PAUSE = 700;
+  const PAUSE = 400;
   const CITY_ZOOM = 8;
-  const ZOOM_SEC = 1.1;
+  const ZOOM_SEC = 0.8;
 
   // 같은 위치면 짧게 쉬고 다음
   if (!moved) {
-    window.travelWait(Math.round((TRAVEL_SPEED_MS[st.speed] || TRAVEL_SPEED_MS.normal) * 0.25), goNext);
+    window.travelWait(Math.round((TRAVEL_SPEED_MS[st.speed] || TRAVEL_SPEED_MS.normal) * 0.15), goNext);
     return;
   }
 
@@ -5100,7 +5100,7 @@ window.travelStepNext = function() {
     window.travelWait(PAUSE, () => {
       window.travelRunLaserPartial(prevCoords, coords, 0, CITY_LASER_RATIO, true, () => {
         window.travelWait(PAUSE, () => {
-          window.travelFlyThen(bounds.getCenter(), continentZoom, 1.3, () => {
+          window.travelFlyThen(bounds.getCenter(), continentZoom, 0.9, () => {
             window.travelWait(PAUSE, () => {
               window.travelRunLaserPartial(prevCoords, coords, CITY_LASER_RATIO, 1, false, () => {
                 window.travelWait(PAUSE, () => {
