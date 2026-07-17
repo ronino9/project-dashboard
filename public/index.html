@@ -1385,29 +1385,55 @@ window.renderDeviationTrendTest = function() {
                 <div class="tower-tint-light"></div>
               </div>
 
-              <!-- ★ 에러 완벽 수정: SVG <path>의 calc() 오류를 제거하고 CSS clip-path로 구현한 반응형 고정 프레임 -->
-              <div style="position: absolute; inset: -16px; pointer-events: none; z-index: 5002; filter: drop-shadow(0 0 10px rgba(103,232,249,0.25));">
+              <!-- ★ 클로드 4시간의 한을 풀어드리는 궁극의 3D CSS 프레임 (이미지 에셋 0개) -->
+              <div style="position: absolute; inset: -18px; pointer-events: none; z-index: 5002; filter: drop-shadow(0 0 15px rgba(6,182,212,0.3)) drop-shadow(0 10px 30px rgba(2,6,23,0.8));">
                 
-                <!-- 1. 외곽 메탈릭 프레임 (CSS clip-path + 그라데이션 배경 활용) -->
-                <div style="position: absolute; inset: 0; background: linear-gradient(180deg, #0e7490 0%, #67e8f9 20%, rgba(14,116,144,0.2) 50%, #67e8f9 80%, #0e7490 100%); clip-path: polygon(40px 0, calc(100% - 40px) 0, 100% 40px, 100% calc(100% - 40px), calc(100% - 40px) 100%, 40px 100%, 0 calc(100% - 40px), 0 40px);">
-                  <div style="position: absolute; inset: 2.5px; background: rgba(2, 6, 23, 0.3); clip-path: polygon(38px 0, calc(100% - 38px) 0, 100% 38px, 100% calc(100% - 38px), calc(100% - 38px) 100%, 38px 100%, 0 calc(100% - 38px), 0 38px);"></div>
+                <!-- Layer 1: 가장 두꺼운 메탈릭 아웃라인 (입체감의 핵심 + 스캔라인 텍스처) -->
+                <div style="position: absolute; inset: 0; 
+                            background: linear-gradient(135deg, #22d3ee 0%, #083344 15%, #020617 40%, #020617 60%, #083344 85%, #22d3ee 100%); 
+                            clip-path: polygon(40px 0, calc(100% - 40px) 0, 100% 40px, 100% calc(100% - 40px), calc(100% - 40px) 100%, 40px 100%, 0 calc(100% - 40px), 0 40px);
+                            padding: 6px; 
+                            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                            -webkit-mask-composite: xor;
+                            mask-composite: exclude;">
+                  <!-- 메탈릭 질감을 살려주는 미세한 대각선 빗살무늬 -->
+                  <div style="width: 100%; height: 100%; background: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(103,232,249,0.15) 2px, rgba(103,232,249,0.15) 4px);"></div>
                 </div>
 
-                <!-- 2. 내부 사이버네틱 이너 라인 (점선 테두리) -->
-                <div style="position: absolute; inset: 8px; border: 1.5px dashed #22d3ee; opacity: 0.4; clip-path: polygon(32px 0, calc(100% - 32px) 0, 100% 32px, 100% calc(100% - 32px), calc(100% - 32px) 100%, 32px 100%, 0 calc(100% - 32px), 0 32px);"></div>
+                <!-- Layer 2: 밝은 형광 네온 베벨 (안쪽 모서리를 깎아낸 듯한 하이라이트) -->
+                <div style="position: absolute; inset: 6px; 
+                            background: linear-gradient(180deg, #67e8f9 0%, rgba(14,116,144,0) 30%, rgba(14,116,144,0) 70%, #67e8f9 100%); 
+                            clip-path: polygon(34px 0, calc(100% - 34px) 0, 100% 34px, 100% calc(100% - 34px), calc(100% - 34px) 100%, 34px 100%, 0 calc(100% - 34px), 0 34px);
+                            padding: 1.5px; 
+                            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                            -webkit-mask-composite: xor;
+                            mask-composite: exclude;
+                            opacity: 0.8;"></div>
 
-                <!-- 3. 기하학적 코너 에칭 장식 (고정 크기 SVG로 에러 원천 차단) -->
-                <svg width="50" height="50" style="position:absolute; top:0; left:0;"><path d="M 0,40 L 40,0" stroke="#67e8f9" stroke-width="3" fill="none"/></svg>
-                <svg width="50" height="50" style="position:absolute; top:0; right:0;"><path d="M 50,40 L 10,0" stroke="#67e8f9" stroke-width="3" fill="none"/></svg>
-                <svg width="50" height="50" style="position:absolute; bottom:0; left:0;"><path d="M 0,10 L 40,50" stroke="#67e8f9" stroke-width="3" fill="none"/></svg>
-                <svg width="50" height="50" style="position:absolute; bottom:0; right:0;"><path d="M 50,10 L 10,50" stroke="#67e8f9" stroke-width="3" fill="none"/></svg>
+                <!-- Layer 3: 깊이감을 훅 파버리는 이너 섀도우 박스 -->
+                <div style="position: absolute; inset: 7.5px; 
+                            box-shadow: inset 0 0 30px rgba(2,6,23,0.9), inset 0 0 10px rgba(8,51,68,0.8);
+                            clip-path: polygon(32.5px 0, calc(100% - 32.5px) 0, 100% 32.5px, 100% calc(100% - 32.5px), calc(100% - 32.5px) 100%, 32.5px 100%, 0 calc(100% - 32.5px), 0 32.5px);"></div>
+
+                <!-- Layer 4: 정밀 타겟팅 코너 브래킷 (단순 꺾임이 아닌 꽉 찬 금속 패널 형태의 SVG) -->
+                <svg width="60" height="60" style="position:absolute; top:-2px; left:-2px; filter:drop-shadow(0 0 6px #22d3ee);"><path d="M 0,40 L 40,0 L 60,0 L 60,4 L 42,4 L 4,42 L 4,60 L 0,60 Z" fill="#67e8f9"/></svg>
+                <svg width="60" height="60" style="position:absolute; top:-2px; right:-2px; filter:drop-shadow(0 0 6px #22d3ee); transform: scaleX(-1);"><path d="M 0,40 L 40,0 L 60,0 L 60,4 L 42,4 L 4,42 L 4,60 L 0,60 Z" fill="#67e8f9"/></svg>
+                <svg width="60" height="60" style="position:absolute; bottom:-2px; left:-2px; filter:drop-shadow(0 0 6px #22d3ee); transform: scaleY(-1);"><path d="M 0,40 L 40,0 L 60,0 L 60,4 L 42,4 L 4,42 L 4,60 L 0,60 Z" fill="#67e8f9"/></svg>
+                <svg width="60" height="60" style="position:absolute; bottom:-2px; right:-2px; filter:drop-shadow(0 0 6px #22d3ee); transform: scale(-1, -1);"><path d="M 0,40 L 40,0 L 60,0 L 60,4 L 42,4 L 4,42 L 4,60 L 0,60 Z" fill="#67e8f9"/></svg>
                 
-                <!-- 4. 데이터 스트림 해시마크 (CSS gradient 점선 활용) -->
-                <div style="position: absolute; top: 0; left: 100px; width: 150px; height: 2px; background-image: linear-gradient(to right, #22d3ee 50%, transparent 50%); background-size: 8px 100%;"></div>
-                <div style="position: absolute; bottom: 0; right: 100px; width: 150px; height: 2px; background-image: linear-gradient(to right, #22d3ee 50%, transparent 50%); background-size: 8px 100%;"></div>
+                <!-- Layer 5: 상/하단 홀로그램 자를 연상시키는 눈금 디테일 -->
+                <div style="position: absolute; top: 0; left: 120px; width: 200px; height: 3px; background-image: repeating-linear-gradient(to right, #67e8f9, #67e8f9 2px, transparent 2px, transparent 8px);"></div>
+                <div style="position: absolute; bottom: 0; right: 120px; width: 200px; height: 3px; background-image: repeating-linear-gradient(to right, #67e8f9, #67e8f9 2px, transparent 2px, transparent 8px);"></div>
 
-                <!-- 중앙 상단 명판 -->
-                <div style="position: absolute; top: 0px; left: 50%; transform: translateX(-50%); background: #020617; border: 1px solid #0e7490; border-top: none; color: #67e8f9; padding: 2px 24px; font-size: 10px; font-weight: 800; font-family: monospace; letter-spacing: 2px; border-radius: 0 0 8px 8px;">HUD : TACTICAL OVERVIEW</div>
+                <!-- 중앙 상단 3D 양각 명판 -->
+                <div style="position: absolute; top: 0px; left: 50%; transform: translateX(-50%); 
+                            background: linear-gradient(180deg, #020617 0%, #083344 100%); 
+                            border: 1px solid #22d3ee; border-top: none; 
+                            color: #cffafe; padding: 4px 32px; font-size: 11px; font-weight: 900; font-family: monospace; letter-spacing: 3px; 
+                            border-radius: 0 0 12px 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.6), inset 0 -2px 5px rgba(103,232,249,0.3);
+                            text-shadow: 0 0 5px rgba(103,232,249,0.8);">
+                  HUD : TACTICAL OVERVIEW
+                </div>
               </div>
 
               <div class="tower-hud-overlay">
