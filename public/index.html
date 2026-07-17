@@ -326,7 +326,7 @@
 .tower-hud-tick.h { height:1.5px; width:8px; }    
 
   .tower-placeholder { color:#475569; font-size:12px; text-align:center; padding:40px 10px; line-height:1.6; }
-    .travel-control-bar { display:flex; align-items:center; gap:14px; margin-bottom:14px; background:#0a1628; border:1px solid #0e7490; border-radius:10px; padding:10px 16px; flex-wrap:wrap; }
+    .travel-control-bar { display:flex; align-items:center; gap:10px; margin-bottom:10px; background:#0a1628; border:1px solid #0e7490; border-radius:8px; padding:6px 12px; flex-wrap:wrap; }
 .travel-play-btn { width:34px; height:34px; border-radius:50%; background:#0e293f; border:1px solid #0e7490; color:#67e8f9; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s; flex-shrink:0; }
 .travel-play-btn:hover { background:#0e7490; color:#02131a; box-shadow:0 0 10px rgba(103,232,249,0.5); }
 .travel-speed-group { display:flex; gap:4px; }
@@ -1105,7 +1105,11 @@ window.renderDeviationTrendTest = function() {
       <div id="tower-panel" style="display:none;">
       <div class="tower-shell">
         <div class="tower-title"> 관제탑 — 프로젝트 글로벌 현황</div>
-        <div class="travel-control-bar">
+        <div class="tower-grid">
+          <div class="tower-side" id="tower-left-deco">
+          </div>
+          <div class="tower-map-wrap">
+            <div class="travel-control-bar">
   <button id="travel-restart-btn" class="travel-play-btn" onclick="window.travelRestart()" title="처음부터 다시 재생" style="font-size:13px;">⟲</button>
   <button id="travel-reset-btn" class="travel-play-btn" onclick="window.travelReset()" title="전부 지우고 정지" style="font-size:13px;">⏹</button>
   <button id="travel-play-btn" class="travel-play-btn" onclick="window.travelPlayToggle()" title="재생">▶</button>
@@ -1123,19 +1127,6 @@ window.renderDeviationTrendTest = function() {
     <div id="travel-progress-label">0 / 0일</div>
   </div>
 </div>
-        <div class="tower-grid">
-          <div class="tower-side">
-            <div class="tower-kpi-group">
-              <div class="tower-kpi"><span class="tower-kpi-label">총 프로젝트</span><span class="tower-kpi-value" id="tower-kpi-total">-</span></div>
-              <div class="tower-kpi"><span class="tower-kpi-label tower-danger">지연중</span><span class="tower-kpi-value tower-danger" id="tower-kpi-delay">-</span></div>
-              <div class="tower-kpi"><span class="tower-kpi-label tower-ok">정상</span><span class="tower-kpi-value tower-ok" id="tower-kpi-ok">-</span></div>
-            </div>
-            <div class="tower-panel-box">
-              <div class="tower-box-title">지연일 순 Top</div>
-              <div id="tower-delay-list"></div>
-            </div>
-          </div>
-          <div class="tower-map-wrap">
             <div class="tower-map-frame">
               <div id="tower-map">
                 <div class="tower-tint"></div>
