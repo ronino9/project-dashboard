@@ -300,35 +300,7 @@
 }
     .tower-map-frame { position: relative; width: 100%; }
     .tower-map-frame { position: relative; width: 100%; }
-    .tower-hud-letterbox {
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 9%;
-      background: #020617;
-      overflow: hidden;
-      z-index: 1;
-    }
-    .tower-hud-letterbox.top { top: 10px; }
-    .tower-hud-letterbox.bottom { bottom: 10px; }
-    .tower-hud-letterbox::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(103,232,249,0.15) 2px, rgba(103,232,249,0.15) 4px);
-    }
-    .tower-hud-letterbox.top::after,
-    .tower-hud-letterbox.bottom::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: rgba(103,232,249,0.5);
-      box-shadow: 0 0 6px rgba(103,232,249,0.6);
-    }
-    .tower-hud-letterbox.top::after { bottom: 0; }
-    .tower-hud-letterbox.bottom::after { top: 0; }
+
     /* width를 75%로 줄이고, margin: 0 auto; 로 가운데 정렬 */
     #tower-map { width: 75%; margin: 0 auto; height: auto; aspect-ratio: 1 / 1; border-radius: 8px; overflow: hidden; }
     #tower-map .leaflet-tile-pane { filter: brightness(3) contrast(1.15); }
