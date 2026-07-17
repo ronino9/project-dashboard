@@ -351,6 +351,35 @@
     .jd-t1-clock-block { margin-top:12px; text-align:left; }
     .jd-t1-clock-block .jd-t1-clock { font-size:18px; font-weight:bold; letter-spacing:2px; border-bottom:1px solid rgba(103,232,249,0.2); padding-bottom:4px; display:inline-block; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
     .jd-t1-clock-block .jd-t1-day-str { font-size:12px; margin-top:4px; text-transform:uppercase; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
+    .jd-tier2 { position:relative; z-index:10; margin-left:50px; margin-bottom:20px; }
+    .jd-storage-block { margin-bottom:18px; max-width:300px; }
+    .jd-cap-icon-svg { width:20px; height:20px; flex-shrink:0; filter:drop-shadow(0 0 3px rgba(103,232,249,0.6)); }
+    .jd-cap-icon-svg.small { width:16px; height:16px; }
+    .jd-capacity-row { display:flex; align-items:center; gap:10px; margin-bottom:6px; color:#67e8f9; }
+    .jd-capacity-row .jd-cap-label { font-size:14px; font-weight:700; }
+    .jd-capacity-row .jd-cap-label b { font-size:16px; font-weight:900; }
+    .jd-primary-storage-row { display:flex; justify-content:space-between; align-items:center; font-size:11px; font-weight:700; letter-spacing:1px; color:rgba(103,232,249,0.5); padding-left:30px; margin-bottom:6px; }
+    .jd-capacity-bar-wrap { margin-top:8px; }
+    .jd-capacity-bar { position:relative; width:100%; height:6px; background:rgba(103,232,249,0.1); border-radius:2px; overflow:hidden; }
+    .jd-capacity-bar-fill { position:absolute; left:0; top:0; bottom:0; width:60%; background:#67e8f9; box-shadow:0 0 8px rgba(103,232,249,0.6); border-radius:2px 0 0 2px; }
+    .jd-mid-row { display:flex; align-items:flex-start; gap:14px; margin-top:10px; }
+    .jd-donut-col { flex-shrink:0; }
+    .jd-power-donut { position:relative; width:100px; height:100px; }
+    .jd-pd-ring-outer { position:absolute; inset:0; border-radius:50%; border:3px solid rgba(103,232,249,0.2); }
+    .jd-pd-ring-mid { position:absolute; inset:6px; border-radius:50%; border:10px solid rgba(103,232,249,0.2); }
+    .jd-pd-ring-progress { position:absolute; inset:21px; border-radius:50%; border:6px solid transparent; border-top-color:#67e8f9; border-right-color:#67e8f9; box-shadow:0 0 4px rgba(103,232,249,0.6); transform:rotate(-45deg); }
+    .jd-pd-text { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
+    .jd-pd-percent { font-size:18px; font-weight:bold; }
+    .jd-pd-sub { font-size:10px; opacity:0.6; margin-top:1px; }
+    .jd-player-col { flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-start; text-align:left; padding-top:4px; max-width:200px; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
+    .jd-player-row-top { display:flex; align-items:center; gap:10px; font-size:12px; opacity:0.85; margin-bottom:8px; }
+    .jd-player-row-bottom { display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:6px; }
+    .jd-player-buttons { display:flex; align-items:center; gap:8px; }
+    .jd-track-name { font-size:11px; font-weight:700; max-width:200px; line-height:1.4; }
+    .jd-waste-status { font-size:13px; margin-top:10px; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
+    .jd-waste-title { margin-bottom:6px; opacity:0.9; }
+    .jd-waste-value { font-size:14px; }
+    .jd-waste-value .arrow-l, .jd-waste-value .arrow-r { opacity:0.5; margin:0 4px; }
     .tower-placeholder { color:#475569; font-size:12px; text-align:center; padding:40px 10px; line-height:1.6; }
     .travel-control-bar { display:flex; align-items:center; gap:8px; margin-bottom:8px; background:#0a1628; border:1px solid #0e7490; border-radius:8px; padding:4px 10px; flex-wrap:wrap; }
 .travel-play-btn { width:24px; height:24px; border-radius:50%; background:#0e293f; border:1px solid #0e7490; color:#67e8f9; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s; flex-shrink:0; }
@@ -1151,6 +1180,76 @@ window.renderDeviationTrendTest = function() {
                   <div class="jd-t1-day-str">Tuesday</div>
                 </div>
               </div>
+
+              <div class="jd-tier2">
+                <div class="jd-storage-block">
+                  <div class="jd-capacity-row main">
+                    <svg class="jd-cap-icon-svg" viewBox="0 0 24 24">
+                      <g fill="#67e8f9" opacity="0.9">
+                        <path d="M12 12 C12 12 6 10 5 4 C11 3 14 7 12 12 Z"/>
+                        <path d="M12 12 C12 12 14 6 20 5 C21 11 17 14 12 12 Z" transform="rotate(90 12 12)"/>
+                        <path d="M12 12 C12 12 6 10 5 4 C11 3 14 7 12 12 Z" transform="rotate(180 12 12)"/>
+                        <path d="M12 12 C12 12 14 6 20 5 C21 11 17 14 12 12 Z" transform="rotate(270 12 12)"/>
+                      </g>
+                      <circle cx="12" cy="12" r="1.4" fill="#67e8f9"/>
+                    </svg>
+                    <span class="jd-cap-label">Full Capacity: <b>149</b> G</span>
+                  </div>
+                  <div class="jd-primary-storage-row">
+                    <span>PRIMARY STORAGE</span><span>▶</span>
+                  </div>
+                  <div class="jd-capacity-row sub">
+                    <svg class="jd-cap-icon-svg small" viewBox="0 0 24 24">
+                      <g fill="#67e8f9" opacity="0.9">
+                        <path d="M12 12 C12 12 6 10 5 4 C11 3 14 7 12 12 Z"/>
+                        <path d="M12 12 C12 12 14 6 20 5 C21 11 17 14 12 12 Z" transform="rotate(90 12 12)"/>
+                        <path d="M12 12 C12 12 6 10 5 4 C11 3 14 7 12 12 Z" transform="rotate(180 12 12)"/>
+                        <path d="M12 12 C12 12 14 6 20 5 C21 11 17 14 12 12 Z" transform="rotate(270 12 12)"/>
+                      </g>
+                      <circle cx="12" cy="12" r="1.4" fill="#67e8f9"/>
+                    </svg>
+                    <span class="jd-cap-label">Free Capacity: <b>7</b> G</span>
+                  </div>
+                  <div class="jd-capacity-bar-wrap">
+                    <div class="jd-capacity-bar"><div class="jd-capacity-bar-fill"></div></div>
+                  </div>
+                </div>
+
+                <div class="jd-mid-row">
+                  <div class="jd-donut-col">
+                    <div class="jd-power-donut">
+                      <div class="jd-pd-ring-outer"></div>
+                      <div class="jd-pd-ring-mid"></div>
+                      <div class="jd-pd-ring-progress"></div>
+                      <div class="jd-pd-text">
+                        <div class="jd-pd-percent">100%</div>
+                        <div class="jd-pd-sub">High</div>
+                      </div>
+                    </div>
+                    <div class="jd-waste-status">
+                      <div class="jd-waste-title">Waste Status</div>
+                      <div class="jd-waste-value"><span class="arrow-l">▶</span>0 File(s)<span class="arrow-r">◀</span></div>
+                    </div>
+                  </div>
+
+                  <div class="jd-player-col">
+                    <div class="jd-player-row-top">
+                      <span>▲</span><span>▼</span>
+                      <span>Player</span>
+                      <span>0:02</span>
+                      <span>⤨</span>
+                      <span>↻</span>
+                    </div>
+                    <div class="jd-player-row-bottom">
+                      <div class="jd-player-buttons">
+                        <span>▶</span><span>Ⅱ</span><span>▶▶</span><span>◀◀</span>
+                      </div>
+                    </div>
+                    <div class="jd-track-name">18. Scrolls of Aryavart Ft. Black Cobra - Maddi's World</div>
+                  </div>
+                </div>
+              </div>
+
               <div class="jd-scaffold-v"></div>
               <div class="jd-eq">
                 <div class="bar" style="height:45%"></div>
