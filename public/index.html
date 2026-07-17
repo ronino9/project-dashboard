@@ -338,7 +338,20 @@
     .jarvis-deco .jd-chev { width:12px; height:12px; border-bottom:3px solid rgba(103,232,249,0.3); border-right:3px solid rgba(103,232,249,0.3); transform:scaleY(0.7) rotate(45deg); }
     .jarvis-deco .jd-circles { position:absolute; bottom:6px; left:0; display:flex; flex-direction:column; gap:5px; }
     .jarvis-deco .jd-circle { width:10px; height:10px; border-left:1.5px solid #67e8f9; border-right:1.5px solid #67e8f9; border-top:1.5px solid transparent; border-bottom:1.5px solid transparent; border-radius:50%; box-shadow:0 0 4px rgba(103,232,249,0.5), inset 0 0 4px rgba(103,232,249,0.5); }
-  .tower-placeholder { color:#475569; font-size:12px; text-align:center; padding:40px 10px; line-height:1.6; }
+  .jd-tier1 { position:relative; z-index:10; display:flex; align-items:flex-start; gap:8px; margin-bottom:16px; }
+    .jd-tier1-donut { position:relative; width:86px; height:86px; flex-shrink:0; }
+    .jd-t1-ring-outer { position:absolute; inset:0; border-radius:50%; border:2px solid #67e8f9; box-shadow:0 0 8px rgba(103,232,249,0.6); }
+    .jd-t1-ring-mid { position:absolute; inset:4px; border-radius:50%; border:2px solid rgba(103,232,249,0.5); }
+    .jd-t1-ring-thick { position:absolute; inset:8px; border-radius:50%; border:7px solid transparent; border-right-color:#67e8f9; border-bottom-color:#67e8f9; transform:rotate(-15deg); }
+    .jd-t1-ring-inner { position:absolute; inset:20px; border-radius:50%; border:1px solid rgba(103,232,249,0.2); }
+    .jd-t1-ring-smile { position:absolute; inset:26px; border-radius:50%; border:2px solid transparent; border-bottom-color:#67e8f9; }
+    .jd-t1-text { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; margin-top:-2px; }
+    .jd-t1-text .jd-t1-month { font-size:8px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; margin-bottom:-2px; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
+    .jd-t1-text .jd-t1-day { font-size:26px; font-weight:bold; line-height:1; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6), 0 0 10px rgba(103,232,249,0.6); }
+    .jd-t1-clock-block { margin-left:4px; text-align:right; margin-top:4px; }
+    .jd-t1-clock-block .jd-t1-clock { font-size:11px; font-weight:bold; letter-spacing:1px; border-bottom:1px solid rgba(103,232,249,0.2); padding-bottom:3px; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
+    .jd-t1-clock-block .jd-t1-day-str { font-size:8px; margin-top:3px; text-transform:uppercase; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
+    .tower-placeholder { color:#475569; font-size:12px; text-align:center; padding:40px 10px; line-height:1.6; }
     .travel-control-bar { display:flex; align-items:center; gap:8px; margin-bottom:8px; background:#0a1628; border:1px solid #0e7490; border-radius:8px; padding:4px 10px; flex-wrap:wrap; }
 .travel-play-btn { width:24px; height:24px; border-radius:50%; background:#0e293f; border:1px solid #0e7490; color:#67e8f9; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s; flex-shrink:0; }
 .travel-play-btn:hover { background:#0e7490; color:#02131a; box-shadow:0 0 10px rgba(103,232,249,0.5); }
@@ -1121,6 +1134,23 @@ window.renderDeviationTrendTest = function() {
         <div class="tower-grid">
           <div class="tower-side" id="tower-left-deco">
             <div class="jarvis-deco">
+              <div class="jd-tier1">
+                <div class="jd-tier1-donut">
+                  <div class="jd-t1-ring-outer"></div>
+                  <div class="jd-t1-ring-mid"></div>
+                  <div class="jd-t1-ring-thick"></div>
+                  <div class="jd-t1-ring-inner"></div>
+                  <div class="jd-t1-ring-smile"></div>
+                  <div class="jd-t1-text">
+                    <div class="jd-t1-month">JANUARY</div>
+                    <div class="jd-t1-day">04</div>
+                  </div>
+                </div>
+                <div class="jd-t1-clock-block">
+                  <div class="jd-t1-clock">19:59:12</div>
+                  <div class="jd-t1-day-str">Tuesday</div>
+                </div>
+              </div>
               <div class="jd-scaffold-v"></div>
               <div class="jd-eq">
                 <div class="bar" style="height:45%"></div>
