@@ -299,6 +299,36 @@
   100% { transform: scale(2.2); opacity: 0; }
 }
     .tower-map-frame { position: relative; width: 100%; }
+    .tower-map-frame { position: relative; width: 100%; }
+    .tower-hud-letterbox {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 9%;
+      background: #020617;
+      overflow: hidden;
+      z-index: 1;
+    }
+    .tower-hud-letterbox.top { top: 10px; }
+    .tower-hud-letterbox.bottom { bottom: 10px; }
+    .tower-hud-letterbox::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(103,232,249,0.15) 2px, rgba(103,232,249,0.15) 4px);
+    }
+    .tower-hud-letterbox.top::after,
+    .tower-hud-letterbox.bottom::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: rgba(103,232,249,0.5);
+      box-shadow: 0 0 6px rgba(103,232,249,0.6);
+    }
+    .tower-hud-letterbox.top::after { bottom: 0; }
+    .tower-hud-letterbox.bottom::after { top: 0; }
     /* width를 75%로 줄이고, margin: 0 auto; 로 가운데 정렬 */
     #tower-map { width: 75%; margin: 0 auto; height: auto; aspect-ratio: 1 / 1; border-radius: 8px; overflow: hidden; }
     #tower-map .leaflet-tile-pane { filter: brightness(3) contrast(1.15); }
@@ -1387,7 +1417,11 @@ window.renderDeviationTrendTest = function() {
 
               <!-- ★ 클로드 4시간의 한을 풀어드리는 궁극의 3D CSS 프레임 (이미지 에셋 0개) -->
               <div style="position: absolute; inset: -10px 10.5% -10px 10.5%; pointer-events: none; z-index: 5002; filter: drop-shadow(0 0 15px rgba(6,182,212,0.3)) drop-shadow(0 10px 30px rgba(2,6,23,0.8));">
-                
+                <!-- 여백 전용 HUD 바 (전체지도 여백 가리기) -->
+                <div class="tower-hud-letterbox top"></div>
+                <div class="tower-hud-letterbox bottom"></div>
+
+                <!-- Layer 1: 가장 두꺼운 메탈릭 아웃라인 (입체감의 핵심 + 스캔라인 텍스처) -->
                 <!-- Layer 1: 가장 두꺼운 메탈릭 아웃라인 (입체감의 핵심 + 스캔라인 텍스처) -->
                 <div style="position: absolute; inset: 0; 
                             background: linear-gradient(135deg, #22d3ee 0%, #083344 15%, #020617 40%, #020617 60%, #083344 85%, #22d3ee 100%); 
