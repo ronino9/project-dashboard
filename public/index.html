@@ -268,7 +268,7 @@
     }
     .tower-shell { background:#020617; border:1px solid #0e7490; border-radius:12px; padding:20px; box-shadow:0 0 24px rgba(6,182,212,0.15); }
     .tower-title { font-size:16px; font-weight:800; color:#67e8f9; text-shadow:0 0 8px rgba(103,232,249,0.5); margin-bottom:16px; letter-spacing:0.5px; }
-    .tower-grid { display:grid; grid-template-columns:220px minmax(0,1fr) 240px; gap:16px; align-items:start; }
+    .tower-grid { display:grid; grid-template-columns:220px minmax(0,1fr) 240px; gap:16px; align-items:stretch; }
     .tower-side { display:flex; flex-direction:column; gap:12px; }
     .tower-kpi-group { background:#0a1628; border:1px solid #0e7490; border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:8px; }
     .tower-kpi { display:flex; justify-content:space-between; align-items:center; }
@@ -324,13 +324,26 @@
 .tower-hud-tick { position:absolute; background:rgba(165,243,252,0.55); }
 .tower-hud-tick.v { width:1.5px; height:8px; }
 .tower-hud-tick.h { height:1.5px; width:8px; }    
-
+.jarvis-deco { position:relative; width:100%; height:100%; min-height:340px; overflow:hidden; }
+    .jarvis-deco .jd-scaffold-v { position:absolute; top:0; bottom:0; left:60px; width:1px; background:rgba(103,232,249,0.15); }
+    .jarvis-deco .jd-eq { position:absolute; top:20px; bottom:10px; left:76px; width:36px; display:flex; align-items:flex-end; gap:3px; }
+    .jarvis-deco .jd-eq .bar { width:2px; background:linear-gradient(to top, rgba(103,232,249,0.2), transparent); }
+    .jarvis-deco .jd-edge { position:absolute; top:10px; left:6px; bottom:20px; width:24px; }
+    .jarvis-deco .jd-arrows { display:flex; flex-direction:column; gap:6px; }
+    .jarvis-deco .jd-tri { width:0; height:0; border-top:4px solid transparent; border-bottom:4px solid transparent; border-left:6px solid #67e8f9; filter:drop-shadow(0 0 3px rgba(103,232,249,0.6)); }
+    .jarvis-deco .jd-line-thick { position:absolute; top:40px; bottom:60px; left:2px; width:3px; background:#67e8f9; box-shadow:0 0 6px rgba(103,232,249,0.6); }
+    .jarvis-deco .jd-line-thin1 { position:absolute; top:55px; bottom:45px; left:9px; width:1px; background:rgba(103,232,249,0.4); }
+    .jarvis-deco .jd-line-thin2 { position:absolute; top:55px; bottom:45px; left:12px; width:1px; background:rgba(103,232,249,0.2); }
+    .jarvis-deco .jd-chevrons { position:absolute; top:38%; left:4px; display:flex; flex-direction:column; gap:8px; }
+    .jarvis-deco .jd-chev { width:12px; height:12px; border-bottom:3px solid rgba(103,232,249,0.3); border-right:3px solid rgba(103,232,249,0.3); transform:scaleY(0.7) rotate(45deg); }
+    .jarvis-deco .jd-circles { position:absolute; bottom:6px; left:0; display:flex; flex-direction:column; gap:5px; }
+    .jarvis-deco .jd-circle { width:10px; height:10px; border-left:1.5px solid #67e8f9; border-right:1.5px solid #67e8f9; border-top:1.5px solid transparent; border-bottom:1.5px solid transparent; border-radius:50%; box-shadow:0 0 4px rgba(103,232,249,0.5), inset 0 0 4px rgba(103,232,249,0.5); }
   .tower-placeholder { color:#475569; font-size:12px; text-align:center; padding:40px 10px; line-height:1.6; }
-    .travel-control-bar { display:flex; align-items:center; gap:10px; margin-bottom:10px; background:#0a1628; border:1px solid #0e7490; border-radius:8px; padding:6px 12px; flex-wrap:wrap; }
-.travel-play-btn { width:34px; height:34px; border-radius:50%; background:#0e293f; border:1px solid #0e7490; color:#67e8f9; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s; flex-shrink:0; }
+    .travel-control-bar { display:flex; align-items:center; gap:8px; margin-bottom:8px; background:#0a1628; border:1px solid #0e7490; border-radius:8px; padding:4px 10px; flex-wrap:wrap; }
+.travel-play-btn { width:24px; height:24px; border-radius:50%; background:#0e293f; border:1px solid #0e7490; color:#67e8f9; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s; flex-shrink:0; }
 .travel-play-btn:hover { background:#0e7490; color:#02131a; box-shadow:0 0 10px rgba(103,232,249,0.5); }
-.travel-speed-group { display:flex; gap:4px; }
-.travel-speed-btn { padding:3px 10px; font-size:11px; font-weight:700; border-radius:8px; border:1px solid #0e7490; background:transparent; color:#67e8f9; cursor:pointer; transition:0.2s; }
+.travel-speed-group { display:flex; gap:3px; }
+.travel-speed-btn { padding:2px 8px; font-size:10px; font-weight:700; border-radius:6px; border:1px solid #0e7490; background:transparent; color:#67e8f9; cursor:pointer; transition:0.2s; }
 .travel-speed-btn:hover { background:#0e293f; }
 .travel-speed-btn.travel-speed-active { background:#67e8f9; color:#02131a; }
 .travel-date-block { display:flex; flex-direction:column; gap:3px; flex-shrink:0; }
@@ -1107,6 +1120,31 @@ window.renderDeviationTrendTest = function() {
         <div class="tower-title"> 관제탑 — 프로젝트 글로벌 현황</div>
         <div class="tower-grid">
           <div class="tower-side" id="tower-left-deco">
+            <div class="jarvis-deco">
+              <div class="jd-scaffold-v"></div>
+              <div class="jd-eq">
+                <div class="bar" style="height:45%"></div>
+                <div class="bar" style="height:78%"></div>
+                <div class="bar" style="height:100%"></div>
+                <div class="bar" style="height:62%"></div>
+                <div class="bar" style="height:88%"></div>
+                <div class="bar" style="height:55%"></div>
+              </div>
+              <div class="jd-edge">
+                <div class="jd-arrows">
+                  <div class="jd-tri"></div><div class="jd-tri"></div><div class="jd-tri"></div>
+                </div>
+              </div>
+              <div class="jd-line-thick"></div>
+              <div class="jd-line-thin1"></div>
+              <div class="jd-line-thin2"></div>
+              <div class="jd-chevrons">
+                <div class="jd-chev"></div><div class="jd-chev"></div><div class="jd-chev"></div>
+              </div>
+              <div class="jd-circles">
+                <div class="jd-circle"></div><div class="jd-circle"></div><div class="jd-circle"></div>
+              </div>
+            </div>
           </div>
           <div class="tower-map-wrap">
             <div class="travel-control-bar">
