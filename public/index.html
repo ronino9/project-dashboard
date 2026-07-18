@@ -5263,17 +5263,18 @@ window.jdFormatLiveClock = function() {
 
 window.jdSetPlaybackMode = function(isPlaying) {
   const clockEl = document.getElementById('jdClockText');
-  const dayStrEl = document.getElementById('jdDayStrText');
   const labelEl = document.getElementById('jd-travel-label');
   const ring = document.getElementById('jdProgressRing');
   
   if (isPlaying) {
     if (window._jdLiveClockTimer) { clearInterval(window._jdLiveClockTimer); window._jdLiveClockTimer = null; }
-    if (clockEl) { clockEl.textContent = 'BUSINESS TRIP PLAYBACK'; clockEl.classList.add('jd-playback-blink'); }
-    if (dayStrEl) dayStrEl.textContent = 'IN PROGRESS';
+    
+    // 1. 긴 문구 대신 시계 사이즈와 비슷한 'PLAYBACK' 사용 (점멸 효과 유지)
+    if (clockEl) { clockEl.textContent = 'PLAYBACK'; clockEl.classList.add('jd-playback-blink'); }
+    
+    // (기존의 'IN PROGRESS' 덮어쓰기 로직 삭제 - 요일 텍스트를 유지하기 위함)
   } else {
     if (clockEl) clockEl.classList.remove('jd-playback-blink');
-    // 👇 이 부분이 핵심입니다 (IDLE 삭제 적용)
     if (labelEl) labelEl.textContent = 'BUSINESS TRIP LOG'; 
     if (ring) ring.style.strokeDashoffset = 0;
     window.jdFormatLiveClock();
@@ -5632,11 +5633,20 @@ window.travelStepNext = function() {
 window.travelUpdateDateDisplay = function(dateStr) {
   const monthEl = document.getElementById('jd-t1-month-dynamic');
   const dayEl = document.getElementById('jd-t1-day-dynamic');
+  const dayStrEl = document.getElementById('jdDayStrText'); // 요일 텍스트 요소 추가
+  
   if (!dateStr || !monthEl || !dayEl) return;
   const d = new Date(dateStr.toString().replace(/\./g, '-'));
   if (isNaN(d)) return;
+  
+  // 1. 월, 일 업데이트
   monthEl.textContent = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
   dayEl.textContent = d.getDate();
+  
+  // 2. 실제 날짜의 '요일'을 계산해서 실시간 표시
+  if (dayStrEl) {
+    dayStrEl.textContent = d.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
+  }
 };
 
 window.travelUpdateProgress = function(idx, total) {
