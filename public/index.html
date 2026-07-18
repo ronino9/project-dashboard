@@ -9,6 +9,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/leaflet-ant-path@1.4.0/dist/leaflet-ant-path.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@300;400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@300;400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     /* PDCA 현황 / 프로젝트 현황 버튼 Hover 애니메이션 */
@@ -79,6 +80,30 @@
     .sidebar-btn:hover { background: #f1f5f9; color: #0f172a; }
     .sidebar-btn.active { background: #eff6ff; color: #1d4ed8; font-weight: 700; }
     .sidebar-icon { font-size: 14px; flex-shrink: 0; }
+    .sidebar-btn-jarvis { display:flex; align-items:center; gap:12px; width:100%; padding:8px 10px; border-radius:10px; background:#eff6ff; border:none; cursor:pointer; text-align:left; }
+    .jb-ring1 { transform-origin:50px 50px; animation: jbSpin 10s linear infinite; }
+    .jb-ring2 { transform-origin:50px 50px; animation: jbSpinRev 15s linear infinite; }
+    .jb-core { animation: jbFlicker 2.4s ease-in-out infinite; }
+    @keyframes jbSpin { to { transform: rotate(360deg); } }
+    @keyframes jbSpinRev { to { transform: rotate(-360deg); } }
+    @keyframes jbFlicker {
+      0%, 100% { opacity:1; filter: drop-shadow(0 0 8px #4dd8e8); }
+      45% { opacity:1; filter: drop-shadow(0 0 8px #4dd8e8); }
+      50% { opacity:0.25; filter:none; }
+      55% { opacity:1; filter: drop-shadow(0 0 8px #4dd8e8); }
+      70% { opacity:1; filter: drop-shadow(0 0 22px #ffffff) drop-shadow(0 0 34px #7ff0fa); }
+      85% { opacity:1; filter: drop-shadow(0 0 8px #4dd8e8); }
+      }
+      @keyframes hudSubBlinkGreen {
+      0%, 100% { opacity:1; color:#4ade80; text-shadow:0 0 6px rgba(74,222,128,0.7); }
+      50% { opacity:0.45; text-shadow:none; }
+    }
+    @keyframes hudSubBlinkGold {
+      0%, 100% { opacity:1; color:#f5d061; text-shadow:0 0 6px rgba(245,208,97,0.7); }
+      50% { opacity:0.45; text-shadow:none; }
+    }
+    .tower-hud-sub-green { font-weight:700; animation: hudSubBlinkGreen 2s ease-in-out infinite; }
+    .tower-hud-sub-gold { font-weight:700; animation: hudSubBlinkGold 2s ease-in-out infinite; }
     .sidebar-sub { font-size: 10px; color: #94a3b8; font-weight: 600; margin-left: auto; }
     .sidebar-btn.active .sidebar-sub { color: #1d4ed8; }
     body.light-page { background: #ffffff; }
@@ -504,7 +529,32 @@
       </div>
       <div class="sidebar-group">
         <button id="btn-daily" class="sidebar-btn" onclick="window.switchTab('daily')">기간별 업무 내역</button>
-        <button id="btn-tower" class="sidebar-btn" onclick="window.switchTab('tower')">🗼 관제탑</button>
+        <button id="btn-tower" class="sidebar-btn-jarvis" onclick="window.switchTab('tower')">
+          <svg width="52" height="52" viewBox="0 0 100 100" style="flex-shrink:0; overflow:visible;">
+            <defs>
+              <filter id="jbGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="4" result="blur"/>
+                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+              </filter>
+              <filter id="jbGlowStrong" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="6" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <circle cx="50" cy="50" r="48" fill="rgba(10,20,32,0.85)" stroke="#1e293b" stroke-width="4"/>
+            <circle class="jb-ring1" cx="50" cy="50" r="42" fill="none" stroke="#4dd8e8" stroke-width="3" stroke-dasharray="10 6 2 6" filter="url(#jbGlow)"/>
+            <circle cx="50" cy="50" r="32" fill="none" stroke="#2a5f66" stroke-width="2"/>
+            <circle class="jb-ring2" cx="50" cy="50" r="26" fill="none" stroke="#4dd8e8" stroke-width="1" stroke-dasharray="4 8"/>
+            <g stroke="#7ff0fa" stroke-width="2" filter="url(#jbGlow)">
+              <line x1="50" y1="20" x2="50" y2="80"/><line x1="20" y1="50" x2="80" y2="50"/>
+              <line x1="28.8" y1="28.8" x2="71.2" y2="71.2"/><line x1="71.2" y1="28.8" x2="28.8" y2="71.2"/>
+            </g>
+            <circle cx="50" cy="50" r="21" fill="#020617" stroke="#7ff0fa" stroke-width="2" filter="url(#jbGlow)"/>
+            <circle class="jb-core" cx="50" cy="50" r="12" fill="#ffffff" filter="url(#jbGlowStrong)"/>
+          </svg>
+          <span style="font-family:'Orbitron', sans-serif; font-size:15px; font-weight:400; letter-spacing:4px; color:#7ff0fa; text-shadow:0 0 10px rgba(77,216,232,0.45);">JARVIS</span>
+        </button>
+        
       </div>
     </aside>
     <div class="container">
@@ -1236,12 +1286,12 @@ window.renderDeviationTrendTest = function() {
             </svg>
             <div>
               <div class="tower-hud-title" style="font-size:18px; color:#67e8f9; text-shadow:0 0 10px rgba(103,232,249,0.5);">J·A·R·V·I·S</div>
-              <div class="tower-hud-sub" style="font-size:10px; color:#4a6a72; margin-top:4px;">SYSTEM ONLINE // SECURE</div>
+              <div class="tower-hud-sub tower-hud-sub-green" style="font-size:11px; margin-top:4px;">SYSTEM ONLINE // SECURE</div>
             </div>
           </div>
           <div style="text-align:right;">
             <div class="tower-hud-title" style="font-size:16px; color:#f5d061; text-shadow:0 0 10px rgba(232,185,35,0.45);">MARK · VII</div>
-            <div class="tower-hud-sub" style="font-size:10px; color:#7a6a3a; margin-top:4px;">SUIT STATUS // ACTIVE</div>
+            <div class="tower-hud-sub tower-hud-sub-gold" style="font-size:11px; margin-top:4px;">SUIT STATUS // ACTIVE</div>
           </div>
         </div>
         <div class="tower-grid">
