@@ -446,8 +446,19 @@
     }
     .jd-tier2 { position:relative; z-index:10; margin-left:50px; margin-bottom:20px; }
     .jd-storage-block { margin-bottom:18px; max-width:300px; }
-    .jd-cap-icon-svg { width:20px; height:20px; flex-shrink:0; filter:drop-shadow(0 0 3px rgba(103,232,249,0.6)); }
-    .jd-cap-icon-svg.small { width:16px; height:16px; }
+    @keyframes spinBladeHUD {
+  100% { transform: rotate(360deg); }
+}
+.jd-cap-icon-svg { 
+  width:20px; height:20px; flex-shrink:0; 
+  filter:drop-shadow(0 0 3px rgba(103,232,249,0.6)); 
+  animation: spinBladeHUD 3.5s linear infinite; /* 부드러운 정방향 회전 */
+  transform-origin: center;
+}
+.jd-cap-icon-svg.small { 
+  width:16px; height:16px; 
+  animation: spinBladeHUD 2.5s linear infinite reverse; /* 작은 아이콘은 반대 방향으로 살짝 빠르게 회전 */
+}
     .jd-capacity-row { display:flex; align-items:center; gap:10px; margin-bottom:6px; color:#67e8f9; }
     .jd-capacity-row .jd-cap-label { font-size:14px; font-weight:700; }
     .jd-capacity-row .jd-cap-label b { font-size:16px; font-weight:900; }
@@ -1371,12 +1382,12 @@ window.renderDeviationTrendTest = function() {
                   <div class="jd-capacity-row main">
                     <svg class="jd-cap-icon-svg" viewBox="0 0 24 24">
                       <g fill="#67e8f9" opacity="0.9">
-                        <path d="M12 12 C12 12 6 10 5 4 C11 3 14 7 12 12 Z"/>
-                        <path d="M12 12 C12 12 14 6 20 5 C21 11 17 14 12 12 Z" transform="rotate(90 12 12)"/>
-                        <path d="M12 12 C12 12 6 10 5 4 C11 3 14 7 12 12 Z" transform="rotate(180 12 12)"/>
-                        <path d="M12 12 C12 12 14 6 20 5 C21 11 17 14 12 12 Z" transform="rotate(270 12 12)"/>
+                        <path d="M12,12 C12,4 17,2 22,2 C20,8 15,12 12,12 Z" />
+                        <path d="M12,12 C12,4 17,2 22,2 C20,8 15,12 12,12 Z" transform="rotate(90 12 12)" />
+                        <path d="M12,12 C12,4 17,2 22,2 C20,8 15,12 12,12 Z" transform="rotate(180 12 12)" />
+                        <path d="M12,12 C12,4 17,2 22,2 C20,8 15,12 12,12 Z" transform="rotate(270 12 12)" />
                       </g>
-                      <circle cx="12" cy="12" r="1.4" fill="#67e8f9"/>
+                      <polygon points="12,10 14,12 12,14 10,12" fill="#020617" />
                     </svg>
                     <span class="jd-cap-label">Full Capacity: <b>149</b> G</span>
                   </div>
@@ -1386,12 +1397,12 @@ window.renderDeviationTrendTest = function() {
                   <div class="jd-capacity-row sub">
                     <svg class="jd-cap-icon-svg small" viewBox="0 0 24 24">
                       <g fill="#67e8f9" opacity="0.9">
-                        <path d="M12 12 C12 12 6 10 5 4 C11 3 14 7 12 12 Z"/>
-                        <path d="M12 12 C12 12 14 6 20 5 C21 11 17 14 12 12 Z" transform="rotate(90 12 12)"/>
-                        <path d="M12 12 C12 12 6 10 5 4 C11 3 14 7 12 12 Z" transform="rotate(180 12 12)"/>
-                        <path d="M12 12 C12 12 14 6 20 5 C21 11 17 14 12 12 Z" transform="rotate(270 12 12)"/>
+                        <path d="M12,12 C12,4 17,2 22,2 C20,8 15,12 12,12 Z" />
+                        <path d="M12,12 C12,4 17,2 22,2 C20,8 15,12 12,12 Z" transform="rotate(90 12 12)" />
+                        <path d="M12,12 C12,4 17,2 22,2 C20,8 15,12 12,12 Z" transform="rotate(180 12 12)" />
+                        <path d="M12,12 C12,4 17,2 22,2 C20,8 15,12 12,12 Z" transform="rotate(270 12 12)" />
                       </g>
-                      <circle cx="12" cy="12" r="1.4" fill="#67e8f9"/>
+                      <polygon points="12,10 14,12 12,14 10,12" fill="#020617" />
                     </svg>
                     <span class="jd-cap-label">Free Capacity: <b>7</b> G</span>
                   </div>
