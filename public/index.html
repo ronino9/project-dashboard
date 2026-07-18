@@ -1337,22 +1337,9 @@ window.renderDeviationTrendTest = function() {
                     <div id="jd-t1-day-dynamic" class="jd-t1-day">04</div>
                   </div>
                 </div>
-                <div class="jd-t1-clock-block" style="flex:1; min-width:0; display:flex; flex-direction:column; gap:10px;">
-                  <div>
-                    <div id="jdClockText" class="jd-t1-clock">19:59:12</div>
-                    <div id="jdDayStrText" class="jd-t1-day-str">Tuesday</div>
-                  </div>
-                  <div id="jd-travel-controls" style="display:flex; flex-direction:column; gap:8px; background:#05121f; border:1px solid #0e7490; border-radius:6px; padding:10px 12px; box-shadow:inset 0 0 14px rgba(14,116,144,0.15);">
-                    <div style="display:flex; align-items:center; gap:5px;">
-                      <button id="jd-travel-play" onclick="window.travelPlayToggle()" aria-label="재생" class="jd-hud-btn jd-hud-icon-btn"><i class="ti ti-player-play" style="font-size:12px"></i></button>
-                      <button onclick="window.travelReset()" aria-label="정지" class="jd-hud-btn jd-hud-icon-btn"><i class="ti ti-player-stop" style="font-size:12px"></i></button>
-                      <div style="width:0.5px; height:16px; background:#0e7490; margin:0 3px; flex-shrink:0;"></div>
-                      <button id="jd-speed-slow" onclick="window.travelSetSpeed('slow')" class="jd-hud-btn">slow</button>
-                      <button id="jd-speed-normal" onclick="window.travelSetSpeed('normal')" class="jd-hud-btn jd-hud-active">normal</button>
-                      <button id="jd-speed-fast" onclick="window.travelSetSpeed('fast')" class="jd-hud-btn">fast</button>
-                    </div>
-                    <div id="jd-travel-label" style="font-family:'Orbitron', sans-serif; font-size:11px; font-weight:500; letter-spacing:0.5px; color:#67e8f9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">BUSINESS TRIP LOG PLAYBACK — IDLE</div>
-                  </div>
+                <div class="jd-t1-clock-block">
+                  <div id="jdClockText" class="jd-t1-clock">19:59:12</div>
+                  <div id="jdDayStrText" class="jd-t1-day-str">Tuesday</div>
                 </div>
               </div>
 
@@ -1511,6 +1498,17 @@ window.renderDeviationTrendTest = function() {
           </div>
           <div class="tower-map-wrap">
             <div class="tower-map-frame">
+              <div id="jd-travel-controls" style="position:absolute; top:16px; left:12px; z-index:5010; width:16%; min-width:190px; display:flex; flex-direction:column; gap:8px; background:#05121f; border:1px solid #0e7490; border-radius:6px; padding:10px 12px; box-shadow:inset 0 0 14px rgba(14,116,144,0.15);">
+                <div style="display:flex; align-items:center; gap:5px;">
+                  <button id="jd-travel-play" onclick="window.travelPlayToggle()" aria-label="재생" class="jd-hud-btn jd-hud-icon-btn"><i class="ti ti-player-play" style="font-size:12px"></i></button>
+                  <button onclick="window.travelReset()" aria-label="정지" class="jd-hud-btn jd-hud-icon-btn"><i class="ti ti-player-stop" style="font-size:12px"></i></button>
+                  <div style="width:0.5px; height:16px; background:#0e7490; margin:0 3px; flex-shrink:0;"></div>
+                  <button id="jd-speed-slow" onclick="window.travelSetSpeed('slow')" class="jd-hud-btn">slow</button>
+                  <button id="jd-speed-normal" onclick="window.travelSetSpeed('normal')" class="jd-hud-btn jd-hud-active">normal</button>
+                  <button id="jd-speed-fast" onclick="window.travelSetSpeed('fast')" class="jd-hud-btn">fast</button>
+                </div>
+                <div id="jd-travel-label" style="font-family:'Orbitron', sans-serif; font-size:11px; font-weight:500; letter-spacing:0.5px; color:#67e8f9; line-height:1.4;">BUSINESS TRIP LOG PLAYBACK — IDLE</div>
+              </div>
               <div id="tower-map">
                 <div class="tower-tint"></div>
                 <div class="tower-tint-light"></div>
