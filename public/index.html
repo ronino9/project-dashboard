@@ -401,7 +401,11 @@
       0%, 100% { opacity:1; text-shadow:0 0 6px rgba(103,232,249,0.7); }
       50% { opacity:0.45; text-shadow:none; }
     }
-    .jd-playback-blink { animation: jdPlaybackBlink 2s ease-in-out infinite; }
+    .jd-playback-blink { 
+  animation: jdPlaybackBlink 2s ease-in-out infinite; 
+  font-size: 13px !important; /* 재생 중일 때만 폰트 크기 축소 */
+  letter-spacing: 1px !important; /* 자간도 살짝 줄여서 공간 완벽 확보 */
+}
     .jd-hud-btn {
       font-family: 'Orbitron', sans-serif;
       height: 22px; 
