@@ -396,6 +396,31 @@
     .jd-t1-clock-block { margin-top:12px; text-align:left; }
     .jd-t1-clock-block .jd-t1-clock { font-size:18px; font-weight:bold; letter-spacing:2px; border-bottom:1px solid rgba(103,232,249,0.2); padding-bottom:4px; display:inline-block; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
     .jd-t1-clock-block .jd-t1-day-str { font-size:12px; margin-top:4px; text-transform:uppercase; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
+    .jd-t1-clock-block .jd-t1-day-str { font-size:12px; margin-top:4px; text-transform:uppercase; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
+    @keyframes jdPlaybackBlink {
+      0%, 100% { opacity:1; text-shadow:0 0 6px rgba(103,232,249,0.7); }
+      50% { opacity:0.45; text-shadow:none; }
+    }
+    .jd-playback-blink { animation: jdPlaybackBlink 2s ease-in-out infinite; }
+    .jd-hud-btn {
+      font-family:'Orbitron', sans-serif;
+      width:40px; height:26px; flex-shrink:0;
+      background:#05121f; border:1px solid #0e7490; color:#67e8f9;
+      font-size:9px; font-weight:500; letter-spacing:0.5px; text-transform:uppercase;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+      transition: all 0.15s ease;
+      box-shadow: inset 0 0 8px rgba(14,116,144,0.25);
+    }
+    .jd-hud-btn.jd-hud-active {
+      background:#67e8f9; color:#04202b;
+      box-shadow:0 0 10px rgba(103,232,249,0.7), inset 0 0 8px rgba(255,255,255,0.3);
+      border-color:#67e8f9;
+    }
+    .jd-hud-btn:hover:not(.jd-hud-active) {
+      border-color:#67e8f9; box-shadow:0 0 6px rgba(103,232,249,0.4);
+    }
+    .jd-hud-icon-btn { width:26px; }
     .jd-tier2 { position:relative; z-index:10; margin-left:50px; margin-bottom:20px; }
     .jd-storage-block { margin-bottom:18px; max-width:300px; }
     .jd-cap-icon-svg { width:20px; height:20px; flex-shrink:0; filter:drop-shadow(0 0 3px rgba(103,232,249,0.6)); }
@@ -1299,19 +1324,35 @@ window.renderDeviationTrendTest = function() {
             <div class="jarvis-deco">
               <div class="jd-tier1">
                 <div class="jd-tier1-donut">
-                  <div class="jd-t1-ring-outer"></div>
+                  <svg width="170" height="170" viewBox="0 0 170 170" style="position:absolute; inset:0;">
+                    <circle cx="85" cy="85" r="83" fill="none" stroke="#134454" stroke-width="4"/>
+                    <circle id="jdProgressRing" cx="85" cy="85" r="83" fill="none" stroke="#67e8f9" stroke-width="4" stroke-linecap="round" stroke-dasharray="521.5" stroke-dashoffset="0" transform="rotate(-90 85 85)" style="transition:stroke-dashoffset 0.4s ease; filter:drop-shadow(0 0 4px rgba(103,232,249,0.6));"/>
+                  </svg>
                   <div class="jd-t1-ring-mid"></div>
                   <div class="jd-t1-ring-thick"></div>
                   <div class="jd-t1-ring-inner"></div>
                   <div class="jd-t1-ring-smile"></div>
                   <div class="jd-t1-text">
-                    <div class="jd-t1-month">JANUARY</div>
-                    <div class="jd-t1-day">04</div>
+                    <div id="jd-t1-month-dynamic" class="jd-t1-month">JAN</div>
+                    <div id="jd-t1-day-dynamic" class="jd-t1-day">04</div>
                   </div>
                 </div>
-                <div class="jd-t1-clock-block">
-                  <div class="jd-t1-clock">19:59:12</div>
-                  <div class="jd-t1-day-str">Tuesday</div>
+                <div class="jd-t1-clock-block" style="flex:1; min-width:0; display:flex; flex-direction:column; gap:10px;">
+                  <div>
+                    <div id="jdClockText" class="jd-t1-clock">19:59:12</div>
+                    <div id="jdDayStrText" class="jd-t1-day-str">Tuesday</div>
+                  </div>
+                  <div id="jd-travel-controls" style="display:flex; flex-direction:column; gap:8px; background:#05121f; border:1px solid #0e7490; border-radius:6px; padding:10px 12px; box-shadow:inset 0 0 14px rgba(14,116,144,0.15);">
+                    <div style="display:flex; align-items:center; gap:5px;">
+                      <button id="jd-travel-play" onclick="window.travelPlayToggle()" aria-label="재생" class="jd-hud-btn jd-hud-icon-btn"><i class="ti ti-player-play" style="font-size:12px"></i></button>
+                      <button onclick="window.travelReset()" aria-label="정지" class="jd-hud-btn jd-hud-icon-btn"><i class="ti ti-player-stop" style="font-size:12px"></i></button>
+                      <div style="width:0.5px; height:16px; background:#0e7490; margin:0 3px; flex-shrink:0;"></div>
+                      <button id="jd-speed-slow" onclick="window.travelSetSpeed('slow')" class="jd-hud-btn">slow</button>
+                      <button id="jd-speed-normal" onclick="window.travelSetSpeed('normal')" class="jd-hud-btn jd-hud-active">normal</button>
+                      <button id="jd-speed-fast" onclick="window.travelSetSpeed('fast')" class="jd-hud-btn">fast</button>
+                    </div>
+                    <div id="jd-travel-label" style="font-family:'Orbitron', sans-serif; font-size:11px; font-weight:500; letter-spacing:0.5px; color:#67e8f9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">BUSINESS TRIP LOG PLAYBACK — IDLE</div>
+                  </div>
                 </div>
               </div>
 
@@ -1469,25 +1510,6 @@ window.renderDeviationTrendTest = function() {
             </div>
           </div>
           <div class="tower-map-wrap">
-            <div class="travel-control-bar" style="position: relative; z-index: 9999; margin-bottom: 26px; box-shadow: 0 8px 20px rgba(0,0,0,0.5);">
-              <button id="travel-restart-btn" class="travel-play-btn" onclick="window.travelRestart()" title="처음부터 다시 재생" style="font-size:13px;">⟲</button>
-              <button id="travel-reset-btn" class="travel-play-btn" onclick="window.travelReset()" title="전부 지우고 정지" style="font-size:13px;">⏹</button>
-              <button id="travel-play-btn" class="travel-play-btn" onclick="window.travelPlayToggle()" title="재생">▶</button>
-              <div class="travel-speed-group">
-                <button id="travel-speed-slow" class="travel-speed-btn" onclick="window.travelSetSpeed('slow')">느리게</button>
-                <button id="travel-speed-normal" class="travel-speed-btn travel-speed-active" onclick="window.travelSetSpeed('normal')">보통</button>
-                <button id="travel-speed-fast" class="travel-speed-btn" onclick="window.travelSetSpeed('fast')">빠르게</button>
-              </div>
-              <div class="travel-date-block">
-                <div id="travel-date-wrap"></div>
-                <div id="travel-info-wrap"></div>
-              </div>
-              <div class="travel-progress-wrap">
-                <div class="travel-progress-track"><div id="travel-progress-fill" class="travel-progress-fill"></div></div>
-                <div id="travel-progress-label">0 / 0일</div>
-              </div>
-            </div>
-
             <div class="tower-map-frame">
               <div id="tower-map">
                 <div class="tower-tint"></div>
@@ -5189,18 +5211,51 @@ window.travelPlayState = { data: [], index: 0, playing: false, timer: null, spee
 window.travelSetSpeed = function(spd) {
   window.travelPlayState.speed = spd;
   ['slow', 'normal', 'fast'].forEach(s => {
-    const btn = document.getElementById('travel-speed-' + s);
-    if (btn) btn.classList.toggle('travel-speed-active', s === spd);
+    const btn = document.getElementById('jd-speed-' + s);
+    if (btn) btn.classList.toggle('jd-hud-active', s === spd);
   });
 };
 
 window.travelUpdatePlayButton = function() {
-  const btn = document.getElementById('travel-play-btn');
+  const btn = document.getElementById('jd-travel-play');
   if (!btn) return;
   const st = window.travelPlayState;
-  btn.innerHTML = st.playing ? '⏸' : '▶';
-  btn.title = st.playing ? '일시정지' : '재생';
+  btn.innerHTML = st.playing ? '<i class="ti ti-player-pause" style="font-size:12px"></i>' : '<i class="ti ti-player-play" style="font-size:12px"></i>';
+  btn.setAttribute('aria-label', st.playing ? '일시정지' : '재생');
+  window.jdSetPlaybackMode(st.playing);
 };
+
+window._jdLiveClockTimer = null;
+window.jdFormatLiveClock = function() {
+  const clockEl = document.getElementById('jdClockText');
+  const dayStrEl = document.getElementById('jdDayStrText');
+  const monthEl = document.getElementById('jd-t1-month-dynamic');
+  const dayNumEl = document.getElementById('jd-t1-day-dynamic');
+  const now = new Date();
+  if (clockEl) clockEl.textContent = now.toTimeString().slice(0, 8);
+  if (dayStrEl) dayStrEl.textContent = now.toLocaleDateString('en-US', { weekday: 'long' });
+  if (monthEl) monthEl.textContent = now.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+  if (dayNumEl) dayNumEl.textContent = now.getDate();
+};
+
+window.jdSetPlaybackMode = function(isPlaying) {
+  const clockEl = document.getElementById('jdClockText');
+  const dayStrEl = document.getElementById('jdDayStrText');
+  const labelEl = document.getElementById('jd-travel-label');
+  const ring = document.getElementById('jdProgressRing');
+  if (isPlaying) {
+    if (window._jdLiveClockTimer) { clearInterval(window._jdLiveClockTimer); window._jdLiveClockTimer = null; }
+    if (clockEl) { clockEl.textContent = 'BUSINESS TRIP PLAYBACK'; clockEl.classList.add('jd-playback-blink'); }
+    if (dayStrEl) dayStrEl.textContent = 'IN PROGRESS';
+  } else {
+    if (clockEl) clockEl.classList.remove('jd-playback-blink');
+    if (labelEl) labelEl.textContent = 'BUSINESS TRIP LOG PLAYBACK — IDLE';
+    if (ring) ring.style.strokeDashoffset = 0;
+    window.jdFormatLiveClock();
+    if (!window._jdLiveClockTimer) window._jdLiveClockTimer = setInterval(window.jdFormatLiveClock, 1000);
+  }
+};
+window.jdSetPlaybackMode(false);
 
     window.redrawPastSegments = function() {
   const st = window.travelPlayState;
@@ -5550,53 +5605,30 @@ window.travelStepNext = function() {
 };
 
 window.travelUpdateDateDisplay = function(dateStr) {
-  const displayStr = (dateStr || '').replace(/-/g, '.');
-  const wrap = document.getElementById('travel-date-wrap');
-  if (!wrap) return;
-  const oldEl = wrap.querySelector('.travel-date-line');
-  const newEl = document.createElement('div');
-  newEl.className = 'travel-date-line';
-  newEl.textContent = displayStr;
-  newEl.style.transform = 'translateY(100%)';
-  wrap.appendChild(newEl);
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      if (oldEl) oldEl.style.transform = 'translateY(-100%)';
-      newEl.style.transform = 'translateY(0)';
-    });
-  });
-  if (oldEl) setTimeout(() => oldEl.remove(), 450);
+  const monthEl = document.getElementById('jd-t1-month-dynamic');
+  const dayEl = document.getElementById('jd-t1-day-dynamic');
+  if (!dateStr || !monthEl || !dayEl) return;
+  const d = new Date(dateStr.toString().replace(/\./g, '-'));
+  if (isNaN(d)) return;
+  monthEl.textContent = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+  dayEl.textContent = d.getDate();
 };
 
 window.travelUpdateProgress = function(idx, total) {
-  const fill = document.getElementById('travel-progress-fill');
-  const label = document.getElementById('travel-progress-label');
-  if (!fill || total <= 0) return;
-  const pct = total > 1 ? Math.round((idx / (total - 1)) * 100) : 100;
-  fill.style.width = pct + '%';
-  if (label) label.textContent = `${idx + 1} / ${total}일`;
+  const ring = document.getElementById('jdProgressRing');
+  if (!ring || total <= 0) return;
+  const circumference = 521.5;
+  const pct = total > 1 ? (idx / (total - 1)) : 1;
+  ring.style.strokeDashoffset = circumference * (1 - pct);
 };
 
 window.travelUpdateInfoDisplay = function(entry) {
-  const stageLabel = entry.stage ? ` · ${entry.stage}` : '';
+  const labelEl = document.getElementById('jd-travel-label');
+  if (!labelEl) return;
+  const stageLabel = entry.stage ? ' · ' + entry.stage : '';
   const projLabel = entry.project || '';
   const locLabel = `${entry.country || ''} ${entry.city || ''}`.trim();
-  const text = [projLabel + stageLabel, locLabel].filter(Boolean).join(' · ');
-  const wrap = document.getElementById('travel-info-wrap');
-  if (!wrap) return;
-  const oldEl = wrap.querySelector('.travel-info-line');
-  const newEl = document.createElement('div');
-  newEl.className = 'travel-info-line';
-  newEl.textContent = text;
-  newEl.style.transform = 'translateY(100%)';
-  wrap.appendChild(newEl);
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      if (oldEl) oldEl.style.transform = 'translateY(-100%)';
-      newEl.style.transform = 'translateY(0)';
-    });
-  });
-  if (oldEl) setTimeout(() => oldEl.remove(), 450);
+  labelEl.textContent = [projLabel + stageLabel, locLabel].filter(Boolean).join(' · ').toUpperCase();
 };
 
 window.travelReset = function() {
@@ -5611,10 +5643,6 @@ window.travelReset = function() {
   window.setMapInterlock(false);
   
   window.travelUpdateProgress(0, 0);
-  const wrapDate = document.getElementById('travel-date-wrap');
-  const wrapInfo = document.getElementById('travel-info-wrap');
-  if(wrapDate) wrapDate.innerHTML = '';
-  if(wrapInfo) wrapInfo.innerHTML = '';
   
   towerMapInstance.fitWorld({ animate: true });
   towerMapInstance.setMinZoom(towerMapInstance.getZoom());
