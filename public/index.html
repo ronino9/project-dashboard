@@ -74,24 +74,156 @@
     .app-shell { display: flex; align-items: flex-start; min-height: 100vh; }
     
     /* =========================================================
-       👇 여기에 밝은 테마용 사이드바 코드가 들어갑니다 👇
+       👇 High-End HUD Sidebar (Light Premium Edition) 👇
        ========================================================= */
-    .sidebar { width: 200px; flex-shrink: 0; background: #ffffff; border-right: 1px solid #e2e8f0; min-height: 100vh; padding: 16px 12px; position: sticky; top: 0; display: flex; flex-direction: column; gap: 18px; }
-    .sidebar-logo { font-size: 14px; font-weight: 800; color: #0f172a; padding: 4px 8px 12px; border-bottom: 1px solid #f1f5f9; margin-bottom: 4px; }
+    .sidebar { 
+      width: 220px; 
+      flex-shrink: 0; 
+      /* 은은한 실버/화이트 메탈릭 베이스 */
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); 
+      border-right: 1px solid rgba(226, 232, 240, 0.8); 
+      min-height: 100vh; 
+      padding: 24px 14px; 
+      position: sticky; 
+      top: 0; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 16px; 
+      /* 공간감을 주는 소프트 섀도우 */
+      box-shadow: 4px 0 24px rgba(15, 23, 42, 0.03); 
+      z-index: 100;
+    }
+
+    .sidebar-logo { 
+      font-family: 'Orbitron', sans-serif; 
+      font-size: 16px; 
+      font-weight: 800; 
+      color: #0f172a; 
+      text-transform: uppercase; 
+      letter-spacing: 2px; 
+      padding: 4px 12px 20px; 
+      border-bottom: 1px solid rgba(226, 232, 240, 0.6); 
+      margin-bottom: 8px; 
+      position: relative;
+    }
+    
+    /* 로고 하단에 정교한 블루 엣지 라인 추가 */
+    .sidebar-logo::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 12px;
+      width: 40px;
+      height: 2px;
+      background: #3b82f6;
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+    }
+
     .sidebar-group { display: flex; flex-direction: column; gap: 4px; }
-    .sidebar-group-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; padding: 0 8px; margin-bottom: 2px; }
-    .sidebar-btn { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; background: transparent; border: none; color: #475569; padding: 9px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
-    .sidebar-btn:hover { background: #f1f5f9; color: #0f172a; }
-    .sidebar-btn.active { background: #eff6ff; color: #1d4ed8; font-weight: 700; }
-    .sidebar-icon { font-size: 14px; flex-shrink: 0; }
-    .sidebar-sub { font-size: 10px; color: #94a3b8; font-weight: 600; margin-left: auto; }
-    .sidebar-btn.active .sidebar-sub { color: #1d4ed8; }
-    .sidebar-btn-jarvis { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 10px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; cursor: pointer; text-align: left; transition: all 0.2s ease; }
-    .sidebar-btn-jarvis:hover { background: #eff6ff; border-color: #bfdbfe; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1); }
+    
+    .sidebar-group-label { 
+      font-family: 'Share Tech Mono', monospace; 
+      font-size: 10px; 
+      font-weight: 700; 
+      color: #94a3b8; 
+      text-transform: uppercase; 
+      letter-spacing: 1px; 
+      padding: 0 12px; 
+      margin-bottom: 4px; 
+    }
+
+    .sidebar-btn { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      width: 100%; 
+      text-align: left; 
+      background: transparent; 
+      border: none; 
+      color: #64748b; 
+      padding: 10px 12px; 
+      border-radius: 8px; 
+      border-left: 3px solid transparent; 
+      font-size: 13px; 
+      font-weight: 600; 
+      cursor: pointer; 
+      /* 부드러운 호버 슬라이드 액션 */
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); 
+    }
+
+    .sidebar-btn:hover { 
+      background: #f1f5f9; 
+      color: #0f172a; 
+      border-left-color: #cbd5e1;
+      transform: translateX(3px);
+    }
+
+    .sidebar-btn.active { 
+      background: #eff6ff; 
+      color: #1d4ed8; 
+      font-weight: 700; 
+      border-left-color: #3b82f6; 
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
+      transform: translateX(3px);
+    }
+
+    .sidebar-icon { font-size: 16px; flex-shrink: 0; }
+    
+    .sidebar-sub { 
+      font-family: 'Share Tech Mono', monospace; 
+      font-size: 9.5px; 
+      color: #94a3b8; 
+      font-weight: 600; 
+      margin-left: auto; 
+    }
+    .sidebar-btn.active .sidebar-sub { color: #3b82f6; }
+
+    /* 프리미엄 검색창 (음각 효과) */
     .sidebar-search-wrap { position: relative; }
-    .sidebar-search-input { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; cursor: pointer; color: #94a3b8; font-size: 12px; }
-    .sidebar-search-input:hover { border-color: #cbd5e1; background: #f1f5f9; }
-    .sidebar-search-input i { font-size: 14px; flex-shrink: 0; }
+    .sidebar-search-input { 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
+      width: 100%; 
+      padding: 10px 12px; 
+      border: 1px solid #e2e8f0; 
+      border-radius: 8px; 
+      background: #ffffff; 
+      box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.02);
+      cursor: pointer; 
+      color: #64748b; 
+      font-size: 12px; 
+      transition: all 0.2s ease;
+    }
+    .sidebar-search-input:hover { 
+      border-color: #93c5fd; 
+      background: #f8fafc; 
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .sidebar-search-input i { font-size: 14px; flex-shrink: 0; color: #3b82f6; }
+
+    /* 물리 버튼 질감을 살린 네오모피즘 자비스 버튼 */
+    .sidebar-btn-jarvis { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+      width: 100%; 
+      padding: 10px 12px; 
+      border-radius: 12px; 
+      background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%); 
+      border: 1px solid rgba(226, 232, 240, 0.8); 
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04), inset 0 2px 0 rgba(255, 255, 255, 1);
+      cursor: pointer; 
+      text-align: left; 
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+    }
+
+    .sidebar-btn-jarvis:hover { 
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border-color: #93c5fd; 
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.15), inset 0 2px 0 rgba(255, 255, 255, 1); 
+      transform: translateY(-2px);
+    }
     /* ========================================================= */
 
     .jb-ring1 { transform-origin:50px 50px; animation: jbSpin 10s linear infinite; }
