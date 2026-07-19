@@ -686,7 +686,73 @@
     }
     .hud-nav-item:hover { background: rgba(14, 116, 144, 0.2); border-left-color: rgba(34, 211, 238, 0.5); }
     .hud-nav-item.active { background: rgba(14, 116, 144, 0.3); border-left-color: #67e8f9; box-shadow: inset 0 0 10px rgba(34,211,238,0.1); }
-    .hud-nav-item .code { font-family: monospace; color: #94a3b8; font-size: 11px; width: 40px; }
+    .hud-nav-item .code {
+      position: relative;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #67e8f9;
+      width: 42px;
+      text-align: center;
+      padding: 4px 0;
+      background: linear-gradient(160deg, rgba(103, 232, 249, 0.16) 0%, rgba(3, 12, 24, 0.6) 100%);
+      border: 1px solid rgba(103, 232, 249, 0.4);
+      border-top-color: rgba(103, 232, 249, 0.65);
+      border-radius: 2px;
+      clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+      text-shadow: 0 0 4px rgba(103, 232, 249, 0.7);
+      box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(103, 232, 249, 0.25),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.35);
+      flex-shrink: 0;
+      transition: all 0.25s ease;
+    }
+    .hud-nav-item.active .code {
+      background: linear-gradient(160deg, rgba(103, 232, 249, 0.35) 0%, rgba(3, 12, 24, 0.7) 100%);
+      border-color: #67e8f9;
+      box-shadow:
+        0 2px 6px rgba(0, 0, 0, 0.5),
+        0 0 10px rgba(103, 232, 249, 0.35),
+        inset 0 1px 0 rgba(200, 250, 255, 0.4),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.3);
+    }
+    .hud-nav-item .code.st-completed {
+      color: #86efac;
+      border-color: rgba(74, 222, 128, 0.45);
+      border-top-color: rgba(74, 222, 128, 0.7);
+      background: linear-gradient(160deg, rgba(74, 222, 128, 0.14) 0%, rgba(3, 12, 24, 0.6) 100%);
+      text-shadow: 0 0 4px rgba(74, 222, 128, 0.6);
+      box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(74, 222, 128, 0.2),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.35);
+    }
+    .hud-nav-item .code.st-delayed {
+      color: #fca5a5;
+      border-color: rgba(248, 113, 113, 0.5);
+      border-top-color: rgba(248, 113, 113, 0.75);
+      background: linear-gradient(160deg, rgba(248, 113, 113, 0.18) 0%, rgba(3, 12, 24, 0.6) 100%);
+      text-shadow: 0 0 5px rgba(248, 113, 113, 0.7);
+      box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.5),
+        0 0 8px rgba(248, 113, 113, 0.25),
+        inset 0 1px 0 rgba(248, 113, 113, 0.25),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.35);
+      animation: towerHudBlink 1.8s ease-in-out infinite;
+    }
+    .hud-nav-item .code.st-planned {
+      color: #fde68a;
+      border-color: rgba(250, 204, 21, 0.4);
+      border-top-color: rgba(250, 204, 21, 0.6);
+      background: linear-gradient(160deg, rgba(250, 204, 21, 0.12) 0%, rgba(3, 12, 24, 0.6) 100%);
+      text-shadow: 0 0 4px rgba(250, 204, 21, 0.5);
+      box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(250, 204, 21, 0.2),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.35);
+    }
     .hud-nav-item .name { flex: 1; color: #cffafe; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .hud-nav-item .status { font-size: 10px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
     .hud-nav-item .status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
@@ -694,6 +760,36 @@
     .hud-nav-item .status.setup { color: #38bdf8; } .hud-nav-item .status.setup::before { background: #38bdf8; box-shadow: 0 0 6px #38bdf8; }
     .hud-nav-item .status.planned { color: #facc15; } .hud-nav-item .status.planned::before { background: #facc15; box-shadow: 0 0 6px #facc15; }
     .hud-nav-item .status.delayed { color: #f87171; } .hud-nav-item .status.delayed::before { background: #f87171; box-shadow: 0 0 6px #f87171; animation: towerHudBlink 1s infinite; }
+    .hud-breadcrumb { display: flex; align-items: center; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+    .hud-crumb-btn {
+      background: rgba(103, 232, 249, 0.08);
+      border: 1px solid rgba(103, 232, 249, 0.3);
+      color: #67e8f9;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .hud-crumb-btn:hover {
+      background: rgba(103, 232, 249, 0.2);
+      border-color: #67e8f9;
+      box-shadow: 0 0 8px rgba(103, 232, 249, 0.3);
+    }
+    .hud-crumb-sep { color: #475569; font-size: 10px; }
+    .hud-crumb-current {
+      background: rgba(103, 232, 249, 0.15);
+      border: 1px solid #67e8f9;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-shadow: 0 0 4px rgba(103, 232, 249, 0.6);
+    }
 
     .hud-detail-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(14, 116, 144, 0.4); padding-bottom: 8px; }
     .hud-detail-header h2 { font-size: 24px; color: #fff; margin: 0; font-family: 'Orbitron', sans-serif; text-shadow: 0 0 10px rgba(255,255,255,0.4); line-height: 1; }
@@ -739,8 +835,8 @@
     /* ========================================================= */
     #tower-right {
       position: relative;
-      margin-left: -100px;
-      width: calc(100% + 100px);
+      margin-left: -160px;
+      width: calc(100% + 160px);
       z-index: 5015;
     }
     .tower-kpi-group { background:#0a1628; border:1px solid #0e7490; border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:8px; }
@@ -5576,6 +5672,40 @@ window.renderTowerSidebar = function(groups) {
     </div>
   `).join('');
 };
+    window.towerBreadcrumbWorld = function() {
+  if (towerMapInstance) {
+    towerMapInstance.setMinZoom(0);
+    towerMapInstance.fitWorld({ animate: true });
+    towerMapInstance.setMinZoom(towerMapInstance.getZoom());
+  }
+  towerSetHudLocation('EARTH');
+  const container = document.getElementById('tower-right');
+  if (container) container.innerHTML = '';
+  if (towerCurrentBlinkLayer) {
+    towerSetBlink(towerCurrentBlinkLayer, false);
+    towerCurrentBlinkLayer = null;
+  }
+};
+
+window.towerBreadcrumbCountry = function(country) {
+  const normCountry = towerNormalize(country, TOWER_COUNTRY_ALIAS);
+  if (!normCountry || !TOWER_COUNTRY_COORDS[normCountry]) return;
+
+  const towerData = allData.controlTower || {};
+  const projects = Object.keys(towerData).filter(code => {
+    const info = towerData[code];
+    return info && towerNormalize(info.country, TOWER_COUNTRY_ALIAS) === normCountry;
+  });
+
+  const targetZoom = TOWER_COUNTRY_ZOOM_LEVEL[normCountry] || (towerMapInstance.getMinZoom() + TOWER_COUNTRY_ZOOM_DEFAULT);
+  if (towerMapInstance) {
+    towerMapInstance.flyTo(TOWER_COUNTRY_COORDS[normCountry], targetZoom, { duration: 1.2, easeLinearity: 0.25 });
+  }
+  towerSetHudLocation(`EARTH : ${(TOWER_COUNTRY_EN[normCountry] || normCountry).toUpperCase()}`);
+  window.renderTowerCards({ projects, country: normCountry, city: '전체' });
+};
+
+window.towerNavClick = function(code, group) {
 window.towerNavClick = function(code, group) {
   const towerInfo = (allData.controlTower && allData.controlTower[code]) || {};
   const coords = getTowerCoords(towerInfo.country, towerInfo.city);
@@ -5652,8 +5782,9 @@ window.renderTowerCards = function(group) {
     const towerInfo = (allData.controlTower && allData.controlTower[code]) || {};
     const cityLabel = towerInfo.city || group.city || '';
     return `
+      return `
       <div class="hud-nav-item ${isActive}" onclick="window.towerNavClick('${code}', ${JSON.stringify(group).replace(/"/g, '&quot;')})">
-        <span class="code">${label}</span>
+        <span class="code st-${stClass}">${label}</span>
         <span class="name">${towerInfo.country || group.country} ${cityLabel}</span>
         <span class="status ${stClass}">${stText}</span>
       </div>
@@ -5663,8 +5794,12 @@ window.renderTowerCards = function(group) {
   container.innerHTML = `
     <div class="hud-panel">
       <div class="hud-panel-title">PROJECT NAVIGATION</div>
-      <div style="font-size:10px; color:#64748b; letter-spacing:1px; margin-bottom:4px;">
-        WORLD > ${group.country.toUpperCase()} > ${(group.city || 'ALL').toUpperCase()}
+      <div class="hud-breadcrumb">
+        <button class="hud-crumb-btn" onclick="window.towerBreadcrumbWorld()">WORLD</button>
+        <span class="hud-crumb-sep">></span>
+        <button class="hud-crumb-btn" onclick="window.towerBreadcrumbCountry('${group.country}')">${group.country.toUpperCase()}</button>
+        <span class="hud-crumb-sep">></span>
+        <span class="hud-crumb-current">${(group.city || 'ALL').toUpperCase()}</span>
       </div>
       <div class="hud-nav-list">
         ${navListHtml}
