@@ -566,69 +566,86 @@
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="app-sidebar">
-      <div class="sidebar-logo">Control Tower</div>
-      <div class="sidebar-group sidebar-search-wrap">
-        <button id="sbtn-search" class="sidebar-btn" onclick="window.toggleSearchPopover(event)"><i class="ti ti-search sidebar-icon"></i>검색</button>
-        <div class="search-popover" id="search-popover">
-          <div class="search-popover-row">
-            <input type="text" id="gs-keyword" placeholder="검색어" onkeydown="if(event.key==='Enter') window.runGlobalSearch()">
-            <button onclick="window.runGlobalSearch()" style="background:#3b82f6; color:#fff; border:none; border-radius:6px; font-weight:700; cursor:pointer;">검색</button>
-          </div>
-          <div class="search-popover-grid">
-            <select id="gs-project"><option value="">프로젝트</option></select>
-            <select id="gs-status"><option value="">진행상태</option></select>
-            <select id="gs-stage"><option value="">단계 구분</option></select>
-            <select id="gs-response"><option value="">대응 구분</option></select>
-            <select id="gs-task"><option value="">업무 구분</option></select>
-            <select id="gs-part"><option value="">파트 구분</option></select>
-          </div>
-        </div>
+  <div class="sidebar-logo">Control Tower</div>
+  
+  <!-- 1. 검색 (맨 위 고정) -->
+  <div class="sidebar-group sidebar-search-wrap">
+    <button id="sbtn-search" class="sidebar-btn" onclick="window.toggleSearchPopover(event)">
+      <i class="ti ti-search sidebar-icon"></i>검색
+    </button>
+    <div class="search-popover" id="search-popover">
+      <div class="search-popover-row">
+        <input type="text" id="gs-keyword" placeholder="검색어" onkeydown="if(event.key==='Enter') window.runGlobalSearch()">
+        <button onclick="window.runGlobalSearch()" style="background:#3b82f6; color:#fff; border:none; border-radius:6px; font-weight:700; cursor:pointer;">검색</button>
       </div>
-      <div class="sidebar-group">
-        <button id="sbtn-pdca" class="sidebar-btn" onclick="window.sidebarGoMain('pdca')">PDCA 현황</button>
-        <button id="sbtn-project" class="sidebar-btn" onclick="window.sidebarGoMain('project')">프로젝트 현황</button>
+      <div class="search-popover-grid">
+        <select id="gs-project"><option value="">프로젝트</option></select>
+        <select id="gs-status"><option value="">진행상태</option></select>
+        <select id="gs-stage"><option value="">단계 구분</option></select>
+        <select id="gs-response"><option value="">대응 구분</option></select>
+        <select id="gs-task"><option value="">업무 구분</option></select>
+        <select id="gs-part"><option value="">파트 구분</option></select>
       </div>
-      <div class="sidebar-group">
-        <div class="sidebar-group-label">프로젝트</div>
-        <button id="btn-project8" class="sidebar-btn" onclick="window.switchTab('project8')">OP8<span class="sidebar-sub">Ongoing</span></button>
-        <button id="btn-project7" class="sidebar-btn" onclick="window.switchTab('project7')">OP7<span class="sidebar-sub">Ongoing</span></button>
-        <button id="btn-project6" class="sidebar-btn" onclick="window.switchTab('project6')">OP6<span class="sidebar-sub">Ongoing</span></button>
-        <button id="btn-project5" class="sidebar-btn" onclick="window.switchTab('project5')">OP5<span class="sidebar-sub">Ongoing</span></button>
-        <button id="btn-project4" class="sidebar-btn" onclick="window.switchTab('project4')">OP4<span class="sidebar-sub">Ongoing</span></button>
-        <button id="btn-project3" class="sidebar-btn" onclick="window.switchTab('project3')">OP3<span class="sidebar-sub">Ongoing</span></button>
-        <button id="btn-project2" class="sidebar-btn" onclick="window.switchTab('project2')">OP2<span class="sidebar-sub">Ongoing</span></button>
-        <button id="btn-project1cs" class="sidebar-btn" onclick="window.switchTab('project1cs')">CP_All<span class="sidebar-sub">Complete</span></button>
-      </div>
-      <div class="sidebar-group">
-        <button id="btn-daily" class="sidebar-btn" onclick="window.switchTab('daily')">기간별 업무 내역</button>
-        <button id="btn-tower" class="sidebar-btn-jarvis" onclick="window.switchTab('tower')">
-          <svg width="52" height="52" viewBox="0 0 100 100" style="flex-shrink:0; overflow:visible;">
-            <defs>
-              <filter id="jbGlow" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="4" result="blur"/>
-                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-              </filter>
-              <filter id="jbGlowStrong" x="-80%" y="-80%" width="260%" height="260%">
-                <feGaussianBlur stdDeviation="6" result="blur"/>
-                <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-              </filter>
-            </defs>
-            <circle cx="50" cy="50" r="48" fill="rgba(10,20,32,0.85)" stroke="#1e293b" stroke-width="4"/>
-            <circle class="jb-ring1" cx="50" cy="50" r="42" fill="none" stroke="#4dd8e8" stroke-width="3" stroke-dasharray="10 6 2 6" filter="url(#jbGlow)"/>
-            <circle cx="50" cy="50" r="32" fill="none" stroke="#2a5f66" stroke-width="2"/>
-            <circle class="jb-ring2" cx="50" cy="50" r="26" fill="none" stroke="#4dd8e8" stroke-width="1" stroke-dasharray="4 8"/>
-            <g stroke="#7ff0fa" stroke-width="2" filter="url(#jbGlow)">
-              <line x1="50" y1="20" x2="50" y2="80"/><line x1="20" y1="50" x2="80" y2="50"/>
-              <line x1="28.8" y1="28.8" x2="71.2" y2="71.2"/><line x1="71.2" y1="28.8" x2="28.8" y2="71.2"/>
-            </g>
-            <circle cx="50" cy="50" r="21" fill="#020617" stroke="#7ff0fa" stroke-width="2" filter="url(#jbGlow)"/>
-            <circle class="jb-core" cx="50" cy="50" r="12" fill="#ffffff" filter="url(#jbGlowStrong)"/>
-          </svg>
-          <span style="font-family:'Orbitron', sans-serif; font-size:15px; font-weight:400; letter-spacing:4px; color:#7ff0fa; text-shadow:0 0 10px rgba(77,216,232,0.45);">JARVIS</span>
-        </button>
-        
-      </div>
-    </aside>
+    </div>
+  </div>
+
+  <!-- 2. 프로젝트 현황 -->
+  <div class="sidebar-group">
+    <button id="sbtn-project" class="sidebar-btn active" onclick="window.sidebarGoMain('project')">프로젝트 현황</button>
+  </div>
+
+  <!-- 3. PDCA 현황 -->
+  <div class="sidebar-group">
+    <button id="sbtn-pdca" class="sidebar-btn" onclick="window.sidebarGoMain('pdca')">PDCA 현황</button>
+  </div>
+
+  <!-- 4. 개별 프로젝트 -->
+  <div class="sidebar-group">
+    <div class="sidebar-group-label">프로젝트</div>
+    <button id="btn-project8" class="sidebar-btn" onclick="window.switchTab('project8')">OP8<span class="sidebar-sub">Ongoing</span></button>
+    <button id="btn-project7" class="sidebar-btn" onclick="window.switchTab('project7')">OP7<span class="sidebar-sub">Ongoing</span></button>
+    <button id="btn-project6" class="sidebar-btn" onclick="window.switchTab('project6')">OP6<span class="sidebar-sub">Ongoing</span></button>
+    <button id="btn-project5" class="sidebar-btn" onclick="window.switchTab('project5')">OP5<span class="sidebar-sub">Ongoing</span></button>
+    <button id="btn-project4" class="sidebar-btn" onclick="window.switchTab('project4')">OP4<span class="sidebar-sub">Ongoing</span></button>
+    <button id="btn-project3" class="sidebar-btn" onclick="window.switchTab('project3')">OP3<span class="sidebar-sub">Ongoing</span></button>
+    <button id="btn-project2" class="sidebar-btn" onclick="window.switchTab('project2')">OP2<span class="sidebar-sub">Ongoing</span></button>
+    <button id="btn-project1cs" class="sidebar-btn" onclick="window.switchTab('project1cs')">CP_All<span class="sidebar-sub">Complete</span></button>
+  </div>
+
+  <!-- 5. 기간별 업무 내역 -->
+  <div class="sidebar-group">
+    <button id="btn-daily" class="sidebar-btn" onclick="window.switchTab('daily')">기간별 업무 내역</button>
+  </div>
+
+  <!-- 6. 자비스 (맨 아래) -->
+  <div class="sidebar-group" style="margin-top: auto; padding-top: 10px;">
+    <button id="btn-tower" class="sidebar-btn-jarvis" onclick="window.switchTab('tower')">
+      <svg width="42" height="42" viewBox="0 0 100 100" style="flex-shrink:0; overflow:visible;">
+        <defs>
+          <filter id="jbGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+          <filter id="jbGlowStrong" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="6" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <circle cx="50" cy="50" r="48" fill="rgba(10,20,32,0.85)" stroke="#1e293b" stroke-width="4"/>
+        <circle class="jb-ring1" cx="50" cy="50" r="42" fill="none" stroke="#4dd8e8" stroke-width="3" stroke-dasharray="10 6 2 6" filter="url(#jbGlow)"/>
+        <circle cx="50" cy="50" r="32" fill="none" stroke="#2a5f66" stroke-width="2"/>
+        <circle class="jb-ring2" cx="50" cy="50" r="26" fill="none" stroke="#4dd8e8" stroke-width="1" stroke-dasharray="4 8"/>
+        <g stroke="#7ff0fa" stroke-width="2" filter="url(#jbGlow)">
+          <line x1="50" y1="20" x2="50" y2="80"/><line x1="20" y1="50" x2="80" y2="50"/>
+          <line x1="28.8" y1="28.8" x2="71.2" y2="71.2"/><line x1="71.2" y1="28.8" x2="28.8" y2="71.2"/>
+        </g>
+        <circle cx="50" cy="50" r="21" fill="#020617" stroke="#7ff0fa" stroke-width="2" filter="url(#jbGlow)"/>
+        <circle class="jb-core" cx="50" cy="50" r="12" fill="#ffffff" filter="url(#jbGlowStrong)"/>
+      </svg>
+      <span style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:16px; font-weight:800; letter-spacing:6px; color:#7ff0fa; text-shadow:0 0 10px rgba(77,216,232,0.6);">자비스</span>
+    </button>
+  </div>
+</aside>
     <div class="container">
     <div id="main-panel">          <!-- ★ 이 줄 추가 -->
 <!-- 내부 탭: PDCA / 프로젝트 현황 -->
