@@ -808,6 +808,59 @@
   70% { transform: scale(2.2); opacity: 0; }
   100% { transform: scale(2.2); opacity: 0; }
 }
+.tower-epic-marker {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: auto;
+}
+.tower-epic-marker::before {
+  content: ''; position: absolute; inset: -30%;
+  background: radial-gradient(circle, var(--m-glow) 0%, transparent 60%);
+  opacity: 0.5; pointer-events: none;
+}
+.twem-crossline {
+  position: absolute; width: 140%; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--m-base) 50%, transparent 100%);
+  transform: rotate(-35deg); opacity: 0.6; z-index: 1; pointer-events: none;
+}
+.twem-radar {
+  position: absolute; inset: 5%; border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 70%, var(--m-base) 100%);
+  animation: twEpicSpin 2.5s linear infinite; z-index: 2; opacity: 0.4;
+  mask-image: radial-gradient(transparent 40%, black 41%);
+  -webkit-mask-image: radial-gradient(transparent 40%, black 41%);
+  pointer-events: none;
+}
+.twem-ring-outer {
+  position: absolute; inset: 10%; border-radius: 50%;
+  border: 1px dashed var(--m-base); opacity: 0.5;
+  animation: twEpicSpinRev 15s linear infinite; z-index: 3; pointer-events: none;
+}
+.twem-ring-mid {
+  position: absolute; inset: 24%; border-radius: 50%;
+  border: 3px solid var(--m-base);
+  border-right-color: transparent; border-bottom-color: transparent;
+  box-shadow: 0 0 15px var(--m-glow), inset 0 0 10px var(--m-glow);
+  animation: twEpicSpin 4s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite; z-index: 4; pointer-events: none;
+}
+.twem-ring-inner {
+  position: absolute; inset: 38%; border-radius: 50%;
+  border: 2px solid var(--m-base); opacity: 0.9;
+  box-shadow: 0 0 8px var(--m-glow); z-index: 5; pointer-events: none;
+}
+.twem-pulse {
+  position: absolute; inset: 38%; border-radius: 50%;
+  border: 2px solid var(--m-base);
+  box-shadow: 0 0 15px var(--m-glow), inset 0 0 10px var(--m-glow);
+  animation: twEpicPulse 2.5s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  z-index: 1; pointer-events: none;
+}
+@keyframes twEpicSpin { 100% { transform: rotate(360deg); } }
+@keyframes twEpicSpinRev { 100% { transform: rotate(-360deg); } }
+@keyframes twEpicPulse {
+  0% { transform: scale(1); opacity: 1; border-width: 3px; }
+  100% { transform: scale(3.2); opacity: 0; border-width: 0px; }
+}
     .tower-map-frame { position: relative; width: 100%; }
     .tower-map-frame { position: relative; width: 100%; }
 
@@ -5856,22 +5909,17 @@ function towerBuildCountryIcon(g) {
   const hasDelay = g.projects.some(code => towerIsDelayed(code));
   const count = g.projects.length;
 
-  const color = hasDelay ? '#ff2d55' : '#22e0d8';
-  const glowSoft = hasDelay ? 'rgba(255,45,85,0.85)' : 'rgba(34,224,216,0.55)';
-  const glowStrong = hasDelay ? 'rgba(255,45,85,1)' : 'rgba(34,224,216,0.85)';
+  const color = hasDelay ? '#ff003c' : '#00f0ff';
+  const glow = hasDelay ? 'rgba(255,0,60,0.7)' : 'rgba(0,240,255,0.7)';
+  const size = Math.min(56 + (count - 1) * 8, 92);
 
-  const size = Math.min(40 + (count - 1) * 7, 68);
-  const ringInset = Math.round(size * 0.1);
-  const coreSize = Math.min(16 + (count - 1) * 3, 30);
-
-  const glowLayer = hasDelay
-    ? `box-shadow:0 0 10px ${glowStrong}, 0 0 22px ${glowSoft}, inset 0 0 10px ${glowStrong};`
-    : `box-shadow:0 0 14px ${glowSoft}, inset 0 0 8px ${glowSoft};`;
-
-  const html = `<div style="position:relative; width:${size}px; height:${size}px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-      <div class="tower-callout-pulse" style="position:absolute; inset:-4px; border-radius:50%; border:1px solid ${color}; opacity:${hasDelay ? 0.95 : 0.8}; pointer-events:none;"></div>
-      <div style="position:absolute; inset:${ringInset}px; border-radius:50%; border:2.5px solid ${color}; ${glowLayer} pointer-events:none;"></div>
-      <div style="width:${coreSize}px; height:${coreSize}px; border-radius:50%; background:${color}; opacity:0.6; box-shadow:0 0 ${hasDelay ? 14 : 8}px ${glowStrong}; pointer-events:none;"></div>
+  const html = `<div class="tower-epic-marker" style="width:${size}px; height:${size}px; cursor:pointer; --m-base:${color}; --m-glow:${glow};">
+      <div class="twem-pulse"></div>
+      <div class="twem-crossline"></div>
+      <div class="twem-radar"></div>
+      <div class="twem-ring-outer"></div>
+      <div class="twem-ring-mid"></div>
+      <div class="twem-ring-inner"></div>
     </div>`;
   return L.divIcon({ className: '', html, iconSize: [size, size], iconAnchor: [size/2, size/2] });
 }
