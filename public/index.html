@@ -3099,9 +3099,8 @@ window.showIssueDetail = function(idx) {
       const aiPanel = document.getElementById('ai-panel');  
       const docPanel = document.getElementById('doc-hub-panel');
       const pdcaPanel = document.getElementById('pdca-panel');
-
+      document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
       document.getElementById('app-sidebar').classList.toggle('sidebar-tower-theme', tabId === 'tower');
-
       // 모든 섹션 숨김 처리
       mainPanel.style.display = 'none';
       header.style.display = 'none';
