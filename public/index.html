@@ -5816,32 +5816,7 @@ window.renderTowerCards = function(group) {
   `;
 };
 
-  if (timelineTrack) {
-    const stages = ['PLAN', 'DESIGN', 'ASSEMBLY', 'SETUP', 'SAT', 'CS'];
-    let currentIdx = 3;
-
-    if (isFirstCP) {
-      currentIdx = 5;
-    } else {
-      const progressValue = parseInt(overall.replace('%', '')) || 0;
-      if (progressValue === 0) currentIdx = 0;
-      else if (progressValue < 20) currentIdx = 1;
-      else if (progressValue < 50) currentIdx = 2;
-      else if (progressValue < 80) currentIdx = 3;
-      else if (progressValue < 100) currentIdx = 4;
-      else currentIdx = 5;
-    }
-
-    const timelineHtml = '<div class="hud-timeline-line"></div>' + stages.map((st, i) => {
-      let nodeClass = '';
-      if (i < currentIdx) nodeClass = 'done';
-      else if (i === currentIdx) nodeClass = 'active';
-      return '<div class="hud-timeline-node ' + nodeClass + '"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">' + st + '</span></div>';
-    }).join('');
-
-    timelineTrack.innerHTML = timelineHtml;
-  }
-};
+ 
 
     // ===== 관제탑: 국가 단위 원(펄스) — 줌 레벨에 따라 표시/숨김 =====
 let towerCountryLayerGroup = null;
