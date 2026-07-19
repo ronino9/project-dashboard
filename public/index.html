@@ -5815,8 +5815,7 @@ window.renderTowerSidebar = function(groups) {
     </div>
   `).join('');
 };
-    window.towerBreadcrumbWorld = function() {
-      window.renderTowerDefaultState = function() {
+    window.renderTowerDefaultState = function() {
   const container = document.getElementById('tower-right');
   if (!container) return;
 
@@ -5932,6 +5931,7 @@ window.renderTowerSidebar = function(groups) {
     </div>
   `;
 };
+    window.towerBreadcrumbWorld = function() {
   if (towerMapInstance) {
     towerMapInstance.setMinZoom(0);
     towerMapInstance.fitWorld({ animate: true });
