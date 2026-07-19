@@ -158,10 +158,16 @@
       transform: translateX(3px);
     }
     .sidebar-btn:focus,
-    .sidebar-btn:focus-visible {
-      outline: none;
+    .sidebar-btn:focus-visible,
+    .sidebar-btn:active,
+    .sidebar-btn-jarvis:focus,
+    .sidebar-btn-jarvis:focus-visible,
+    .sidebar-btn-jarvis:active {
+      outline: none !important;
+      box-shadow: none !important;
     }
-    .sidebar-btn {
+    .sidebar-btn,
+    .sidebar-btn-jarvis {
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -6077,7 +6083,13 @@ window.travelReset = function() {
         });
       }
     });
-
+document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.sidebar-btn, .sidebar-btn-jarvis').forEach(btn => {
+        btn.addEventListener('click', function() {
+          this.blur();
+        });
+      });
+    });
     window.addEventListener('load', syncDashboard);
 
     window.runAIAnalysis = async function(modelType) {
