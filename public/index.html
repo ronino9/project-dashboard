@@ -9,8 +9,8 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/leaflet-ant-path@1.4.0/dist/leaflet-ant-path.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@300;400;500&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@300;400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     /* PDCA 현황 / 프로젝트 현황 버튼 Hover 애니메이션 */
 #btn-main-pdca:hover, #btn-main-project:hover {
@@ -315,7 +315,7 @@
 
     /* 자비스 로고 글자 기본색 = 남색 (평소 화이트 사이드바 상태) */
     .sidebar-btn-jarvis .jarvis-brand-text {
-      color: #1e3a8a;
+      color: #2a5f66;
       transition: color 0.3s ease, text-shadow 0.3s ease;
     }
 
@@ -341,7 +341,10 @@
 
     .sidebar-tower-theme .sidebar-group-label {
       font-family: 'Share Tech Mono', monospace;
-      color: #0891b2;
+      font-size: 12px;
+      font-weight: 700;
+      color: #22d3ee;
+      opacity: 0.85;
     }
 
     .sidebar-tower-theme .sidebar-btn {
@@ -6822,7 +6825,10 @@ window.showPdcaProblemDetailExternal = function(mode) {
     window._mainTab = 'project';
 window.switchMainTab = function(which) {
   window._mainTab = which;
-  document.getElementById('app-sidebar').classList.toggle('sidebar-tower-theme', tabId === 'tower');
+  document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('app-sidebar').classList.toggle('sidebar-tower-theme', tabId === 'tower');
+
+      // 모든 섹션 숨김 처리
   const sBtn = document.getElementById(which === 'pdca' ? 'sbtn-pdca' : 'sbtn-project');
   if (sBtn) sBtn.classList.add('active');
   const pdcaPanel = document.getElementById('pdca-panel');
