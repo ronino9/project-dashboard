@@ -5697,19 +5697,15 @@ window.towerNavClick = function(code, group) {
   const cityAbbr = (TOWER_CITY_EN[normCity] || normCity || '').toUpperCase().substring(0, 3);
   towerSetHudLocation(`EARTH : ${(TOWER_COUNTRY_EN[normCountry] || normCountry || '').toUpperCase()}${cityAbbr ? ' : ' + cityAbbr : ''}`);
 
-  // 오른쪽 패널은 그룹(전체 리스트)은 유지하되, firstCode만 클릭한 프로젝트로 교체
-  const reorderedGroup = {
-    ...group,
-    projects: [code, ...group.projects.filter(c => c !== code)]
-  };
-  window.renderTowerCards(reorderedGroup);
+  // 리스트 순서는 그대로 유지하고, 활성 항목(activeCode)만 클릭한 프로젝트로 교체
+  window.renderTowerCards(group, code);
 };
 
-window.renderTowerCards = function(group) {
+window.renderTowerCards = function(group, activeCode) {
   const container = document.getElementById('tower-right');
   if (!container) return;
 
-  const firstCode = group.projects[0];
+  const firstCode = activeCode || group.projects[0];
   const isFirstCP = firstCode.startsWith('CP');
 
   let overall = '0%', hist = [], startDateVal = 'N/A', stageSummary = null;
