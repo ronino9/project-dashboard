@@ -696,14 +696,14 @@
 
     .hud-code {
       font-family: 'Orbitron', sans-serif; color: #22d3ee; font-size: 11px; font-weight: 700;
-      width: 45px; text-shadow: 0 0 5px rgba(34, 211, 238, 0.5); letter-spacing: 1px; flex-shrink: 0;
+      padding: 0 4px; white-space: nowrap; text-shadow: 0 0 5px rgba(34, 211, 238, 0.5); letter-spacing: 1px; flex-shrink: 0;
     }
     .hud-nav-item.active .hud-code { color: #fff; text-shadow: 0 0 8px #22d3ee, 0 0 12px #22d3ee; }
     .hud-code.st-completed { color: #4ade80; text-shadow: 0 0 5px rgba(74,222,128,0.6); }
     .hud-code.st-delayed { color: #f87171; text-shadow: 0 0 5px rgba(248,113,113,0.6); animation: towerHudBlink 1.4s ease-in-out infinite; }
     .hud-code.st-planned { color: #facc15; text-shadow: 0 0 5px rgba(250,204,21,0.5); }
 
-    .hud-nav-item .name { flex: 1; margin-left: 8px; color: #94a3b8; font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Share Tech Mono', monospace; letter-spacing: 0.5px;}
+    .hud-nav-item .name { flex: 1; margin-left: 8px; color: #94a3b8; font-size: 11px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Share Tech Mono', monospace; letter-spacing: 0.5px;}
     .hud-nav-item.active .name { color: #cffafe; text-shadow: 0 0 4px rgba(207,250,254,0.4); }
 
     .hud-nav-item .status { font-size: 9px; font-weight: 700; display: flex; align-items: center; gap: 6px; font-family: 'Share Tech Mono', monospace; text-transform: uppercase;}
@@ -878,7 +878,7 @@
     .jd-hud-btn {
       font-family: 'Orbitron', sans-serif;
       height: 22px; 
-      padding: 0 8px; 
+      padding: 0 6px;
       flex-shrink: 0;
       background: rgba(5, 18, 31, 0.4); 
       backdrop-filter: blur(4px);
@@ -5717,17 +5717,27 @@ window.renderTowerCards = function(group) {
     return 'Active >';
   };
 
+  // 활성(첫 번째) 프로젝트의 실제 국가/도시를 영문으로 변환
+  const activeInfo = (allData.controlTower && allData.controlTower[firstCode]) || {};
+  const activeCountryNorm = towerNormalize(activeInfo.country || group.country, TOWER_COUNTRY_ALIAS);
+  const activeCityNorm = towerNormalize(activeInfo.city || group.city, TOWER_CITY_ALIAS);
+  const activeCountryLabel = (TOWER_COUNTRY_EN[activeCountryNorm] || activeCountryNorm || '').toUpperCase();
+  const activeCityLabel = (TOWER_CITY_EN[activeCityNorm] || activeCityNorm || '').toUpperCase();
+
   const navListHtml = group.projects.map(code => {
     const label = TOWER_LABEL_MAP[code] || code;
     const stClass = getStatusClass(code);
     const stText = getStatusText(code);
     const isActive = code === firstCode ? 'active' : '';
     const towerInfo = (allData.controlTower && allData.controlTower[code]) || {};
-    const cityLabel = towerInfo.city || group.city || '';
+    const rowCountryNorm = towerNormalize(towerInfo.country || group.country, TOWER_COUNTRY_ALIAS);
+    const rowCityNorm = towerNormalize(towerInfo.city || group.city, TOWER_CITY_ALIAS);
+    const rowCountryLabel = TOWER_COUNTRY_EN[rowCountryNorm] || rowCountryNorm || '';
+    const rowCityLabel = TOWER_CITY_EN[rowCityNorm] || rowCityNorm || '';
     return `
       <div class="hud-nav-item ${isActive}" onclick="window.towerNavClick('${code}', ${JSON.stringify(group).replace(/"/g, '&quot;')})">
         <span class="hud-code st-${stClass}">[ ${label} ]</span>
-        <span class="name">${towerInfo.country || group.country} ${cityLabel}</span>
+        <span class="name">${rowCountryLabel} ${rowCityLabel}</span>
         <span class="status ${stClass}">${stText}</span>
       </div>
     `;
@@ -5739,9 +5749,9 @@ window.renderTowerCards = function(group) {
       <div class="hud-nav-breadcrumb">
         <button onclick="window.towerBreadcrumbWorld()">WORLD</button>
         <span>&gt;</span>
-        <button onclick="window.towerBreadcrumbCountry('${group.country}')">${(TOWER_COUNTRY_EN[group.country] || group.country).toUpperCase()}</button>
+        <button onclick="window.towerBreadcrumbCountry('${group.country}')">${activeCountryLabel}</button>
         <span>&gt;</span>
-        <strong>${(TOWER_CITY_EN[group.city] || group.city || 'ALL').toUpperCase()}</strong>
+        <strong>${activeCityLabel || 'ALL'}</strong>
       </div>
       <div class="hud-nav-list">
         ${navListHtml}
@@ -5755,7 +5765,7 @@ window.renderTowerCards = function(group) {
         <span class="hud-detail-status-badge">${getStatusText(firstCode).replace(' >','').toUpperCase()}</span>
       </div>
       <div class="hud-detail-grid">
-        <div class="lbl">LOCATION</div><div class="val">${group.country} - ${group.city || 'ALL'}</div>
+        <div class="lbl">LOCATION</div><div class="val">${activeCountryLabel} - ${activeCityLabel || 'ALL'}</div>
         <div class="lbl">TOTAL LOGS</div><div class="val">${hist.length} Updates</div>
         <div class="lbl">PROGRESS</div>
         <div class="hud-pg-wrap">
@@ -5829,7 +5839,12 @@ window.renderTowerCards = function(group) {
     // ===== 관제탑: 국가 단위 원(펄스) — 줌 레벨에 따라 표시/숨김 =====
 let towerCountryLayerGroup = null;
     const TOWER_COUNTRY_EN = { '대한민국':'Korea', '중국':'China', '말레이시아':'Malaysia', '루마니아':'Romania' };
-const TOWER_CITY_EN = { '동탄':'Hwaseong', '평택':'Pyeongtaek', '페낭':'Penang', '쿠알라룸푸르':'Kuala Lumpur', '후이저우':'Huizhou' };
+const TOWER_CITY_EN = {
+  '동탄':'Hwaseong', '평택':'Pyeongtaek', '서산':'Seosan',
+  '페낭':'Penang', '쿠알라룸푸르':'Kuala Lumpur',
+  '후이저우':'Huizhou', '난징':'Nanjing', '창저우':'Changzhou', '화이안':"Huai'an", '난양':'Nanyang', '징먼':'Jingmen', '장가장':'Zhangjiajie',
+  '부쿠레슈티':'Bucharest'
+};
 function towerSetHudLocation(text) {
   const el = document.getElementById('tower-hud-location-text');
   if (el) el.textContent = text;
