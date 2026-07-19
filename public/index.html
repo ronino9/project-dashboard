@@ -313,6 +313,95 @@
     }
     /* ========================================================= */
 
+    /* 자비스 로고 글자 기본색 = 남색 (평소 화이트 사이드바 상태) */
+    .sidebar-btn-jarvis .jarvis-brand-text {
+      color: #1e3a8a;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+    }
+
+    /* =========================================================
+       👇 Control Tower 전용 HUD 사이드바 테마 (자비스 탭에서만 적용) 👇
+       ========================================================= */
+    .sidebar.sidebar-tower-theme {
+      background: #020617;
+      border-right: 1px solid #0e7490;
+      box-shadow: 4px 0 24px rgba(6, 182, 212, 0.15);
+    }
+
+    .sidebar-tower-theme .sidebar-logo {
+      font-family: 'Orbitron', sans-serif;
+      color: #67e8f9;
+      border-bottom-color: rgba(14, 116, 144, 0.6);
+      text-shadow: 0 0 10px rgba(103, 232, 249, 0.5);
+    }
+    .sidebar-tower-theme .sidebar-logo::after {
+      background: #22d3ee;
+      box-shadow: 0 0 8px rgba(34, 211, 238, 0.8);
+    }
+
+    .sidebar-tower-theme .sidebar-group-label {
+      font-family: 'Share Tech Mono', monospace;
+      color: #0891b2;
+    }
+
+    .sidebar-tower-theme .sidebar-btn {
+      color: #475569;
+      border-radius: 4px;
+      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+    }
+    .sidebar-tower-theme .sidebar-btn:hover {
+      background: rgba(14, 116, 144, 0.15);
+      color: #22d3ee;
+      border-left-color: rgba(34, 211, 238, 0.5);
+      transform: none;
+    }
+    .sidebar-tower-theme .sidebar-btn.active {
+      background: rgba(14, 116, 144, 0.25);
+      color: #fff;
+      border-left-color: #22d3ee;
+      text-shadow: 0 0 6px rgba(34, 211, 238, 0.8);
+      box-shadow: inset 0 0 12px rgba(14, 116, 144, 0.4);
+      transform: none;
+    }
+
+    .sidebar-tower-theme .sidebar-sub { color: #0891b2; }
+    .sidebar-tower-theme .sidebar-btn.active .sidebar-sub {
+      color: #67e8f9;
+      text-shadow: 0 0 4px rgba(103, 232, 249, 0.6);
+    }
+
+    .sidebar-tower-theme .sidebar-search-input {
+      border: 1px solid rgba(14, 116, 144, 0.5);
+      background: rgba(2, 6, 23, 0.8);
+      color: #67e8f9;
+      box-shadow: none;
+      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+    }
+    .sidebar-tower-theme .sidebar-search-input:hover {
+      border-color: #22d3ee;
+      background: rgba(14, 116, 144, 0.2);
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.2);
+    }
+    .sidebar-tower-theme .sidebar-search-input i { color: #22d3ee; }
+
+    .sidebar-tower-theme .sidebar-btn-jarvis {
+      background: rgba(2, 6, 23, 0.6);
+      border: 1px solid #0e7490;
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.1), inset 0 0 8px rgba(6, 182, 212, 0.1);
+      clip-path: polygon(0 8px, 8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+    }
+    .sidebar-tower-theme .sidebar-btn-jarvis:hover {
+      background: rgba(14, 116, 144, 0.3);
+      border-color: #67e8f9;
+      box-shadow: 0 0 16px rgba(103, 232, 249, 0.3), inset 0 0 12px rgba(103, 232, 249, 0.2);
+      transform: none;
+    }
+
+    .sidebar-tower-theme .sidebar-btn-jarvis .jarvis-brand-text {
+      color: #67e8f9;
+      text-shadow: 0 0 10px rgba(103, 232, 249, 0.6);
+    }
+    /* ========================================================= */
     .jb-ring1 { transform-origin:50px 50px; animation: jbSpin 10s linear infinite; }
     .jb-ring2 { transform-origin:50px 50px; animation: jbSpinRev 15s linear infinite; }
     .jb-core { animation: jbFlicker 2.4s ease-in-out infinite; }
@@ -870,7 +959,7 @@
         <circle cx="50" cy="50" r="21" fill="#020617" stroke="#7ff0fa" stroke-width="2" filter="url(#jbGlow)"/>
         <circle class="jb-core" cx="50" cy="50" r="12" fill="#ffffff" filter="url(#jbGlowStrong)"/>
       </svg>
-      <span style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:16px; font-weight:800; letter-spacing:6px; color:#7ff0fa; text-shadow:0 0 10px rgba(77,216,232,0.6);">자비스</span>
+      <span class="jarvis-brand-text" style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:16px; font-weight:800; letter-spacing:6px;">자비스</span>
     </button>
   </div>
 </aside>
@@ -6733,7 +6822,7 @@ window.showPdcaProblemDetailExternal = function(mode) {
     window._mainTab = 'project';
 window.switchMainTab = function(which) {
   window._mainTab = which;
-  document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('app-sidebar').classList.toggle('sidebar-tower-theme', tabId === 'tower');
   const sBtn = document.getElementById(which === 'pdca' ? 'sbtn-pdca' : 'sbtn-project');
   if (sBtn) sBtn.classList.add('active');
   const pdcaPanel = document.getElementById('pdca-panel');
