@@ -2028,18 +2028,7 @@ window.renderDeviationTrendTest = function() {
                 <div class="tower-tint-light"></div>
               </div>
 
-              <div class="hud-map-timeline">
-                <div class="hud-timeline-title">MISSION TIMELINE</div>
-                <div class="hud-timeline-track">
-                  <div class="hud-timeline-line"></div>
-                  <div class="hud-timeline-node done"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">PLAN</span></div>
-                  <div class="hud-timeline-node done"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">DESIGN</span></div>
-                  <div class="hud-timeline-node done"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">ASSEMBLY</span></div>
-                  <div class="hud-timeline-node active"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">SETUP</span></div>
-                  <div class="hud-timeline-node"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">SAT</span></div>
-                  <div class="hud-timeline-node"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">CS</span></div>
-                </div>
-              </div>
+             
 
               <!-- ★ 클로드 4시간의 한을 풀어드리는 궁극의 3D CSS 프레임 (이미지 에셋 0개) -->
               <div style="position: absolute; inset: -10px 10.5% -10px 10.5%; pointer-events: none; z-index: 5002; filter: drop-shadow(0 0 15px rgba(6,182,212,0.3)) drop-shadow(0 10px 30px rgba(2,6,23,0.8));">
@@ -2099,6 +2088,19 @@ window.renderDeviationTrendTest = function() {
                   <div class="tower-hud-sys" id="tower-hud-sys-text">SECTOR: GLOBAL · SYS <span class="tower-hud-ok">OK</span></div>
                   <div class="tower-hud-location" id="tower-hud-location-text">EARTH</div>
                 </div>
+              </div>
+            </div>
+
+            <div class="hud-map-timeline">
+              <div class="hud-timeline-title">MISSION TIMELINE</div>
+              <div class="hud-timeline-track">
+                <div class="hud-timeline-line"></div>
+                <div class="hud-timeline-node done"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">PLAN</span></div>
+                <div class="hud-timeline-node done"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">DESIGN</span></div>
+                <div class="hud-timeline-node done"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">ASSEMBLY</span></div>
+                <div class="hud-timeline-node active"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">SETUP</span></div>
+                <div class="hud-timeline-node"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">SAT</span></div>
+                <div class="hud-timeline-node"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">CS</span></div>
               </div>
             </div>
           </div>
@@ -5574,7 +5576,28 @@ window.renderTowerSidebar = function(groups) {
     </div>
   `).join('');
 };
+window.towerNavClick = function(code, group) {
+  const towerInfo = (allData.controlTower && allData.controlTower[code]) || {};
+  const coords = getTowerCoords(towerInfo.country, towerInfo.city);
 
+  if (coords && towerMapInstance) {
+    towerMapInstance.flyTo(coords, 8, { duration: 1.2, easeLinearity: 0.25 });
+  }
+
+  const normCountry = towerNormalize(towerInfo.country, TOWER_COUNTRY_ALIAS);
+  const normCity = towerNormalize(towerInfo.city, TOWER_CITY_ALIAS);
+  const cityAbbr = (TOWER_CITY_EN[normCity] || normCity || '').toUpperCase().substring(0, 3);
+  towerSetHudLocation(`EARTH : ${(TOWER_COUNTRY_EN[normCountry] || normCountry || '').toUpperCase()}${cityAbbr ? ' : ' + cityAbbr : ''}`);
+
+  // 오른쪽 패널은 그룹(전체 리스트)은 유지하되, firstCode만 클릭한 프로젝트로 교체
+  const reorderedGroup = {
+    ...group,
+    projects: [code, ...group.projects.filter(c => c !== code)]
+  };
+  window.renderTowerCards(reorderedGroup);
+};
+
+window.renderTowerCards = function(group) {
 window.renderTowerCards = function(group) {
   const container = document.getElementById('tower-right');
   if (!container) return;
@@ -5630,7 +5653,7 @@ window.renderTowerCards = function(group) {
     const towerInfo = (allData.controlTower && allData.controlTower[code]) || {};
     const cityLabel = towerInfo.city || group.city || '';
     return `
-      <div class="hud-nav-item ${isActive}">
+      <div class="hud-nav-item ${isActive}" onclick="window.towerNavClick('${code}', ${JSON.stringify(group).replace(/"/g, '&quot;')})">
         <span class="code">${label}</span>
         <span class="name">${towerInfo.country || group.country} ${cityLabel}</span>
         <span class="status ${stClass}">${stText}</span>
