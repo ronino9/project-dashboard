@@ -814,7 +814,7 @@
   pointer-events: none;
 }
 .twem-hitzone {
-  position: absolute; inset: 44%; border-radius: 50%;
+  position: absolute; inset: 0; border-radius: 50%;
   pointer-events: auto; cursor: pointer; z-index: 10;
 }
 .tower-epic-marker::before {
@@ -5916,17 +5916,20 @@ function towerBuildCountryIcon(g) {
   const color = hasDelay ? '#ff003c' : '#00f0ff';
   const glow = hasDelay ? 'rgba(255,0,60,0.7)' : 'rgba(0,240,255,0.7)';
   const size = Math.min(56 + (count - 1) * 8, 92);
+  const hitSize = Math.round(size * 0.34); // 👈 실제 클릭/호버 반응 영역 (빨간 원 크기)
 
-  const html = `<div class="tower-epic-marker" style="width:${size}px; height:${size}px; --m-base:${color}; --m-glow:${glow};">
-      <div class="twem-pulse"></div>
-      <div class="twem-crossline"></div>
-      <div class="twem-radar"></div>
-      <div class="twem-ring-outer"></div>
-      <div class="twem-ring-mid"></div>
-      <div class="twem-ring-inner"></div>
+  const html = `<div style="position:relative; width:${hitSize}px; height:${hitSize}px;">
+      <div class="tower-epic-marker" style="position:absolute; top:50%; left:50%; width:${size}px; height:${size}px; transform:translate(-50%,-50%); --m-base:${color}; --m-glow:${glow};">
+        <div class="twem-pulse"></div>
+        <div class="twem-crossline"></div>
+        <div class="twem-radar"></div>
+        <div class="twem-ring-outer"></div>
+        <div class="twem-ring-mid"></div>
+        <div class="twem-ring-inner"></div>
+      </div>
       <div class="twem-hitzone"></div>
     </div>`;
-  return L.divIcon({ className: '', html, iconSize: [size, size], iconAnchor: [size/2, size/2] });
+  return L.divIcon({ className: '', html, iconSize: [hitSize, hitSize], iconAnchor: [hitSize/2, hitSize/2] });
 }
 
 window.renderTowerCountryCircles = function(map) {
