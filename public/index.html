@@ -654,11 +654,11 @@
       border: 1px solid rgba(14, 116, 144, 0.4);
       border-top: 2px solid rgba(34, 211, 238, 0.6);
       border-radius: 0;
-      padding: 16px;
+      padding: 12px;
       position: relative;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
       box-shadow: inset 0 0 30px rgba(6, 182, 212, 0.05), 0 8px 24px rgba(0, 0, 0, 0.6);
       clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
     }
@@ -668,14 +668,14 @@
     }
     .hud-panel-title {
       font-family: 'Share Tech Mono', monospace; font-size: 11px; font-weight: 700; color: #67e8f9;
-      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px;
+      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2px;
       text-shadow: 0 0 8px rgba(103, 232, 249, 0.6); display: flex; align-items: center; gap: 6px;
     }
     .hud-panel-title::before { content: '■'; font-size: 8px; color: #22d3ee; }
 
     .hud-nav-breadcrumb {
       font-family: 'Share Tech Mono', monospace; font-size: 10px; color: #475569; letter-spacing: 1px;
-      display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;
+      display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap;
     }
     .hud-nav-breadcrumb span { color: #0891b2; }
     .hud-nav-breadcrumb button {
@@ -686,9 +686,9 @@
     .hud-nav-breadcrumb button:hover { background: rgba(34, 211, 238, 0.15); border-color: #22d3ee; box-shadow: 0 0 8px rgba(34, 211, 238, 0.4); }
     .hud-nav-breadcrumb strong { color: #cffafe; font-weight: 700; text-shadow: 0 0 6px rgba(207, 250, 254, 0.6); }
 
-    .hud-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .hud-nav-list { display: flex; flex-direction: column; gap: 3px; }
     .hud-nav-item {
-      display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; cursor: pointer;
       background: rgba(2, 6, 23, 0.4); border: 1px solid rgba(14, 116, 144, 0.3); transition: all 0.2s;
     }
     .hud-nav-item:hover { border-color: rgba(34, 211, 238, 0.5); background: rgba(14, 116, 144, 0.2); }
@@ -713,11 +713,31 @@
     .hud-nav-item .status.planned { color: #facc15; } .hud-nav-item .status.planned::before { background: #facc15; box-shadow: 0 0 8px #facc15; }
     .hud-nav-item .status.delayed { color: #f87171; } .hud-nav-item .status.delayed::before { background: #f87171; box-shadow: 0 0 8px #f87171; animation: towerHudBlink 1s infinite; }
 
-    .hud-detail-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(34, 211, 238, 0.3); padding-bottom: 10px; margin-bottom: 4px; }
-    .hud-detail-header h2 { font-size: 28px; color: #fff; margin: 0; font-family: 'Orbitron', sans-serif; text-shadow: 0 0 15px rgba(34, 211, 238, 0.8), 0 0 5px rgba(255,255,255,0.5); line-height: 1; letter-spacing: 3px; }
-    .hud-detail-status-badge { font-family: 'Orbitron', sans-serif; font-size: 10px; border: 1px solid #22d3ee; color: #fff; padding: 2px 8px; letter-spacing: 2px; background: rgba(34, 211, 238, 0.15); box-shadow: 0 0 8px rgba(34, 211, 238, 0.4); white-space: nowrap; }
+    .hud-detail-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-bottom: 1px solid rgba(34, 211, 238, 0.3); padding-bottom: 6px; margin-bottom: 2px; }
+    .hud-detail-header h2 { flex-shrink: 0; font-size: 22px; color: #fff; margin: 0; font-family: 'Orbitron', sans-serif; text-shadow: 0 0 12px rgba(34, 211, 238, 0.8), 0 0 4px rgba(255,255,255,0.5); line-height: 1; letter-spacing: 2px; }
+    .hud-detail-status-badge { flex-shrink: 0; font-family: 'Orbitron', sans-serif; font-size: 10px; border: 1px solid #22d3ee; color: #fff; padding: 2px 8px; letter-spacing: 2px; background: rgba(34, 211, 238, 0.15); box-shadow: 0 0 8px rgba(34, 211, 238, 0.4); white-space: nowrap; }
 
-    .hud-detail-grid { display: grid; grid-template-columns: 85px 1fr; gap: 10px 12px; font-size: 10px; align-items: center; font-family: 'Share Tech Mono', monospace; letter-spacing: 0.5px; }
+    /* ── 4단계 진행 트랙 (제작→FAT→SETUP→SAT), 고정폭 ── */
+    .hud-stage-track { flex: 1; display: flex; justify-content: center; position: relative; }
+    .hud-stage-track.hud-stage-service { color: #475569; font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 2px; }
+    .hud-stage-inner { position: relative; width: 148px; }
+    .hud-stage-line { position: absolute; top: 6px; left: 10px; right: 10px; height: 1px; background: linear-gradient(90deg, rgba(74,222,128,0.5), rgba(34,211,238,0.5), rgba(71,85,105,0.3)); z-index: 1; }
+    .hud-stage-grid { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(4, 1fr); }
+    .hud-stage-node { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .hud-stage-dot-wrap { position: relative; width: 13px; height: 13px; display: flex; align-items: center; justify-content: center; }
+    .hud-stage-diamond { width: 9px; height: 9px; background: #020617; border: 2px solid rgba(71, 85, 105, 0.6); transform: rotate(45deg); transition: all 0.3s ease; }
+    .hud-stage-node.done .hud-stage-diamond { background: #4ade80; border-color: #4ade80; box-shadow: 0 0 8px rgba(74, 222, 128, 0.7); }
+    .hud-stage-node.active .hud-stage-diamond { width: 11px; height: 11px; background: #fff; border-color: #22d3ee; box-shadow: 0 0 6px #fff, 0 0 16px #22d3ee; }
+    .hud-stage-pulse { position: absolute; inset: -7px; border: 1px solid #22d3ee; transform: rotate(45deg); opacity: 0.7; animation: hudStagePulse 1.6s ease-out infinite; pointer-events: none; }
+    @keyframes hudStagePulse {
+      0% { transform: rotate(45deg) scale(0.5); opacity: 0.8; }
+      100% { transform: rotate(45deg) scale(2.4); opacity: 0; }
+    }
+    .hud-stage-label { font-family: 'Share Tech Mono', monospace; font-size: 7.5px; letter-spacing: 0.5px; color: #475569; white-space: nowrap; }
+    .hud-stage-node.done .hud-stage-label { color: #86efac; }
+    .hud-stage-node.active .hud-stage-label { color: #fff; text-shadow: 0 0 6px #22d3ee; font-weight: 700; }
+
+    .hud-detail-grid { display: grid; grid-template-columns: 85px 1fr; gap: 6px 12px; font-size: 10px; align-items: center; font-family: 'Share Tech Mono', monospace; letter-spacing: 0.5px; }
     .hud-detail-grid .lbl { color: #0891b2; font-weight: 700; }
     .hud-detail-grid .val { color: #e2e8f0; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
 
@@ -726,14 +746,14 @@
     .hud-pg-fill { height: 100%; background: #22d3ee; box-shadow: 0 0 10px #22d3ee; position: relative; transition: width 0.5s ease; }
     .hud-pg-fill::after { content: ''; position: absolute; right: 0; top: -2px; width: 2px; height: 6px; background: #fff; box-shadow: 0 0 8px #fff; }
 
-    .hud-desc { padding: 12px; background: rgba(2, 6, 23, 0.8); border-left: 2px solid #22d3ee; color: #94a3b8; font-size: 10px; line-height: 1.6; font-family: 'Share Tech Mono', monospace; position: relative; overflow: hidden; }
+    .hud-desc { padding: 8px 10px; background: rgba(2, 6, 23, 0.8); border-left: 2px solid #22d3ee; color: #94a3b8; font-size: 10px; line-height: 1.5; font-family: 'Share Tech Mono', monospace; position: relative; overflow: hidden; }
     .hud-desc::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(34, 211, 238, 0.05) 2px, rgba(34, 211, 238, 0.05) 4px); pointer-events: none; }
-    .hud-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+    .hud-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
     .hud-tag { border: 1px solid rgba(34, 211, 238, 0.3); background: rgba(34, 211, 238, 0.05); padding: 3px 8px; font-size: 9px; color: #67e8f9; letter-spacing: 1px; text-transform: uppercase; font-family: 'Share Tech Mono', monospace; clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px); }
 
     .hud-monitor-row { display: flex; justify-content: space-between; align-items: center; padding: 0 10px; }
-    .hud-dial { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .hud-dial-circle { position: relative; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; }
+    .hud-dial { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .hud-dial-circle { position: relative; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; }
     .hud-dial-circle::before { 
       content:''; position:absolute; inset: 0; border: 1px dashed rgba(34, 211, 238, 0.6); border-radius: 50%; 
       animation: spinBladeHUD 8s linear infinite; box-shadow: 0 0 8px rgba(34, 211, 238, 0.2);
@@ -742,44 +762,16 @@
       content:''; position:absolute; inset: 4px; border: 2px solid rgba(34, 211, 238, 0.2); border-radius: 50%;
       border-top-color: #22d3ee; transform: rotate(45deg);
     }
-    .hud-dial-val { font-size: 13px; color: #fff; font-family: 'Orbitron', sans-serif; font-weight: 700; text-shadow: 0 0 8px #22d3ee; z-index: 2; }
+    .hud-dial-val { font-size: 12px; color: #fff; font-family: 'Orbitron', sans-serif; font-weight: 700; text-shadow: 0 0 8px #22d3ee; z-index: 2; }
     .hud-dial-lbl { font-size: 9px; color: #94a3b8; letter-spacing: 1.5px; font-family: 'Share Tech Mono', monospace; }
 
-    .hud-sys-status { display: flex; justify-content: space-between; font-size: 10px; padding-top: 14px; border-top: 1px solid rgba(34, 211, 238, 0.2); font-family: 'Share Tech Mono', monospace; }
-    .hud-sys-item { display: flex; flex-direction: column; gap: 4px; }
-    .hud-sys-item span:first-child { color: #64748b; letter-spacing: 1px; }
-    .hud-sys-item span:last-child { color: #4ade80; font-weight: 700; text-shadow: 0 0 6px rgba(74, 222, 128, 0.8); display:flex; align-items:center; gap:6px; letter-spacing: 0.5px; }
-    .hud-sys-item span:last-child::before { content:''; width:5px; height:5px; background:#4ade80; border-radius:50%; box-shadow: 0 0 6px #4ade80; }
-
-    .hud-map-timeline {
-      position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-      width: 85%; background: rgba(2, 6, 23, 0.75); border: 1px solid rgba(34, 211, 238, 0.4);
-      backdrop-filter: blur(8px); padding: 16px 30px; z-index: 5005;
-      display: flex; flex-direction: column; gap: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(34,211,238,0.1);
-      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%, 0 10px);
-    }
-    .hud-timeline-title { font-family: 'Orbitron', sans-serif; font-size: 11px; color: #67e8f9; letter-spacing: 3px; text-align: center; text-shadow: 0 0 8px rgba(103, 232, 249, 0.5); }
-    .hud-timeline-track { display: flex; justify-content: space-between; align-items: center; position: relative; padding: 10px 0; }
-    .hud-timeline-line { position: absolute; top: 50%; left: 10px; right: 10px; height: 1px; background: rgba(34, 211, 238, 0.3); z-index: 1; box-shadow: 0 0 4px rgba(34, 211, 238, 0.2); }
-    .hud-timeline-node { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-
-    .hud-timeline-dot { width: 12px; height: 12px; border-radius: 50%; background: #020617; border: 2px solid rgba(34, 211, 238, 0.5); display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
-    .hud-timeline-node.done .hud-timeline-dot { border-color: #4ade80; box-shadow: 0 0 10px rgba(74, 222, 128, 0.6); }
-    .hud-timeline-node.done .hud-timeline-dot::after { content: ''; width: 4px; height: 4px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 4px #4ade80;}
-
-    .hud-timeline-node.active .hud-timeline-dot { border-color: #22d3ee; box-shadow: 0 0 15px #22d3ee; width: 18px; height: 18px; background: rgba(34, 211, 238, 0.1); }
-    .hud-timeline-node.active .hud-timeline-dot::after { content: ''; width: 6px; height: 6px; background: #fff; border-radius: 50%; box-shadow: 0 0 10px #fff, 0 0 20px #22d3ee; animation: towerHudBlink 1s infinite; }
-
-    .hud-timeline-label { font-size: 10px; color: #64748b; font-weight: 700; letter-spacing: 1px; font-family: 'Share Tech Mono', monospace; text-transform: uppercase; }
-    .hud-timeline-node.done .hud-timeline-label { color: #94a3b8; }
-    .hud-timeline-node.active .hud-timeline-label { color: #fff; text-shadow: 0 0 6px #22d3ee; font-size: 11px; }
-    /* ========================================================= */
+    .hud-sys-status { display: flex; justify-content: space-between; font-size: 10px;
     #tower-right {
       position: relative;
       margin-left: -160px;
       width: calc(100% + 160px);
       z-index: 5015;
+      gap: 8px;
     }
     .tower-kpi-group { background:#0a1628; border:1px solid #0e7490; border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:8px; }
     .tower-kpi { display:flex; justify-content:space-between; align-items:center; }
@@ -2130,18 +2122,7 @@ window.renderDeviationTrendTest = function() {
               </div>
             </div>
 
-            <div class="hud-map-timeline">
-              <div class="hud-timeline-title">MISSION TIMELINE</div>
-              <div class="hud-timeline-track">
-                <div class="hud-timeline-line"></div>
-                <div class="hud-timeline-node done"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">PLAN</span></div>
-                <div class="hud-timeline-node done"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">DESIGN</span></div>
-                <div class="hud-timeline-node done"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">ASSEMBLY</span></div>
-                <div class="hud-timeline-node active"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">SETUP</span></div>
-                <div class="hud-timeline-node"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">SAT</span></div>
-                <div class="hud-timeline-node"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">CS</span></div>
-              </div>
-            </div>
+
           </div>
           <div class="tower-side" id="tower-right">
           </div>
@@ -5671,13 +5652,12 @@ window.towerNavClick = function(code, group) {
 
 window.renderTowerCards = function(group) {
   const container = document.getElementById('tower-right');
-  const timelineTrack = document.querySelector('.hud-timeline-track');
   if (!container) return;
 
   const firstCode = group.projects[0];
   const isFirstCP = firstCode.startsWith('CP');
 
-  let overall = '0%', hist = [], startDateVal = 'N/A';
+  let overall = '0%', hist = [], startDateVal = 'N/A', stageSummary = null;
 
   if (isFirstCP) {
     const info = (allData.project1CsRiskMap || []).find(p => p.name === firstCode) || {};
@@ -5691,6 +5671,7 @@ window.renderTowerCards = function(group) {
     overall = summary.overall || '0%';
     hist = d.history || [];
     startDateVal = hist.length > 0 ? (hist[0]['접수일'] || 'N/A') : 'N/A';
+    stageSummary = summary;
   }
 
   const getStatusClass = (code) => {
@@ -5743,6 +5724,30 @@ window.renderTowerCards = function(group) {
     `;
   }).join('');
 
+  // 4단계(제작→FAT→SETUP→SAT) 고정폭 진행 트랙
+  let stageHtml;
+  if (isFirstCP || !stageSummary) {
+    stageHtml = `<div class="hud-stage-track hud-stage-service"><span>SERVICE</span></div>`;
+  } else {
+    const stageLabelsEn = ['FAB', 'FAT', 'SETUP', 'SAT'];
+    let curIdx = stageLabelsEn.findIndex((_, i) => {
+      const v = stageSummary.complete && stageSummary.complete[i] !== undefined ? parseFloat(stageSummary.complete[i]) : 0;
+      return v < 100;
+    });
+    if (curIdx === -1) curIdx = 4;
+    const nodesHtml = stageLabelsEn.map((lbl, i) => {
+      let cls = 'pending';
+      if (i < curIdx) cls = 'done';
+      else if (i === curIdx) cls = 'active';
+      const pulse = cls === 'active' ? '<span class="hud-stage-pulse"></span>' : '';
+      return `<div class="hud-stage-node ${cls}">
+        <div class="hud-stage-dot-wrap">${pulse}<div class="hud-stage-diamond"></div></div>
+        <span class="hud-stage-label">${lbl}</span>
+      </div>`;
+    }).join('');
+    stageHtml = `<div class="hud-stage-track"><div class="hud-stage-inner"><div class="hud-stage-line"></div><div class="hud-stage-grid">${nodesHtml}</div></div></div>`;
+  }
+
   container.innerHTML = `
     <div class="hud-panel">
       <div class="hud-panel-title">PROJECT NAVIGATION</div>
@@ -5762,6 +5767,7 @@ window.renderTowerCards = function(group) {
       <div class="hud-panel-title">PROJECT DETAIL</div>
       <div class="hud-detail-header">
         <h2>${TOWER_LABEL_MAP[firstCode] || firstCode}</h2>
+        ${stageHtml}
         <span class="hud-detail-status-badge">${getStatusText(firstCode).replace(' >','').toUpperCase()}</span>
       </div>
       <div class="hud-detail-grid">
@@ -5808,6 +5814,7 @@ window.renderTowerCards = function(group) {
       </div>
     </div>
   `;
+};
 
   if (timelineTrack) {
     const stages = ['PLAN', 'DESIGN', 'ASSEMBLY', 'SETUP', 'SAT', 'CS'];
