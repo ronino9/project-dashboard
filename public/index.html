@@ -6826,9 +6826,6 @@ window.showPdcaProblemDetailExternal = function(mode) {
 window.switchMainTab = function(which) {
   window._mainTab = which;
   document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('app-sidebar').classList.toggle('sidebar-tower-theme', tabId === 'tower');
-
-      // 모든 섹션 숨김 처리
   const sBtn = document.getElementById(which === 'pdca' ? 'sbtn-pdca' : 'sbtn-project');
   if (sBtn) sBtn.classList.add('active');
   const pdcaPanel = document.getElementById('pdca-panel');
