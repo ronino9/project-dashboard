@@ -795,6 +795,169 @@
     .tower-delay-badge { font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; }
     .tower-delay-badge.hot { color:#fca5a5; background:#1f0a0a; border:1px solid #7f1d1d; }
     .tower-delay-badge.cold { color:#64748b; background:transparent; }
+    /* =========================================================
+   👇 J.A.R.V.I.S Default Overview State CSS 👇
+   ========================================================= */
+.hud-default-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 1. 글로벌 KPI 블록 */
+.hud-kpi-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 4px;
+}
+.hud-kpi-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  position: relative;
+}
+.hud-kpi-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: -24px;
+  top: 10%;
+  height: 80%;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(34, 211, 238, 0.3), transparent);
+}
+.hud-kpi-val {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+}
+.hud-kpi-val.total { color: #67e8f9; text-shadow: 0 0 10px rgba(103, 232, 249, 0.6); }
+.hud-kpi-val.danger { color: #f87171; text-shadow: 0 0 10px rgba(248, 113, 113, 0.6); }
+.hud-kpi-val.safe { color: #4ade80; text-shadow: 0 0 10px rgba(74, 222, 128, 0.6); }
+.hud-kpi-lbl {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+/* 2. 섹터 요약 그리드 (2x2) */
+.hud-sector-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+.hud-sector-card {
+  background: rgba(2, 6, 23, 0.6);
+  border: 1px solid rgba(14, 116, 144, 0.4);
+  padding: 10px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  transition: all 0.2s ease;
+}
+.hud-sector-card::before {
+  content: '+';
+  position: absolute;
+  top: 2px; right: 4px;
+  color: rgba(34, 211, 238, 0.3);
+  font-size: 10px;
+  font-family: monospace;
+}
+.hud-sector-card:hover {
+  background: rgba(14, 116, 144, 0.2);
+  border-color: #22d3ee;
+  box-shadow: inset 0 0 15px rgba(34, 211, 238, 0.1);
+}
+.hud-sector-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #e2e8f0;
+  letter-spacing: 1.5px;
+}
+.hud-sector-stat {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hud-sector-stat::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+}
+.hud-sector-stat.safe { color: #4ade80; }
+.hud-sector-stat.safe::before { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+.hud-sector-stat.danger { color: #f87171; }
+.hud-sector-stat.danger::before { background: #f87171; box-shadow: 0 0 6px #f87171; animation: towerHudBlink 1s infinite; }
+.hud-sector-stat.empty { color: #64748b; }
+.hud-sector-stat.empty::before { background: #64748b; }
+
+/* 3. 위협 랭킹 리스트 */
+.hud-threat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hud-threat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background: linear-gradient(90deg, rgba(248, 113, 113, 0.1) 0%, transparent 100%);
+  border-left: 2px solid #f87171;
+  font-family: 'Share Tech Mono', monospace;
+}
+.hud-threat-item.safe {
+  background: linear-gradient(90deg, rgba(74, 222, 128, 0.05) 0%, transparent 100%);
+  border-left-color: #4ade80;
+}
+.hud-threat-code { font-weight: 700; color: #f8fafc; font-size: 11px; width: 50px; flex-shrink: 0;}
+.hud-threat-loc { color: #94a3b8; font-size: 10px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hud-threat-val { color: #f87171; font-weight: 700; font-size: 11px; text-shadow: 0 0 4px rgba(248, 113, 113, 0.5); }
+.hud-threat-val.safe { color: #4ade80; text-shadow: none; }
+
+/* 4. 라이브 텔레메트리 (티커 애니메이션) */
+.hud-telemetry-box {
+  height: 80px;
+  overflow: hidden;
+  position: relative;
+  background: rgba(2, 6, 23, 0.8);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  padding: 6px 8px;
+}
+.hud-telemetry-box::after {
+  content: ''; position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(34, 211, 238, 0.05) 2px, rgba(34, 211, 238, 0.05) 4px);
+  pointer-events: none;
+}
+.hud-ticker-wrap {
+  animation: hudTickerScroll 15s linear infinite;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hud-ticker-wrap:hover { animation-play-state: paused; }
+.hud-ticker-item {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9.5px;
+  color: #67e8f9;
+  display: flex;
+  gap: 8px;
+}
+.hud-ticker-time { color: #475569; flex-shrink: 0; }
+.hud-ticker-msg { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@keyframes hudTickerScroll {
+  0% { transform: translateY(100%); }
+  100% { transform: translateY(-100%); }
+}
     .tower-map-wrap { width:84%; margin:0 auto; }
     .tower-map-wrap { position: relative; }
     .tower-region-blink { animation: towerRegionBlink 1.1s ease-in-out infinite; }
@@ -3322,7 +3485,7 @@ window.showIssueDetail = function(idx) {
         const b = document.getElementById('btn-tower'); if (b) b.classList.add('active');
         towerPanel.style.display = 'block';
         loadTowerGeoJSON().then(() => {
-          setTimeout(() => window.renderTowerMap(), 50);
+          setTimeout(() => { window.renderTowerMap(); window.renderTowerDefaultState(); }, 50);
         });
       } else {
         const b = document.getElementById('btn-' + tabId); if (b) b.classList.add('active');
@@ -5652,14 +5815,129 @@ window.renderTowerSidebar = function(groups) {
   `).join('');
 };
     window.towerBreadcrumbWorld = function() {
+      window.renderTowerDefaultState = function() {
+  const container = document.getElementById('tower-right');
+  if (!container) return;
+
+  const towerData = allData.controlTower || {};
+  const codes = Object.keys(towerData).filter(c => c !== 'ETC');
+
+  // 1. 글로벌 KPI
+  let delayCount = 0;
+  const items = [];
+  codes.forEach(code => {
+    let maxDelay = 0;
+    if (code.startsWith('CP')) {
+      const info = (allData.project1CsRiskMap || []).find(p => p.name === code);
+      maxDelay = info ? Math.round(parseFloat(info.y) || 0) : 0;
+    } else {
+      const pKey = TOWER_PKEY_MAP[code];
+      const hist = (allData[pKey] && allData[pKey].history) || [];
+      const delays = hist.map(r => parseInt(r['지연일']) || 0).filter(d => d > 0);
+      maxDelay = delays.length > 0 ? Math.max(...delays) : 0;
+    }
+    const info = towerData[code] || {};
+    items.push({ code, maxDelay, city: info.city || info.country || '' });
+    if (towerIsDelayed(code)) delayCount++;
+  });
+  const total = codes.length;
+  const safeCount = total - delayCount;
+
+  // 2. 지연 Top 5
+  const top5 = [...items].sort((a, b) => b.maxDelay - a.maxDelay).slice(0, 5);
+
+  // 3. 국가별 카드
+  const countryList = ['대한민국', '말레이시아', '중국', '루마니아'];
+  const countryGroups = towerBuildCountryGroups();
+
+  // 4. 티커 (전체 프로젝트 최신 접수건)
+  const tickerRows = [];
+  codes.forEach(code => {
+    const pKey = code.startsWith('CP') ? 'project1' : TOWER_PKEY_MAP[code];
+    const hist = (allData[pKey] && allData[pKey].history) || [];
+    hist.forEach(r => {
+      const d = (r['접수일'] || '').toString();
+      if (!d) return;
+      tickerRows.push({
+        date: d,
+        code,
+        title: r['표준 제작 Item / Issue / 개선사항'] || r['제목'] || r['진행상태'] || ''
+      });
+    });
+  });
+  tickerRows.sort((a, b) => (a.date < b.date ? 1 : (a.date > b.date ? -1 : 0)));
+  const tickerTop = tickerRows.slice(0, 10);
+
+  // ── HTML 조립 ──
+  const kpiHtml = `
+    <div class="hud-kpi-row">
+      <div class="hud-kpi-item"><div class="hud-kpi-val total">${total}</div><div class="hud-kpi-lbl">Total</div></div>
+      <div class="hud-kpi-item"><div class="hud-kpi-val danger">${delayCount}</div><div class="hud-kpi-lbl">Delayed</div></div>
+      <div class="hud-kpi-item"><div class="hud-kpi-val safe">${safeCount}</div><div class="hud-kpi-lbl">Normal</div></div>
+    </div>`;
+
+  const threatHtml = top5.length > 0 ? top5.map(it => {
+    const isSafe = it.maxDelay <= 0;
+    return `
+      <div class="hud-threat-item ${isSafe ? 'safe' : ''}">
+        <span class="hud-threat-code">${TOWER_LABEL_MAP[it.code] || it.code}</span>
+        <span class="hud-threat-loc">${it.city}</span>
+        <span class="hud-threat-val ${isSafe ? 'safe' : ''}">${it.maxDelay}일</span>
+      </div>`;
+  }).join('') : `<div style="font-family:'Share Tech Mono', monospace; font-size:11px; color:#4ade80; text-align:center; padding:10px;">지연 없음 · 전체 안정</div>`;
+
+  const sectorHtml = countryList.map(country => {
+    const g = countryGroups[country];
+    const projCount = g ? g.projects.length : 0;
+    const hasDelay = g ? g.projects.some(c => towerIsDelayed(c)) : false;
+    const statClass = projCount === 0 ? 'empty' : (hasDelay ? 'danger' : 'safe');
+    const statText = projCount === 0 ? '프로젝트 없음' : (hasDelay ? '지연 발생' : '정상 운영');
+    return `
+      <div class="hud-sector-card" ${g ? `onclick="window.towerBreadcrumbCountry('${country}')" style="cursor:pointer;"` : ''}>
+        <div class="hud-sector-name">${TOWER_COUNTRY_EN[country] || country}</div>
+        <div class="hud-sector-stat ${statClass}">${projCount}건 · ${statText}</div>
+      </div>`;
+  }).join('');
+
+  const buildTickerRow = (t) => {
+    const dateLabel = t.date.toString().replace(/[./]/g, '.').substring(2, 10) || t.date;
+    return `
+      <div class="hud-ticker-item">
+        <span class="hud-ticker-time">${dateLabel}</span>
+        <span class="hud-ticker-msg">[${TOWER_LABEL_MAP[t.code] || t.code}] ${t.title}</span>
+      </div>`;
+  };
+  const tickerHtml = tickerTop.length > 0
+    ? tickerTop.map(buildTickerRow).join('')
+    : `<div class="hud-ticker-item"><span class="hud-ticker-msg" style="color:#475569;">최근 활동 없음</span></div>`;
+  const tickerHtmlLoop = tickerHtml + tickerHtml; // 무한 스크롤용 2배 복제
+
+  container.innerHTML = `
+    <div class="hud-panel">
+      <div class="hud-panel-title">GLOBAL OVERVIEW</div>
+      ${kpiHtml}
+    </div>
+    <div class="hud-panel">
+      <div class="hud-panel-title">DELAY RANKING TOP 5</div>
+      <div class="hud-threat-list">${threatHtml}</div>
+    </div>
+    <div class="hud-panel">
+      <div class="hud-panel-title">SECTOR STATUS</div>
+      <div class="hud-sector-grid">${sectorHtml}</div>
+    </div>
+    <div class="hud-panel">
+      <div class="hud-panel-title">LIVE ACTIVITY LOG</div>
+      <div class="hud-telemetry-box"><div class="hud-ticker-wrap">${tickerHtmlLoop}</div></div>
+    </div>
+  `;
+};
   if (towerMapInstance) {
     towerMapInstance.setMinZoom(0);
     towerMapInstance.fitWorld({ animate: true });
     towerMapInstance.setMinZoom(towerMapInstance.getZoom());
   }
   towerSetHudLocation('EARTH');
-  const container = document.getElementById('tower-right');
-  if (container) container.innerHTML = '';
+  window.renderTowerDefaultState();
   if (towerCurrentBlinkLayer) {
     towerSetBlink(towerCurrentBlinkLayer, false);
     towerCurrentBlinkLayer = null;
