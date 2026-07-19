@@ -123,9 +123,9 @@
     
     .sidebar-group-label { 
       font-family: 'Share Tech Mono', monospace; 
-      font-size: 10px; 
+      font-size: 12px; 
       font-weight: 700; 
-      color: #94a3b8; 
+      color: #475569; 
       text-transform: uppercase; 
       letter-spacing: 1px; 
       padding: 0 12px; 
@@ -156,6 +156,13 @@
       color: #0f172a; 
       border-left-color: #cbd5e1;
       transform: translateX(3px);
+    }
+    .sidebar-btn:focus,
+    .sidebar-btn:focus-visible {
+      outline: none;
+    }
+    .sidebar-btn {
+      -webkit-tap-highlight-color: transparent;
     }
 
     .sidebar-btn.active { 
@@ -617,7 +624,7 @@
     .tower-grid { display:grid; grid-template-columns:320px minmax(0,1fr) 320px; gap:16px; align-items:stretch; }
     .tower-jarvis-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
     .tower-jarvis-left { display:flex; align-items:center; gap:14px; }
-    .tower-hud-title { font-family:'Orbitron', sans-serif; font-weight:400; letter-spacing:6px; }
+    .tower-hud-title { font-family:'Orbitron', sans-serif; font-weight:700; letter-spacing:6px; }
     .tower-hud-sub { font-family:'Share Tech Mono', monospace; letter-spacing:3px; }
     .jarvis-ring1 { transform-origin:50px 50px; animation: jarvisSpin 10s linear infinite; }
     .jarvis-ring2 { transform-origin:50px 50px; animation: jarvisSpinRev 15s linear infinite; }
