@@ -650,188 +650,130 @@
        👇 J.A.R.V.I.S 우측 패널 & 지도 오버레이 전용 HUD CSS 👇
        ========================================================= */
     .hud-panel {
-      background: rgba(2, 6, 23, 0.4);
+      background: linear-gradient(135deg, rgba(2, 6, 23, 0.7) 0%, rgba(10, 22, 40, 0.9) 100%);
       border: 1px solid rgba(14, 116, 144, 0.4);
-      border-top: 1px solid rgba(34, 211, 238, 0.6);
-      border-radius: 4px;
+      border-top: 2px solid rgba(34, 211, 238, 0.6);
+      border-radius: 0;
       padding: 16px;
       position: relative;
       display: flex;
       flex-direction: column;
       gap: 12px;
-      box-shadow: inset 0 0 20px rgba(6, 182, 212, 0.05), 0 4px 12px rgba(0, 0, 0, 0.2);
+      box-shadow: inset 0 0 30px rgba(6, 182, 212, 0.05), 0 8px 24px rgba(0, 0, 0, 0.6);
+      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
     }
-    .hud-panel::before, .hud-panel::after {
-      content: ''; position: absolute; width: 6px; height: 6px; border-color: #67e8f9; pointer-events: none;
+    .hud-panel::before {
+      content: ''; position: absolute; top: -2px; left: -2px; width: 10px; height: 10px;
+      border-top: 2px solid #22d3ee; border-left: 2px solid #22d3ee;
     }
-    .hud-panel::before { top: -1px; left: -1px; border-top: 2px solid; border-left: 2px solid; }
-    .hud-panel::after { bottom: -1px; right: -1px; border-bottom: 2px solid; border-right: 2px solid; opacity: 0.5; }
-
     .hud-panel-title {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      color: #67e8f9;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-      text-shadow: 0 0 6px rgba(34, 211, 238, 0.5);
+      font-family: 'Share Tech Mono', monospace; font-size: 11px; font-weight: 700; color: #67e8f9;
+      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px;
+      text-shadow: 0 0 8px rgba(103, 232, 249, 0.6); display: flex; align-items: center; gap: 6px;
     }
+    .hud-panel-title::before { content: '■'; font-size: 8px; color: #22d3ee; }
+
+    .hud-nav-breadcrumb {
+      font-family: 'Share Tech Mono', monospace; font-size: 10px; color: #475569; letter-spacing: 1px;
+      display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;
+    }
+    .hud-nav-breadcrumb span { color: #0891b2; }
+    .hud-nav-breadcrumb button {
+      background: transparent; border: 1px solid rgba(34, 211, 238, 0.3); color: #67e8f9;
+      font-family: 'Share Tech Mono', monospace; font-size: 10px; padding: 2px 6px;
+      cursor: pointer; transition: all 0.2s; clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+    }
+    .hud-nav-breadcrumb button:hover { background: rgba(34, 211, 238, 0.15); border-color: #22d3ee; box-shadow: 0 0 8px rgba(34, 211, 238, 0.4); }
+    .hud-nav-breadcrumb strong { color: #cffafe; font-weight: 700; text-shadow: 0 0 6px rgba(207, 250, 254, 0.6); }
 
     .hud-nav-list { display: flex; flex-direction: column; gap: 4px; }
     .hud-nav-item {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 6px 8px; cursor: pointer; border-radius: 2px;
-      border-left: 2px solid transparent; transition: all 0.2s;
+      display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; cursor: pointer;
+      background: rgba(2, 6, 23, 0.4); border: 1px solid rgba(14, 116, 144, 0.3); transition: all 0.2s;
     }
-    .hud-nav-item:hover { background: rgba(14, 116, 144, 0.2); border-left-color: rgba(34, 211, 238, 0.5); }
-    .hud-nav-item.active { background: rgba(14, 116, 144, 0.3); border-left-color: #67e8f9; box-shadow: inset 0 0 10px rgba(34,211,238,0.1); }
-    .hud-nav-item .code {
-      position: relative;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      color: #67e8f9;
-      width: 42px;
-      text-align: center;
-      padding: 4px 0;
-      background: linear-gradient(160deg, rgba(103, 232, 249, 0.16) 0%, rgba(3, 12, 24, 0.6) 100%);
-      border: 1px solid rgba(103, 232, 249, 0.4);
-      border-top-color: rgba(103, 232, 249, 0.65);
-      border-radius: 2px;
-      clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
-      text-shadow: 0 0 4px rgba(103, 232, 249, 0.7);
-      box-shadow:
-        0 2px 4px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(103, 232, 249, 0.25),
-        inset 0 -3px 6px rgba(0, 0, 0, 0.35);
-      flex-shrink: 0;
-      transition: all 0.25s ease;
-    }
-    .hud-nav-item.active .code {
-      background: linear-gradient(160deg, rgba(103, 232, 249, 0.35) 0%, rgba(3, 12, 24, 0.7) 100%);
-      border-color: #67e8f9;
-      box-shadow:
-        0 2px 6px rgba(0, 0, 0, 0.5),
-        0 0 10px rgba(103, 232, 249, 0.35),
-        inset 0 1px 0 rgba(200, 250, 255, 0.4),
-        inset 0 -3px 6px rgba(0, 0, 0, 0.3);
-    }
-    .hud-nav-item .code.st-completed {
-      color: #86efac;
-      border-color: rgba(74, 222, 128, 0.45);
-      border-top-color: rgba(74, 222, 128, 0.7);
-      background: linear-gradient(160deg, rgba(74, 222, 128, 0.14) 0%, rgba(3, 12, 24, 0.6) 100%);
-      text-shadow: 0 0 4px rgba(74, 222, 128, 0.6);
-      box-shadow:
-        0 2px 4px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(74, 222, 128, 0.2),
-        inset 0 -3px 6px rgba(0, 0, 0, 0.35);
-    }
-    .hud-nav-item .code.st-delayed {
-      color: #fca5a5;
-      border-color: rgba(248, 113, 113, 0.5);
-      border-top-color: rgba(248, 113, 113, 0.75);
-      background: linear-gradient(160deg, rgba(248, 113, 113, 0.18) 0%, rgba(3, 12, 24, 0.6) 100%);
-      text-shadow: 0 0 5px rgba(248, 113, 113, 0.7);
-      box-shadow:
-        0 2px 4px rgba(0, 0, 0, 0.5),
-        0 0 8px rgba(248, 113, 113, 0.25),
-        inset 0 1px 0 rgba(248, 113, 113, 0.25),
-        inset 0 -3px 6px rgba(0, 0, 0, 0.35);
-      animation: towerHudBlink 1.8s ease-in-out infinite;
-    }
-    .hud-nav-item .code.st-planned {
-      color: #fde68a;
-      border-color: rgba(250, 204, 21, 0.4);
-      border-top-color: rgba(250, 204, 21, 0.6);
-      background: linear-gradient(160deg, rgba(250, 204, 21, 0.12) 0%, rgba(3, 12, 24, 0.6) 100%);
-      text-shadow: 0 0 4px rgba(250, 204, 21, 0.5);
-      box-shadow:
-        0 2px 4px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(250, 204, 21, 0.2),
-        inset 0 -3px 6px rgba(0, 0, 0, 0.35);
-    }
-    .hud-nav-item .name { flex: 1; color: #cffafe; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .hud-nav-item .status { font-size: 10px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
-    .hud-nav-item .status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
-    .hud-nav-item .status.completed { color: #4ade80; } .hud-nav-item .status.completed::before { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
-    .hud-nav-item .status.setup { color: #38bdf8; } .hud-nav-item .status.setup::before { background: #38bdf8; box-shadow: 0 0 6px #38bdf8; }
-    .hud-nav-item .status.planned { color: #facc15; } .hud-nav-item .status.planned::before { background: #facc15; box-shadow: 0 0 6px #facc15; }
-    .hud-nav-item .status.delayed { color: #f87171; } .hud-nav-item .status.delayed::before { background: #f87171; box-shadow: 0 0 6px #f87171; animation: towerHudBlink 1s infinite; }
-    .hud-breadcrumb { display: flex; align-items: center; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
-    .hud-crumb-btn {
-      background: rgba(103, 232, 249, 0.08);
-      border: 1px solid rgba(103, 232, 249, 0.3);
-      color: #67e8f9;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      padding: 3px 8px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .hud-crumb-btn:hover {
-      background: rgba(103, 232, 249, 0.2);
-      border-color: #67e8f9;
-      box-shadow: 0 0 8px rgba(103, 232, 249, 0.3);
-    }
-    .hud-crumb-sep { color: #475569; font-size: 10px; }
-    .hud-crumb-current {
-      background: rgba(103, 232, 249, 0.15);
-      border: 1px solid #67e8f9;
-      color: #fff;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      padding: 3px 8px;
-      border-radius: 4px;
-      text-shadow: 0 0 4px rgba(103, 232, 249, 0.6);
-    }
+    .hud-nav-item:hover { border-color: rgba(34, 211, 238, 0.5); background: rgba(14, 116, 144, 0.2); }
+    .hud-nav-item.active { border-color: #22d3ee; background: rgba(14, 116, 144, 0.35); box-shadow: inset 0 0 15px rgba(34, 211, 238, 0.15); }
 
-    .hud-detail-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(14, 116, 144, 0.4); padding-bottom: 8px; }
-    .hud-detail-header h2 { font-size: 24px; color: #fff; margin: 0; font-family: 'Orbitron', sans-serif; text-shadow: 0 0 10px rgba(255,255,255,0.4); line-height: 1; }
-    .hud-detail-grid { display: grid; grid-template-columns: 80px 1fr; gap: 8px 12px; font-size: 11px; align-items: center; }
-    .hud-detail-grid .lbl { color: #0891b2; font-weight: 700; letter-spacing: 0.5px; }
-    .hud-detail-grid .val { color: #cffafe; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .hud-pg-wrap { display: flex; align-items: center; gap: 8px; width: 100%; }
-    .hud-pg-track { flex: 1; height: 4px; background: rgba(14, 116, 144, 0.3); border-radius: 2px; overflow: hidden; }
-    .hud-pg-fill { height: 100%; background: #67e8f9; box-shadow: 0 0 8px #67e8f9; }
-    .hud-desc { padding: 10px; background: rgba(2, 6, 23, 0.6); border: 1px dashed rgba(14, 116, 144, 0.5); color: #94a3b8; font-size: 11px; line-height: 1.5; }
-    .hud-tags { display: flex; gap: 6px; flex-wrap: wrap; }
-    .hud-tag { border: 1px solid rgba(34, 211, 238, 0.4); padding: 2px 8px; border-radius: 2px; font-size: 9px; color: #67e8f9; letter-spacing: 1px; }
+    .hud-code {
+      font-family: 'Orbitron', sans-serif; color: #22d3ee; font-size: 11px; font-weight: 700;
+      width: 45px; text-shadow: 0 0 5px rgba(34, 211, 238, 0.5); letter-spacing: 1px; flex-shrink: 0;
+    }
+    .hud-nav-item.active .hud-code { color: #fff; text-shadow: 0 0 8px #22d3ee, 0 0 12px #22d3ee; }
+    .hud-code.st-completed { color: #4ade80; text-shadow: 0 0 5px rgba(74,222,128,0.6); }
+    .hud-code.st-delayed { color: #f87171; text-shadow: 0 0 5px rgba(248,113,113,0.6); animation: towerHudBlink 1.4s ease-in-out infinite; }
+    .hud-code.st-planned { color: #facc15; text-shadow: 0 0 5px rgba(250,204,21,0.5); }
 
-    .hud-monitor-row { display: flex; justify-content: space-around; align-items: center; }
-    .hud-dial { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .hud-dial-circle { position: relative; width: 50px; height: 50px; border-radius: 50%; border: 2px solid rgba(14, 116, 144, 0.4); display: flex; align-items: center; justify-content: center; }
-    .hud-dial-circle::before { content:''; position:absolute; inset:-4px; border:1px dashed #67e8f9; border-radius:50%; animation: spinBladeHUD 10s linear infinite; opacity: 0.5; }
-    .hud-dial-val { font-size: 14px; color: #fff; font-family: 'Orbitron', sans-serif; font-weight: 700; text-shadow: 0 0 6px #67e8f9; }
-    .hud-dial-lbl { font-size: 9px; color: #64748b; letter-spacing: 1px; }
-    .hud-sys-status { display: flex; justify-content: space-between; font-size: 10px; padding-top: 12px; border-top: 1px solid rgba(14, 116, 144, 0.3); }
-    .hud-sys-item { display: flex; flex-direction: column; gap: 2px; }
-    .hud-sys-item span:first-child { color: #94a3b8; }
-    .hud-sys-item span:last-child { color: #4ade80; font-weight: 700; text-shadow: 0 0 4px #4ade80; display:flex; align-items:center; gap:4px; }
-    .hud-sys-item span:last-child::before { content:''; width:4px; height:4px; background:#4ade80; border-radius:50%; }
+    .hud-nav-item .name { flex: 1; margin-left: 8px; color: #94a3b8; font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Share Tech Mono', monospace; letter-spacing: 0.5px;}
+    .hud-nav-item.active .name { color: #cffafe; text-shadow: 0 0 4px rgba(207,250,254,0.4); }
+
+    .hud-nav-item .status { font-size: 9px; font-weight: 700; display: flex; align-items: center; gap: 6px; font-family: 'Share Tech Mono', monospace; text-transform: uppercase;}
+    .hud-nav-item .status::before { content: ''; width: 4px; height: 4px; border-radius: 50%; }
+    .hud-nav-item .status.completed { color: #4ade80; } .hud-nav-item .status.completed::before { background: #4ade80; box-shadow: 0 0 8px #4ade80; }
+    .hud-nav-item .status.setup { color: #38bdf8; } .hud-nav-item .status.setup::before { background: #38bdf8; box-shadow: 0 0 8px #38bdf8; }
+    .hud-nav-item .status.planned { color: #facc15; } .hud-nav-item .status.planned::before { background: #facc15; box-shadow: 0 0 8px #facc15; }
+    .hud-nav-item .status.delayed { color: #f87171; } .hud-nav-item .status.delayed::before { background: #f87171; box-shadow: 0 0 8px #f87171; animation: towerHudBlink 1s infinite; }
+
+    .hud-detail-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(34, 211, 238, 0.3); padding-bottom: 10px; margin-bottom: 4px; }
+    .hud-detail-header h2 { font-size: 28px; color: #fff; margin: 0; font-family: 'Orbitron', sans-serif; text-shadow: 0 0 15px rgba(34, 211, 238, 0.8), 0 0 5px rgba(255,255,255,0.5); line-height: 1; letter-spacing: 3px; }
+    .hud-detail-status-badge { font-family: 'Orbitron', sans-serif; font-size: 10px; border: 1px solid #22d3ee; color: #fff; padding: 2px 8px; letter-spacing: 2px; background: rgba(34, 211, 238, 0.15); box-shadow: 0 0 8px rgba(34, 211, 238, 0.4); white-space: nowrap; }
+
+    .hud-detail-grid { display: grid; grid-template-columns: 85px 1fr; gap: 10px 12px; font-size: 10px; align-items: center; font-family: 'Share Tech Mono', monospace; letter-spacing: 0.5px; }
+    .hud-detail-grid .lbl { color: #0891b2; font-weight: 700; }
+    .hud-detail-grid .val { color: #e2e8f0; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
+
+    .hud-pg-wrap { display: flex; align-items: center; gap: 10px; width: 100%; }
+    .hud-pg-track { flex: 1; height: 2px; background: rgba(34, 211, 238, 0.2); position: relative; }
+    .hud-pg-fill { height: 100%; background: #22d3ee; box-shadow: 0 0 10px #22d3ee; position: relative; transition: width 0.5s ease; }
+    .hud-pg-fill::after { content: ''; position: absolute; right: 0; top: -2px; width: 2px; height: 6px; background: #fff; box-shadow: 0 0 8px #fff; }
+
+    .hud-desc { padding: 12px; background: rgba(2, 6, 23, 0.8); border-left: 2px solid #22d3ee; color: #94a3b8; font-size: 10px; line-height: 1.6; font-family: 'Share Tech Mono', monospace; position: relative; overflow: hidden; }
+    .hud-desc::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(34, 211, 238, 0.05) 2px, rgba(34, 211, 238, 0.05) 4px); pointer-events: none; }
+    .hud-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+    .hud-tag { border: 1px solid rgba(34, 211, 238, 0.3); background: rgba(34, 211, 238, 0.05); padding: 3px 8px; font-size: 9px; color: #67e8f9; letter-spacing: 1px; text-transform: uppercase; font-family: 'Share Tech Mono', monospace; clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px); }
+
+    .hud-monitor-row { display: flex; justify-content: space-between; align-items: center; padding: 0 10px; }
+    .hud-dial { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .hud-dial-circle { position: relative; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; }
+    .hud-dial-circle::before { 
+      content:''; position:absolute; inset: 0; border: 1px dashed rgba(34, 211, 238, 0.6); border-radius: 50%; 
+      animation: spinBladeHUD 8s linear infinite; box-shadow: 0 0 8px rgba(34, 211, 238, 0.2);
+    }
+    .hud-dial-circle::after {
+      content:''; position:absolute; inset: 4px; border: 2px solid rgba(34, 211, 238, 0.2); border-radius: 50%;
+      border-top-color: #22d3ee; transform: rotate(45deg);
+    }
+    .hud-dial-val { font-size: 13px; color: #fff; font-family: 'Orbitron', sans-serif; font-weight: 700; text-shadow: 0 0 8px #22d3ee; z-index: 2; }
+    .hud-dial-lbl { font-size: 9px; color: #94a3b8; letter-spacing: 1.5px; font-family: 'Share Tech Mono', monospace; }
+
+    .hud-sys-status { display: flex; justify-content: space-between; font-size: 10px; padding-top: 14px; border-top: 1px solid rgba(34, 211, 238, 0.2); font-family: 'Share Tech Mono', monospace; }
+    .hud-sys-item { display: flex; flex-direction: column; gap: 4px; }
+    .hud-sys-item span:first-child { color: #64748b; letter-spacing: 1px; }
+    .hud-sys-item span:last-child { color: #4ade80; font-weight: 700; text-shadow: 0 0 6px rgba(74, 222, 128, 0.8); display:flex; align-items:center; gap:6px; letter-spacing: 0.5px; }
+    .hud-sys-item span:last-child::before { content:''; width:5px; height:5px; background:#4ade80; border-radius:50%; box-shadow: 0 0 6px #4ade80; }
 
     .hud-map-timeline {
-      position: relative;
-      width: 100%; background: rgba(2, 6, 23, 0.75); border: 1px solid rgba(34, 211, 238, 0.3);
-      border-radius: 8px; padding: 12px 24px; margin-top: 16px;
-      display: flex; flex-direction: column; gap: 8px;
+      position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+      width: 85%; background: rgba(2, 6, 23, 0.75); border: 1px solid rgba(34, 211, 238, 0.4);
+      backdrop-filter: blur(8px); padding: 16px 30px; z-index: 5005;
+      display: flex; flex-direction: column; gap: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(34,211,238,0.1);
+      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%, 0 10px);
     }
-    .hud-timeline-title { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #67e8f9; letter-spacing: 2px; text-align: center; }
+    .hud-timeline-title { font-family: 'Orbitron', sans-serif; font-size: 11px; color: #67e8f9; letter-spacing: 3px; text-align: center; text-shadow: 0 0 8px rgba(103, 232, 249, 0.5); }
     .hud-timeline-track { display: flex; justify-content: space-between; align-items: center; position: relative; padding: 10px 0; }
-    .hud-timeline-line { position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(14, 116, 144, 0.6); z-index: 1; }
-    .hud-timeline-node { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-    .hud-timeline-dot { width: 14px; height: 14px; border-radius: 50%; background: #020617; border: 2px solid #0891b2; display: flex; align-items: center; justify-content: center; }
-    .hud-timeline-node.done .hud-timeline-dot { border-color: #4ade80; box-shadow: 0 0 8px #4ade80; }
-    .hud-timeline-node.done .hud-timeline-dot::after { content: '✔'; font-size: 8px; color: #4ade80; }
-    .hud-timeline-node.active .hud-timeline-dot { border-color: #67e8f9; box-shadow: 0 0 12px #67e8f9; width: 20px; height: 20px; }
-    .hud-timeline-node.active .hud-timeline-dot::after { content: ''; width: 8px; height: 8px; background: #67e8f9; border-radius: 50%; animation: towerHudBlink 1s infinite; }
-    .hud-timeline-label { font-size: 9px; color: #94a3b8; font-weight: 700; letter-spacing: 1px; }
-    .hud-timeline-node.active .hud-timeline-label { color: #fff; text-shadow: 0 0 4px #67e8f9; }
+    .hud-timeline-line { position: absolute; top: 50%; left: 10px; right: 10px; height: 1px; background: rgba(34, 211, 238, 0.3); z-index: 1; box-shadow: 0 0 4px rgba(34, 211, 238, 0.2); }
+    .hud-timeline-node { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+    .hud-timeline-dot { width: 12px; height: 12px; border-radius: 50%; background: #020617; border: 2px solid rgba(34, 211, 238, 0.5); display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+    .hud-timeline-node.done .hud-timeline-dot { border-color: #4ade80; box-shadow: 0 0 10px rgba(74, 222, 128, 0.6); }
+    .hud-timeline-node.done .hud-timeline-dot::after { content: ''; width: 4px; height: 4px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 4px #4ade80;}
+
+    .hud-timeline-node.active .hud-timeline-dot { border-color: #22d3ee; box-shadow: 0 0 15px #22d3ee; width: 18px; height: 18px; background: rgba(34, 211, 238, 0.1); }
+    .hud-timeline-node.active .hud-timeline-dot::after { content: ''; width: 6px; height: 6px; background: #fff; border-radius: 50%; box-shadow: 0 0 10px #fff, 0 0 20px #22d3ee; animation: towerHudBlink 1s infinite; }
+
+    .hud-timeline-label { font-size: 10px; color: #64748b; font-weight: 700; letter-spacing: 1px; font-family: 'Share Tech Mono', monospace; text-transform: uppercase; }
+    .hud-timeline-node.done .hud-timeline-label { color: #94a3b8; }
+    .hud-timeline-node.active .hud-timeline-label { color: #fff; text-shadow: 0 0 6px #22d3ee; font-size: 11px; }
     /* ========================================================= */
     #tower-right {
       position: relative;
@@ -856,6 +798,7 @@
     .tower-delay-badge.hot { color:#fca5a5; background:#1f0a0a; border:1px solid #7f1d1d; }
     .tower-delay-badge.cold { color:#64748b; background:transparent; }
     .tower-map-wrap { width:84%; margin:0 auto; }
+    .tower-map-wrap { position: relative; }
     .tower-region-blink { animation: towerRegionBlink 1.1s ease-in-out infinite; }
 @keyframes towerRegionBlink {
   0%, 100% { fill-opacity: 0.5; }
@@ -5728,6 +5671,7 @@ window.towerNavClick = function(code, group) {
 
 window.renderTowerCards = function(group) {
   const container = document.getElementById('tower-right');
+  const timelineTrack = document.querySelector('.hud-timeline-track');
   if (!container) return;
 
   const firstCode = group.projects[0];
@@ -5782,7 +5726,7 @@ window.renderTowerCards = function(group) {
     const cityLabel = towerInfo.city || group.city || '';
     return `
       <div class="hud-nav-item ${isActive}" onclick="window.towerNavClick('${code}', ${JSON.stringify(group).replace(/"/g, '&quot;')})">
-        <span class="code st-${stClass}">${label}</span>
+        <span class="hud-code st-${stClass}">[ ${label} ]</span>
         <span class="name">${towerInfo.country || group.country} ${cityLabel}</span>
         <span class="status ${stClass}">${stText}</span>
       </div>
@@ -5792,12 +5736,12 @@ window.renderTowerCards = function(group) {
   container.innerHTML = `
     <div class="hud-panel">
       <div class="hud-panel-title">PROJECT NAVIGATION</div>
-      <div class="hud-breadcrumb">
-        <button class="hud-crumb-btn" onclick="window.towerBreadcrumbWorld()">WORLD</button>
-        <span class="hud-crumb-sep">></span>
-        <button class="hud-crumb-btn" onclick="window.towerBreadcrumbCountry('${group.country}')">${group.country.toUpperCase()}</button>
-        <span class="hud-crumb-sep">></span>
-        <span class="hud-crumb-current">${(group.city || 'ALL').toUpperCase()}</span>
+      <div class="hud-nav-breadcrumb">
+        <button onclick="window.towerBreadcrumbWorld()">WORLD</button>
+        <span>&gt;</span>
+        <button onclick="window.towerBreadcrumbCountry('${group.country}')">${(TOWER_COUNTRY_EN[group.country] || group.country).toUpperCase()}</button>
+        <span>&gt;</span>
+        <strong>${(TOWER_CITY_EN[group.city] || group.city || 'ALL').toUpperCase()}</strong>
       </div>
       <div class="hud-nav-list">
         ${navListHtml}
@@ -5808,18 +5752,18 @@ window.renderTowerCards = function(group) {
       <div class="hud-panel-title">PROJECT DETAIL</div>
       <div class="hud-detail-header">
         <h2>${TOWER_LABEL_MAP[firstCode] || firstCode}</h2>
-        <span style="font-size:10px; border:1px solid #67e8f9; color:#67e8f9; padding:2px 8px; border-radius:2px; letter-spacing:1px;">${getStatusText(firstCode).replace(' >','').toUpperCase()}</span>
+        <span class="hud-detail-status-badge">${getStatusText(firstCode).replace(' >','').toUpperCase()}</span>
       </div>
       <div class="hud-detail-grid">
         <div class="lbl">LOCATION</div><div class="val">${group.country} - ${group.city || 'ALL'}</div>
         <div class="lbl">TOTAL LOGS</div><div class="val">${hist.length} Updates</div>
         <div class="lbl">PROGRESS</div>
         <div class="hud-pg-wrap">
-          <span style="color:#67e8f9; font-weight:700;">${overall}</span>
+          <span style="color:#22d3ee; font-weight:700; font-family:'Orbitron'; font-size:12px;">${overall}</span>
           <div class="hud-pg-track"><div class="hud-pg-fill" style="width:${overall}"></div></div>
         </div>
         <div class="lbl">START DATE</div><div class="val">${startDateVal}</div>
-        <div class="lbl">ENGINEER</div><div class="val" style="color:#f8fafc;">TEAM JARVIS ✉</div>
+        <div class="lbl">ENGINEER</div><div class="val" style="color:#cffafe;">TEAM JARVIS ✉</div>
       </div>
       <div class="hud-desc">
         System monitoring active.<br>
@@ -5835,15 +5779,15 @@ window.renderTowerCards = function(group) {
       <div class="hud-panel-title">SYSTEM MONITOR</div>
       <div class="hud-monitor-row">
         <div class="hud-dial">
-          <div class="hud-dial-circle"><span class="hud-dial-val">${Math.floor(Math.random()*40)+20}%</span></div>
+          <div class="hud-dial-circle"><span class="hud-dial-val">${Math.floor(Math.random()*20)+30}%</span></div>
           <span class="hud-dial-lbl">CPU</span>
         </div>
         <div class="hud-dial">
-          <div class="hud-dial-circle" style="border-color:rgba(74, 222, 128, 0.5);"><span class="hud-dial-val" style="color:#4ade80; text-shadow:0 0 6px #4ade80;">${Math.floor(Math.random()*30)+60}%</span></div>
+          <div class="hud-dial-circle" style="border-color:rgba(74, 222, 128, 0.4);"><span class="hud-dial-val" style="color:#4ade80; text-shadow:0 0 6px rgba(74,222,128,0.5);">${Math.floor(Math.random()*20)+65}%</span></div>
           <span class="hud-dial-lbl">MEMORY</span>
         </div>
         <div class="hud-dial">
-          <div class="hud-dial-circle"><span class="hud-dial-val">${Math.floor(Math.random()*20)+80}%</span></div>
+          <div class="hud-dial-circle"><span class="hud-dial-val">${Math.floor(Math.random()*15)+80}%</span></div>
           <span class="hud-dial-lbl">NETWORK</span>
         </div>
       </div>
@@ -5854,6 +5798,32 @@ window.renderTowerCards = function(group) {
       </div>
     </div>
   `;
+
+  if (timelineTrack) {
+    const stages = ['PLAN', 'DESIGN', 'ASSEMBLY', 'SETUP', 'SAT', 'CS'];
+    let currentIdx = 3;
+
+    if (isFirstCP) {
+      currentIdx = 5;
+    } else {
+      const progressValue = parseInt(overall.replace('%', '')) || 0;
+      if (progressValue === 0) currentIdx = 0;
+      else if (progressValue < 20) currentIdx = 1;
+      else if (progressValue < 50) currentIdx = 2;
+      else if (progressValue < 80) currentIdx = 3;
+      else if (progressValue < 100) currentIdx = 4;
+      else currentIdx = 5;
+    }
+
+    const timelineHtml = '<div class="hud-timeline-line"></div>' + stages.map((st, i) => {
+      let nodeClass = '';
+      if (i < currentIdx) nodeClass = 'done';
+      else if (i === currentIdx) nodeClass = 'active';
+      return '<div class="hud-timeline-node ' + nodeClass + '"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">' + st + '</span></div>';
+    }).join('');
+
+    timelineTrack.innerHTML = timelineHtml;
+  }
 };
 
     // ===== 관제탑: 국가 단위 원(펄스) — 줌 레벨에 따라 표시/숨김 =====
