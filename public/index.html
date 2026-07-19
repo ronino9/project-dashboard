@@ -646,6 +646,103 @@
       85% { opacity:1; filter: drop-shadow(0 0 8px #4dd8e8); }
     }
     .tower-side { display:flex; flex-direction:column; gap:12px; }
+    /* =========================================================
+       👇 J.A.R.V.I.S 우측 패널 & 지도 오버레이 전용 HUD CSS 👇
+       ========================================================= */
+    .hud-panel {
+      background: rgba(2, 6, 23, 0.4);
+      border: 1px solid rgba(14, 116, 144, 0.4);
+      border-top: 1px solid rgba(34, 211, 238, 0.6);
+      border-radius: 4px;
+      padding: 16px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: inset 0 0 20px rgba(6, 182, 212, 0.05), 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .hud-panel::before, .hud-panel::after {
+      content: ''; position: absolute; width: 6px; height: 6px; border-color: #22d3ee; pointer-events: none;
+    }
+    .hud-panel::before { top: -1px; left: -1px; border-top: 2px solid; border-left: 2px solid; }
+    .hud-panel::after { bottom: -1px; right: -1px; border-bottom: 2px solid; border-right: 2px solid; opacity: 0.5; }
+
+    .hud-panel-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: #22d3ee;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      text-shadow: 0 0 6px rgba(34, 211, 238, 0.5);
+    }
+
+    .hud-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .hud-nav-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 8px; cursor: pointer; border-radius: 2px;
+      border-left: 2px solid transparent; transition: all 0.2s;
+    }
+    .hud-nav-item:hover { background: rgba(14, 116, 144, 0.2); border-left-color: rgba(34, 211, 238, 0.5); }
+    .hud-nav-item.active { background: rgba(14, 116, 144, 0.3); border-left-color: #22d3ee; box-shadow: inset 0 0 10px rgba(34,211,238,0.1); }
+    .hud-nav-item .code { font-family: monospace; color: #94a3b8; font-size: 11px; width: 40px; }
+    .hud-nav-item .name { flex: 1; color: #cffafe; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hud-nav-item .status { font-size: 10px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+    .hud-nav-item .status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+    .hud-nav-item .status.completed { color: #4ade80; } .hud-nav-item .status.completed::before { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+    .hud-nav-item .status.setup { color: #38bdf8; } .hud-nav-item .status.setup::before { background: #38bdf8; box-shadow: 0 0 6px #38bdf8; }
+    .hud-nav-item .status.planned { color: #facc15; } .hud-nav-item .status.planned::before { background: #facc15; box-shadow: 0 0 6px #facc15; }
+    .hud-nav-item .status.delayed { color: #f87171; } .hud-nav-item .status.delayed::before { background: #f87171; box-shadow: 0 0 6px #f87171; animation: towerHudBlink 1s infinite; }
+
+    .hud-detail-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(14, 116, 144, 0.4); padding-bottom: 8px; }
+    .hud-detail-header h2 { font-size: 24px; color: #fff; margin: 0; font-family: 'Orbitron', sans-serif; text-shadow: 0 0 10px rgba(255,255,255,0.4); line-height: 1; }
+    .hud-detail-grid { display: grid; grid-template-columns: 80px 1fr; gap: 8px 12px; font-size: 11px; align-items: center; }
+    .hud-detail-grid .lbl { color: #0891b2; font-weight: 700; letter-spacing: 0.5px; }
+    .hud-detail-grid .val { color: #cffafe; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hud-pg-wrap { display: flex; align-items: center; gap: 8px; width: 100%; }
+    .hud-pg-track { flex: 1; height: 4px; background: rgba(14, 116, 144, 0.3); border-radius: 2px; overflow: hidden; }
+    .hud-pg-fill { height: 100%; background: #22d3ee; box-shadow: 0 0 8px #22d3ee; }
+    .hud-desc { padding: 10px; background: rgba(2, 6, 23, 0.6); border: 1px dashed rgba(14, 116, 144, 0.5); color: #94a3b8; font-size: 11px; line-height: 1.5; }
+    .hud-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .hud-tag { border: 1px solid rgba(34, 211, 238, 0.4); padding: 2px 8px; border-radius: 2px; font-size: 9px; color: #22d3ee; letter-spacing: 1px; }
+
+    .hud-monitor-row { display: flex; justify-content: space-around; align-items: center; }
+    .hud-dial { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .hud-dial-circle { position: relative; width: 50px; height: 50px; border-radius: 50%; border: 2px solid rgba(14, 116, 144, 0.4); display: flex; align-items: center; justify-content: center; }
+    .hud-dial-circle::before { content:''; position:absolute; inset:-4px; border:1px dashed #22d3ee; border-radius:50%; animation: spinBladeHUD 10s linear infinite; opacity: 0.5; }
+    .hud-dial-val { font-size: 14px; color: #fff; font-family: 'Orbitron', sans-serif; font-weight: 700; text-shadow: 0 0 6px #22d3ee; }
+    .hud-dial-lbl { font-size: 9px; color: #64748b; letter-spacing: 1px; }
+    .hud-sys-status { display: flex; justify-content: space-between; font-size: 10px; padding-top: 12px; border-top: 1px solid rgba(14, 116, 144, 0.3); }
+    .hud-sys-item { display: flex; flex-direction: column; gap: 2px; }
+    .hud-sys-item span:first-child { color: #94a3b8; }
+    .hud-sys-item span:last-child { color: #4ade80; font-weight: 700; text-shadow: 0 0 4px #4ade80; display:flex; align-items:center; gap:4px; }
+    .hud-sys-item span:last-child::before { content:''; width:4px; height:4px; background:#4ade80; border-radius:50%; }
+
+    .hud-map-timeline {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      width: 80%; background: rgba(2, 6, 23, 0.75); border: 1px solid rgba(34, 211, 238, 0.3);
+      backdrop-filter: blur(4px); border-radius: 8px; padding: 12px 24px; z-index: 5005;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .hud-timeline-title { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #22d3ee; letter-spacing: 2px; text-align: center; }
+    .hud-timeline-track { display: flex; justify-content: space-between; align-items: center; position: relative; padding: 10px 0; }
+    .hud-timeline-line { position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(14, 116, 144, 0.6); z-index: 1; }
+    .hud-timeline-node { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .hud-timeline-dot { width: 14px; height: 14px; border-radius: 50%; background: #020617; border: 2px solid #0891b2; display: flex; align-items: center; justify-content: center; }
+    .hud-timeline-node.done .hud-timeline-dot { border-color: #4ade80; box-shadow: 0 0 8px #4ade80; }
+    .hud-timeline-node.done .hud-timeline-dot::after { content: '✔'; font-size: 8px; color: #4ade80; }
+    .hud-timeline-node.active .hud-timeline-dot { border-color: #22d3ee; box-shadow: 0 0 12px #22d3ee; width: 20px; height: 20px; }
+    .hud-timeline-node.active .hud-timeline-dot::after { content: ''; width: 8px; height: 8px; background: #22d3ee; border-radius: 50%; animation: towerHudBlink 1s infinite; }
+    .hud-timeline-label { font-size: 9px; color: #94a3b8; font-weight: 700; letter-spacing: 1px; }
+    .hud-timeline-node.active .hud-timeline-label { color: #fff; text-shadow: 0 0 4px #22d3ee; }
+    /* ========================================================= */
+    #tower-right {
+      position: relative;
+      margin-left: -100px;
+      width: calc(100% + 100px);
+      z-index: 5015;
+    }
     .tower-kpi-group { background:#0a1628; border:1px solid #0e7490; border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:8px; }
     .tower-kpi { display:flex; justify-content:space-between; align-items:center; }
     .tower-kpi-label { font-size:11px; color:#67e8f9; font-weight:700; }
@@ -892,7 +989,11 @@
     .tower-card-status { font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; }
     .tower-card-progress { font-size:22px; font-weight:800; color:#22d3ee; margin:6px 0 2px; }
     .tower-card-sub { font-size:11px; color:#64748b; }
-    @media(max-width:1100px){ .tower-grid { grid-template-columns:1fr; } .tower-map-wrap{ min-height:420px; } }
+    @media(max-width:1100px){ 
+  .tower-grid { grid-template-columns:1fr; } 
+  .tower-map-wrap{ min-height:420px; } 
+  #tower-right { margin-left: 0; width: 100%; }
+}
     .clamp-more-btn.clamp-show { display: inline-block; }
   </style>
 </head>
@@ -1925,6 +2026,19 @@ window.renderDeviationTrendTest = function() {
               <div id="tower-map">
                 <div class="tower-tint"></div>
                 <div class="tower-tint-light"></div>
+              </div>
+
+              <div class="hud-map-timeline">
+                <div class="hud-timeline-title">MISSION TIMELINE</div>
+                <div class="hud-timeline-track">
+                  <div class="hud-timeline-line"></div>
+                  <div class="hud-timeline-node done"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">PLAN</span></div>
+                  <div class="hud-timeline-node done"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">DESIGN</span></div>
+                  <div class="hud-timeline-node done"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">ASSEMBLY</span></div>
+                  <div class="hud-timeline-node active"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">SETUP</span></div>
+                  <div class="hud-timeline-node"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">SAT</span></div>
+                  <div class="hud-timeline-node"><div class="hud-timeline-dot"></div><span class="hud-timeline-label">CS</span></div>
+                </div>
               </div>
 
               <!-- ★ 클로드 4시간의 한을 풀어드리는 궁극의 3D CSS 프레임 (이미지 에셋 0개) -->
@@ -5465,45 +5579,125 @@ window.renderTowerCards = function(group) {
   const container = document.getElementById('tower-right');
   if (!container) return;
 
-  container.innerHTML = group.projects.map(code => {
-    const label = TOWER_LABEL_MAP[code] || code;
-    let overall, hasDelay, subLine2, clickTarget;
+  const firstCode = group.projects[0];
+  const isFirstCP = firstCode.startsWith('CP');
 
+  let overall = '0%', hist = [], startDateVal = 'N/A';
+
+  if (isFirstCP) {
+    const info = (allData.project1CsRiskMap || []).find(p => p.name === firstCode) || {};
+    overall = `${Math.round(info.progress || 0)}%`;
+    hist = (allData.project1 && allData.project1.history) ? allData.project1.history : [];
+    startDateVal = hist.length > 0 ? (hist[0]['접수일'] || 'N/A') : 'N/A';
+  } else {
+    const pKey = TOWER_PKEY_MAP[firstCode];
+    const d = allData[pKey] || {};
+    const summary = d.summary || {};
+    overall = summary.overall || '0%';
+    hist = d.history || [];
+    startDateVal = hist.length > 0 ? (hist[0]['접수일'] || 'N/A') : 'N/A';
+  }
+
+  const getStatusClass = (code) => {
+    if (towerIsDelayed(code)) return 'delayed';
     if (code.startsWith('CP')) {
       const info = (allData.project1CsRiskMap || []).find(p => p.name === code) || {};
-      overall = `${Math.round(info.progress || 0)}%`;
-      hasDelay = (info.status || '안정') !== '안정';
-      const delaySum = Math.round(parseFloat(info.y) || 0);
-      subLine2 = `지연일 합계 ${delaySum}일`;
-      clickTarget = 'project1cs';
-    } else {
-      const pKey = TOWER_PKEY_MAP[code];
-      const d = allData[pKey] || {};
-      const summary = d.summary || {};
-      overall = summary.overall || '0%';
-      const hist = d.history || [];
-      hasDelay = hist.some(r => r['진행상태'] === '지연중');
-      const compliant = hist.length > 0 ? Math.round((hist.filter(r => (parseInt(r['지연일']) || 0) <= 0).length / hist.length) * 100) : 100;
-      subLine2 = `일정 준수율 ${compliant}%`;
-      clickTarget = pKey;
+      const prog = Math.round(info.progress || 0);
+      if (prog >= 100) return 'completed';
+      if (prog <= 0) return 'planned';
+      return 'setup';
     }
+    const pk = TOWER_PKEY_MAP[code];
+    const sh = (allData[pk] && allData[pk].summary) ? allData[pk].summary.overall : '0%';
+    if (sh === '100%') return 'completed';
+    if (sh === '0%') return 'planned';
+    return 'setup';
+  };
 
-    const clickable = code !== 'ETC';
-    const clickAttr = clickable ? `onclick="window.switchTab('${clickTarget}')"` : '';
+  const getStatusText = (code) => {
+    const cls = getStatusClass(code);
+    if (cls === 'completed') return 'Completed';
+    if (cls === 'planned') return 'Planned';
+    if (cls === 'delayed') return 'Issue';
+    return 'Active >';
+  };
 
+  const navListHtml = group.projects.map(code => {
+    const label = TOWER_LABEL_MAP[code] || code;
+    const stClass = getStatusClass(code);
+    const stText = getStatusText(code);
+    const isActive = code === firstCode ? 'active' : '';
     return `
-      <div class="tower-card" ${clickAttr}>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span class="tower-card-code">${label}</span>
-          <span class="tower-card-status" style="background:${hasDelay ? '#1f0a0a' : '#052e21'}; color:${hasDelay ? '#fca5a5' : '#6ee7b7'}; border:1px solid ${hasDelay ? '#7f1d1d' : '#065f46'};">${hasDelay ? '지연중' : '정상'}</span>
-        </div>
-        <div class="tower-card-progress">${overall}</div>
-        <div class="tower-card-sub">${subLine2}</div>
-        <div class="tower-card-sub">${group.country} ${group.city || ''}</div>
+      <div class="hud-nav-item ${isActive}">
+        <span class="code">${label}</span>
+        <span class="name">${group.country} ${group.city || ''}</span>
+        <span class="status ${stClass}">${stText}</span>
       </div>
     `;
   }).join('');
-};;
+
+  container.innerHTML = `
+    <div class="hud-panel">
+      <div class="hud-panel-title">PROJECT NAVIGATION</div>
+      <div style="font-size:10px; color:#64748b; letter-spacing:1px; margin-bottom:4px;">
+        WORLD > ${group.country.toUpperCase()} > ${(group.city || 'ALL').toUpperCase()}
+      </div>
+      <div class="hud-nav-list">
+        ${navListHtml}
+      </div>
+    </div>
+
+    <div class="hud-panel">
+      <div class="hud-panel-title">PROJECT DETAIL</div>
+      <div class="hud-detail-header">
+        <h2>${TOWER_LABEL_MAP[firstCode] || firstCode}</h2>
+        <span style="font-size:10px; border:1px solid #22d3ee; color:#22d3ee; padding:2px 8px; border-radius:2px; letter-spacing:1px;">${getStatusText(firstCode).replace(' >','').toUpperCase()}</span>
+      </div>
+      <div class="hud-detail-grid">
+        <div class="lbl">LOCATION</div><div class="val">${group.country} - ${group.city || 'ALL'}</div>
+        <div class="lbl">TOTAL LOGS</div><div class="val">${hist.length} Updates</div>
+        <div class="lbl">PROGRESS</div>
+        <div class="hud-pg-wrap">
+          <span style="color:#22d3ee; font-weight:700;">${overall}</span>
+          <div class="hud-pg-track"><div class="hud-pg-fill" style="width:${overall}"></div></div>
+        </div>
+        <div class="lbl">START DATE</div><div class="val">${startDateVal}</div>
+        <div class="lbl">ENGINEER</div><div class="val" style="color:#f8fafc;">TEAM JARVIS ✉</div>
+      </div>
+      <div class="hud-desc">
+        System monitoring active.<br>
+        Real-time telemetry linked to ${firstCode} node.<br>
+        Awaiting further commands.
+      </div>
+      <div class="hud-tags">
+        <span class="hud-tag">AUTOMATION</span><span class="hud-tag">BATTERY</span><span class="hud-tag">SYSTEM</span>
+      </div>
+    </div>
+
+    <div class="hud-panel">
+      <div class="hud-panel-title">SYSTEM MONITOR</div>
+      <div class="hud-monitor-row">
+        <div class="hud-dial">
+          <div class="hud-dial-circle"><span class="hud-dial-val">${Math.floor(Math.random()*40)+20}%</span></div>
+          <span class="hud-dial-lbl">CPU</span>
+        </div>
+        <div class="hud-dial">
+          <div class="hud-dial-circle" style="border-color:rgba(74, 222, 128, 0.5);"><span class="hud-dial-val" style="color:#4ade80; text-shadow:0 0 6px #4ade80;">${Math.floor(Math.random()*30)+60}%</span></div>
+          <span class="hud-dial-lbl">MEMORY</span>
+        </div>
+        <div class="hud-dial">
+          <div class="hud-dial-circle"><span class="hud-dial-val">${Math.floor(Math.random()*20)+80}%</span></div>
+          <span class="hud-dial-lbl">NETWORK</span>
+        </div>
+      </div>
+      <div class="hud-sys-status">
+        <div class="hud-sys-item"><span>DATABASE</span><span>ONLINE</span></div>
+        <div class="hud-sys-item"><span>BACKUP</span><span>OK</span></div>
+        <div class="hud-sys-item"><span>SECURITY</span><span>SECURE</span></div>
+      </div>
+    </div>
+  `;
+};
 
     // ===== 관제탑: 국가 단위 원(펄스) — 줌 레벨에 따라 표시/숨김 =====
 let towerCountryLayerGroup = null;
