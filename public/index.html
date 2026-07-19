@@ -5782,7 +5782,6 @@ window.renderTowerCards = function(group) {
     const towerInfo = (allData.controlTower && allData.controlTower[code]) || {};
     const cityLabel = towerInfo.city || group.city || '';
     return `
-      return `
       <div class="hud-nav-item ${isActive}" onclick="window.towerNavClick('${code}', ${JSON.stringify(group).replace(/"/g, '&quot;')})">
         <span class="code st-${stClass}">${label}</span>
         <span class="name">${towerInfo.country || group.country} ${cityLabel}</span>
