@@ -6019,8 +6019,17 @@ window.renderTowerMap = function() {
 
     layer.bindTooltip(`${g.country} ${g.city || ''} · ${g.projects.map(c => TOWER_LABEL_MAP[c]).join(', ')}`, { className: 'tower-hud-tooltip' });
     layer.eachLayer(sub => { const el = sub.getElement && sub.getElement(); if (el) el.style.filter = glowFilter; });
-    
-    // ... (이하 기존 클릭 및 호버 이벤트 코드 동일)
+
+    layer.on('click', (e) => {
+      L.DomEvent.stopPropagation(e);
+      const bounds = layer.getBounds();
+      const autoZoom = towerMapInstance.getBoundsZoom(bounds);
+      towerMapInstance.flyTo(bounds.getCenter(), autoZoom - 1, { duration: 1.2, easeLinearity: 0.25 });
+      window.renderTowerCards(g);
+      const normCountry = towerNormalize(g.country, TOWER_COUNTRY_ALIAS);
+      const normCity = towerNormalize(g.city, TOWER_CITY_ALIAS);
+      towerSetHudLocation(`EARTH → ${(TOWER_COUNTRY_EN[normCountry] || normCountry).toUpperCase()} → ${(TOWER_CITY_EN[normCity] || normCity).toUpperCase()}`);
+    });
   });
 
   // ── 폴리곤 없는 지역: 기존 포인트 마커 폴백 ──
