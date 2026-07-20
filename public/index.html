@@ -1150,6 +1150,24 @@
   0% { transform: scale(1); opacity: 1; border-width: 3px; }
   100% { transform: scale(3.2); opacity: 0; border-width: 0px; }
 }
+    /* HUD 테마 툴팁 (마우스 오버 시 표시) */
+    .tower-hud-tooltip.leaflet-tooltip {
+      background: rgba(2, 6, 23, 0.92);
+      border: 1px solid rgba(34, 211, 238, 0.6);
+      border-radius: 0;
+      color: #cffafe;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 6px 12px;
+      box-shadow: 0 0 12px rgba(34, 211, 238, 0.35), inset 0 0 8px rgba(34, 211, 238, 0.08);
+      clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+      text-shadow: 0 0 6px rgba(34, 211, 238, 0.5);
+    }
+    .tower-hud-tooltip.leaflet-tooltip::before {
+      display: none;
+    }
     .tower-map-frame { position: relative; width: 100%; }
     .tower-map-frame { position: relative; width: 100%; }
 
@@ -5999,7 +6017,7 @@ window.renderTowerMap = function() {
       style: { fillColor, fillOpacity: hasDelay ? 0.65 : 0.5, color: lineColor, weight: hasDelay ? 2 : 1.5 }
     }).addTo(towerMapInstance);
 
-    layer.bindTooltip(`${g.country} ${g.city || ''} · ${g.projects.map(c => TOWER_LABEL_MAP[c]).join(', ')}`);
+    layer.bindTooltip(`${g.country} ${g.city || ''} · ${g.projects.map(c => TOWER_LABEL_MAP[c]).join(', ')}`, { className: 'tower-hud-tooltip' });
     layer.eachLayer(sub => { const el = sub.getElement && sub.getElement(); if (el) el.style.filter = glowFilter; });
     
     // ... (이하 기존 클릭 및 호버 이벤트 코드 동일)
@@ -6031,7 +6049,7 @@ window.renderTowerMap = function() {
             });
 
     const marker = L.marker(g.coords, { icon }).addTo(towerMapInstance);
-    marker.bindTooltip(`${g.country} ${g.city || ''} · ${g.projects.map(c => TOWER_LABEL_MAP[c]).join(', ')}`);
+    marker.bindTooltip(`${g.country} ${g.city || ''} · ${g.projects.map(c => TOWER_LABEL_MAP[c]).join(', ')}`, { className: 'tower-hud-tooltip' });
     marker.on('click', () => {
       // 💡 고정 줌 레벨을 6에서 5로 한 칸 축소 (숫자를 줄일수록 멀리서 봅니다)
       towerMapInstance.flyTo(g.coords, 5, { duration: 1.2, easeLinearity: 0.25 });
@@ -6570,7 +6588,7 @@ window.renderTowerCountryCircles = function(map) {
   Object.values(groups).forEach(g => {
     const icon = towerBuildCountryIcon(g);
     const marker = L.marker(g.coords, { icon, interactive: true, zIndexOffset: 900 }).addTo(towerCountryLayerGroup);
-    marker.bindTooltip(`${g.country} · ${g.projects.map(c => TOWER_LABEL_MAP[c] || c).join(' · ')}`);
+    marker.bindTooltip(`${g.country} · ${g.projects.map(c => TOWER_LABEL_MAP[c] || c).join(' · ')}`, { className: 'tower-hud-tooltip' });
 
     marker.on('click', (e) => {
       L.DomEvent.stopPropagation(e);
