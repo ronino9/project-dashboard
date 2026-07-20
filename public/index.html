@@ -2331,15 +2331,11 @@ window.renderDeviationTrendTest = function() {
                 </div>
               </div>
 
-             <div class="tower-hud-overlay">
+              <div class="tower-hud-overlay">
                 <div class="tower-hud-outer-glow"></div>
                 <div class="tower-hud-ticks" id="tower-hud-ticks"></div>
-                <div class="tower-hud-frame">
-                  <div class="tower-hud-status"><span class="tower-hud-status-dot"></span>LIVE</div>
-                  <div class="tower-hud-sys" id="tower-hud-sys-text">SECTOR: GLOBAL · SYS <span class="tower-hud-ok">OK</span></div>
-                  <div class="tower-hud-location" id="tower-hud-location-text">EARTH</div>
-                </div>
               </div>
+            </div>
 
 
           </div>
@@ -5707,6 +5703,7 @@ window.renderTowerMap = function() {
     towerMapInstance.invalidateSize();
     towerMapInstance.setMinZoom(0);
     towerMapInstance.fitWorld({ animate: false });
+    towerMapInstance.setZoom(towerMapInstance.getZoom() + 0.1);
     towerMapInstance.setMinZoom(towerMapInstance.getZoom());
   }
   // ── 폴리곤(경계선 색칠) 지역 렌더링 ──
