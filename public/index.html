@@ -439,7 +439,7 @@
 /* ▼▼▼ 지도 상단 라우팅 바 (출장이력 연동) ▼▼▼ */
 .tower-routing-wrap { width:75%; margin:0 auto 10px; }
 .tower-hud-top-routing {
-  display:grid; grid-template-columns: repeat(4, 1fr); align-items:center; padding:8px 16px;
+  display:grid; grid-template-columns: repeat(4, 1fr); gap:18px; align-items:center; padding:8px 16px;
   background:linear-gradient(90deg, rgba(10,22,40,0.9) 0%, rgba(2,6,23,0.7) 100%);
   border:1px solid rgba(14,116,144,0.4); border-top:2px solid rgba(34,211,238,0.6);
   clip-path:polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
@@ -465,12 +465,12 @@
 .tower-hud-bottom-timeline {
   background:linear-gradient(180deg, rgba(2,6,23,0.4) 0%, rgba(10,22,40,0.85) 100%);
   border:1px solid rgba(14,116,144,0.5); border-bottom:2px solid rgba(34,211,238,0.8);
-  padding:16px 24px 26px; display:flex; flex-direction:column; position:relative;
+  padding:16px 24px 36px; display:flex; flex-direction:column; position:relative;
   clip-path:polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%, 0 12px);
   box-shadow:0 8px 20px rgba(0,0,0,0.4), inset 0 0 30px rgba(6,182,212,0.05);
 }
 .tower-hud-bottom-timeline::before { content:''; position:absolute; top:0; left:16px; width:70px; height:2px; background:#22d3ee; box-shadow:0 0 10px #22d3ee; }
-.timeline-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:30px; }
+.timeline-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:40px; }
 .timeline-title { font-family:'Orbitron', sans-serif; font-size:11px; font-weight:800; color:#cffafe; letter-spacing:4px; text-shadow:0 0 10px rgba(34,211,238,0.8); }
 .timeline-sys-status { font-size:9px; color:#4ade80; letter-spacing:1.5px; text-shadow:0 0 6px rgba(74,222,128,0.6); display:flex; align-items:center; gap:6px; }
 .timeline-sys-status::before { content:''; width:6px; height:6px; border-radius:50%; background:#4ade80; box-shadow:0 0 6px #4ade80; animation:towerHudBlink 1s infinite; }
