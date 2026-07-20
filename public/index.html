@@ -5877,7 +5877,7 @@ window.renderTowerMap = function() {
 
   window.renderTowerSidebar({ ...polygonGroups, ...pointGroups });
   window.renderTowerCountryCircles(towerMapInstance);
-  window.renderTowerRoutingBar();
+  if (typeof window.renderTowerRoutingBar === 'function') window.renderTowerRoutingBar();
 };
 window.renderTowerSidebar = function(groups) {
   const totalEl = document.getElementById('tower-kpi-total');
