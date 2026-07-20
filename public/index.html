@@ -2413,6 +2413,21 @@ window.renderDeviationTrendTest = function() {
     <button id="jd-speed-fast" onclick="window.travelSetSpeed('fast')" class="jd-hud-btn">FAST</button>
   </div>
 </div>
+              <!-- ✨ 지도 테마 선택 리모컨 추가 ✨ -->
+  <div style="position:absolute; top:16px; right:16px; z-index:5010; display:flex; gap:8px;">
+    <select onchange="window.changeMapBase(this.value)" class="jd-hud-btn" style="height:24px; outline:none; border-radius:0; color:#67e8f9; background:rgba(2,6,23,0.8);">
+      <option value="dark_all">베이스: 다크 맵</option>
+      <option value="light_all">베이스: 라이트 맵</option>
+      <option value="voyager">베이스: 컬러 맵</option>
+    </select>
+    <select onchange="window.changeMapTint(this.value)" class="jd-hud-btn" style="height:24px; outline:none; border-radius:0; color:#67e8f9; background:rgba(2,6,23,0.8);">
+      <option value="teal">필터: 다크 틸 (기본)</option>
+      <option value="navy">필터: 클래식 네이비</option>
+      <option value="purple">필터: 사이버 퍼플</option>
+      <option value="green">필터: 매트릭스 그린</option>
+      <option value="none">필터: 끄기 (순정)</option>
+    </select>
+  </div>
               <div id="jd-eq-frame" aria-hidden="true" style="position:absolute; top:290px; left:calc(-9.52% - 10px); z-index:5010; display:flex; align-items:flex-end; gap:5px; height:64px; margin-left:2px;">
                 <span class="eqbar-f"></span>
                 <span class="eqbar-f"></span>
@@ -5893,7 +5908,7 @@ window.renderTowerMap = function() {
       zoomSnap: 0.1,
       zoomDelta: 0.5
     });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', {
+    window.towerTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap &copy; CARTO',
       maxZoom: 18,
       subdomains: 'abcd',
@@ -8550,6 +8565,40 @@ window.showPdcaProblemDetail = function(mode) {
     </div>`;
 
   document.body.appendChild(overlay);
+};
+    // ✨ 지도 베이스 & 틴트 테마 변경 스크립트 ✨
+window.changeMapBase = function(theme) {
+  if (window.towerTileLayer) {
+    window.towerTileLayer.setUrl(`https://{s}.basemaps.cartocdn.com/rastertiles/${theme}/{z}/{x}/{y}{r}.png`);
+  }
+};
+
+window.changeMapTint = function(colorTheme) {
+  const tint1 = document.querySelector('#tower-map .tower-tint');
+  const tint2 = document.querySelector('#tower-map .tower-tint-light');
+  if (!tint1 || !tint2) return;
+
+  // 일단 기본 투명도로 리셋
+  tint1.style.opacity = '0.35';
+  tint2.style.opacity = '0.5';
+
+  if (colorTheme === 'teal') {
+    tint1.style.background = '#0d9488';
+    tint2.style.background = '#5eead4';
+  } else if (colorTheme === 'navy') {
+    tint1.style.background = '#1e3a8a';
+    tint2.style.background = '#93c5fd';
+  } else if (colorTheme === 'purple') {
+    tint1.style.background = '#6b21a8';
+    tint2.style.background = '#d8b4fe';
+  } else if (colorTheme === 'green') {
+    tint1.style.background = '#166534';
+    tint2.style.background = '#86efac';
+  } else if (colorTheme === 'none') {
+    // 필터 끄기 (투명도 0)
+    tint1.style.opacity = '0';
+    tint2.style.opacity = '0';
+  }
 };
   </script>
 </body>
