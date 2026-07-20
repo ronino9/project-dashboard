@@ -5707,8 +5707,11 @@ window.renderTowerMap = function() {
     towerMapInstance.invalidateSize();
     towerMapInstance.setMinZoom(0);
     towerMapInstance.fitWorld({ animate: false });
-    towerMapInstance.setZoom(towerMapInstance.getZoom() + 0.1);
     towerMapInstance.setMinZoom(towerMapInstance.getZoom());
+    setTimeout(() => {
+      towerMapInstance.setZoom(towerMapInstance.getZoom() + 0.1);
+      towerMapInstance.setMinZoom(towerMapInstance.getZoom());
+    }, 50);
   }
   // ── 폴리곤(경계선 색칠) 지역 렌더링 ──
   Object.values(polygonGroups).forEach(g => {
