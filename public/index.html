@@ -5914,7 +5914,7 @@ function towerGetProjectStatus(code) {
   const safeCount = total - delayCount;
 
   // 2. 지연 Top 5
-  const top5 = [...items].sort((a, b) => b.maxDelay - a.maxDelay).slice(0, 5);
+  const top5 = [...items].filter(it => it.maxDelay > 0).sort((a, b) => b.maxDelay - a.maxDelay).slice(0, 5);
 
   // 3. 국가별 카드 (ETC=기타업무는 무조건 한국/동탄 소속으로 강제 편입)
   const countryList = ['대한민국', '말레이시아', '중국', '루마니아'];
