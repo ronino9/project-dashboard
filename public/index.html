@@ -2409,7 +2409,7 @@ window.renderDeviationTrendTest = function() {
           </div>
           <div class="tower-map-wrap">
             <!-- 🌟 GLOBAL PROJECT STATUS 명판 🌟 -->
-              <div class="map-title-container">
+              <div class="map-title-container" onclick="window.toggleMapController()" style="cursor:pointer; pointer-events:auto;" title="클릭하여 맵 컨트롤러 열기/닫기">
                 <div class="map-title-wing left"></div>
                 <div class="map-title-center">
                   <div class="map-title-bg"></div>
@@ -2446,19 +2446,19 @@ window.renderDeviationTrendTest = function() {
   </div>
 </div>
               <!-- ✨ 맵 종합 컨트롤 패널 ✨ -->
-              <div style="position:absolute; top:16px; right:16px; z-index:5010; background:rgba(2,6,23,0.85); border:1px solid #0e7490; border-radius:8px; padding:12px; width:220px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 16px rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
+              <div id="map-controller-panel" style="position:absolute; top:16px; right:16px; z-index:5010; background:rgba(2,6,23,0.85); border:1px solid #0e7490; border-radius:8px; padding:12px; width:220px; display:none; flex-direction:column; gap:12px; box-shadow:0 4px 16px rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
                 <div style="font-family:'Orbitron', sans-serif; font-size:11px; font-weight:800; color:#67e8f9; letter-spacing:1px; border-bottom:1px solid rgba(14,116,144,0.5); padding-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
                   <span>MAP CONTROLLER</span>
                   <span style="cursor:pointer; color:#94a3b8; font-size:14px; line-height:1;" onclick="this.parentElement.parentElement.style.display='none'" title="닫기">✕</span>
                 </div>
                 
-                <select onchange="window.changeMapBase(this.value)" style="height:24px; font-size:11px; outline:none; border:1px solid #0e7490; color:#cffafe; background:rgba(10,22,40,0.8); border-radius:4px; cursor:pointer;">
+                <select id="map-base-select" onchange="window.changeMapBase(this.value)" style="height:24px; font-size:11px; outline:none; border:1px solid #0e7490; color:#cffafe; background:rgba(10,22,40,0.8); border-radius:4px; cursor:pointer;">
                   <option value="dark_all">베이스: 다크 맵</option>
                   <option value="light_all">베이스: 라이트 맵</option>
                   <option value="voyager">베이스: 컬러 맵</option>
                 </select>
                 
-                <select onchange="window.changeMapTint(this.value)" style="height:24px; font-size:11px; outline:none; border:1px solid #0e7490; color:#cffafe; background:rgba(10,22,40,0.8); border-radius:4px; cursor:pointer;">
+                <select id="map-tint-select" onchange="window.changeMapTint(this.value)" style="height:24px; font-size:11px; outline:none; border:1px solid #0e7490; color:#cffafe; background:rgba(10,22,40,0.8); border-radius:4px; cursor:pointer;">
                   <option value="teal">필터: 다크 틸 (기본)</option>
                   <option value="navy">필터: 클래식 네이비</option>
                   <option value="purple">필터: 사이버 퍼플</option>
@@ -6047,7 +6047,10 @@ window.renderTowerMap = function() {
   window.renderTowerSidebar({ ...polygonGroups, ...pointGroups });
   window.renderTowerCountryCircles(towerMapInstance);
   if (typeof window.renderTowerRoutingBar === 'function') window.renderTowerRoutingBar();
-};
+
+  // ✨ 여기에 설정 불러오기 실행 코드 추가 ✨
+  if (typeof window.loadMapSettings === 'function') window.loadMapSettings();
+}; // <-- renderTowerMap 함수가 끝나는 괄호
 window.renderTowerSidebar = function(groups) {
   const totalEl = document.getElementById('tower-kpi-total');
   const delayEl = document.getElementById('tower-kpi-delay');
@@ -8620,11 +8623,12 @@ window.showPdcaProblemDetail = function(mode) {
   document.body.appendChild(overlay);
 };
     // ✨ 지도 베이스, 틴트, 슬라이더 테마 변경 스크립트 ✨
-window.changeMapBase = function(theme) {
+// ✨ 지도 테마 자동 저장 및 변경 스크립트 ✨
+window.changeMapBase = function(theme, isInit) {
   if (!window.towerTileLayer) return;
   const root = document.documentElement;
   let url = '';
-  let bVal = 3.0, cVal = 1.15; // 다크 맵 기본값
+  let bVal = 3.0, cVal = 1.15; 
 
   if (theme === 'dark_all') {
     url = 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png';
@@ -8639,17 +8643,19 @@ window.changeMapBase = function(theme) {
   
   window.towerTileLayer.setUrl(url);
   
-  // 베이스 맵이 바뀌면 슬라이더 핸들 위치와 숫자도 알아서 최적값으로 맞춰줌
-  window.updateMapSlider('brightness', bVal);
-  window.updateMapSlider('contrast', cVal);
-  
-  const brSlider = document.getElementById('map-slider-br');
-  const ctSlider = document.getElementById('map-slider-ct');
-  if (brSlider) brSlider.value = bVal;
-  if (ctSlider) ctSlider.value = cVal;
+  // 사용자가 직접 바꿀 때만 저장 및 슬라이더 초기화 (로드 중에는 무시)
+  if (!isInit) {
+    localStorage.setItem('tower_map_base', theme);
+    window.updateMapSlider('brightness', bVal);
+    window.updateMapSlider('contrast', cVal);
+    const brSlider = document.getElementById('map-slider-br');
+    const ctSlider = document.getElementById('map-slider-ct');
+    if (brSlider) brSlider.value = bVal;
+    if (ctSlider) ctSlider.value = cVal;
+  }
 };
 
-window.changeMapTint = function(colorTheme) {
+window.changeMapTint = function(colorTheme, isInit) {
   const root = document.documentElement;
   root.style.setProperty('--map-op1', '0.35');
   root.style.setProperty('--map-op2', '0.5');
@@ -8665,9 +8671,11 @@ window.changeMapTint = function(colorTheme) {
   } else if (colorTheme === 'none') {
     root.style.setProperty('--map-op1', '0'); root.style.setProperty('--map-op2', '0');
   }
+
+  if (!isInit) localStorage.setItem('tower_map_tint', colorTheme);
 };
 
-window.updateMapSlider = function(type, val) {
+window.updateMapSlider = function(type, val, isInit) {
   const root = document.documentElement;
   if (type === 'brightness') {
     root.style.setProperty('--map-brightness', val);
@@ -8681,6 +8689,52 @@ window.updateMapSlider = function(type, val) {
     root.style.setProperty('--map-op-mult', val);
     const el = document.getElementById('val-op');
     if (el) el.textContent = Math.round(val * 100) + '%';
+  }
+  
+  if (!isInit) localStorage.setItem('tower_map_' + type, val);
+};
+
+// 💾 저장된 세팅 불러오기 함수
+window.loadMapSettings = function() {
+  const savedBase = localStorage.getItem('tower_map_base') || 'dark_all';
+  const savedTint = localStorage.getItem('tower_map_tint') || 'teal';
+  const savedBr = localStorage.getItem('tower_map_brightness');
+  const savedCt = localStorage.getItem('tower_map_contrast');
+  const savedOp = localStorage.getItem('tower_map_opacity');
+
+  const baseSel = document.getElementById('map-base-select');
+  if (baseSel) baseSel.value = savedBase;
+  const tintSel = document.getElementById('map-tint-select');
+  if (tintSel) tintSel.value = savedTint;
+
+  window.changeMapBase(savedBase, true);
+  window.changeMapTint(savedTint, true);
+
+  if (savedBr) {
+    const brSlider = document.getElementById('map-slider-br');
+    if (brSlider) brSlider.value = savedBr;
+    window.updateMapSlider('brightness', savedBr, true);
+  }
+  if (savedCt) {
+    const ctSlider = document.getElementById('map-slider-ct');
+    if (ctSlider) ctSlider.value = savedCt;
+    window.updateMapSlider('contrast', savedCt, true);
+  }
+  if (savedOp) {
+    const opSlider = document.getElementById('map-slider-op');
+    if (opSlider) opSlider.value = savedOp;
+    window.updateMapSlider('opacity', savedOp, true);
+  }
+};
+    // ✨ GLOBAL PROJECT STATUS 클릭 시 컨트롤러 토글 함수 ✨
+window.toggleMapController = function() {
+  const panel = document.getElementById('map-controller-panel');
+  if (!panel) return;
+  
+  if (panel.style.display === 'none' || panel.style.display === '') {
+    panel.style.display = 'flex';
+  } else {
+    panel.style.display = 'none';
   }
 };
   </script>
