@@ -902,8 +902,8 @@
     /* 국가 상태 배지 */
 .hud-sector-header { display: flex; justify-content: space-between; align-items: center; }
 .hud-sector-badge {
-  font-family: 'Share Tech Mono', monospace; font-size: 8.5px; font-weight: 700;
-  padding: 2px 7px; letter-spacing: 0.5px;
+  font-family: 'Orbitron', sans-serif; font-size: 10.5px; font-weight: 800;
+  padding: 4px 10px; letter-spacing: 1px;
   clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
 }
 .hud-sector-badge.online { color: #4ade80; background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.4); }
@@ -918,8 +918,8 @@
 .hud-project-patch {
   display: flex; align-items: center; justify-content: center; gap: 4px;
   background: rgba(2, 6, 23, 0.8); border: 1px solid rgba(14, 116, 144, 0.4);
-  height: 20px; font-family: 'Share Tech Mono', monospace; font-size: 9.5px; font-weight: 700;
-  color: #94a3b8; letter-spacing: 0.3px;
+  height: 22px; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 700;
+  color: #94a3b8; letter-spacing: 0.5px;
   clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px);
 }
 .hud-patch-dot { width: 5px; height: 5px; border-radius: 50%; background: #64748b; flex-shrink: 0; }
@@ -958,9 +958,9 @@
   background: linear-gradient(90deg, rgba(74, 222, 128, 0.05) 0%, transparent 100%);
   border-left-color: #4ade80;
 }
-.hud-threat-code { font-weight: 700; color: #f8fafc; font-size: 11px; width: 50px; flex-shrink: 0;}
+.hud-threat-code { font-family: 'Orbitron', sans-serif; font-weight: 700; color: #f8fafc; font-size: 11px; width: 50px; flex-shrink: 0;}
 .hud-threat-loc { color: #94a3b8; font-size: 10px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hud-threat-val { color: #f87171; font-weight: 700; font-size: 11px; text-shadow: 0 0 4px rgba(248, 113, 113, 0.5); }
+.hud-threat-val { font-family: 'Orbitron', sans-serif; color: #f87171; font-weight: 700; font-size: 11px; text-shadow: 0 0 4px rgba(248, 113, 113, 0.5); }
 .hud-threat-val.safe { color: #4ade80; text-shadow: none; }
 
 /* 4. 라이브 텔레메트리 (티커 애니메이션) */
@@ -5901,7 +5901,10 @@ function towerGetProjectStatus(code) {
       maxDelay = delays.length > 0 ? Math.max(...delays) : 0;
     }
     const info = towerData[code] || {};
-    items.push({ code, maxDelay, city: info.city || info.country || '' });
+    const normCity = towerNormalize(info.city, TOWER_CITY_ALIAS);
+    const normCountry = towerNormalize(info.country, TOWER_COUNTRY_ALIAS);
+    const cityEn = TOWER_CITY_EN[normCity] || TOWER_COUNTRY_EN[normCountry] || info.city || info.country || '';
+    items.push({ code, maxDelay, city: cityEn });
     if (towerIsDelayed(code)) delayCount++;
   });
   const total = codes.length;
