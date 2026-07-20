@@ -420,7 +420,7 @@
     /* ========================================================= */
     .jb-ring1 { transform-origin:50px 50px; animation: jbSpin 10s linear infinite; }
     /* ▼▼▼ 지도 상단 GLOBAL PROJECT STATUS 명판 ▼▼▼ */
-.map-title-container { position:absolute; top:0; left:0; right:0; display:flex; justify-content:center; align-items:flex-start; z-index:5002; filter:drop-shadow(0 0 8px rgba(34,211,238,0.4)); pointer-events:none; }
+.map-title-container { position:relative; display:flex; justify-content:center; align-items:flex-start; z-index:5002; filter:drop-shadow(0 0 8px rgba(34,211,238,0.4)); pointer-events:none; margin-bottom:8px; }
 .map-title-wing { flex:1; position:relative; margin-top:0; max-width:120px; }
 .map-title-wing::before { content:''; position:absolute; top:0; height:1.5px; background:#22d3ee; box-shadow:0 0 8px rgba(34,211,238,0.6); }
 .map-title-wing.left::before { left:15%; right:0; background:linear-gradient(90deg, transparent, #22d3ee); }
@@ -2369,6 +2369,19 @@ window.renderDeviationTrendTest = function() {
             </div>
           </div>
           <div class="tower-map-wrap">
+            <!-- 🌟 GLOBAL PROJECT STATUS 명판 🌟 -->
+              <div class="map-title-container">
+                <div class="map-title-wing left"></div>
+                <div class="map-title-center">
+                  <div class="map-title-bg"></div>
+                  <div class="map-title-border-top"></div>
+                  <div class="map-title-border-bottom"></div>
+                  <div class="map-title-border-left"></div>
+                  <div class="map-title-border-right"></div>
+                  <div class="map-title-text">GLOBAL PROJECT STATUS</div>
+                </div>
+                <div class="map-title-wing right"></div>
+              </div>
             <div class="tower-routing-wrap" id="tower-routing-wrap">
               <div class="tower-hud-top-routing" id="tower-routing-bar">
                 <div class="routing-label">ROUTING SEQUENCE</div>
@@ -2410,19 +2423,7 @@ window.renderDeviationTrendTest = function() {
 
              
 
-              <!-- 🌟 GLOBAL PROJECT STATUS 명판 🌟 -->
-              <div class="map-title-container">
-                <div class="map-title-wing left"></div>
-                <div class="map-title-center">
-                  <div class="map-title-bg"></div>
-                  <div class="map-title-border-top"></div>
-                  <div class="map-title-border-bottom"></div>
-                  <div class="map-title-border-left"></div>
-                  <div class="map-title-border-right"></div>
-                  <div class="map-title-text">GLOBAL PROJECT STATUS</div>
-                </div>
-                <div class="map-title-wing right"></div>
-              </div>
+              
 
               <div class="tower-hud-overlay">
                 <div class="tower-hud-outer-glow"></div>
