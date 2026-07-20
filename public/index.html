@@ -5856,18 +5856,7 @@ window.renderTowerMacroTimeline = function(code) {
     }
     if (i === curIdx) {
       const pct = summary.complete && summary.complete[i] !== undefined ? Math.round(parseFloat(summary.complete[i])) : 0;
-      let calloutHtml = '';
-      if (recentTrip) {
-        const loc = `${(TOWER_COUNTRY_EN[towerNormalize(recentTrip.country, TOWER_COUNTRY_ALIAS)] || recentTrip.country || '').toUpperCase()} ${(TOWER_CITY_EN[towerNormalize(recentTrip.city, TOWER_CITY_ALIAS)] || recentTrip.city || '').toUpperCase()}`;
-        const tripDate = normDate(recentTrip).replace(/-/g, '.').substring(2);
-        calloutHtml = `<div class="tl-callout">
-          <div class="tl-callout-title">${code} // ${loc}</div>
-          <div>STATUS: ${lbl} ${pct}%</div>
-          <div style="color:#64748b; margin-top:2px;">LAST TRIP: ${tripDate}</div>
-        </div>`;
-      }
       return `<div class="tl-node active" style="left:${pos}%;">
-        ${calloutHtml}
         <div class="tl-icon-wrap"><div class="tl-ring-outer"></div><div class="tl-ring-mid"></div><div class="tl-core">${pct}%</div></div>
         <div class="tl-label-bottom">${lbl}</div>
       </div>`;
