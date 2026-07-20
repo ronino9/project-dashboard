@@ -1155,15 +1155,30 @@
 
     /* width를 75%로 줄이고, margin: 0 auto; 로 가운데 정렬 */
     #tower-map { width: 75%; margin: 0 auto; height: auto; aspect-ratio: 1 / 1; border-radius: 8px; overflow: hidden; }
-    #tower-map .leaflet-tile-pane { filter: brightness(3) contrast(1.15); }
-    /* 1. 틴트 레이어를 타일(200)과 오버레이(400) 사이(250)에 끼워넣기 */
-    #tower-map .tower-tint { position:absolute; inset:0; background:#0d9488; mix-blend-mode:color; opacity:0.35; pointer-events:none; z-index:250; }
-    #tower-map .tower-tint-light { position:absolute; inset:0; background:#5eead4; mix-blend-mode:soft-light; opacity:0.5; pointer-events:none; z-index:251; }
+    /* 1. 타일 이미지에만 밝기 필터 적용 (틴트가 너무 밝아지는 현상 방지) */
+    #tower-map .leaflet-tile-pane { filter: none !important; }
+    #tower-map .leaflet-tile-pane img { filter: brightness(3) contrast(1.15); }
 
-    /* 2. 레이더 마커와 오버레이(폴리곤/레이저)가 배경에 먹히지 않고 네온처럼 스스로 빛나게 처리 */
-    #tower-map .leaflet-overlay-pane,
-    #tower-map .leaflet-marker-pane {
-        mix-blend-mode: screen;
+    /* 2. 기존 HTML 틴트는 무시하고 CSS 변수 셋업 */
+    #tower-map .tower-tint, #tower-map .tower-tint-light { display: none !important; }
+
+    :root {
+      --map-tint1: #0d9488;
+      --map-tint2: #5eead4;
+      --map-op1: 0.35;
+      --map-op2: 0.5;
+    }
+
+    /* 3. 지도 타일 바로 위에 틴트를 샌드위치처럼 끼워넣기 */
+    #tower-map .leaflet-tile-pane::before {
+      content: ''; position: absolute; top: -5000px; left: -5000px; width: 10000px; height: 10000px;
+      background: var(--map-tint1); mix-blend-mode: color; opacity: var(--map-op1);
+      pointer-events: none; z-index: 10;
+    }
+    #tower-map .leaflet-tile-pane::after {
+      content: ''; position: absolute; top: -5000px; left: -5000px; width: 10000px; height: 10000px;
+      background: var(--map-tint2); mix-blend-mode: soft-light; opacity: var(--map-op2);
+      pointer-events: none; z-index: 11;
     }
     .tower-hud-overlay { position:absolute; top:0; left:1%; right:1%; bottom:0; pointer-events:none; }
     .tower-hud-frame { position:absolute; inset:0; pointer-events:none; z-index:5000; }
@@ -8568,36 +8583,44 @@ window.showPdcaProblemDetail = function(mode) {
 };
     // ✨ 지도 베이스 & 틴트 테마 변경 스크립트 ✨
 window.changeMapBase = function(theme) {
-  if (window.towerTileLayer) {
-    window.towerTileLayer.setUrl(`https://{s}.basemaps.cartocdn.com/rastertiles/${theme}/{z}/{x}/{y}{r}.png`);
+  if (!window.towerTileLayer) return;
+  
+  // 테마별 정확한 URL 적용 (하얀 화면 에러 수정)
+  let url = '';
+  if (theme === 'dark_all') {
+    url = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+  } else if (theme === 'light_all') {
+    url = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+  } else if (theme === 'voyager') {
+    url = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
   }
+  window.towerTileLayer.setUrl(url);
 };
 
 window.changeMapTint = function(colorTheme) {
-  const tint1 = document.querySelector('#tower-map .tower-tint');
-  const tint2 = document.querySelector('#tower-map .tower-tint-light');
-  if (!tint1 || !tint2) return;
+  const root = document.documentElement;
+  
+  // 기본 투명도 원상복구
+  root.style.setProperty('--map-op1', '0.35');
+  root.style.setProperty('--map-op2', '0.5');
 
-  // 일단 기본 투명도로 리셋
-  tint1.style.opacity = '0.35';
-  tint2.style.opacity = '0.5';
-
+  // 선택한 테마에 맞춰 CSS 변수 색상 변경
   if (colorTheme === 'teal') {
-    tint1.style.background = '#0d9488';
-    tint2.style.background = '#5eead4';
+    root.style.setProperty('--map-tint1', '#0d9488');
+    root.style.setProperty('--map-tint2', '#5eead4');
   } else if (colorTheme === 'navy') {
-    tint1.style.background = '#1e3a8a';
-    tint2.style.background = '#93c5fd';
+    root.style.setProperty('--map-tint1', '#1e3a8a');
+    root.style.setProperty('--map-tint2', '#93c5fd');
   } else if (colorTheme === 'purple') {
-    tint1.style.background = '#6b21a8';
-    tint2.style.background = '#d8b4fe';
+    root.style.setProperty('--map-tint1', '#6b21a8');
+    root.style.setProperty('--map-tint2', '#d8b4fe');
   } else if (colorTheme === 'green') {
-    tint1.style.background = '#166534';
-    tint2.style.background = '#86efac';
+    root.style.setProperty('--map-tint1', '#166534');
+    root.style.setProperty('--map-tint2', '#86efac');
   } else if (colorTheme === 'none') {
-    // 필터 끄기 (투명도 0)
-    tint1.style.opacity = '0';
-    tint2.style.opacity = '0';
+    // 필터 끄기 (투명도 0으로 처리)
+    root.style.setProperty('--map-op1', '0');
+    root.style.setProperty('--map-op2', '0');
   }
 };
   </script>
