@@ -5772,7 +5772,116 @@ function towerBuildGroups() {
   return { polygonGroups, pointGroups };
 }
 
+window.getTravelRouteNodes = function() {
+  const log = (allData.travelLog || []).slice();
+  const normDate = (e) => (e.date || e.접수일 || e.날짜 || '').toString().replace(/[./]/g, '-').substring(0, 10);
+  const sorted = log.filter(e => normDate(e)).sort((a, b) => normDate(a) < normDate(b) ? -1 : (normDate(a) > normDate(b) ? 1 : 0));
+  if (sorted.length === 0) return null;
+  const todayStr = calYMD(new Date());
+  const pastOrToday = sorted.filter(e => normDate(e) <= todayStr);
+  const future = sorted.filter(e => normDate(e) > todayStr);
+  return {
+    doneEntry: pastOrToday.length > 1 ? pastOrToday[pastOrToday.length - 2] : null,
+    activeEntry: pastOrToday.length ? pastOrToday[pastOrToday.length - 1] : null,
+    plannedEntry: future.length ? future[0] : null
+  };
+};
 
+window.renderTowerRoutingBar = function() {
+  const bar = document.getElementById('tower-routing-bar');
+  if (!bar) return;
+  const nodes = window.getTravelRouteNodes();
+  const fmt = (entry, cls) => {
+    if (!entry) {
+      if (cls === 'planned') return `<div class="route-node planned"><span class="route-date">STANDBY</span><span class="route-loc">AWAITING ORDERS</span></div>`;
+      return '';
+    }
+    const dateStr = (entry.date || entry.접수일 || entry.날짜 || '').toString().replace(/[./]/g, '.').substring(2, 10);
+    const normCountry = towerNormalize(entry.country, TOWER_COUNTRY_ALIAS);
+    const normCity = towerNormalize(entry.city, TOWER_CITY_ALIAS);
+    const countryEn = (TOWER_COUNTRY_EN[normCountry] || normCountry || '').toUpperCase();
+    const cityEn = (TOWER_CITY_EN[normCity] || normCity || '').toUpperCase();
+    const pulse = cls === 'active' ? '<div class="route-pulse"></div>' : '';
+    return `<div class="route-node ${cls}">${pulse}<span class="route-date">${dateStr}</span><span class="route-loc">${countryEn}${cityEn ? ' / ' + cityEn : ''}</span></div>`;
+  };
+  if (!nodes) {
+    bar.innerHTML = `<div class="routing-label">ROUTING SEQUENCE</div><div class="routing-path"><span style="color:#475569; font-size:11px;">출장 이력 없음</span></div>`;
+    return;
+  }
+  const parts = [];
+  if (nodes.doneEntry) { parts.push(fmt(nodes.doneEntry, 'done')); parts.push('<div class="route-arrow">➔</div>'); }
+  parts.push(fmt(nodes.activeEntry, 'active'));
+  parts.push('<div class="route-arrow">➔</div>');
+  parts.push(fmt(nodes.plannedEntry, 'planned'));
+  bar.innerHTML = `<div class="routing-label">ROUTING SEQUENCE</div><div class="routing-path">${parts.join('')}</div>`;
+};
+
+window.renderTowerMacroTimeline = function(code) {
+  const wrap = document.getElementById('tower-timeline-container');
+  const statusEl = document.getElementById('tower-timeline-status');
+  if (!wrap) return;
+
+  if (!code || code.startsWith('CP') || code === 'ETC' || !TOWER_PKEY_MAP[code]) {
+    wrap.innerHTML = `<div class="timeline-empty">${code ? '서비스/기타 항목은 단계 타임라인이 없습니다' : '프로젝트를 선택하면 진행 타임라인이 표시됩니다'}</div>`;
+    if (statusEl) statusEl.textContent = 'SYS // STANDBY';
+    return;
+  }
+
+  const pKey = TOWER_PKEY_MAP[code];
+  const summary = (allData[pKey] && allData[pKey].summary) || {};
+  const stageLabelsEn = ['FAB', 'FAT', 'SETUP', 'SAT'];
+  let curIdx = stageLabelsEn.findIndex((_, i) => {
+    const v = summary.complete && summary.complete[i] !== undefined ? parseFloat(summary.complete[i]) : 0;
+    return v < 100;
+  });
+  if (curIdx === -1) curIdx = 4;
+
+  const positions = [0, 33.3, 66.6, 100];
+  const overallPct = summary.overall ? parseFloat(summary.overall) : 0;
+
+  const normDate = (e) => (e.date || e.접수일 || e.날짜 || '').toString().replace(/[./]/g, '-').substring(0, 10);
+  const todayStr = calYMD(new Date());
+  const recentTrip = (allData.travelLog || [])
+    .filter(e => (e.project || '') === code && normDate(e) && normDate(e) <= todayStr)
+    .sort((a, b) => normDate(b) < normDate(a) ? -1 : 1)[0];
+
+  const nodesHtml = stageLabelsEn.map((lbl, i) => {
+    const pos = positions[i];
+    if (i < curIdx) {
+      return `<div class="tl-node done" style="left:${pos}%;">
+        <div class="tl-label-top">COMPLETED</div>
+        <div class="tl-icon-wrap"><svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 7"></path></svg></div>
+        <div class="tl-label-bottom">${lbl}</div>
+      </div>`;
+    }
+    if (i === curIdx) {
+      const pct = summary.complete && summary.complete[i] !== undefined ? Math.round(parseFloat(summary.complete[i])) : 0;
+      let calloutHtml = '';
+      if (recentTrip) {
+        const loc = `${(TOWER_COUNTRY_EN[towerNormalize(recentTrip.country, TOWER_COUNTRY_ALIAS)] || recentTrip.country || '').toUpperCase()} ${(TOWER_CITY_EN[towerNormalize(recentTrip.city, TOWER_CITY_ALIAS)] || recentTrip.city || '').toUpperCase()}`;
+        const tripDate = normDate(recentTrip).replace(/-/g, '.').substring(2);
+        calloutHtml = `<div class="tl-callout">
+          <div class="tl-callout-title">${code} // ${loc}</div>
+          <div>STATUS: ${lbl} ${pct}%</div>
+          <div style="color:#64748b; margin-top:2px;">LAST TRIP: ${tripDate}</div>
+        </div>`;
+      }
+      return `<div class="tl-node active" style="left:${pos}%;">
+        ${calloutHtml}
+        <div class="tl-icon-wrap"><div class="tl-ring-outer"></div><div class="tl-ring-mid"></div><div class="tl-core">${pct}%</div></div>
+        <div class="tl-label-bottom">${lbl}</div>
+      </div>`;
+    }
+    return `<div class="tl-node planned" style="left:${pos}%;">
+      <div class="tl-label-top">STANDBY</div>
+      <div class="tl-icon-wrap"></div>
+      <div class="tl-label-bottom">${lbl}</div>
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML = `<div class="tl-track-bg"></div><div class="tl-track-ruler"></div><div class="tl-track-fill" style="width:${overallPct}%;"></div>${nodesHtml}`;
+  if (statusEl) statusEl.textContent = `SYS // TRACKING ${code}`;
+};
 window.renderTowerMap = function() {
   if (!document.getElementById('tower-map')) return;
   const { polygonGroups, pointGroups } = towerBuildGroups();
@@ -6160,116 +6269,7 @@ window.towerNavClick = function(code, group) {
 window.renderTowerCards = function(group, activeCode) {
   window._towerSelectedCode = null;
 
-window.getTravelRouteNodes = function() {
-  const log = (allData.travelLog || []).slice();
-  const normDate = (e) => (e.date || e.접수일 || e.날짜 || '').toString().replace(/[./]/g, '-').substring(0, 10);
-  const sorted = log.filter(e => normDate(e)).sort((a, b) => normDate(a) < normDate(b) ? -1 : (normDate(a) > normDate(b) ? 1 : 0));
-  if (sorted.length === 0) return null;
-  const todayStr = calYMD(new Date());
-  const pastOrToday = sorted.filter(e => normDate(e) <= todayStr);
-  const future = sorted.filter(e => normDate(e) > todayStr);
-  return {
-    doneEntry: pastOrToday.length > 1 ? pastOrToday[pastOrToday.length - 2] : null,
-    activeEntry: pastOrToday.length ? pastOrToday[pastOrToday.length - 1] : null,
-    plannedEntry: future.length ? future[0] : null
-  };
-};
 
-window.renderTowerRoutingBar = function() {
-  const bar = document.getElementById('tower-routing-bar');
-  if (!bar) return;
-  const nodes = window.getTravelRouteNodes();
-  const fmt = (entry, cls) => {
-    if (!entry) {
-      if (cls === 'planned') return `<div class="route-node planned"><span class="route-date">STANDBY</span><span class="route-loc">AWAITING ORDERS</span></div>`;
-      return '';
-    }
-    const dateStr = (entry.date || entry.접수일 || entry.날짜 || '').toString().replace(/[./]/g, '.').substring(2, 10);
-    const normCountry = towerNormalize(entry.country, TOWER_COUNTRY_ALIAS);
-    const normCity = towerNormalize(entry.city, TOWER_CITY_ALIAS);
-    const countryEn = (TOWER_COUNTRY_EN[normCountry] || normCountry || '').toUpperCase();
-    const cityEn = (TOWER_CITY_EN[normCity] || normCity || '').toUpperCase();
-    const pulse = cls === 'active' ? '<div class="route-pulse"></div>' : '';
-    return `<div class="route-node ${cls}">${pulse}<span class="route-date">${dateStr}</span><span class="route-loc">${countryEn}${cityEn ? ' / ' + cityEn : ''}</span></div>`;
-  };
-  if (!nodes) {
-    bar.innerHTML = `<div class="routing-label">ROUTING SEQUENCE</div><div class="routing-path"><span style="color:#475569; font-size:11px;">출장 이력 없음</span></div>`;
-    return;
-  }
-  const parts = [];
-  if (nodes.doneEntry) { parts.push(fmt(nodes.doneEntry, 'done')); parts.push('<div class="route-arrow">➔</div>'); }
-  parts.push(fmt(nodes.activeEntry, 'active'));
-  parts.push('<div class="route-arrow">➔</div>');
-  parts.push(fmt(nodes.plannedEntry, 'planned'));
-  bar.innerHTML = `<div class="routing-label">ROUTING SEQUENCE</div><div class="routing-path">${parts.join('')}</div>`;
-};
-
-window.renderTowerMacroTimeline = function(code) {
-  const wrap = document.getElementById('tower-timeline-container');
-  const statusEl = document.getElementById('tower-timeline-status');
-  if (!wrap) return;
-
-  if (!code || code.startsWith('CP') || code === 'ETC' || !TOWER_PKEY_MAP[code]) {
-    wrap.innerHTML = `<div class="timeline-empty">${code ? '서비스/기타 항목은 단계 타임라인이 없습니다' : '프로젝트를 선택하면 진행 타임라인이 표시됩니다'}</div>`;
-    if (statusEl) statusEl.textContent = 'SYS // STANDBY';
-    return;
-  }
-
-  const pKey = TOWER_PKEY_MAP[code];
-  const summary = (allData[pKey] && allData[pKey].summary) || {};
-  const stageLabelsEn = ['FAB', 'FAT', 'SETUP', 'SAT'];
-  let curIdx = stageLabelsEn.findIndex((_, i) => {
-    const v = summary.complete && summary.complete[i] !== undefined ? parseFloat(summary.complete[i]) : 0;
-    return v < 100;
-  });
-  if (curIdx === -1) curIdx = 4;
-
-  const positions = [0, 33.3, 66.6, 100];
-  const overallPct = summary.overall ? parseFloat(summary.overall) : 0;
-
-  const normDate = (e) => (e.date || e.접수일 || e.날짜 || '').toString().replace(/[./]/g, '-').substring(0, 10);
-  const todayStr = calYMD(new Date());
-  const recentTrip = (allData.travelLog || [])
-    .filter(e => (e.project || '') === code && normDate(e) && normDate(e) <= todayStr)
-    .sort((a, b) => normDate(b) < normDate(a) ? -1 : 1)[0];
-
-  const nodesHtml = stageLabelsEn.map((lbl, i) => {
-    const pos = positions[i];
-    if (i < curIdx) {
-      return `<div class="tl-node done" style="left:${pos}%;">
-        <div class="tl-label-top">COMPLETED</div>
-        <div class="tl-icon-wrap"><svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 7"></path></svg></div>
-        <div class="tl-label-bottom">${lbl}</div>
-      </div>`;
-    }
-    if (i === curIdx) {
-      const pct = summary.complete && summary.complete[i] !== undefined ? Math.round(parseFloat(summary.complete[i])) : 0;
-      let calloutHtml = '';
-      if (recentTrip) {
-        const loc = `${(TOWER_COUNTRY_EN[towerNormalize(recentTrip.country, TOWER_COUNTRY_ALIAS)] || recentTrip.country || '').toUpperCase()} ${(TOWER_CITY_EN[towerNormalize(recentTrip.city, TOWER_CITY_ALIAS)] || recentTrip.city || '').toUpperCase()}`;
-        const tripDate = normDate(recentTrip).replace(/-/g, '.').substring(2);
-        calloutHtml = `<div class="tl-callout">
-          <div class="tl-callout-title">${code} // ${loc}</div>
-          <div>STATUS: ${lbl} ${pct}%</div>
-          <div style="color:#64748b; margin-top:2px;">LAST TRIP: ${tripDate}</div>
-        </div>`;
-      }
-      return `<div class="tl-node active" style="left:${pos}%;">
-        ${calloutHtml}
-        <div class="tl-icon-wrap"><div class="tl-ring-outer"></div><div class="tl-ring-mid"></div><div class="tl-core">${pct}%</div></div>
-        <div class="tl-label-bottom">${lbl}</div>
-      </div>`;
-    }
-    return `<div class="tl-node planned" style="left:${pos}%;">
-      <div class="tl-label-top">STANDBY</div>
-      <div class="tl-icon-wrap"></div>
-      <div class="tl-label-bottom">${lbl}</div>
-    </div>`;
-  }).join('');
-
-  wrap.innerHTML = `<div class="tl-track-bg"></div><div class="tl-track-ruler"></div><div class="tl-track-fill" style="width:${overallPct}%;"></div>${nodesHtml}`;
-  if (statusEl) statusEl.textContent = `SYS // TRACKING ${code}`;
-};
   const container = document.getElementById('tower-right');
   if (!container) return;
 
