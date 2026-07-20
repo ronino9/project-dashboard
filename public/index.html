@@ -5696,7 +5696,7 @@ window.renderTowerMap = function() {
     }).addTo(towerMapInstance);
 
     towerMapInstance.fitWorld({ animate: false });
-    towerMapInstance.setZoom(towerMapInstance.getZoom() + 0.3);
+    towerMapInstance.setZoom(towerMapInstance.getZoom() + 0.15);
     towerMapInstance.setMinZoom(towerMapInstance.getZoom());
     towerMapInstance.on('zoomend moveend', () => {
       window.towerUpdateCountryVisibility(towerMapInstance);
@@ -5997,6 +5997,7 @@ function towerGetProjectStatus(code) {
   if (towerMapInstance) {
     towerMapInstance.setMinZoom(0);
     towerMapInstance.fitWorld({ animate: true });
+    towerMapInstance.setZoom(towerMapInstance.getZoom() + 0.15);
     towerMapInstance.setMinZoom(towerMapInstance.getZoom());
   }
   towerSetHudLocation('EARTH');
