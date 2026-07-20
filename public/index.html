@@ -899,6 +899,45 @@
 .hud-sector-stat.danger::before { background: #f87171; box-shadow: 0 0 6px #f87171; animation: towerHudBlink 1s infinite; }
 .hud-sector-stat.empty { color: #64748b; }
 .hud-sector-stat.empty::before { background: #64748b; }
+    /* 국가 상태 배지 */
+.hud-sector-header { display: flex; justify-content: space-between; align-items: center; }
+.hud-sector-badge {
+  font-family: 'Share Tech Mono', monospace; font-size: 8.5px; font-weight: 700;
+  padding: 2px 7px; letter-spacing: 0.5px;
+  clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+}
+.hud-sector-badge.online { color: #4ade80; background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.4); }
+.hud-sector-badge.warning { color: #f87171; background: rgba(248, 113, 113, 0.15); border: 1px solid rgba(248, 113, 113, 0.5); animation: towerHudBlink 1.2s ease-in-out infinite; }
+.hud-sector-badge.offline { color: #64748b; background: rgba(100, 116, 139, 0.15); border: 1px solid rgba(100, 116, 139, 0.4); }
+
+/* 프로젝트 패치 그리드 (2열 고정) */
+.hud-patch-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px;
+  margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(14, 116, 144, 0.3);
+}
+.hud-project-patch {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  background: rgba(2, 6, 23, 0.8); border: 1px solid rgba(14, 116, 144, 0.4);
+  height: 20px; font-family: 'Share Tech Mono', monospace; font-size: 9.5px; font-weight: 700;
+  color: #94a3b8; letter-spacing: 0.3px;
+  clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px);
+}
+.hud-patch-dot { width: 5px; height: 5px; border-radius: 50%; background: #64748b; flex-shrink: 0; }
+.hud-project-patch.online { border-color: rgba(74, 222, 128, 0.4); color: #cffafe; background: rgba(74, 222, 128, 0.08); }
+.hud-project-patch.online .hud-patch-dot { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+.hud-project-patch.warning {
+  border-color: #f87171; color: #f8fafc; background: rgba(248, 113, 113, 0.2);
+  animation: hudPatchAlert 1.2s ease-in-out infinite;
+}
+.hud-project-patch.warning .hud-patch-dot { background: #f87171; box-shadow: 0 0 8px #f87171; }
+.hud-project-patch.offline { border-color: rgba(100, 116, 139, 0.3); color: #64748b; background: rgba(15, 23, 42, 0.6); }
+.hud-project-patch.offline .hud-patch-dot { background: #475569; }
+.hud-patch-empty { font-size: 9px; color: #475569; letter-spacing: 1px; grid-column: 1 / -1; text-align: center; padding: 4px 0; }
+
+@keyframes hudPatchAlert {
+  0%, 100% { border-color: rgba(248, 113, 113, 0.4); box-shadow: none; }
+  50% { border-color: #f87171; box-shadow: 0 0 10px rgba(248, 113, 113, 0.5); }
+}
 
 /* 3. 위협 랭킹 리스트 */
 .hud-threat-list {
@@ -5815,6 +5854,31 @@ window.renderTowerSidebar = function(groups) {
     </div>
   `).join('');
 };
+    // 프로젝트 개별 온라인/경고/오프라인 판정 (보류 제외, 지연중만 카운트, 30일 미접수=오프라인)
+function towerGetProjectStatus(code) {
+  let hist;
+  if (code.startsWith('CP')) {
+    hist = ((allData.project1 && allData.project1.history) || []).filter(r => (r['프로젝트 코드'] || '').toString().trim() === code);
+  } else {
+    const pKey = TOWER_PKEY_MAP[code];
+    hist = (allData[pKey] && allData[pKey].history) || [];
+  }
+  const usable = hist.filter(r => (r['진행상태'] || '').toString().trim() !== '보류');
+  if (usable.length === 0) return 'offline';
+
+  const hasDelay = usable.some(r => (r['진행상태'] || '').toString().trim() === '지연중');
+  if (hasDelay) return 'warning';
+
+  const dates = usable
+    .map(r => (r['접수일'] || '').toString().replace(/[./]/g, '-').substring(0, 10))
+    .filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d))
+    .sort();
+  if (dates.length === 0) return 'offline';
+
+  const lastDate = new Date(dates[dates.length - 1]);
+  const diffDays = (new Date() - lastDate) / 86400000;
+  return diffDays > 30 ? 'offline' : 'online';
+}
     window.renderTowerDefaultState = function() {
   const container = document.getElementById('tower-right');
   if (!container) return;
@@ -5896,14 +5960,34 @@ window.renderTowerSidebar = function(groups) {
 
   const sectorHtml = countryList.map(country => {
     const g = countryGroups[country];
-    const projCount = g ? g.projects.length : 0;
-    const hasDelay = g ? g.projects.some(c => towerIsDelayed(c)) : false;
-    const statClass = projCount === 0 ? 'empty' : (hasDelay ? 'danger' : 'safe');
-    const statText = projCount === 0 ? '프로젝트 없음' : (hasDelay ? '지연 발생' : '정상 운영');
+    const projCodes = g ? g.projects : [];
+
+    const patches = projCodes.map(code => ({ code, status: towerGetProjectStatus(code) }));
+    // 경고 > 정상 > 오프라인 순 정렬 (문제 있는 것부터 보이게)
+    const statusOrder = { warning: 0, online: 1, offline: 2 };
+    patches.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+
+    const hasWarning = patches.some(p => p.status === 'warning');
+    const allOffline = patches.length > 0 && patches.every(p => p.status === 'offline');
+
+    let sectorStatus = 'online', sectorBadgeText = 'ON-LINE';
+    if (patches.length === 0 || allOffline) { sectorStatus = 'offline'; sectorBadgeText = 'OFF-LINE'; }
+    else if (hasWarning) { sectorStatus = 'warning'; sectorBadgeText = 'WARNING'; }
+
+    const patchesHtml = patches.length === 0
+      ? `<div class="hud-patch-empty">NO ACTIVE NODES</div>`
+      : patches.map(p => `
+          <div class="hud-project-patch ${p.status}" title="${TOWER_LABEL_MAP[p.code] || p.code}">
+            <div class="hud-patch-dot"></div>${TOWER_LABEL_MAP[p.code] || p.code}
+          </div>`).join('');
+
     return `
-      <div class="hud-sector-card" ${g ? `onclick="window.towerBreadcrumbCountry('${country}')" style="cursor:pointer;"` : ''}>
-        <div class="hud-sector-name">${TOWER_COUNTRY_EN[country] || country}</div>
-        <div class="hud-sector-stat ${statClass}">${projCount}건 · ${statText}</div>
+      <div class="hud-sector-card" ${patches.length > 0 ? `onclick="window.towerBreadcrumbCountry('${country}')" style="cursor:pointer;"` : ''}>
+        <div class="hud-sector-header">
+          <span class="hud-sector-name">${TOWER_COUNTRY_EN[country] || country}</span>
+          <span class="hud-sector-badge ${sectorStatus}">${sectorBadgeText}</span>
+        </div>
+        <div class="hud-patch-grid">${patchesHtml}</div>
       </div>`;
   }).join('');
 
@@ -5962,6 +6046,10 @@ window.towerBreadcrumbCountry = function(country) {
     const info = towerData[code];
     return info && towerNormalize(info.country, TOWER_COUNTRY_ALIAS) === normCountry;
   });
+  // ETC(기타업무)는 country가 비어있어 위 필터에 안 걸리므로, 한국일 때만 강제 편입
+  if (normCountry === '대한민국' && towerData['ETC'] && !projects.includes('ETC')) {
+    projects.push('ETC');
+  }
 
   const targetZoom = TOWER_COUNTRY_ZOOM_LEVEL[normCountry] || (towerMapInstance.getMinZoom() + TOWER_COUNTRY_ZOOM_DEFAULT);
   if (towerMapInstance) {
@@ -5976,7 +6064,15 @@ window.towerNavClick = function(code, group) {
   const coords = getTowerCoords(towerInfo.country, towerInfo.city);
 
   if (coords && towerMapInstance) {
-    towerMapInstance.flyTo(coords, 8, { duration: 1.2, easeLinearity: 0.25 });
+    // 직접 지도 클릭과 동일한 줌 로직: 폴리곤 지역은 도형 크기에 맞춰 자동 계산, 없으면 포인트 마커용 고정 줌
+    const regionGeo = getTowerRegionGeoJSON(towerInfo.country, towerInfo.city);
+    if (regionGeo) {
+      const tempLayer = L.geoJSON(regionGeo);
+      const autoZoom = towerMapInstance.getBoundsZoom(tempLayer.getBounds());
+      towerMapInstance.flyTo(tempLayer.getBounds().getCenter(), autoZoom - 1, { duration: 1.2, easeLinearity: 0.25 });
+    } else {
+      towerMapInstance.flyTo(coords, 5, { duration: 1.2, easeLinearity: 0.25 });
+    }
   }
 
   const normCountry = towerNormalize(towerInfo.country, TOWER_COUNTRY_ALIAS);
