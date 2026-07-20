@@ -1155,11 +1155,13 @@
 
     /* width를 75%로 줄이고, margin: 0 auto; 로 가운데 정렬 */
     #tower-map { width: 75%; margin: 0 auto; height: auto; aspect-ratio: 1 / 1; border-radius: 8px; overflow: hidden; }
-    /* 1. 타일 이미지에만 밝기 필터 적용 (틴트가 너무 밝아지는 현상 방지) */
+    /* 1. 타일 이미지 필터 (JS 슬라이더 변수와 연동) */
     #tower-map .leaflet-tile-pane { filter: none !important; }
-    #tower-map .leaflet-tile-pane img { filter: brightness(3) contrast(1.15); }
+    #tower-map .leaflet-tile-pane img { 
+      filter: brightness(var(--map-brightness, 3)) contrast(var(--map-contrast, 1.15)); 
+    }
 
-    /* 2. 기존 HTML 틴트는 무시하고 CSS 변수 셋업 */
+    /* 2. 기존 HTML 틴트 무시 & CSS 변수 셋업 */
     #tower-map .tower-tint, #tower-map .tower-tint-light { display: none !important; }
 
     :root {
@@ -1167,19 +1169,34 @@
       --map-tint2: #5eead4;
       --map-op1: 0.35;
       --map-op2: 0.5;
+      --map-op-mult: 1; /* 농도 조절용 배수 */
+      --map-brightness: 3;
+      --map-contrast: 1.15;
     }
 
-    /* 3. 지도 타일 바로 위에 틴트를 샌드위치처럼 끼워넣기 */
+    /* 3. 지도 틴트 샌드위치 (농도 슬라이더 연동) */
     #tower-map .leaflet-tile-pane::before {
       content: ''; position: absolute; top: -5000px; left: -5000px; width: 10000px; height: 10000px;
-      background: var(--map-tint1); mix-blend-mode: color; opacity: var(--map-op1);
+      background: var(--map-tint1); mix-blend-mode: color; opacity: calc(var(--map-op1) * var(--map-op-mult));
       pointer-events: none; z-index: 10;
     }
     #tower-map .leaflet-tile-pane::after {
       content: ''; position: absolute; top: -5000px; left: -5000px; width: 10000px; height: 10000px;
-      background: var(--map-tint2); mix-blend-mode: soft-light; opacity: var(--map-op2);
+      background: var(--map-tint2); mix-blend-mode: soft-light; opacity: calc(var(--map-op2) * var(--map-op-mult));
       pointer-events: none; z-index: 11;
     }
+
+    /* 4. 마커 발광 효과 */
+    #tower-map .leaflet-overlay-pane,
+    #tower-map .leaflet-marker-pane {
+        mix-blend-mode: screen;
+    }
+
+    /* 5. HUD 컨트롤러 슬라이더 디자인 */
+    input[type=range].hud-slider { -webkit-appearance: none; width: 100%; background: transparent; margin: 4px 0; }
+    input[type=range].hud-slider:focus { outline: none; }
+    input[type=range].hud-slider::-webkit-slider-runnable-track { width: 100%; height: 4px; background: rgba(34,211,238,0.2); border-radius: 2px; border: 1px solid rgba(14,116,144,0.5); }
+    input[type=range].hud-slider::-webkit-slider-thumb { -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%; background: #67e8f9; cursor: pointer; margin-top: -5px; box-shadow: 0 0 6px #67e8f9; }
     .tower-hud-overlay { position:absolute; top:0; left:1%; right:1%; bottom:0; pointer-events:none; }
     .tower-hud-frame { position:absolute; inset:0; pointer-events:none; z-index:5000; }
 .tower-hud-status { position:absolute; top:20px; left:130px; display:flex; align-items:center; gap:6px; font-family:'Orbitron', sans-serif; font-size:9px; font-weight:600; color:#022c22; letter-spacing:1.5px; background:rgba(103,232,249,0.55); padding:2px 7px; border-radius:2px; }
@@ -2428,21 +2445,42 @@ window.renderDeviationTrendTest = function() {
     <button id="jd-speed-fast" onclick="window.travelSetSpeed('fast')" class="jd-hud-btn">FAST</button>
   </div>
 </div>
-              <!-- ✨ 지도 테마 선택 리모컨 추가 ✨ -->
-  <div style="position:absolute; top:16px; right:16px; z-index:5010; display:flex; gap:8px;">
-    <select onchange="window.changeMapBase(this.value)" class="jd-hud-btn" style="height:24px; outline:none; border-radius:0; color:#67e8f9; background:rgba(2,6,23,0.8);">
-      <option value="dark_all">베이스: 다크 맵</option>
-      <option value="light_all">베이스: 라이트 맵</option>
-      <option value="voyager">베이스: 컬러 맵</option>
-    </select>
-    <select onchange="window.changeMapTint(this.value)" class="jd-hud-btn" style="height:24px; outline:none; border-radius:0; color:#67e8f9; background:rgba(2,6,23,0.8);">
-      <option value="teal">필터: 다크 틸 (기본)</option>
-      <option value="navy">필터: 클래식 네이비</option>
-      <option value="purple">필터: 사이버 퍼플</option>
-      <option value="green">필터: 매트릭스 그린</option>
-      <option value="none">필터: 끄기 (순정)</option>
-    </select>
-  </div>
+              <!-- ✨ 맵 종합 컨트롤 패널 ✨ -->
+              <div style="position:absolute; top:16px; right:16px; z-index:5010; background:rgba(2,6,23,0.85); border:1px solid #0e7490; border-radius:8px; padding:12px; width:220px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 16px rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
+                <div style="font-family:'Orbitron', sans-serif; font-size:11px; font-weight:800; color:#67e8f9; letter-spacing:1px; border-bottom:1px solid rgba(14,116,144,0.5); padding-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                  <span>MAP CONTROLLER</span>
+                  <span style="cursor:pointer; color:#94a3b8; font-size:14px; line-height:1;" onclick="this.parentElement.parentElement.style.display='none'" title="닫기">✕</span>
+                </div>
+                
+                <select onchange="window.changeMapBase(this.value)" style="height:24px; font-size:11px; outline:none; border:1px solid #0e7490; color:#cffafe; background:rgba(10,22,40,0.8); border-radius:4px; cursor:pointer;">
+                  <option value="dark_all">베이스: 다크 맵</option>
+                  <option value="light_all">베이스: 라이트 맵</option>
+                  <option value="voyager">베이스: 컬러 맵</option>
+                </select>
+                
+                <select onchange="window.changeMapTint(this.value)" style="height:24px; font-size:11px; outline:none; border:1px solid #0e7490; color:#cffafe; background:rgba(10,22,40,0.8); border-radius:4px; cursor:pointer;">
+                  <option value="teal">필터: 다크 틸 (기본)</option>
+                  <option value="navy">필터: 클래식 네이비</option>
+                  <option value="purple">필터: 사이버 퍼플</option>
+                  <option value="green">필터: 매트릭스 그린</option>
+                  <option value="none">필터: 끄기 (순정)</option>
+                </select>
+                
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                  <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8; font-weight:600;"><span>밝기 (Brightness)</span><span id="val-br" style="color:#67e8f9; font-family:monospace;">3.00</span></div>
+                  <input type="range" id="map-slider-br" class="hud-slider" min="0.2" max="4.0" step="0.1" value="3.0" oninput="window.updateMapSlider('brightness', this.value)">
+                </div>
+                
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                  <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8; font-weight:600;"><span>대비 (Contrast)</span><span id="val-ct" style="color:#67e8f9; font-family:monospace;">1.15</span></div>
+                  <input type="range" id="map-slider-ct" class="hud-slider" min="0.5" max="2.5" step="0.05" value="1.15" oninput="window.updateMapSlider('contrast', this.value)">
+                </div>
+                
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                  <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8; font-weight:600;"><span>필터 농도 (Tint)</span><span id="val-op" style="color:#67e8f9; font-family:monospace;">100%</span></div>
+                  <input type="range" id="map-slider-op" class="hud-slider" min="0" max="2" step="0.1" value="1" oninput="window.updateMapSlider('opacity', this.value)">
+                </div>
+              </div>
               <div id="jd-eq-frame" aria-hidden="true" style="position:absolute; top:290px; left:calc(-9.52% - 10px); z-index:5010; display:flex; align-items:flex-end; gap:5px; height:64px; margin-left:2px;">
                 <span class="eqbar-f"></span>
                 <span class="eqbar-f"></span>
@@ -8581,46 +8619,68 @@ window.showPdcaProblemDetail = function(mode) {
 
   document.body.appendChild(overlay);
 };
-    // ✨ 지도 베이스 & 틴트 테마 변경 스크립트 ✨
+    // ✨ 지도 베이스, 틴트, 슬라이더 테마 변경 스크립트 ✨
 window.changeMapBase = function(theme) {
   if (!window.towerTileLayer) return;
-  
-  // 테마별 정확한 URL 적용 (하얀 화면 에러 수정)
+  const root = document.documentElement;
   let url = '';
+  let bVal = 3.0, cVal = 1.15; // 다크 맵 기본값
+
   if (theme === 'dark_all') {
-    url = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+    url = 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png';
+    bVal = 3.0; cVal = 1.15;
   } else if (theme === 'light_all') {
-    url = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+    url = 'https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png';
+    bVal = 0.95; cVal = 1.0;
   } else if (theme === 'voyager') {
     url = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    bVal = 0.95; cVal = 1.05;
   }
+  
   window.towerTileLayer.setUrl(url);
+  
+  // 베이스 맵이 바뀌면 슬라이더 핸들 위치와 숫자도 알아서 최적값으로 맞춰줌
+  window.updateMapSlider('brightness', bVal);
+  window.updateMapSlider('contrast', cVal);
+  
+  const brSlider = document.getElementById('map-slider-br');
+  const ctSlider = document.getElementById('map-slider-ct');
+  if (brSlider) brSlider.value = bVal;
+  if (ctSlider) ctSlider.value = cVal;
 };
 
 window.changeMapTint = function(colorTheme) {
   const root = document.documentElement;
-  
-  // 기본 투명도 원상복구
   root.style.setProperty('--map-op1', '0.35');
   root.style.setProperty('--map-op2', '0.5');
 
-  // 선택한 테마에 맞춰 CSS 변수 색상 변경
   if (colorTheme === 'teal') {
-    root.style.setProperty('--map-tint1', '#0d9488');
-    root.style.setProperty('--map-tint2', '#5eead4');
+    root.style.setProperty('--map-tint1', '#0d9488'); root.style.setProperty('--map-tint2', '#5eead4');
   } else if (colorTheme === 'navy') {
-    root.style.setProperty('--map-tint1', '#1e3a8a');
-    root.style.setProperty('--map-tint2', '#93c5fd');
+    root.style.setProperty('--map-tint1', '#1e3a8a'); root.style.setProperty('--map-tint2', '#93c5fd');
   } else if (colorTheme === 'purple') {
-    root.style.setProperty('--map-tint1', '#6b21a8');
-    root.style.setProperty('--map-tint2', '#d8b4fe');
+    root.style.setProperty('--map-tint1', '#6b21a8'); root.style.setProperty('--map-tint2', '#d8b4fe');
   } else if (colorTheme === 'green') {
-    root.style.setProperty('--map-tint1', '#166534');
-    root.style.setProperty('--map-tint2', '#86efac');
+    root.style.setProperty('--map-tint1', '#166534'); root.style.setProperty('--map-tint2', '#86efac');
   } else if (colorTheme === 'none') {
-    // 필터 끄기 (투명도 0으로 처리)
-    root.style.setProperty('--map-op1', '0');
-    root.style.setProperty('--map-op2', '0');
+    root.style.setProperty('--map-op1', '0'); root.style.setProperty('--map-op2', '0');
+  }
+};
+
+window.updateMapSlider = function(type, val) {
+  const root = document.documentElement;
+  if (type === 'brightness') {
+    root.style.setProperty('--map-brightness', val);
+    const el = document.getElementById('val-br');
+    if (el) el.textContent = parseFloat(val).toFixed(2);
+  } else if (type === 'contrast') {
+    root.style.setProperty('--map-contrast', val);
+    const el = document.getElementById('val-ct');
+    if (el) el.textContent = parseFloat(val).toFixed(2);
+  } else if (type === 'opacity') {
+    root.style.setProperty('--map-op-mult', val);
+    const el = document.getElementById('val-op');
+    if (el) el.textContent = Math.round(val * 100) + '%';
   }
 };
   </script>
