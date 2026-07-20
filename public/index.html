@@ -465,12 +465,12 @@
 .tower-hud-bottom-timeline {
   background:linear-gradient(180deg, rgba(2,6,23,0.4) 0%, rgba(10,22,40,0.85) 100%);
   border:1px solid rgba(14,116,144,0.5); border-bottom:2px solid rgba(34,211,238,0.8);
-  padding:40px 24px 36px; display:flex; flex-direction:column; position:relative;
+  padding:16px 24px 36px; display:flex; flex-direction:column; position:relative;
   clip-path:polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%, 0 12px);
   box-shadow:0 8px 20px rgba(0,0,0,0.4), inset 0 0 30px rgba(6,182,212,0.05);
 }
 .tower-hud-bottom-timeline::before { content:''; position:absolute; top:0; left:16px; width:70px; height:2px; background:#22d3ee; box-shadow:0 0 10px #22d3ee; }
-.timeline-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:40px; }
+.timeline-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:32px; }
 .timeline-title { font-family:'Orbitron', sans-serif; font-size:11px; font-weight:800; color:#cffafe; letter-spacing:4px; text-shadow:0 0 10px rgba(34,211,238,0.8); }
 .timeline-sys-status { font-size:9px; color:#4ade80; letter-spacing:1.5px; text-shadow:0 0 6px rgba(74,222,128,0.6); display:flex; align-items:center; gap:6px; }
 .timeline-sys-status::before { content:''; width:6px; height:6px; border-radius:50%; background:#4ade80; box-shadow:0 0 6px #4ade80; animation:towerHudBlink 1s infinite; }
@@ -493,8 +493,8 @@
 .tl-ring-outer { position:absolute; inset:0; border:2px solid rgba(34,211,238,0.2); border-top-color:#22d3ee; border-bottom-color:#22d3ee; border-radius:50%; animation:spinBladeHUD 4s linear infinite; filter:drop-shadow(0 0 4px #22d3ee); }
 .tl-ring-mid { position:absolute; inset:5px; border:2px dashed rgba(34,211,238,0.5); border-radius:50%; animation:spinBladeHUD 6s linear infinite reverse; }
 .tl-core { position:absolute; inset:10px; background:rgba(14,116,144,0.4); border-radius:50%; box-shadow:inset 0 0 12px #22d3ee; display:flex; align-items:center; justify-content:center; font-family:'Orbitron', sans-serif; font-weight:800; font-size:10px; color:#fff; text-shadow:0 0 6px #fff; }
-.tl-node.active .tl-label-top { display:none; }
-.tl-node.active .tl-label-bottom { color:#cffafe; text-shadow:0 0 10px #22d3ee; font-size:11px; top:calc(100% + 14px); }
+.timeline-header .tl-node.active .tl-label-top { display:block; bottom:calc(100% + 22px); color:#22d3ee; text-shadow:0 0 8px #22d3ee; }{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:32px; }
+.tl-node.active .tl-label-bottom { color:#cffafe; text-shadow:0 0 10px #22d3ee; font-size:11px; top:calc(100% + 14px); left:50%; transform:translateX(-50%); z-index:25; }
 .tl-callout { position:absolute; bottom:calc(100% + 28px); left:50%; transform:translateX(-50%); background:rgba(2,6,23,0.85); border:1px solid #22d3ee; border-left:3px solid #22d3ee; padding:6px 12px; font-family:'Share Tech Mono', monospace; font-size:10px; color:#cffafe; white-space:nowrap; clip-path:polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%); box-shadow:0 4px 12px rgba(34,211,238,0.2); }
 .tl-callout::after { content:''; position:absolute; top:100%; left:16px; width:1px; height:28px; background:linear-gradient(to bottom, #22d3ee, transparent); }
 .tl-callout-title { font-family:'Orbitron', sans-serif; font-size:9px; font-weight:700; color:#22d3ee; margin-bottom:2px; letter-spacing:1px; }
@@ -5857,6 +5857,7 @@ window.renderTowerMacroTimeline = function(code) {
     if (i === curIdx) {
       const pct = summary.complete && summary.complete[i] !== undefined ? Math.round(parseFloat(summary.complete[i])) : 0;
       return `<div class="tl-node active" style="left:${pos}%;">
+        <div class="tl-label-top">IN PROGRESS</div>
         <div class="tl-icon-wrap"><div class="tl-ring-outer"></div><div class="tl-ring-mid"></div><div class="tl-core">${pct}%</div></div>
         <div class="tl-label-bottom">${lbl}</div>
       </div>`;
