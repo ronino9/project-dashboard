@@ -5891,15 +5891,18 @@ function towerGetProjectStatus(code) {
   const items = [];
   codes.forEach(code => {
     let maxDelay = 0;
+    let hist;
     if (code.startsWith('CP')) {
-      const info = (allData.project1CsRiskMap || []).find(p => p.name === code);
-      maxDelay = info ? Math.round(parseFloat(info.y) || 0) : 0;
+      hist = ((allData.project1 && allData.project1.history) || []).filter(r => (r['프로젝트 코드'] || '').toString().trim() === code);
     } else {
       const pKey = TOWER_PKEY_MAP[code];
-      const hist = (allData[pKey] && allData[pKey].history) || [];
-      const delays = hist.map(r => parseInt(r['지연일']) || 0).filter(d => d > 0);
-      maxDelay = delays.length > 0 ? Math.max(...delays) : 0;
+      hist = (allData[pKey] && allData[pKey].history) || [];
     }
+    const delays = hist
+      .filter(r => (r['진행상태'] || '').toString().trim() === '지연중')
+      .map(r => parseInt(r['지연일']) || 0)
+      .filter(d => d > 0);
+    maxDelay = delays.length > 0 ? Math.max(...delays) : 0;
     const info = towerData[code] || {};
     const normCity = towerNormalize(info.city, TOWER_CITY_ALIAS);
     const normCountry = towerNormalize(info.country, TOWER_COUNTRY_ALIAS);
@@ -5980,8 +5983,8 @@ function towerGetProjectStatus(code) {
     const patchesHtml = patches.length === 0
       ? `<div class="hud-patch-empty">NO ACTIVE NODES</div>`
       : patches.map(p => `
-          <div class="hud-project-patch ${p.status}" title="${TOWER_LABEL_MAP[p.code] || p.code}">
-            <div class="hud-patch-dot"></div>${TOWER_LABEL_MAP[p.code] || p.code}
+          <div class="hud-project-patch ${p.status}" title="${p.code === 'ETC' ? 'ETC' : (TOWER_LABEL_MAP[p.code] || p.code)}">
+            <div class="hud-patch-dot"></div>${p.code === 'ETC' ? 'ETC' : (TOWER_LABEL_MAP[p.code] || p.code)}
           </div>`).join('');
 
     return `
