@@ -1076,17 +1076,17 @@
     #tower-map .leaflet-tile-pane { filter: brightness(3) contrast(1.15); }
     #tower-map .tower-tint { position:absolute; inset:0; background:#0d9488; mix-blend-mode:color; opacity:0.35; pointer-events:none; z-index:401; }
     #tower-map .tower-tint-light { position:absolute; inset:0; background:#5eead4; mix-blend-mode:soft-light; opacity:0.5; pointer-events:none; z-index:402; }
-    .tower-hud-overlay { position:absolute; top:0; left:12.5%; right:12.5%; bottom:0; pointer-events:none; }
+    .tower-hud-overlay { position:absolute; top:0; left:1%; right:1%; bottom:0; pointer-events:none; }
     .tower-hud-frame { position:absolute; inset:0; pointer-events:none; z-index:5000; }
-.tower-hud-status { position:absolute; top:44px; left:82px; display:flex; align-items:center; gap:8px; font-family:'Share Tech Mono', monospace; font-size:16px; font-weight:700; color:#67e8f9; letter-spacing:2px; text-shadow:0 0 3px rgba(103,232,249,0.9), 0 0 1px rgba(255,255,255,0.8); }
+.tower-hud-status { position:absolute; top:16px; left:14px; display:flex; align-items:center; gap:6px; font-family:'Orbitron', sans-serif; font-size:9px; font-weight:700; color:#022c22; letter-spacing:1.5px; background:rgba(103,232,249,0.55); padding:2px 7px; border-radius:2px; }
 .tower-hud-status-dot { width:10px; height:10px; border-radius:50%; background:#67e8f9; box-shadow:0 0 6px #67e8f9; animation:towerHudBlink 1.4s ease-in-out infinite; }
     @keyframes towerHudBlink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.25; }
 }
-.tower-hud-sys { position:absolute; bottom:44px; left:82px; font-family:'Share Tech Mono', monospace; font-size:14px; font-weight:700; color:#67e8f9; letter-spacing:1.5px; text-shadow:0 0 3px rgba(103,232,249,0.8), 0 0 1px rgba(255,255,255,0.7); }
+.tower-hud-sys { position:absolute; bottom:16px; left:14px; font-family:'Orbitron', sans-serif; font-size:8px; font-weight:600; color:#022c22; letter-spacing:0.8px; background:rgba(103,232,249,0.55); padding:2px 7px; border-radius:2px; }
 .tower-hud-sys .tower-hud-ok { color:#6ee7b7; text-shadow:0 0 3px rgba(110,231,183,0.9), 0 0 1px rgba(255,255,255,0.7); }
-.tower-hud-location { position:absolute; top:44px; right:82px; font-family:'Share Tech Mono', monospace; font-size:16px; font-weight:700; color:#67e8f9; letter-spacing:2px; text-shadow:0 0 3px rgba(103,232,249,0.9), 0 0 1px rgba(255,255,255,0.8); text-align:right; }
+.tower-hud-location { position:absolute; top:16px; right:14px; font-family:'Orbitron', sans-serif; font-size:9px; font-weight:600; color:#022c22; letter-spacing:1.5px; text-align:right; background:rgba(103,232,249,0.55); padding:2px 7px; border-radius:2px; }
 .tower-hud-ticks { position:absolute; inset:0; pointer-events:none; z-index:5001; }
 .tower-hud-tick { position:absolute; background:rgba(165,243,252,0.55); }
 .tower-hud-tick.v { width:1.5px; height:8px; }
