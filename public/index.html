@@ -1156,32 +1156,14 @@
     /* width를 75%로 줄이고, margin: 0 auto; 로 가운데 정렬 */
     #tower-map { width: 75%; margin: 0 auto; height: auto; aspect-ratio: 1 / 1; border-radius: 8px; overflow: hidden; }
     #tower-map .leaflet-tile-pane { filter: brightness(3) contrast(1.15); }
-    /* 기존 지도 전체를 덮던 틴트 요소 숨김 처리 (레이더 색상 간섭 방지) */
-    #tower-map .tower-tint, 
-    #tower-map .tower-tint-light { 
-      display: none !important; 
-    }
+    /* 1. 틴트 레이어를 타일(200)과 오버레이(400) 사이(250)에 끼워넣기 */
+    #tower-map .tower-tint { position:absolute; inset:0; background:#0d9488; mix-blend-mode:color; opacity:0.35; pointer-events:none; z-index:250; }
+    #tower-map .tower-tint-light { position:absolute; inset:0; background:#5eead4; mix-blend-mode:soft-light; opacity:0.5; pointer-events:none; z-index:251; }
 
-    /* 지도 '타일(바닥)' 레이어에만 직접 틴트 효과 적용 (마커 아래에 위치함) */
-    #tower-map .leaflet-tile-pane::before {
-      content: '';
-      position: absolute;
-      top: -5000px; left: -5000px; width: 10000px; height: 10000px;
-      background: #0d9488;
-      mix-blend-mode: color;
-      opacity: 0.35;
-      pointer-events: none;
-      z-index: 10;
-    }
-    #tower-map .leaflet-tile-pane::after {
-      content: '';
-      position: absolute;
-      top: -5000px; left: -5000px; width: 10000px; height: 10000px;
-      background: #5eead4;
-      mix-blend-mode: soft-light;
-      opacity: 0.5;
-      pointer-events: none;
-      z-index: 11;
+    /* 2. 레이더 마커와 오버레이(폴리곤/레이저)가 배경에 먹히지 않고 네온처럼 스스로 빛나게 처리 */
+    #tower-map .leaflet-overlay-pane,
+    #tower-map .leaflet-marker-pane {
+        mix-blend-mode: screen;
     }
     .tower-hud-overlay { position:absolute; top:0; left:1%; right:1%; bottom:0; pointer-events:none; }
     .tower-hud-frame { position:absolute; inset:0; pointer-events:none; z-index:5000; }
