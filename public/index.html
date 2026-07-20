@@ -5947,7 +5947,7 @@ window.renderTowerDefaultState = function() {
   const container = document.getElementById('tower-right');
   if (!container) return;
   window._towerSelectedCode = null;
-  window.renderTowerMacroTimeline(null);
+  if (typeof window.renderTowerMacroTimeline === 'function') window.renderTowerMacroTimeline(null);
 
   const towerData = allData.controlTower || {};
   const codes = Object.keys(towerData).filter(c => c !== 'ETC');
@@ -6276,7 +6276,7 @@ window.renderTowerMacroTimeline = function(code) {
   const firstCode = activeCode || group.projects[0];
   const isFirstCP = firstCode.startsWith('CP');
   window._towerSelectedCode = firstCode;
-  window.renderTowerMacroTimeline(firstCode);
+  if (typeof window.renderTowerMacroTimeline === 'function') window.renderTowerMacroTimeline(firstCode);
 
   let overall = '0%', hist = [], startDateVal = 'N/A', stageSummary = null;
 
