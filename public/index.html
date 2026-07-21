@@ -4400,7 +4400,7 @@ function weeklyBuildTable(rows, mode) {
       const issueClass = isIssue ? ' weekly-row-issue' : (isParentWithIssueChild ? ' weekly-row-issue-parent' : '');
       html += `<tr class="tt-row weekly-row${issueClass}" ${rowIdAttr} style="${border} ${rowStyleDisplay} cursor:pointer;" onclick="window.weeklyShowDetail('${r._pName}', ${origIdx}, '${mode}')">
         <td style="padding:8px 4px; text-align:center; color:${cell.pColor}; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${cell.codeCell}</td>
-        return { codeCell, p<td style="padding:8px 4px 8px 12px; color:#1e293b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${(cell.progressNote || '진행 사항 없음').replace(/"/g,'&quot;')}">Color, title, progressNote, taskType, recv, dateCol2, status, sColor };
+        <td style="padding:8px 4px 8px 12px; color:#1e293b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${(cell.progressNote || '진행 사항 없음').replace(/"/g,'&quot;')}">
           ${cell.title}
           ${!isChild ? `<span style="display:inline-flex; align-items:center; gap:4px; margin-left:6px; vertical-align:middle;">
             ${isGroup ? `<span onclick="event.stopPropagation(); window.weeklyToggleGroup('${groupId}', this)" style="cursor:pointer; font-size:12px; font-weight:700; color:#1d4ed8; background:#eff6ff; border:1px solid #bfdbfe; padding:4px 10px; border-radius:12px; transition:background 0.15s ease, box-shadow 0.15s ease;" onmouseover="this.style.background='#dbeafe'; this.style.boxShadow='0 1px 4px rgba(59,130,246,0.3)';" onmouseout="this.style.background='#eff6ff'; this.style.boxShadow='none';">${groupRows.length}건 ▾</span>` : ''}
