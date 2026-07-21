@@ -4386,7 +4386,6 @@ function weeklyBuildTable(rows, mode) {
       const rowBg = isIssue ? 'background:#fef2f2;' : '';
       const isLastOverall = gIdx === groupedList.length - 1 && rIdx === groupRows.length - 1;
       const border = isLastOverall ? '' : 'border-bottom:1px solid #f1f5f9;';
-      const hideStyle = isChild ? `display:none;" data-weekly-child="${groupId}` : '';
       const rowIdAttr = isChild ? `data-weekly-child="${groupId}"` : (isGroup ? `data-weekly-parent="${groupId}"` : '');
       const rowStyleDisplay = isChild ? 'display:none;' : '';
       html += `<tr class="tt-row weekly-row${isIssue ? ' weekly-row-issue' : ''}" ${rowIdAttr} style="${border} ${rowBg} ${rowStyleDisplay} cursor:pointer;" onclick="window.weeklyShowDetail('${r._pName}', ${origIdx}, '${mode}')">
