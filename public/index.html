@@ -4320,19 +4320,22 @@ function weeklyBuildTable(rows, mode) {
     return `<div style="padding:24px; text-align:center; color:#94a3b8; font-size:12px;">해당 기간에 접수된 항목이 없습니다.</div>`;
   }
   const dateCol2Label = mode === 'past' ? '완료일' : '완료예정';
-  let html = `<table style="width:100%; border-collapse:collapse; font-size:11px; table-layout:fixed;">
-    <colgroup><col style="width:52px;"><col style="width:auto;"><col style="width:44px;"><col style="width:46px;"><col style="width:46px;"><col style="width:56px;"></colgroup>
+  let html = `<table style="width:100%; border-collapse:collapse; font-size:13px; table-layout:fixed;">
+    <colgroup><col style="width:78px;"><col style="width:auto;"><col style="width:62px;"><col style="width:56px;"><col style="width:56px;"><col style="width:64px;"></colgroup>
     <thead><tr style="border-bottom:2px solid #e2e8f0;">
-      <th style="text-align:left; padding:6px 4px; color:#64748b; font-weight:700;">프로젝트 코드</th>
-      <th style="text-align:left; padding:6px 4px; color:#64748b; font-weight:700;">업무</th>
-      <th style="text-align:center; padding:6px 4px; color:#64748b; font-weight:700;">구분</th>
-      <th style="text-align:center; padding:6px 4px; color:#64748b; font-weight:700;">접수일</th>
-      <th style="text-align:center; padding:6px 4px; color:#64748b; font-weight:700;">${dateCol2Label}</th>
-      <th style="text-align:center; padding:6px 4px; color:#64748b; font-weight:700;">상태</th>
+      <th style="text-align:left; padding:8px 4px; color:#64748b; font-weight:700; white-space:nowrap;">프로젝트 코드</th>
+      <th style="text-align:left; padding:8px 4px; color:#64748b; font-weight:700;">업무</th>
+      <th style="text-align:center; padding:8px 4px; color:#64748b; font-weight:700;">구분</th>
+      <th style="text-align:center; padding:8px 4px; color:#64748b; font-weight:700;">접수일</th>
+      <th style="text-align:center; padding:8px 4px; color:#64748b; font-weight:700; white-space:nowrap;">${dateCol2Label}</th>
+      <th style="text-align:center; padding:8px 4px; color:#64748b; font-weight:700;">상태</th>
     </tr></thead><tbody>`;
 
   rows.forEach((r, idx) => {
-    const pLabel = WEEKLY_PNAME_LABEL[r._pName] || r._pName;
+    const rawCode = (r['프로젝트 코드'] || '').toString().trim();
+    let pLabel = WEEKLY_PNAME_LABEL[r._pName] || r._pName;
+    if (r._pName === 'CP' && rawCode) pLabel = rawCode;
+    else if (r._pName === 'ETC') pLabel = rawCode || '기타';
     const pColor = WEEKLY_PNAME_COLOR[r._pName] || '#64748b';
     const title = r['표준 제작 Item / Issue / 개선사항'] || r['제목'] || '(제목 없음)';
     const taskType = r['업무 구분'] || '-';
@@ -4349,12 +4352,12 @@ function weeklyBuildTable(rows, mode) {
     }
     const border = idx < rows.length - 1 ? 'border-bottom:1px solid #f1f5f9;' : '';
     html += `<tr class="tt-row" style="${border} cursor:pointer;" onclick="window.weeklyShowDetail('${r._pName}', ${idx}, '${mode}')">
-      <td style="padding:7px 4px; color:${pColor}; font-weight:700;">${pLabel}</td>
-      <td style="padding:7px 4px; color:#1e293b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${title.replace(/"/g,'&quot;')}">${title}</td>
-      <td style="padding:7px 4px; text-align:center; color:#64748b; font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${taskType}</td>
-      <td style="padding:7px 4px; text-align:center; color:#64748b; font-size:10.5px;">${recv || '-'}</td>
-      <td style="padding:7px 4px; text-align:center; color:${dateCol2 === '-' ? '#cbd5e1' : '#64748b'}; font-size:10.5px;">${dateCol2}</td>
-      <td style="padding:7px 4px; text-align:center; white-space:nowrap;"><span style="font-size:9px; font-weight:700; color:#ffffff; background:${sColor}; padding:2px 6px; border-radius:4px; white-space:nowrap;">${status}</span></td>
+      <td style="padding:8px 4px; color:${pColor}; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${pLabel}</td>
+      <td style="padding:8px 4px; color:#1e293b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${title.replace(/"/g,'&quot;')}">${title}</td>
+      <td style="padding:8px 4px; text-align:center; color:#64748b; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${taskType}</td>
+      <td style="padding:8px 4px; text-align:center; color:#64748b; font-size:12px; white-space:nowrap;">${recv || '-'}</td>
+      <td style="padding:8px 4px; text-align:center; color:${dateCol2 === '-' ? '#cbd5e1' : '#64748b'}; font-size:12px; white-space:nowrap;">${dateCol2}</td>
+      <td style="padding:8px 4px; text-align:center; white-space:nowrap;"><span style="font-size:11px; font-weight:700; color:#ffffff; background:${sColor}; padding:2px 6px; border-radius:4px; white-space:nowrap;">${status}</span></td>
     </tr>`;
   });
   html += `</tbody></table>`;
