@@ -1480,6 +1480,7 @@
   <!-- 5. 기간별 업무 내역 -->
   <div class="sidebar-group">
     <button id="btn-daily" class="sidebar-btn" onclick="window.switchTab('daily')">기간별 업무 내역</button>
+    <button id="btn-weekly" class="sidebar-btn" onclick="window.switchTab('weekly')">주간 업무 요약</button>
   </div>
 
   <!-- 6. 자비스 (맨 아래) -->
@@ -2542,6 +2543,24 @@ window.renderDeviationTrendTest = function() {
         </div>
       </div>
     </div>
+      <div id="weekly-panel" style="display:none;">
+      <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:20px;">
+        <div style="display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid #f1f5f9;">
+          <button onclick="window.weeklyMove(-1)" style="width:32px; height:32px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; cursor:pointer; font-size:14px; color:#475569;">‹</button>
+          <div style="text-align:center;">
+            <div id="weekly-range-label" style="font-size:15px; font-weight:700; color:#0f172a;"></div>
+            <div id="weekly-range-sub" style="font-size:11px; color:#94a3b8; margin-top:2px;"></div>
+          </div>
+          <button onclick="window.weeklyMove(1)" style="width:32px; height:32px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; cursor:pointer; font-size:14px; color:#475569;">›</button>
+          <button onclick="window.weeklyToday()" style="margin-left:8px; padding:6px 14px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; cursor:pointer; font-size:12px; font-weight:700; color:#475569;">오늘</button>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;" id="weekly-columns">
+          <div style="padding:40px; text-align:center; color:#64748b; grid-column:1/-1;">데이터 로딩 중...</div>
+        </div>
+      </div>
+    </div>
+
+</parameter>
     <div id="daily-panel" style="display:none;">
       <div style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:24px;">
         <div style="display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
@@ -3653,6 +3672,7 @@ window.showIssueDetail = function(idx) {
       const charts = document.getElementById('project-charts');
       const detailView = document.getElementById('detailView');
       const dailyPanel = document.getElementById('daily-panel');
+      const weeklyPanel = document.getElementById('weekly-panel');
       const towerPanel = document.getElementById('tower-panel');
       const csPanel = document.getElementById('cs-view');
       const aiPanel = document.getElementById('ai-panel');  
@@ -3669,6 +3689,7 @@ window.showIssueDetail = function(idx) {
       detailView.classList.remove('active');
       csPanel.style.display = 'none';
       dailyPanel.style.display = 'none';
+      weeklyPanel.style.display = 'none';
       towerPanel.style.display = 'none';
       docPanel.style.display = 'none';
       aiPanel.style.display = 'none';
@@ -3686,7 +3707,11 @@ window.showIssueDetail = function(idx) {
       } else if (tabId === 'daily') {
         const b = document.getElementById('btn-daily'); if (b) b.classList.add('active');
         dailyPanel.style.display = 'block';
-        window.renderCalendar();
+        window.renderDailyLog();
+      } else if (tabId === 'weekly') {
+        const b = document.getElementById('btn-weekly'); if (b) b.classList.add('active');
+        weeklyPanel.style.display = 'block';
+        window.renderWeeklySummary();
       } else if (tabId === 'tower') {
         const b = document.getElementById('btn-tower'); if (b) b.classList.add('active');
         towerPanel.style.display = 'block';
@@ -4256,6 +4281,161 @@ summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD · ${fo
     });
     content.innerHTML = html;
   }
+    window._weeklyCursor = new Date();
+
+window.weeklyMove = function(dir) {
+  window._weeklyCursor.setDate(window._weeklyCursor.getDate() + dir * 7);
+  window.renderWeeklySummary();
+};
+window.weeklyToday = function() {
+  window._weeklyCursor = new Date();
+  window.renderWeeklySummary();
+};
+
+function weeklyGetSundayOf(d) {
+  const nd = new Date(d);
+  nd.setDate(nd.getDate() - nd.getDay());
+  nd.setHours(0, 0, 0, 0);
+  return nd;
+}
+function weeklyFmt(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+function weeklyFmtShort(d) {
+  return `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+}
+
+const WEEKLY_STATUS_COLOR = {
+  '완료': '#059669', '지연완료': '#7c3aed', '지연중': '#dc2626',
+  'Issue': '#dc2626', '보류': '#64748b', '임박': '#d97706', '진행중': '#2563eb'
+};
+const WEEKLY_PNAME_LABEL = { OP8:'OP8', OP7:'OP7', OP6:'OP6', OP5:'OP5', OP4:'OP4', OP3:'OP3', OP2:'OP2', CP:'C/S', ETC:'기타' };
+const WEEKLY_PNAME_COLOR = { OP8:'#d97757', OP7:'#8cc63f', OP6:'#3b82f6', OP5:'#06b6d4', OP4:'#a855f7', OP3:'#92400e', OP2:'#f59e0b', CP:'#059669', ETC:'#64748b' };
+
+function weeklyBuildTable(rows, mode) {
+  if (rows.length === 0) {
+    return `<div style="padding:24px; text-align:center; color:#94a3b8; font-size:12px;">해당 기간에 접수된 항목이 없습니다.</div>`;
+  }
+  const dateCol2Label = mode === 'past' ? '완료일' : '완료예정';
+  let html = `<table style="width:100%; border-collapse:collapse; font-size:11px; table-layout:fixed;">
+    <colgroup><col style="width:38px;"><col style="width:auto;"><col style="width:46px;"><col style="width:46px;"><col style="width:42px;"></colgroup>
+    <thead><tr style="border-bottom:2px solid #e2e8f0;">
+      <th style="text-align:left; padding:6px 4px; color:#64748b; font-weight:700;">코드</th>
+      <th style="text-align:left; padding:6px 4px; color:#64748b; font-weight:700;">업무</th>
+      <th style="text-align:center; padding:6px 4px; color:#64748b; font-weight:700;">접수일</th>
+      <th style="text-align:center; padding:6px 4px; color:#64748b; font-weight:700;">${dateCol2Label}</th>
+      <th style="text-align:center; padding:6px 4px; color:#64748b; font-weight:700;">상태</th>
+    </tr></thead><tbody>`;
+
+  rows.forEach((r, idx) => {
+    const pLabel = WEEKLY_PNAME_LABEL[r._pName] || r._pName;
+    const pColor = WEEKLY_PNAME_COLOR[r._pName] || '#64748b';
+    const title = r['표준 제작 Item / Issue / 개선사항'] || r['제목'] || '(제목 없음)';
+    const status = r['진행상태'] || '-';
+    const sColor = WEEKLY_STATUS_COLOR[status] || '#64748b';
+    const recv = (r['접수일'] || '').toString().replace(/[./]/g, '-').substring(5, 10).replace('-', '.');
+    let dateCol2 = '-';
+    if (mode === 'past') {
+      const comp = (r['완료일'] || '').toString().replace(/[./]/g, '-').substring(5, 10).replace('-', '.');
+      dateCol2 = comp || '-';
+    } else {
+      const due = (r['완료예정일'] || '').toString().replace(/[./]/g, '-').substring(5, 10).replace('-', '.');
+      dateCol2 = due || '-';
+    }
+    const border = idx < rows.length - 1 ? 'border-bottom:1px solid #f1f5f9;' : '';
+    html += `<tr class="tt-row" style="${border} cursor:pointer;" onclick="window.weeklyShowDetail('${r._pName}', ${idx}, '${mode}')">
+      <td style="padding:7px 4px; color:${pColor}; font-weight:700;">${pLabel}</td>
+      <td style="padding:7px 4px; color:#1e293b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${title.replace(/"/g,'&quot;')}">${title}</td>
+      <td style="padding:7px 4px; text-align:center; color:#64748b; font-size:10.5px;">${recv || '-'}</td>
+      <td style="padding:7px 4px; text-align:center; color:${dateCol2 === '-' ? '#cbd5e1' : '#64748b'}; font-size:10.5px;">${dateCol2}</td>
+      <td style="padding:7px 4px; text-align:center;"><span style="font-size:9px; font-weight:700; color:#ffffff; background:${sColor}; padding:2px 6px; border-radius:4px;">${status}</span></td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  return html;
+}
+
+function weeklyGroupByProject(rows) {
+  const order = ['OP8','OP7','OP6','OP5','OP4','OP3','OP2','CP','ETC'];
+  const grouped = {};
+  rows.forEach(r => {
+    if (!grouped[r._pName]) grouped[r._pName] = [];
+    grouped[r._pName].push(r);
+  });
+  return order.filter(p => grouped[p] && grouped[p].length > 0).map(p => ({ pName: p, rows: grouped[p] }));
+}
+
+window._weeklyPastRows = [];
+window._weeklyCurRows = [];
+
+window.renderWeeklySummary = function() {
+  const rows = window.allMasterData || [];
+  if (rows.length === 0) {
+    document.getElementById('weekly-columns').innerHTML = '<div style="padding:40px; text-align:center; color:#64748b; grid-column:1/-1;">데이터를 먼저 불러와주세요.</div>';
+    return;
+  }
+
+  const thisSun = weeklyGetSundayOf(window._weeklyCursor);
+  const thisSat = new Date(thisSun); thisSat.setDate(thisSat.getDate() + 6);
+  const pastSun = new Date(thisSun); pastSun.setDate(pastSun.getDate() - 7);
+  const pastSat = new Date(thisSun); pastSat.setDate(pastSat.getDate() - 1);
+
+  const thisSunStr = weeklyFmt(thisSun), thisSatStr = weeklyFmt(thisSat);
+  const pastSunStr = weeklyFmt(pastSun), pastSatStr = weeklyFmt(pastSat);
+
+  document.getElementById('weekly-range-label').textContent = `${weeklyFmt(pastSun).substring(0,4)}.${weeklyFmtShort(pastSun)} (일) ~ ${weeklyFmtShort(thisSat)} (토)`;
+  document.getElementById('weekly-range-sub').textContent = '전주 실적 · 금주 계획';
+
+  const normDate = (r) => (r['접수일'] || '').toString().replace(/[./]/g, '-').substring(0, 10);
+
+  const pastRows = rows.filter(r => { const d = normDate(r); return d >= pastSunStr && d <= pastSatStr; })
+    .sort((a, b) => normDate(a) < normDate(b) ? -1 : 1);
+  const curRows = rows.filter(r => { const d = normDate(r); return d >= thisSunStr && d <= thisSatStr; })
+    .sort((a, b) => normDate(a) < normDate(b) ? -1 : 1);
+
+  window._weeklyPastRows = pastRows;
+  window._weeklyCurRows = curRows;
+
+  const pastGroups = weeklyGroupByProject(pastRows);
+  const curGroups = weeklyGroupByProject(curRows);
+
+  const buildColumn = (title, badgeText, badgeBg, groups, mode) => {
+    let inner = groups.map(g => {
+      const label = WEEKLY_PNAME_LABEL[g.pName] || g.pName;
+      const color = WEEKLY_PNAME_COLOR[g.pName] || '#64748b';
+      return `<div style="margin-bottom:14px;">
+        <div style="font-size:11px; font-weight:700; color:${color}; margin-bottom:4px;">${label}</div>
+        ${weeklyBuildTable(g.rows, mode)}
+      </div>`;
+    }).join('');
+    if (groups.length === 0) inner = `<div style="padding:24px; text-align:center; color:#94a3b8; font-size:12px;">해당 기간에 접수된 항목이 없습니다.</div>`;
+    return `<div>
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+        <span style="font-size:13px; font-weight:700; color:#0f172a;">${title}</span>
+        <span style="font-size:10px; font-weight:600; color:#64748b; background:${badgeBg}; padding:2px 8px; border-radius:10px;">${badgeText}</span>
+      </div>
+      ${inner}
+    </div>`;
+  };
+
+  const html = buildColumn('전주 실적', `${weeklyFmtShort(pastSun)} ~ ${weeklyFmtShort(pastSat)}`, '#f1f5f9', pastGroups, 'past')
+    + buildColumn('금주 계획', `${weeklyFmtShort(thisSun)} ~ ${weeklyFmtShort(thisSat)}`, '#eff6ff', curGroups, 'future');
+
+  document.getElementById('weekly-columns').innerHTML = html;
+};
+
+window.weeklyShowDetail = function(pName, idxInGroup, mode) {
+  const source = mode === 'past' ? window._weeklyPastRows : window._weeklyCurRows;
+  const groupRows = source.filter(r => r._pName === pName);
+  const row = groupRows[idxInGroup];
+  if (!row) return;
+  const rowCopy = { '프로젝트 코드': WEEKLY_PNAME_LABEL[pName] || pName, '접수일': row['접수일'] || '-', ...row };
+  const title = row['표준 제작 Item / Issue / 개선사항'] || row['제목'] || '(제목 없음)';
+  window.showDetailView(`${WEEKLY_PNAME_LABEL[pName] || pName} 주간 업무`, title, [rowCopy]);
+};
     function ganttDaysBetween(a, b) {
   return Math.round((new Date(b) - new Date(a)) / 86400000);
 }
