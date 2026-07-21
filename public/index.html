@@ -81,13 +81,13 @@
     .app-shell { display: flex; align-items: flex-start; min-height: 100vh; }
     
     /* =========================================================
-   👇 High-End HUD Sidebar (Light Premium Edition) V2 - 아이콘 제거판 👇
+   👇 High-End HUD Sidebar (Light Premium Edition) V3 - 고대비 보완판 👇
    ========================================================= */
 .sidebar { 
   width: 220px; 
   flex-shrink: 0; 
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); 
-  border-right: 1px solid rgba(226, 232, 240, 0.8); 
+  background: #ffffff; 
+  border-right: 1px solid #e2e8f0; 
   min-height: 100vh; 
   padding: 24px 14px; 
   position: sticky; 
@@ -116,12 +116,11 @@
   background: #3b82f6;
   margin: 10px 12px 20px 12px;
   border-radius: 2px;
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
 }
 
 .sidebar-divider {
   height: 1px;
-  background: rgba(226, 232, 240, 0.8);
+  background: #e2e8f0;
   margin: 12px 12px;
 }
 
@@ -131,7 +130,7 @@
   font-family: 'Share Tech Mono', monospace; 
   font-size: 10.5px; 
   font-weight: 700; 
-  color: #94a3b8; 
+  color: #64748b; 
   text-transform: uppercase; 
   letter-spacing: 1.5px; 
   padding: 0 12px; 
@@ -146,20 +145,19 @@
   text-align: left; 
   background: transparent; 
   border: none; 
-  color: #64748b; 
+  color: #475569; 
   padding: 10px 14px; 
   border-radius: 8px; 
   font-size: 13px; 
   font-weight: 600; 
   cursor: pointer; 
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); 
+  transition: all 0.18s ease; 
   position: relative;
 }
 
 .sidebar-btn:hover { 
-  background: #f1f5f9; 
+  background: #e2e8f0; 
   color: #0f172a; 
-  transform: translateX(3px);
 }
 
 .sidebar-btn:focus,
@@ -177,11 +175,10 @@
 }
 
 .sidebar-btn.active { 
-  background: #eff6ff; 
-  color: #1d4ed8; 
+  background: #3b82f6; 
+  color: #ffffff; 
   font-weight: 700; 
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
-  transform: translateX(3px);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 /* 선택된 메뉴 좌측 강조 바 */
@@ -193,77 +190,87 @@
   transform: translateY(-50%);
   width: 4px;
   height: 16px;
-  background: #3b82f6;
+  background: #1d4ed8;
   border-radius: 4px;
 }
 
+/* 배지: 기본은 프로젝트명과 같은 톤으로 죽이고, hover 시에만 밝아짐 */
 .sidebar-sub { 
   font-family: 'Share Tech Mono', monospace; 
   font-size: 9.5px; 
   color: #94a3b8; 
-  font-weight: 600; 
+  font-weight: 700; 
   margin-left: auto; 
-  background: #f8fafc;
-  padding: 1px 6px;
+  background: #f1f5f9;
+  padding: 2px 7px;
   border-radius: 6px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid #e2e8f0;
+  transition: all 0.18s ease;
 }
-.sidebar-btn.active .sidebar-sub { 
-  background: #dbeafe; 
-  color: #2563eb; 
-  border-color: #bfdbfe; 
+.sidebar-btn.sub-btn:hover .sidebar-sub {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-color: #93c5fd;
+}
+.sidebar-btn.sub-btn[data-status="complete"]:hover .sidebar-sub {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
 }
 
 /* 개별 프로젝트(하위 항목) 전용 - 점 인디케이터 + 들여쓰기 */
 .sidebar-btn.sub-btn { 
   padding: 8px 14px 8px 26px; 
   font-size: 12px; 
+  color: #64748b;
   justify-content: space-between;
 }
+.sidebar-btn.sub-btn:hover { color: #0f172a; }
 .sidebar-btn.sub-btn::after {
   content: ''; 
   position: absolute; 
   left: 12px; 
   top: 50%; 
   transform: translateY(-50%);
-  width: 4px; 
-  height: 4px; 
+  width: 5px; 
+  height: 5px; 
   border-radius: 50%; 
   background: #cbd5e1; 
-  transition: background 0.2s;
+  transition: background 0.18s ease;
 }
 .sidebar-btn.sub-btn:hover::after { background: #3b82f6; }
-.sidebar-btn.sub-btn.active::after { background: #1d4ed8; }
-.sidebar-btn.sub-btn.active::before { display: none; } /* 하위 항목은 좌측 강조 바 대신 점 색상으로만 표시 */
+.sidebar-btn.sub-btn.active { background: #3b82f6; color: #ffffff; }
+.sidebar-btn.sub-btn.active::after { background: #ffffff; }
+.sidebar-btn.sub-btn.active::before { display: none; }
+.sidebar-btn.sub-btn.active .sidebar-sub { background: rgba(255,255,255,0.25); color: #ffffff; border-color: rgba(255,255,255,0.4); }
 
-/* 프리미엄 검색창 (음각 효과) */
+/* 프리미엄 검색창 */
 .sidebar-search-wrap { position: relative; margin-bottom: 4px; }
 .sidebar-search-input { 
   display: flex; 
   align-items: center; 
   width: 100%; 
   padding: 10px 14px; 
-  border: 1px solid #e2e8f0; 
+  border: 1px solid #cbd5e1; 
   border-radius: 8px; 
-  background: #ffffff; 
-  box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.02);
+  background: #f8fafc; 
   cursor: pointer; 
-  color: #64748b; 
+  color: #475569; 
   font-size: 12px; 
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
 }
 .sidebar-search-input:hover { 
-  border-color: #93c5fd; 
-  background: #f8fafc; 
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6; 
+  background: #eff6ff; 
+  color: #1d4ed8;
 }
 .sidebar-search-input:focus,
 .sidebar-search-input:focus-visible {
   outline: none;
 }
 
-/* 물리 버튼 질감을 살린 네오모피즘 자비스 버튼 */
+/* 네오모피즘 자비스 버튼 */
 .sidebar-btn-jarvis { 
   display: flex; 
   align-items: center; 
@@ -271,32 +278,28 @@
   width: 100%; 
   padding: 10px 12px; 
   border-radius: 12px; 
-  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%); 
-  border: 1px solid rgba(226, 232, 240, 0.8); 
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04), inset 0 2px 0 rgba(255, 255, 255, 1);
+  background: #f8fafc; 
+  border: 1px solid #cbd5e1; 
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
   cursor: pointer; 
   text-align: left; 
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+  transition: all 0.2s ease; 
 }
 .sidebar-btn-jarvis:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08), inset 0 2px 0 rgba(255, 255, 255, 1);
-  border-color: #cbd5e1;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
+  border-color: #94a3b8;
+  background: #f1f5f9;
 }
 
 /* =========================================================
    👇 Control Tower(자비스) 전용 다크 테마 - 새 구조 대응 보완 👇
    ========================================================= */
-.sidebar.sidebar-tower-theme .sidebar-btn.active::before {
-  background: #67e8f9;
-  box-shadow: 0 0 6px rgba(103, 232, 249, 0.7);
-}
-.sidebar.sidebar-tower-theme .sidebar-btn.sub-btn::after {
-  background: rgba(103, 232, 249, 0.3);
-}
+.sidebar.sidebar-tower-theme .sidebar-btn.active::before { display: none; }
+.sidebar.sidebar-tower-theme .sidebar-btn.sub-btn::after { background: rgba(103, 232, 249, 0.35); }
 .sidebar.sidebar-tower-theme .sidebar-btn.sub-btn:hover::after { background: #67e8f9; }
-.sidebar.sidebar-tower-theme .sidebar-btn.sub-btn.active::after { background: #67e8f9; box-shadow: 0 0 6px #67e8f9; }
-.sidebar.sidebar-tower-theme .sidebar-divider { background: rgba(14, 116, 144, 0.4); }
+.sidebar.sidebar-tower-theme .sidebar-btn.sub-btn.active::after { background: #020617; }
+.sidebar.sidebar-tower-theme .sidebar-divider { background: rgba(14, 116, 144, 0.5); }
 .sidebar.sidebar-tower-theme .sidebar-logo-divider { background: #67e8f9; box-shadow: 0 0 8px rgba(103,232,249,0.6); }
     /* ========================================================= */
 
@@ -1451,7 +1454,7 @@
     <button id="btn-project4" class="sidebar-btn sub-btn" onclick="window.switchTab('project4')">OP4<span class="sidebar-sub">Ongoing</span></button>
     <button id="btn-project3" class="sidebar-btn sub-btn" onclick="window.switchTab('project3')">OP3<span class="sidebar-sub">Ongoing</span></button>
     <button id="btn-project2" class="sidebar-btn sub-btn" onclick="window.switchTab('project2')">OP2<span class="sidebar-sub">Ongoing</span></button>
-    <button id="btn-project1cs" class="sidebar-btn sub-btn" onclick="window.switchTab('project1cs')">CP_All<span class="sidebar-sub">Complete</span></button>
+    <button id="btn-project1cs" class="sidebar-btn sub-btn" data-status="complete" onclick="window.switchTab('project1cs')">CP_All<span class="sidebar-sub">Complete</span></button>
   </div>
 
   <div class="sidebar-divider"></div>
