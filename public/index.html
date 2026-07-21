@@ -4471,7 +4471,6 @@ window.weeklyToggleGroup = function(groupId, badgeEl) {
 };
 
 window.weeklyShowDetail = function(pName, idxInGroup, mode) {
-window.weeklyShowDetail = function(pName, idxInGroup, mode) {
   const source = mode === 'past' ? window._weeklyPastRows : window._weeklyCurRows;
   const groupRows = source.filter(r => r._pName === pName);
   const row = groupRows[idxInGroup];
