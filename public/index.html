@@ -4380,6 +4380,10 @@ function weeklyBuildTable(rows, mode) {
     const isGroup = groupRows.length > 1;
     const groupId = isGroup ? `weekly-g-${mode}-${gIdx}` : null;
     const groupHasIssue = groupRows.some(r => (r['업무 구분'] || '-') === 'Issue');
+    const doneCount = groupRows.filter(r => (r['진행상태'] || '').toString().includes('완료')).length;
+    const totalCount = groupRows.length;
+    const donePct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+    const pctColor = donePct >= 100 ? '#16a34a' : (donePct >= 50 ? '#3b82f6' : '#94a3b8');
     groupRows.forEach((r, rIdx) => {
       const origIdx = rows.indexOf(r);
       const isChild = isGroup && rIdx > 0;
@@ -4395,7 +4399,16 @@ function weeklyBuildTable(rows, mode) {
       const issueClass = isIssue ? ' weekly-row-issue' : (isParentWithIssueChild ? ' weekly-row-issue-parent' : '');
       html += `<tr class="tt-row weekly-row${issueClass}" ${rowIdAttr} style="${border} ${rowStyleDisplay} cursor:pointer;" onclick="window.weeklyShowDetail('${r._pName}', ${origIdx}, '${mode}')">
         <td style="padding:8px 4px; text-align:center; color:${cell.pColor}; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${cell.codeCell}</td>
-        <td style="padding:8px 4px 8px 12px; color:#1e293b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${cell.title.replace(/"/g,'&quot;')}">${cell.title}${!isChild && isGroup ? ` <span onclick="event.stopPropagation(); window.weeklyToggleGroup('${groupId}', this)" style="cursor:pointer; font-size:10px; font-weight:700; color:#3b82f6; background:#eff6ff; padding:1px 6px; border-radius:8px; margin-left:4px;">${groupRows.length}건 ▾</span>` : ''}</td>
+        <td style="padding:8px 4px 8px 12px; color:#1e293b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${cell.title.replace(/"/g,'&quot;')}">
+          ${cell.title}
+          ${!isChild ? `<span style="display:inline-flex; align-items:center; gap:4px; margin-left:6px; vertical-align:middle;">
+            ${isGroup ? `<span onclick="event.stopPropagation(); window.weeklyToggleGroup('${groupId}', this)" style="cursor:pointer; font-size:10px; font-weight:700; color:#3b82f6; background:#eff6ff; padding:1px 6px; border-radius:8px;">${groupRows.length}건 ▾</span>` : ''}
+            <span style="display:inline-flex; align-items:center; gap:3px;">
+              <span style="width:32px; height:5px; background:#f1f5f9; border-radius:3px; overflow:hidden; display:inline-block;"><span style="display:block; height:100%; width:${donePct}%; background:${pctColor}; border-radius:3px;"></span></span>
+              <span style="font-size:10px; font-weight:700; color:${pctColor};">${donePct}%</span>
+            </span>
+          </span>` : ''}
+        </td>
         <td style="padding:8px 4px; text-align:center; color:#64748b; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${cell.taskType}</td>
         <td style="padding:8px 4px; text-align:center; color:#64748b; font-size:12px; white-space:nowrap;">${cell.recv || '-'}</td>
         <td style="padding:8px 4px; text-align:center; color:${cell.dateCol2 === '-' ? '#cbd5e1' : '#64748b'}; font-size:12px; white-space:nowrap;">${cell.dateCol2}</td>
