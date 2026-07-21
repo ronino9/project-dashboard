@@ -81,256 +81,223 @@
     .app-shell { display: flex; align-items: flex-start; min-height: 100vh; }
     
     /* =========================================================
-       👇 High-End HUD Sidebar (Light Premium Edition) 👇
-       ========================================================= */
-    .sidebar { 
-      width: 220px; 
-      flex-shrink: 0; 
-      /* 은은한 실버/화이트 메탈릭 베이스 */
-      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); 
-      border-right: 1px solid rgba(226, 232, 240, 0.8); 
-      min-height: 100vh; 
-      padding: 24px 14px; 
-      position: sticky; 
-      top: 0; 
-      display: flex; 
-      flex-direction: column; 
-      gap: 16px; 
-      /* 공간감을 주는 소프트 섀도우 */
-      box-shadow: 4px 0 24px rgba(15, 23, 42, 0.03); 
-      z-index: 100;
-    }
+   👇 High-End HUD Sidebar (Light Premium Edition) V2 - 아이콘 제거판 👇
+   ========================================================= */
+.sidebar { 
+  width: 220px; 
+  flex-shrink: 0; 
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); 
+  border-right: 1px solid rgba(226, 232, 240, 0.8); 
+  min-height: 100vh; 
+  padding: 24px 14px; 
+  position: sticky; 
+  top: 0; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 6px; 
+  box-shadow: 4px 0 24px rgba(15, 23, 42, 0.03); 
+  z-index: 100;
+}
 
-    .sidebar-logo { 
-      font-family: 'Orbitron', sans-serif; 
-      font-size: 16px; 
-      font-weight: 800; 
-      color: #0f172a; 
-      text-transform: uppercase; 
-      letter-spacing: 2px; 
-      padding: 4px 12px 20px; 
-      border-bottom: 1px solid rgba(226, 232, 240, 0.6); 
-      margin-bottom: 8px; 
-      position: relative;
-    }
-    
-    /* 로고 하단에 정교한 블루 엣지 라인 추가 */
-    .sidebar-logo::after {
-      content: '';
-      position: absolute;
-      bottom: -1px;
-      left: 12px;
-      width: 40px;
-      height: 2px;
-      background: #3b82f6;
-      box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
-    }
+.sidebar-logo { 
+  font-family: 'Orbitron', sans-serif; 
+  font-size: 16px; 
+  font-weight: 800; 
+  color: #0f172a; 
+  text-transform: uppercase; 
+  letter-spacing: 2px; 
+  padding: 4px 12px 0; 
+  position: relative;
+}
 
-    .sidebar-group { display: flex; flex-direction: column; gap: 4px; }
-    
-    .sidebar-group-label { 
-      font-family: 'Share Tech Mono', monospace; 
-      font-size: 12px; 
-      font-weight: 700; 
-      color: #475569; 
-      text-transform: uppercase; 
-      letter-spacing: 1px; 
-      padding: 0 12px; 
-      margin-bottom: 4px; 
-    }
+.sidebar-logo-divider {
+  height: 3px;
+  width: 32px;
+  background: #3b82f6;
+  margin: 10px 12px 20px 12px;
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+}
 
-    .sidebar-btn { 
-      display: flex; 
-      align-items: center; 
-      gap: 10px; 
-      width: 100%; 
-      text-align: left; 
-      background: transparent; 
-      border: none; 
-      color: #64748b; 
-      padding: 10px 12px; 
-      border-radius: 8px; 
-      border-left: 3px solid transparent; 
-      font-size: 13px; 
-      font-weight: 600; 
-      cursor: pointer; 
-      /* 부드러운 호버 슬라이드 액션 */
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); 
-    }
+.sidebar-divider {
+  height: 1px;
+  background: rgba(226, 232, 240, 0.8);
+  margin: 12px 12px;
+}
 
-    .sidebar-btn:hover { 
-      background: #f1f5f9; 
-      color: #0f172a; 
-      border-left-color: #cbd5e1;
-      transform: translateX(3px);
-    }
-    .sidebar-btn:focus,
-    .sidebar-btn:focus-visible,
-    .sidebar-btn:active,
-    .sidebar-btn-jarvis:focus,
-    .sidebar-btn-jarvis:focus-visible,
-    .sidebar-btn-jarvis:active {
-      outline: none !important;
-      box-shadow: none !important;
-    }
-    .sidebar-btn,
-    .sidebar-btn-jarvis {
-      -webkit-tap-highlight-color: transparent;
-    }
+.sidebar-group { display: flex; flex-direction: column; gap: 3px; }
 
-    .sidebar-btn.active { 
-      background: #eff6ff; 
-      color: #1d4ed8; 
-      font-weight: 700; 
-      border-left-color: #3b82f6; 
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
-      transform: translateX(3px);
-    }
+.sidebar-group-label { 
+  font-family: 'Share Tech Mono', monospace; 
+  font-size: 10.5px; 
+  font-weight: 700; 
+  color: #94a3b8; 
+  text-transform: uppercase; 
+  letter-spacing: 1.5px; 
+  padding: 0 12px; 
+  margin-top: 4px;
+  margin-bottom: 6px; 
+}
 
-    .sidebar-icon { font-size: 16px; flex-shrink: 0; }
-    
-    .sidebar-sub { 
-      font-family: 'Share Tech Mono', monospace; 
-      font-size: 9.5px; 
-      color: #94a3b8; 
-      font-weight: 600; 
-      margin-left: auto; 
-    }
-    .sidebar-btn.active .sidebar-sub { color: #3b82f6; }
+.sidebar-btn { 
+  display: flex; 
+  align-items: center; 
+  width: 100%; 
+  text-align: left; 
+  background: transparent; 
+  border: none; 
+  color: #64748b; 
+  padding: 10px 14px; 
+  border-radius: 8px; 
+  font-size: 13px; 
+  font-weight: 600; 
+  cursor: pointer; 
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); 
+  position: relative;
+}
 
-    /* 프리미엄 검색창 (음각 효과) */
-    .sidebar-search-wrap { position: relative; }
-    .sidebar-search-input { 
-      display: flex; 
-      align-items: center; 
-      gap: 8px; 
-      width: 100%; 
-      padding: 10px 12px; 
-      border: 1px solid #e2e8f0; 
-      border-radius: 8px; 
-      background: #ffffff; 
-      box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.02);
-      cursor: pointer; 
-      color: #64748b; 
-      font-size: 12px; 
-      transition: all 0.2s ease;
-    }
-    .sidebar-search-input:hover { 
-      border-color: #93c5fd; 
-      background: #f8fafc; 
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-    .sidebar-search-input i { font-size: 14px; flex-shrink: 0; color: #3b82f6; }
+.sidebar-btn:hover { 
+  background: #f1f5f9; 
+  color: #0f172a; 
+  transform: translateX(3px);
+}
 
-    /* 물리 버튼 질감을 살린 네오모피즘 자비스 버튼 */
-    .sidebar-btn-jarvis { 
-      display: flex; 
-      align-items: center; 
-      gap: 12px; 
-      width: 100%; 
-      padding: 10px 12px; 
-      border-radius: 12px; 
-      background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%); 
-      border: 1px solid rgba(226, 232, 240, 0.8); 
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04), inset 0 2px 0 rgba(255, 255, 255, 1);
-      cursor: pointer; 
-      text-align: left; 
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
-    }
+.sidebar-btn:focus,
+.sidebar-btn:focus-visible,
+.sidebar-btn:active,
+.sidebar-btn-jarvis:focus,
+.sidebar-btn-jarvis:focus-visible,
+.sidebar-btn-jarvis:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.sidebar-btn,
+.sidebar-btn-jarvis {
+  -webkit-tap-highlight-color: transparent;
+}
 
-    /* =========================================================
-       👇 Control Tower 전용 HUD 사이드바 테마 (자비스 탭에서만 적용) 👇
-       ========================================================= */
-    .sidebar.sidebar-tower-theme {
-      background: linear-gradient(180deg, #020617 0%, #0a1628 100%);
-      border-right: 1px solid rgba(14, 116, 144, 0.6);
-      box-shadow: 4px 0 30px rgba(6, 182, 212, 0.18), inset -1px 0 0 rgba(103, 232, 249, 0.08);
-      position: sticky;
-    }
-    .sidebar.sidebar-tower-theme::before,
-    .sidebar.sidebar-tower-theme::after {
-      content: '';
-      position: absolute;
-      width: 14px; height: 14px;
-      border-color: #67e8f9;
-      opacity: 0.5;
-      pointer-events: none;
-      filter: drop-shadow(0 0 3px rgba(103, 232, 249, 0.6));
-    }
-    .sidebar.sidebar-tower-theme::before { top: 10px; left: 10px; border-top: 2px solid; border-left: 2px solid; }
-    .sidebar.sidebar-tower-theme::after { bottom: 10px; right: 10px; border-bottom: 2px solid; border-right: 2px solid; }
+.sidebar-btn.active { 
+  background: #eff6ff; 
+  color: #1d4ed8; 
+  font-weight: 700; 
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
+  transform: translateX(3px);
+}
 
-    .sidebar-tower-theme .sidebar-logo {
-      font-family: 'Orbitron', sans-serif;
-      color: #67e8f9;
-      text-shadow: 0 0 8px rgba(103, 232, 249, 0.5);
-      border-bottom-color: rgba(14, 116, 144, 0.4);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .sidebar-tower-theme .sidebar-logo::before {
-      content: '';
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: #67e8f9;
-      box-shadow: 0 0 6px #67e8f9;
-      animation: towerHudBlink 1.4s ease-in-out infinite;
-      flex-shrink: 0;
-    }
-    .sidebar-tower-theme .sidebar-logo::after {
-      background: #67e8f9;
-      box-shadow: 0 0 10px rgba(103, 232, 249, 0.8);
-    }
+/* 선택된 메뉴 좌측 강조 바 */
+.sidebar-btn.active::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 16px;
+  background: #3b82f6;
+  border-radius: 4px;
+}
 
-    .sidebar-tower-theme .sidebar-group-label {
-      font-family: 'Share Tech Mono', monospace;
-      color: rgba(103, 232, 249, 0.45);
-    }
+.sidebar-sub { 
+  font-family: 'Share Tech Mono', monospace; 
+  font-size: 9.5px; 
+  color: #94a3b8; 
+  font-weight: 600; 
+  margin-left: auto; 
+  background: #f8fafc;
+  padding: 1px 6px;
+  border-radius: 6px;
+  border: 1px solid #f1f5f9;
+}
+.sidebar-btn.active .sidebar-sub { 
+  background: #dbeafe; 
+  color: #2563eb; 
+  border-color: #bfdbfe; 
+}
 
-    .sidebar-tower-theme .sidebar-btn {
-      color: rgba(207, 250, 254, 0.55);
-    }
-    .sidebar-tower-theme .sidebar-btn:hover {
-      background: rgba(103, 232, 249, 0.08);
-      color: #67e8f9;
-      border-left-color: rgba(103, 232, 249, 0.5);
-      box-shadow: inset 0 0 12px rgba(103, 232, 249, 0.08);
-    }
-    .sidebar-tower-theme .sidebar-btn.active {
-      background: rgba(103, 232, 249, 0.12);
-      color: #67e8f9;
-      border-left-color: #67e8f9;
-      box-shadow: 0 0 14px rgba(103, 232, 249, 0.25), inset 0 0 10px rgba(103, 232, 249, 0.15);
-      text-shadow: 0 0 6px rgba(103, 232, 249, 0.6);
-    }
-    .sidebar-tower-theme .sidebar-sub { color: rgba(103, 232, 249, 0.4); }
-    .sidebar-tower-theme .sidebar-btn.active .sidebar-sub { color: #67e8f9; }
+/* 개별 프로젝트(하위 항목) 전용 - 점 인디케이터 + 들여쓰기 */
+.sidebar-btn.sub-btn { 
+  padding: 8px 14px 8px 26px; 
+  font-size: 12px; 
+  justify-content: space-between;
+}
+.sidebar-btn.sub-btn::after {
+  content: ''; 
+  position: absolute; 
+  left: 12px; 
+  top: 50%; 
+  transform: translateY(-50%);
+  width: 4px; 
+  height: 4px; 
+  border-radius: 50%; 
+  background: #cbd5e1; 
+  transition: background 0.2s;
+}
+.sidebar-btn.sub-btn:hover::after { background: #3b82f6; }
+.sidebar-btn.sub-btn.active::after { background: #1d4ed8; }
+.sidebar-btn.sub-btn.active::before { display: none; } /* 하위 항목은 좌측 강조 바 대신 점 색상으로만 표시 */
 
-    .sidebar-tower-theme .sidebar-search-input {
-      background: rgba(10, 22, 40, 0.6);
-      border-color: rgba(14, 116, 144, 0.5);
-      color: rgba(207, 250, 254, 0.6);
-      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
-    }
-    .sidebar-tower-theme .sidebar-search-input:hover {
-      border-color: #67e8f9;
-      background: rgba(103, 232, 249, 0.06);
-      box-shadow: 0 0 0 3px rgba(103, 232, 249, 0.1);
-    }
-    .sidebar-tower-theme .sidebar-search-input i { color: #67e8f9; }
+/* 프리미엄 검색창 (음각 효과) */
+.sidebar-search-wrap { position: relative; margin-bottom: 4px; }
+.sidebar-search-input { 
+  display: flex; 
+  align-items: center; 
+  width: 100%; 
+  padding: 10px 14px; 
+  border: 1px solid #e2e8f0; 
+  border-radius: 8px; 
+  background: #ffffff; 
+  box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.02);
+  cursor: pointer; 
+  color: #64748b; 
+  font-size: 12px; 
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.sidebar-search-input:hover { 
+  border-color: #93c5fd; 
+  background: #f8fafc; 
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.sidebar-search-input:focus,
+.sidebar-search-input:focus-visible {
+  outline: none;
+}
 
-    .sidebar-tower-theme .sidebar-btn-jarvis {
-      background: linear-gradient(135deg, rgba(103, 232, 249, 0.1) 0%, rgba(10, 22, 40, 0.5) 100%);
-      border-color: rgba(103, 232, 249, 0.45);
-      box-shadow: 0 0 16px rgba(103, 232, 249, 0.15), inset 0 1px 0 rgba(103, 232, 249, 0.1);
-    }
-    .sidebar-tower-theme .sidebar-btn-jarvis:hover {
-      background: linear-gradient(135deg, rgba(103, 232, 249, 0.18) 0%, rgba(10, 22, 40, 0.7) 100%);
-      border-color: #67e8f9;
-      box-shadow: 0 0 26px rgba(103, 232, 249, 0.3), inset 0 1px 0 rgba(103, 232, 249, 0.2);
-      transform: translateY(-2px);
-    }
+/* 물리 버튼 질감을 살린 네오모피즘 자비스 버튼 */
+.sidebar-btn-jarvis { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  width: 100%; 
+  padding: 10px 12px; 
+  border-radius: 12px; 
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%); 
+  border: 1px solid rgba(226, 232, 240, 0.8); 
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04), inset 0 2px 0 rgba(255, 255, 255, 1);
+  cursor: pointer; 
+  text-align: left; 
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+}
+.sidebar-btn-jarvis:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08), inset 0 2px 0 rgba(255, 255, 255, 1);
+  border-color: #cbd5e1;
+}
+
+/* =========================================================
+   👇 Control Tower(자비스) 전용 다크 테마 - 새 구조 대응 보완 👇
+   ========================================================= */
+.sidebar.sidebar-tower-theme .sidebar-btn.active::before {
+  background: #67e8f9;
+  box-shadow: 0 0 6px rgba(103, 232, 249, 0.7);
+}
+.sidebar.sidebar-tower-theme .sidebar-btn.sub-btn::after {
+  background: rgba(103, 232, 249, 0.3);
+}
+.sidebar.sidebar-tower-theme .sidebar-btn.sub-btn:hover::after { background: #67e8f9; }
+.sidebar.sidebar-tower-theme .sidebar-btn.sub-btn.active::after { background: #67e8f9; box-shadow: 0 0 6px #67e8f9; }
+.sidebar.sidebar-tower-theme .sidebar-divider { background: rgba(14, 116, 144, 0.4); }
+.sidebar.sidebar-tower-theme .sidebar-logo-divider { background: #67e8f9; box-shadow: 0 0 8px rgba(103,232,249,0.6); }
     /* ========================================================= */
 
     /* 자비스 로고 글자 기본색 = 남색 (평소 화이트 사이드바 상태) */
@@ -1439,11 +1406,12 @@
   <div class="app-shell">
     <aside class="sidebar" id="app-sidebar">
   <div class="sidebar-logo">Control Tower</div>
-  
+  <div class="sidebar-logo-divider"></div>
+
   <!-- 1. 검색 (맨 위 고정) -->
   <div class="sidebar-group sidebar-search-wrap">
-    <button id="sbtn-search" class="sidebar-btn" onclick="window.toggleSearchPopover(event)">
-      <i class="ti ti-search sidebar-icon"></i>검색
+    <button id="sbtn-search" class="sidebar-search-input" onclick="window.toggleSearchPopover(event)">
+      검색
     </button>
     <div class="search-popover" id="search-popover">
       <div class="search-popover-row">
@@ -1471,21 +1439,26 @@
     <button id="sbtn-pdca" class="sidebar-btn" onclick="window.sidebarGoMain('pdca')">PDCA 현황</button>
   </div>
 
+  <div class="sidebar-divider"></div>
+
   <!-- 4. 개별 프로젝트 -->
   <div class="sidebar-group">
-    <div class="sidebar-group-label">프로젝트</div>
-    <button id="btn-project8" class="sidebar-btn" onclick="window.switchTab('project8')">OP8<span class="sidebar-sub">Ongoing</span></button>
-    <button id="btn-project7" class="sidebar-btn" onclick="window.switchTab('project7')">OP7<span class="sidebar-sub">Ongoing</span></button>
-    <button id="btn-project6" class="sidebar-btn" onclick="window.switchTab('project6')">OP6<span class="sidebar-sub">Ongoing</span></button>
-    <button id="btn-project5" class="sidebar-btn" onclick="window.switchTab('project5')">OP5<span class="sidebar-sub">Ongoing</span></button>
-    <button id="btn-project4" class="sidebar-btn" onclick="window.switchTab('project4')">OP4<span class="sidebar-sub">Ongoing</span></button>
-    <button id="btn-project3" class="sidebar-btn" onclick="window.switchTab('project3')">OP3<span class="sidebar-sub">Ongoing</span></button>
-    <button id="btn-project2" class="sidebar-btn" onclick="window.switchTab('project2')">OP2<span class="sidebar-sub">Ongoing</span></button>
-    <button id="btn-project1cs" class="sidebar-btn" onclick="window.switchTab('project1cs')">CP_All<span class="sidebar-sub">Complete</span></button>
+    <div class="sidebar-group-label">Projects</div>
+    <button id="btn-project8" class="sidebar-btn sub-btn" onclick="window.switchTab('project8')">OP8<span class="sidebar-sub">Ongoing</span></button>
+    <button id="btn-project7" class="sidebar-btn sub-btn" onclick="window.switchTab('project7')">OP7<span class="sidebar-sub">Ongoing</span></button>
+    <button id="btn-project6" class="sidebar-btn sub-btn" onclick="window.switchTab('project6')">OP6<span class="sidebar-sub">Ongoing</span></button>
+    <button id="btn-project5" class="sidebar-btn sub-btn" onclick="window.switchTab('project5')">OP5<span class="sidebar-sub">Ongoing</span></button>
+    <button id="btn-project4" class="sidebar-btn sub-btn" onclick="window.switchTab('project4')">OP4<span class="sidebar-sub">Ongoing</span></button>
+    <button id="btn-project3" class="sidebar-btn sub-btn" onclick="window.switchTab('project3')">OP3<span class="sidebar-sub">Ongoing</span></button>
+    <button id="btn-project2" class="sidebar-btn sub-btn" onclick="window.switchTab('project2')">OP2<span class="sidebar-sub">Ongoing</span></button>
+    <button id="btn-project1cs" class="sidebar-btn sub-btn" onclick="window.switchTab('project1cs')">CP_All<span class="sidebar-sub">Complete</span></button>
   </div>
+
+  <div class="sidebar-divider"></div>
 
   <!-- 5. 기간별 업무 내역 -->
   <div class="sidebar-group">
+    <div class="sidebar-group-label">Reports</div>
     <button id="btn-daily" class="sidebar-btn" onclick="window.switchTab('daily')">기간별 업무 내역</button>
     <button id="btn-weekly" class="sidebar-btn" onclick="window.switchTab('weekly')">주간 업무 요약</button>
   </div>
