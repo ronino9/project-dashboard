@@ -301,99 +301,25 @@
 .sidebar.sidebar-tower-theme .sidebar-btn.sub-btn.active::after { background: #020617; }
 .sidebar.sidebar-tower-theme .sidebar-divider { background: rgba(14, 116, 144, 0.5); }
 .sidebar.sidebar-tower-theme .sidebar-logo-divider { background: #67e8f9; box-shadow: 0 0 8px rgba(103,232,249,0.6); }
-    /* ========================================================= */
 
-    /* 자비스 로고 글자 기본색 = 남색 (평소 화이트 사이드바 상태) */
-    .sidebar-btn-jarvis .jarvis-brand-text {
-      color: #2a5f66;
-      transition: color 0.3s ease, text-shadow 0.3s ease;
-    }
-
-    /* =========================================================
-       👇 Control Tower 전용 HUD 사이드바 테마 (자비스 탭에서만 적용) 👇
-       ========================================================= */
-    .sidebar.sidebar-tower-theme {
-      background: #020617;
-      border-right: 1px solid #0e7490;
-      box-shadow: 4px 0 24px rgba(6, 182, 212, 0.15);
-    }
-
-    .sidebar-tower-theme .sidebar-logo {
-      font-family: 'Orbitron', sans-serif;
-      color: #67e8f9;
-      border-bottom-color: rgba(14, 116, 144, 0.6);
-      text-shadow: 0 0 10px rgba(103, 232, 249, 0.5);
-    }
-    .sidebar-tower-theme .sidebar-logo::after {
-      background: #67e8f9;
-      box-shadow: 0 0 8px rgba(34, 211, 238, 0.8);
-    }
-
-    .sidebar-tower-theme .sidebar-group-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 12px;
-      font-weight: 700;
-      color: #67e8f9;
-      opacity: 0.85;
-    }
-
-    .sidebar-tower-theme .sidebar-btn {
-      color: #475569;
-      border-radius: 4px;
-      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
-    }
-    .sidebar-tower-theme .sidebar-btn:hover {
-      background: rgba(14, 116, 144, 0.15);
-      color: #67e8f9;
-      border-left-color: rgba(34, 211, 238, 0.5);
-      transform: none;
-    }
-    .sidebar-tower-theme .sidebar-btn.active {
-      background: rgba(14, 116, 144, 0.25);
-      color: #fff;
-      border-left-color: #67e8f9;
-      text-shadow: 0 0 6px rgba(34, 211, 238, 0.8);
-      box-shadow: inset 0 0 12px rgba(14, 116, 144, 0.4);
-      transform: none;
-    }
-
-    .sidebar-tower-theme .sidebar-sub { color: #0891b2; }
-    .sidebar-tower-theme .sidebar-btn.active .sidebar-sub {
-      color: #67e8f9;
-      text-shadow: 0 0 4px rgba(103, 232, 249, 0.6);
-    }
-
-    .sidebar-tower-theme .sidebar-search-input {
-      border: 1px solid rgba(14, 116, 144, 0.5);
-      background: rgba(2, 6, 23, 0.8);
-      color: #67e8f9;
-      box-shadow: none;
-      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
-    }
-    .sidebar-tower-theme .sidebar-search-input:hover {
-      border-color: #67e8f9;
-      background: rgba(14, 116, 144, 0.2);
-      box-shadow: 0 0 10px rgba(34, 211, 238, 0.2);
-    }
-    .sidebar-tower-theme .sidebar-search-input i { color: #67e8f9; }
-
-    .sidebar-tower-theme .sidebar-btn-jarvis {
-      background: rgba(2, 6, 23, 0.6);
-      border: 1px solid #0e7490;
-      box-shadow: 0 0 12px rgba(6, 182, 212, 0.1), inset 0 0 8px rgba(6, 182, 212, 0.1);
-      clip-path: polygon(0 8px, 8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
-    }
-    .sidebar-tower-theme .sidebar-btn-jarvis:hover {
-      background: rgba(14, 116, 144, 0.3);
-      border-color: #67e8f9;
-      box-shadow: 0 0 16px rgba(103, 232, 249, 0.3), inset 0 0 12px rgba(103, 232, 249, 0.2);
-      transform: none;
-    }
-
-    .sidebar-tower-theme .sidebar-btn-jarvis .jarvis-brand-text {
-      color: #67e8f9;
-      text-shadow: 0 0 10px rgba(103, 232, 249, 0.6);
-    }
+/* 배지를 라벨 대신 순수 텍스트로 - 프로젝트명과 동일한 컨셉 */
+.sidebar.sidebar-tower-theme .sidebar-sub {
+  background: transparent;
+  border: none;
+  color: rgba(103, 232, 249, 0.35);
+  padding: 0;
+  font-weight: 700;
+}
+.sidebar.sidebar-tower-theme .sidebar-btn.sub-btn:hover .sidebar-sub {
+  color: #67e8f9;
+  text-shadow: 0 0 6px rgba(103, 232, 249, 0.6);
+}
+.sidebar.sidebar-tower-theme .sidebar-btn.sub-btn.active .sidebar-sub {
+  background: transparent;
+  border: none;
+  color: #67e8f9;
+  text-shadow: 0 0 6px rgba(103, 232, 249, 0.6);
+}
     /* ========================================================= */
     .jb-ring1 { transform-origin:50px 50px; animation: jbSpin 10s linear infinite; }
     /* ▼▼▼ 지도 상단 GLOBAL PROJECT STATUS 명판 ▼▼▼ */
