@@ -59,7 +59,8 @@
     .tt-row:hover { background:#eff6ff !important; }
     .weekly-row { transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
     .weekly-row:hover { background:#eff6ff !important; transform:translateX(3px); box-shadow:-3px 0 0 #3b82f6; }
-    .weekly-row.weekly-row-issue:hover { background:#fee2e2 !important; box-shadow:-3px 0 0 #dc2626; }
+    .weekly-row-issue { background:#fef2f2 !important; }
+    .weekly-row-issue-parent { background:#fef2f2 !important; }
     @media print {
       tr[data-weekly-child] { display: table-row !important; }
     }
@@ -4370,7 +4371,7 @@ function weeklyBuildTable(rows, mode) {
       dateCol2 = due || '-';
     }
     const codeCell = isChild
-      ? `<span style="color:#cbd5e1; font-weight:700;">└</span>`
+      ? `<span style="color:#3b82f6; font-weight:900; font-size:14px;">└</span>`
       : pLabel;
     return { codeCell, pColor, title, taskType, recv, dateCol2, status, sColor };
   }
@@ -4386,18 +4387,13 @@ function weeklyBuildTable(rows, mode) {
       const isLastInGroup = isGroup && rIdx === groupRows.length - 1;
       const cell = weeklyRenderCell(r, mode, isChild);
       const isIssue = cell.taskType === 'Issue';
-      const rowBg = (isIssue || (isFirstInGroup && groupHasIssue)) ? 'background:#fef2f2 !important;' : '';
+      const isParentWithIssueChild = isFirstInGroup && groupHasIssue;
       const isLastOverall = gIdx === groupedList.length - 1 && rIdx === groupRows.length - 1;
-      let border = isLastOverall ? '' : 'border-bottom:1px solid #f1f5f9;';
-      if (isGroup) {
-        border += 'border-left:2px solid #93c5fd;';
-        if (isFirstInGroup) border += 'border-top:2px solid #93c5fd; border-right:2px solid #93c5fd;';
-        else border += 'border-right:2px solid #93c5fd;';
-        if (isLastInGroup) border += 'border-bottom:2px solid #93c5fd;';
-      }
+      const border = isLastOverall ? '' : 'border-bottom:1px solid #f1f5f9;';
       const rowIdAttr = isChild ? `data-weekly-child="${groupId}"` : (isGroup ? `data-weekly-parent="${groupId}"` : '');
       const rowStyleDisplay = isChild ? 'display:none;' : '';
-      html += `<tr class="tt-row weekly-row${isIssue ? ' weekly-row-issue' : ''}" ${rowIdAttr} style="${border} ${rowBg} ${rowStyleDisplay} cursor:pointer;" onclick="window.weeklyShowDetail('${r._pName}', ${origIdx}, '${mode}')">
+      const issueClass = isIssue ? ' weekly-row-issue' : (isParentWithIssueChild ? ' weekly-row-issue-parent' : '');
+      html += `<tr class="tt-row weekly-row${issueClass}" ${rowIdAttr} style="${border} ${rowStyleDisplay} cursor:pointer;" onclick="window.weeklyShowDetail('${r._pName}', ${origIdx}, '${mode}')">
         <td style="padding:8px 4px; text-align:center; color:${cell.pColor}; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${cell.codeCell}</td>
         <td style="padding:8px 4px 8px 12px; color:#1e293b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${cell.title.replace(/"/g,'&quot;')}">${cell.title}${!isChild && isGroup ? ` <span onclick="event.stopPropagation(); window.weeklyToggleGroup('${groupId}', this)" style="cursor:pointer; font-size:10px; font-weight:700; color:#3b82f6; background:#eff6ff; padding:1px 6px; border-radius:8px; margin-left:4px;">${groupRows.length}건 ▾</span>` : ''}</td>
         <td style="padding:8px 4px; text-align:center; color:#64748b; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${cell.taskType}</td>
