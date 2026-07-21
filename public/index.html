@@ -3273,7 +3273,17 @@ window.selectMasterProject = function(pName) {
       set.add(pName);
   }
   window.renderMainDashboard();   // ← 카드까지 다시 그려서 테두리 반영
-  document.getElementById('master-slicer-container').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  // 간트 라벨 클릭 등으로 넘어온 코드값(ETC/CP)을 카드 id(projectEtc/CP_ALL)로 역매핑해서 스크롤
+  let cardId = pName;
+  if (pName === 'ETC') cardId = 'projectEtc';
+  else if (pName === 'CP') cardId = 'CP_ALL';
+  const cardEl = document.querySelector(`.main-card[onclick*="'${cardId}'"]`);
+  if (cardEl) {
+    cardEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  } else {
+    document.getElementById('master-slicer-container').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 };
     // === 카드 드래그 재배치 (새로고침 시 초기화) ===
 window._cardDragFrom = null;
@@ -4770,12 +4780,18 @@ function buildFlatSegments(pName) {
     const status = (r['진행상태'] || '').toString().trim();
     if (status === '완료') execSegs.push({ date: dateStr });
   });
-  const anyDone = execSegs.length > 0;
+  const hasDelayed = rows.some(r => (r['진행상태'] || '') === '지연중');
+  const hasImminent = rows.some(r => (r['진행상태'] || '') === '임박');
+  const hasHold = rows.some(r => (r['진행상태'] || '') === '보류');
+  let statusColor, statusText;
+  if (hasDelayed) { statusColor = '#dc2626'; statusText = '지연'; }
+  else if (hasImminent) { statusColor = '#d97706'; statusText = '임박'; }
+  else if (hasHold) { statusColor = '#64748b'; statusText = '보류'; }
+  else { statusColor = '#16a34a'; statusText = '정상'; }
   return {
     colorMode: 'solid',
     planSegs, execSegs, issueDates: [],
-    statusColor: '#64748b',
-    statusText: anyDone ? '진행' : '대기'
+    statusColor, statusText
   };
 }
 
@@ -4791,10 +4807,14 @@ orderList.forEach((cardId) => {
     const built = buildStageSegments(pData);
     built.colorMode = 'stage';
 
-    const anyOngoing = STAGE_ORDER.some(s => pData[s] && pData[s].actualStart && !pData[s].actualEnd);
-    const anyStarted = STAGE_ORDER.some(s => pData[s] && pData[s].actualStart);
-    built.statusColor = anyOngoing ? '#3b82f6' : '#64748b';
-    built.statusText = anyStarted ? (anyOngoing ? '진행중' : '완료') : '대기';
+    const projRows = (window.allMasterData || []).filter(r => r._pName === proj);
+    const hasDelayed = projRows.some(r => (r['진행상태'] || '') === '지연중');
+    const hasImminent = projRows.some(r => (r['진행상태'] || '') === '임박');
+    const hasHold = projRows.some(r => (r['진행상태'] || '') === '보류');
+    if (hasDelayed) { built.statusColor = '#dc2626'; built.statusText = '지연'; }
+    else if (hasImminent) { built.statusColor = '#d97706'; built.statusText = '임박'; }
+    else if (hasHold) { built.statusColor = '#64748b'; built.statusText = '보류'; }
+    else { built.statusColor = '#16a34a'; built.statusText = '정상'; }
 
     const onSegClick = (stage, start, end) => {
       const dayRows = (window.allMasterData || []).filter(r => r._pName === proj && (r['단계 구분'] || '') === stage);
@@ -4820,7 +4840,7 @@ orderList.forEach((cardId) => {
       window.showDetailView(`${date} · ${label}`, `${dayRows.length}건`, dayRows);
     };
 
-renderProjectBlock(cardId, label, projColorMap[cardId] || '#94a3b8', flat, false, null, onDayClick);
+renderProjectBlock(cardId, label, projColorMap[cardId] || '#94a3b8', flat, true, null, onDayClick);
   }
 });
 };
@@ -5133,6 +5153,7 @@ items.sort((a, b) => (a.carriedOver !== b.carriedOver) ? (a.carriedOver ? -1 : 1
     const left = document.createElement('div');
     left.style.cssText = `width:120px; flex-shrink:0; position:sticky; left:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:11px; padding-left:8px; padding-right:6px; font-weight:${isTop ? 700 : 400}; color:${isTop ? '#0f172a' : '#94a3b8'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-left:${isTop ? '3px solid ' + color : 'none'};`;
     left.innerHTML = labelText;
+    left.title = labelText.replace(/<[^>]*>/g, '');
     row.appendChild(left);
     const track = document.createElement('div');
     track.style.cssText = 'flex:1; position:relative; height:100%;';
