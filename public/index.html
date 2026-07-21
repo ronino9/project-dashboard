@@ -4479,7 +4479,9 @@ window.renderWeeklySummary = function() {
   const html = `<div style="border-right:2px solid #e2e8f0; padding-right:20px;">${buildColumn('전주 실적', `${weeklyFmtShort(pastSun)} ~ ${weeklyFmtShort(pastSat)}`, '#f1f5f9', pastRows, 'past')}</div>`
     + `<div>${buildColumn('금주 계획', `${weeklyFmtShort(thisSun)} ~ ${weeklyFmtShort(thisSat)}`, '#eff6ff', curRows, 'future')}</div>`;
 
-  document.getElementById('weekly-columns').innerHTML = html;
+  const weeklyColumnsEl = document.getElementById('weekly-columns');
+  weeklyColumnsEl.innerHTML = html;
+  void weeklyColumnsEl.offsetHeight;
 };
 window.weeklyToggleGroup = function(groupId, badgeEl) {
   const childRows = document.querySelectorAll(`tr[data-weekly-child="${groupId}"]`);
