@@ -1373,6 +1373,8 @@
   <!-- 4. 개별 프로젝트 -->
   <div class="sidebar-group">
     <div class="sidebar-group-label">Projects</div>
+    <button id="btn-project10" class="sidebar-btn sub-btn" onclick="window.switchTab('project10')">OP10<span class="sidebar-sub">Ongoing</span></button>
+    <button id="btn-project9" class="sidebar-btn sub-btn" onclick="window.switchTab('project9')">OP9<span class="sidebar-sub">Ongoing</span></button>
     <button id="btn-project8" class="sidebar-btn sub-btn" onclick="window.switchTab('project8')">OP8<span class="sidebar-sub">Ongoing</span></button>
     <button id="btn-project7" class="sidebar-btn sub-btn" onclick="window.switchTab('project7')">OP7<span class="sidebar-sub">Ongoing</span></button>
     <button id="btn-project6" class="sidebar-btn sub-btn" onclick="window.switchTab('project6')">OP6<span class="sidebar-sub">Ongoing</span></button>
@@ -2834,6 +2836,8 @@ window.animateMainCards = function() {
   // 1. 프로젝트 리스트 (상단 카드 생성) — 순서는 window.cardOrder에 저장(드래그로 변경 가능)
 if (!window.cardOrder) {
     window.cardOrder = [
+      { id: 'OP10', title: 'OP10 프로젝트명', d: allData.project10, color: '#64748b' },
+      { id: 'OP9', title: 'OP9 프로젝트명', d: allData.project9, color: '#64748b' },
       { id: 'OP8', title: 'OP8 프로젝트명', d: allData.project8, color: '#64748b' },
       { id: 'OP7', title: 'OP7 프로젝트명', d: allData.project7, color: '#64748b' },
       { id: 'OP6', title: 'OP6 프로젝트명', d: allData.project6, color: '#64748b' },
@@ -3045,7 +3049,7 @@ window.animateMainCards();
   const allIssues = [];
   const today = new Date('2026-06-12'); 
 
-  ['project8', 'project7', 'project6', 'project5', 'project4', 'project3', 'project2'].forEach(pKey => {
+  ['project10', 'project9', 'project8', 'project7', 'project6', 'project5', 'project4', 'project3', 'project2', 'project1', 'projectEtc'].forEach(pKey => {
 if(allData[pKey] && allData[pKey].history) {
       allData[pKey].history.forEach(r => {
         if (r._isRep === false) return;   // 그룹 비대표행은 상태 집계 제외
@@ -3108,7 +3112,7 @@ if (!window.masterMdFilters) {
 
   // 모든 프로젝트의 데이터를 한 곳에 모음 (필터링을 위해)
 window.allMasterData = [];
-['project8', 'project7', 'project6', 'project5', 'project4', 'project3', 'project2', 'project1', 'projectEtc'].forEach(pKey => {
+['project10', 'project9', 'project8', 'project7', 'project6', 'project5', 'project4', 'project3', 'project2'].forEach(pKey => {
     const pName = pKey === 'project1' ? 'CP' : (pKey === 'projectEtc' ? 'ETC' : pKey.replace('project', 'OP'));
       if(allData[pKey] && allData[pKey].history) {
           allData[pKey].history.forEach(r => {
@@ -3255,8 +3259,8 @@ window.cardClick = function(pName) {
 let mainTrendChartInstance = null;
 
 window.updateMasterMdChart = function() {
-  let mdSums = { 'OP8': 0, 'OP7': 0, 'OP6': 0, 'OP5': 0, 'OP4': 0, 'OP3': 0, 'OP2': 0, 'CP': 0 };
-  let cntSums = { 'OP8': 0, 'OP7': 0, 'OP6': 0, 'OP5': 0, 'OP4': 0, 'OP3': 0, 'OP2': 0, 'CP': 0 };
+  let mdSums = { 'OP10': 0, 'OP9': 0, 'OP8': 0, 'OP7': 0, 'OP6': 0, 'OP5': 0, 'OP4': 0, 'OP3': 0, 'OP2': 0, 'CP': 0 };
+  let cntSums = { 'OP10': 0, 'OP9': 0, 'OP8': 0, 'OP7': 0, 'OP6': 0, 'OP5': 0, 'OP4': 0, 'OP3': 0, 'OP2': 0, 'CP': 0 };
 let totalMd = 0;
   let delayCount = 0;
   let imminentCount = 0;
@@ -3317,8 +3321,8 @@ document.getElementById('kpi-master-md').textContent = totalMd.toFixed(1);
   const hdrHold = document.getElementById('kpi-master-hold-hdr'); if (hdrHold) hdrHold.textContent = holdCount;
   const hdrCompliance = document.getElementById('kpi-master-compliance-hdr'); if (hdrCompliance) hdrCompliance.textContent = totalItems > 0 ? (((totalItems - delayCount - imminentCount) / totalItems) * 100).toFixed(1) + '%' : '100.0%';
 
-const colors = ['#d97757', '#8cc63f', '#3b82f6', '#06b6d4', '#a855f7', '#f59e0b', '#db2777', '#64748b'];
-const pKeys  = ['OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2', 'CP'];
+const colors = ['#ec4899', '#14b8a6', '#d97757', '#8cc63f', '#3b82f6', '#06b6d4', '#a855f7', '#f59e0b', '#db2777', '#64748b'];
+const pKeys  = ['OP10', 'OP9', 'OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2', 'CP'];
 
 // 도넛 범례 업데이트
   document.getElementById('main-md-legend').innerHTML = pKeys.map((k, i) => {
@@ -3466,7 +3470,7 @@ window.showPendingDetail = function(projCode, title) {
   alert("1. 버튼 클릭 성공! \n넘어온 프로젝트: [" + projCode + "]\n넘어온 제목: [" + title + "]");
 
   // 프로젝트 코드 매핑 (CP5도 추가했습니다)
-  const pMap = { 'OP8': 'project8', 'OP7': 'project7', 'OP6': 'project6', 'OP5': 'project5', 'OP4': 'project4', 'OP3': 'project3', 'OP2': 'project2'  , 'CP_ALL': 'project1' };
+  const pMap = { 'OP10': 'project10', 'OP9': 'project9', 'OP8': 'project8', 'OP7': 'project7', 'OP6': 'project6', 'OP5': 'project5', 'OP4': 'project4', 'OP3': 'project3', 'OP2': 'project2'  , 'CP_ALL': 'project1' };
   const pKey = pMap[(projCode || '').toUpperCase()];
   
   if (!pKey) {
@@ -3661,8 +3665,8 @@ window.showIssueDetail = function(idx) {
 
     window.switchProject = function(projectId) {
       currentProjectId = projectId;
-const titleMap = { 'project8': 'Project 8', 'project7': 'Project 7', 'project6': 'Project 6', 'project5': 'Project 5', 'project4': 'Project 4', 'project3': 'Project 3', 'project2': 'Project 2' };
-const subMap = { 'project8': '', 'project7': '', 'project6': '', 'project5': '', 'project4': '', 'project3': '', 'project2': ''  };
+const titleMap = { 'project10': 'Project 10', 'project9': 'Project 9', 'project8': 'Project 8', 'project7': 'Project 7', 'project6': 'Project 6', 'project5': 'Project 5', 'project4': 'Project 4', 'project3': 'Project 3', 'project2': 'Project 2' };
+const subMap = { 'project10': '', 'project9': '', 'project8': '', 'project7': '', 'project6': '', 'project5': '', 'project4': '', 'project3': '', 'project2': ''  };
       document.getElementById('projectTitle').textContent = titleMap[projectId] || 'Project';
       document.getElementById('projectSubtitle').textContent = subMap[projectId] || '';
 
@@ -4221,8 +4225,8 @@ const WEEKLY_STATUS_COLOR = {
   '완료': '#059669', '지연완료': '#7c3aed', '지연중': '#dc2626',
   'Issue': '#dc2626', '보류': '#64748b', '임박': '#d97706', '진행중': '#2563eb'
 };
-const WEEKLY_PNAME_LABEL = { OP8:'OP8', OP7:'OP7', OP6:'OP6', OP5:'OP5', OP4:'OP4', OP3:'OP3', OP2:'OP2', CP:'C/S', ETC:'기타' };
-const WEEKLY_PNAME_COLOR = { OP8:'#d97757', OP7:'#8cc63f', OP6:'#3b82f6', OP5:'#06b6d4', OP4:'#a855f7', OP3:'#92400e', OP2:'#f59e0b', CP:'#059669', ETC:'#64748b' };
+const WEEKLY_PNAME_LABEL = { OP10:'OP10', OP9:'OP9', OP8:'OP8', OP7:'OP7', OP6:'OP6', OP5:'OP5', OP4:'OP4', OP3:'OP3', OP2:'OP2', CP:'C/S', ETC:'기타' };
+const WEEKLY_PNAME_COLOR = { OP10:'#ec4899', OP9:'#14b8a6', OP8:'#d97757', OP7:'#8cc63f', OP6:'#3b82f6', OP5:'#06b6d4', OP4:'#a855f7', OP3:'#92400e', OP2:'#f59e0b', CP:'#059669', ETC:'#64748b' };
 
 function weeklyGroupRows(rows) {
   const groups = {};
@@ -4942,8 +4946,8 @@ function buildFlatSegments(pName) {
 }
 
 // ── 여기서부터 실제 렌더 루프: cardOrder 순서를 그대로 따라감 ──
-const projColorMap = { OP8:'#94a3b8', OP7:'#94a3b8', OP6:'#94a3b8', OP5:'#94a3b8', OP4:'#94a3b8', OP3:'#94a3b8', OP2:'#94a3b8', CP_ALL:'#94a3b8', projectEtc:'#94a3b8' };
-const orderList = (window.cardOrder && window.cardOrder.length) ? window.cardOrder.map(c => c.id) : ['OP8','OP7','OP6','OP5','OP4','OP3','OP2','CP_ALL','projectEtc'];
+const projColorMap = { OP10:'#94a3b8', OP9:'#94a3b8', OP8:'#94a3b8', OP7:'#94a3b8', OP6:'#94a3b8', OP5:'#94a3b8', OP4:'#94a3b8', OP3:'#94a3b8', OP2:'#94a3b8', CP_ALL:'#94a3b8', projectEtc:'#94a3b8' };
+const orderList = (window.cardOrder && window.cardOrder.length) ? window.cardOrder.map(c => c.id) : ['OP10','OP9','OP8','OP7','OP6','OP5','OP4','OP3','OP2','CP_ALL','projectEtc'];
 
 orderList.forEach((cardId) => {
   // ── OP 프로젝트 ──
@@ -5990,8 +5994,8 @@ function towerSetBlink(geoLayer, on) {
     if (el) el.classList.toggle('tower-region-blink', on);
   }
 }
-const TOWER_PKEY_MAP = { OP2:'project2', OP3:'project3', OP4:'project4', OP5:'project5', OP6:'project6', OP7:'project7', OP8:'project8', ETC:'projectEtc' };
-const TOWER_LABEL_MAP = { OP2:'OP2', OP3:'OP3', OP4:'OP4', OP5:'OP5', OP6:'OP6', OP7:'OP7', OP8:'OP8', ETC:'기타업무' };
+const TOWER_PKEY_MAP = { OP2:'project2', OP3:'project3', OP4:'project4', OP5:'project5', OP6:'project6', OP7:'project7', OP8:'project8', OP9:'project9', OP10:'project10', ETC:'projectEtc' };
+const TOWER_LABEL_MAP = { OP2:'OP2', OP3:'OP3', OP4:'OP4', OP5:'OP5', OP6:'OP6', OP7:'OP7', OP8:'OP8', OP9:'OP9', OP10:'OP10', ETC:'기타업무' };
     // 👉 신규: CP1~CP7 지연 여부 판정 (project1CsRiskMap의 status 활용, '안정' 아니면 지연 취급)
 function towerIsDelayed(code) {
   if (code.startsWith('CP')) {
