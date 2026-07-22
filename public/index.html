@@ -4676,13 +4676,21 @@ function buildStageSegments(pData) {
       planSegs.push({ stage: stageName, start: sData.planStart, end: sData.planEnd });
     }
 
-    // 실제 작업일만 수집 (현장 + 원격)
-    const dayMap = {}; // date -> isRemote
-    (sData.execDays || []).forEach(d => { dayMap[d] = false; });
-    (sData.remoteDays || []).forEach(d => { dayMap[d] = true; });
+    // 실제 작업일만 수집 (현장 + 원격) — execDays/remoteDays는 이제 {date, owner} 객체 배열
+    const dayMap = {}; // date -> {isRemote, owner}
+    (sData.execDays || []).forEach(d => {
+      const dateStr = typeof d === 'string' ? d : d.date;
+      const owner = typeof d === 'string' ? '본인' : (d.owner || '본인');
+      dayMap[dateStr] = { isRemote: false, owner: owner };
+    });
+    (sData.remoteDays || []).forEach(d => {
+      const dateStr = typeof d === 'string' ? d : d.date;
+      const owner = typeof d === 'string' ? '본인' : (d.owner || '본인');
+      dayMap[dateStr] = { isRemote: true, owner: owner };
+    });
 
     Object.keys(dayMap).sort().forEach(dStr => {
-      execSegs.push({ stage: stageName, date: dStr, isRemote: dayMap[dStr] });
+      execSegs.push({ stage: stageName, date: dStr, isRemote: dayMap[dStr].isRemote, owner: dayMap[dStr].owner });
     });
 
     (sData.issueDates || []).forEach(d => issueDates.push({ date: d, stage: stageName }));
