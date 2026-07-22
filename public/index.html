@@ -3112,7 +3112,7 @@ if (!window.masterMdFilters) {
 
   // 모든 프로젝트의 데이터를 한 곳에 모음 (필터링을 위해)
 window.allMasterData = [];
-['project10', 'project9', 'project8', 'project7', 'project6', 'project5', 'project4', 'project3', 'project2'].forEach(pKey => {
+['project10', 'project9', 'project8', 'project7', 'project6', 'project5', 'project4', 'project3', 'project2', 'project1', 'projectEtc'].forEach(pKey => {
     const pName = pKey === 'project1' ? 'CP' : (pKey === 'projectEtc' ? 'ETC' : pKey.replace('project', 'OP'));
       if(allData[pKey] && allData[pKey].history) {
           allData[pKey].history.forEach(r => {
