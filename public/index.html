@@ -9370,8 +9370,7 @@ window.recomputeCompareScores = function() {
 window.renderCompareChart = function() {
   const data = window._compareData || [];
   const stageLabel = `${window._compareStage} 공수(역산)`;
-  const unit = window._compareImproveMode === 'active' ? '건' : (window._compareImproveMode === 'defense' ? '%' : '점');
-              return `${m.code} ${labels[4]}: ${m.improveVal.toFixed(1)}${unit} (점수 ${ctx2.parsed.r.toFixed(0)})`;
+  const improveLabel = window._compareImproveMode === 'active' ? '개선 활동(능동)' : (window._compareImproveMode === 'defense' ? '개선 활동(방어)' : '개선 활동(종합)');
   const labels = [stageLabel, '일정 준수율', '리소스 효율', '문제항목 발생률(역산)', improveLabel];
   const ctx = document.getElementById('compareRadarChart');
   if (!ctx) return;
@@ -9420,8 +9419,8 @@ window.renderCompareChart = function() {
               if (idx === 1) return `${m.code} 일정 준수율: ${m.complianceRate.toFixed(1)}%`;
               if (idx === 2) return `${m.code} 리소스 효율: ${m.execRate.toFixed(1)}% (점수 ${ctx2.parsed.r.toFixed(0)})`;
               if (idx === 3) return `${m.code} 문제항목 발생률: ${m.problemRate.toFixed(1)}% (점수 ${ctx2.parsed.r.toFixed(0)})`;
-              const unit = window._compareImproveMode === 'active' ? '건' : '%';
-              return `${m.code} ${labels[4]}: ${m.improveVal.toFixed(1)}${unit} (점수 ${ctx2.parsed.r.toFixed(0)})`;
+              const unit2 = window._compareImproveMode === 'active' ? '건' : (window._compareImproveMode === 'defense' ? '%' : '점');
+              return `${m.code} ${labels[4]}: ${m.improveVal.toFixed(1)}${unit2} (점수 ${ctx2.parsed.r.toFixed(0)})`;
             }
           }
         }
