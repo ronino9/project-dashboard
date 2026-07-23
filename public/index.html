@@ -492,7 +492,7 @@
 
     #compareView { display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); z-index:9998; align-items:center; justify-content:center; padding:20px; opacity:0; transition:opacity 0.25s ease; }
     #compareView.active { display:flex; opacity:1; }
-    #compareView .compare-modal-box { background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; width:1680px; max-width:97vw; max-height:90vh; overflow:auto; box-shadow:0 20px 60px rgba(15,23,42,0.25); transform:scale(0.96); transition:transform 0.25s cubic-bezier(0.16,1,0.3,1); }
+    #compareView .compare-modal-box { background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; width:1900px; max-width:98vw; max-height:92vh; overflow:auto; box-shadow:0 20px 60px rgba(15,23,42,0.25); transform:scale(0.96); transition:transform 0.25s cubic-bezier(0.16,1,0.3,1); }
     #compareView.active .compare-modal-box { transform:scale(1); }
     .compare-header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #f1f5f9; padding-bottom:16px; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
     .compare-title { font-size:18px; font-weight:800; color:#0f172a; }
@@ -531,8 +531,24 @@
     .compare-toggle-btn[data-stage] { min-width:58px; text-align:center; }
     .compare-toggle-btn[data-mode] { min-width:48px; text-align:center; }
     .compare-chip { min-width:64px; justify-content:center; }
-    .compare-stat-table th:not(:first-child) { width:92px; min-width:92px; }
-    .compare-stat-table td:not(:first-child) { width:92px; min-width:92px; }
+    .compare-stat-table th:not(:first-child) { width:76px; min-width:76px; }
+    .compare-stat-table td:not(:first-child) { width:76px; min-width:76px; }
+    .compare-stat-table td:first-child { min-width:150px; }
+
+    /* 지표 라벨 우측 ⓘ 설명 */
+    .compare-metric-label { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .compare-metric-info-ico { font-style:normal; font-size:12px; color:#94a3b8; cursor:pointer; flex-shrink:0; transition:color 0.15s ease, transform 0.15s ease; }
+    .compare-metric-info-ico:hover { color:#3b82f6; transform:scale(1.15); }
+    .compare-metric-desc { display:none; background:#f8fafc; border:1px solid #e2e8f0; border-left:3px solid #3b82f6; border-radius:6px; padding:10px 12px; margin-top:6px; font-size:11px; color:#475569; line-height:1.7; font-weight:400; text-align:left; white-space:normal; }
+    .compare-metric-desc.open { display:block; }
+    .compare-metric-desc b { color:#0f172a; font-weight:700; }
+
+    /* 인사이트 표 */
+    .compare-insight-table { width:100%; border-collapse:separate; border-spacing:0 4px; font-size:11.5px; }
+    .compare-insight-table th { color:#15803d; font-weight:700; text-align:left; padding:0 8px 4px; white-space:nowrap; }
+    .compare-insight-table td { background:rgba(255,255,255,0.6); color:#334155; padding:6px 8px; font-weight:600; white-space:nowrap; }
+    .compare-insight-table td:first-child { border-radius:6px 0 0 6px; text-align:center; color:#94a3b8; font-weight:800; width:32px; }
+    .compare-insight-table td:last-child { border-radius:0 6px 6px 0; }
     .kpi-strip { display: flex; gap: 12px; margin-bottom: 16px; }
     .kpi-strip-item { flex: 0 0 calc((100% - 48px) / 10); min-width: 0; background: #fbfcfd; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; height: 56px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: box-shadow 0.15s ease, transform 0.15s ease; }
     .kpi-strip-icon { font-size: 18px; flex-shrink: 0; color: #94a3b8 !important; }
@@ -9229,7 +9245,7 @@ window.renderCompareChipRow = function() {
     return `<span class="compare-chip" style="color:${color}; ${offStyle}" data-code="${m.code}"
       onclick="window.toggleCompareProjectInModal('${m.code}')"
       onmouseenter="window.highlightCompareProject('${m.code}')" onmouseleave="window.unhighlightCompareProject()">
-      <span class="compare-proj-dot" style="background:${color};"></span>${m.code}
+      <span class="compare-proj-dot" style="background:${color};"></span>${m.code}<i class="proj-info-ico" style="font-size:11px; margin-left:2px;" onclick="event.stopPropagation(); window.showProjectInfoPopup('${m.code}', this)" title="프로젝트 정보">ⓘ</i>
     </span>`;
   }).join('');
   document.getElementById('compare-chip-row').innerHTML = html;
@@ -9461,20 +9477,61 @@ window.unhighlightCompareProject = function() {
   document.querySelectorAll('.compare-chip.chip-active').forEach(el => el.classList.remove('chip-active'));
   document.querySelectorAll('.compare-stat-table th.th-hover').forEach(el => el.classList.remove('th-hover'));
 };
+// ── 지표 산출법 설명 ──
+window.COMPARE_METRIC_DESC = {
+  compliance: `<b>정의</b> · 기한을 지키고 있는 항목의 비율<br>
+<b>계산</b> · (전체 − 지연중 − 임박) ÷ 전체 × 100<br>
+<b>기준</b> · 그룹ID로 묶인 항목은 대표행 1건만 집계<br>
+<b>점수</b> · 높을수록 좋음`,
+  exec: `<b>정의</b> · 예상한 시간대로 실제 작업이 진행됐는가<br>
+<b>계산</b> · 실제 작업시간 합계 ÷ 예상 작업시간 합계 × 100<br>
+<b>제외</b> · 예상 작업시간이 입력되지 않은 항목<br>
+<b>점수</b> · 100%에 가까울수록 고득점 (초과·미달 모두 감점)`,
+  problem: `<b>정의</b> · 전체 항목 중 문제가 발생한 비율<br>
+<b>문제 판정</b> · 이슈 / 지연중 / 지연완료 / 재작업Y / 작업시간 초과편차 중 하나 이상 해당<br>
+<b>제외</b> · 보류 상태, 외부요인 표기 항목, 업무구분이 '개선'인 항목<br>
+<b>점수</b> · 낮을수록 고득점 (역산)`,
+  improveActive: `<b>정의</b> · 문제가 없는데도 자발적으로 완료한 개선 건수<br>
+<b>계산</b> · 그룹 단위로 집계, 개선유형 태그가 달리고 완료된 건만<br>
+<b>점수</b> · 선택된 프로젝트 중 최댓값을 100점으로 환산`,
+  improveDefense: `<b>정의</b> · 문제가 생겼을 때 개선책까지 이어진 비율<br>
+<b>계산</b> · 개선책 반영 완료 건수 ÷ 문제 건수 × 100<br>
+<b>반영 인정</b> · 같은 그룹 안에 개선유형 태그가 있고 그 항목들이 전부 완료된 경우<br>
+<b>점수</b> · 높을수록 좋음`,
+  improveAll: `<b>정의</b> · 능동 개선과 방어 개선을 함께 본 종합 점수<br>
+<b>계산</b> · (능동 정규화 점수 + 방어 반영률) ÷ 2<br>
+<b>점수</b> · 높을수록 좋음`,
+  stage: `<b>정의</b> · 해당 단계에 투입된 공수 비교<br>
+<b>대상</b> · 그 단계를 <b>완료한 프로젝트끼리만</b> 비교 (미완료는 0점 · 표에 '미완료' 표기)<br>
+<b>계산</b> · 완료 프로젝트 중 최대 공수를 기준으로 역산<br>
+<b>점수</b> · 공수가 적을수록 고득점`,
+  stageAll: `<b>정의</b> · 완료 여부와 관계없이 지금까지 투입된 총 공수<br>
+<b>계산</b> · 프로젝트 전체 공수(MD) 합계<br>
+<b>주의</b> · 규모가 큰 프로젝트일수록 불리하므로 참고 지표로 활용<br>
+<b>점수</b> · 공수가 적을수록 고득점`
+};
 
+window.toggleCompareMetricDesc = function(key) {
+  const el = document.getElementById('cmp-desc-' + key);
+  if (!el) return;
+  el.classList.toggle('open');
+};
 window.renderCompareTable = function() {
   const data = window._compareData || [];
   const mode = window._compareMode;
-  const stageLabel = `📦 ${window._compareStage} 공수(역산)`;
-  const improveLabel = window._compareImproveMode === 'active' ? '💡 개선 활동(능동)' : (window._compareImproveMode === 'defense' ? '💡 개선 활동(방어)' : '💡 개선 활동(종합)');
+  const stageLabel = window._compareStage === '전체' ? '전체 공수(역산)' : `${window._compareStage} 공수(역산)`;
+  const improveLabel = window._compareImproveMode === 'active' ? '개선 활동(능동)' : (window._compareImproveMode === 'defense' ? '개선 활동(방어)' : '개선 활동(종합)');
   const improveUnit = window._compareImproveMode === 'active' ? '건' : (window._compareImproveMode === 'defense' ? '%' : '점');
 
+  const improveDescKey = window._compareImproveMode === 'active' ? 'improveActive' : (window._compareImproveMode === 'defense' ? 'improveDefense' : 'improveAll');
+  const stageDescKey = window._compareStage === '전체' ? 'stageAll' : 'stage';
+
   const rowsDef = [
-    { label: '📅 일정 준수율', raw: m => m.complianceRate, score: m => m.scoreCompliance, unit: '%' },
-    { label: '⚡ 리소스 효율', raw: m => m.execRate, score: m => m.scoreExec, unit: '%' },
-    { label: '⚠️ 문제항목 발생률', raw: m => m.problemRate, score: m => m.scoreProblem, unit: '%' },
-    { label: improveLabel, raw: m => m.improveVal, score: m => m.improveScore, unit: improveUnit },
-    { label: stageLabel, raw: m => m.stageValue, score: m => m.stageScore, unit: 'MD', na: m => !m.stageCompleted }
+    { key: 'compliance', label: '일정 준수율', raw: m => m.complianceRate, score: m => m.scoreCompliance, unit: '%' },
+    { key: 'exec', label: '리소스 효율', raw: m => m.execRate, score: m => m.scoreExec, unit: '%' },
+    { key: 'problem', label: '문제항목 발생률', raw: m => m.problemRate, score: m => m.scoreProblem, unit: '%' },
+    { key: improveDescKey, label: improveLabel, raw: m => m.improveVal, score: m => m.improveScore, unit: improveUnit },
+    { key: stageDescKey, label: stageLabel, raw: m => m.stageValue, score: m => m.stageScore, unit: 'MD', na: m => !m.stageCompleted }
   ];
 
   const theadCols = data.map(m => {
@@ -9500,7 +9557,15 @@ window.renderCompareTable = function() {
       else if (x.code === minCode) cls = 'compare-cell-low';
       return `<td class="${cls}">${x.val.toFixed(1)}${mode === 'abs' ? rd.unit : ''}</td>`;
     }).join('');
-    return `<tr><td>${rd.label}</td>${cells}</tr>`;
+    const desc = window.COMPARE_METRIC_DESC[rd.key] || '';
+    const labelCell = `<td>
+      <div class="compare-metric-label">
+        <span>${rd.label}</span>
+        <i class="compare-metric-info-ico" onclick="window.toggleCompareMetricDesc('${rd.key}')" title="산출법 보기">ⓘ</i>
+      </div>
+      <div class="compare-metric-desc" id="cmp-desc-${rd.key}">${desc}</div>
+    </td>`;
+    return `<tr>${labelCell}${cells}</tr>`;
   }).join('');
 
   const table = document.getElementById('compare-stat-table');
@@ -9526,15 +9591,21 @@ window.renderCompareInsight = function() {
     return { code: m.code, avg, strongest: sortedDims[0], weakest: sortedDims[sortedDims.length - 1] };
   }).sort((a, b) => b.avg - a.avg);
 
-  box.innerHTML = ranked.map((m, idx) => {
+  const rowsHtml = ranked.map((m, idx) => {
     const color = window.COMPARE_COLOR_MAP[m.code] || '#16a34a';
-    const borderTop = idx > 0 ? 'border-top:1px dashed #bbf7d0; padding-top:6px;' : '';
-    return `<div style="display:flex; align-items:baseline; gap:6px; padding:4px 0; ${borderTop}">
-      <span style="font-weight:800; color:#94a3b8; width:16px; flex-shrink:0;">${idx + 1}</span>
-      <strong style="color:${color}; flex-shrink:0;">${m.code}</strong>
-      <span>— 평균 ${m.avg.toFixed(0)}점 · 강점: ${m.strongest[0]} · 약점: ${m.weakest[0]}</span>
-    </div>`;
+    return `<tr>
+      <td>${idx + 1}</td>
+      <td style="color:${color}; font-weight:800;">${m.code}</td>
+      <td style="color:#0f172a; font-weight:800;">${m.avg.toFixed(0)}점</td>
+      <td style="color:#16a34a;">${m.strongest[0]}</td>
+      <td style="color:#dc2626;">${m.weakest[0]}</td>
+    </tr>`;
   }).join('');
+
+  box.innerHTML = `<table class="compare-insight-table">
+    <thead><tr><th></th><th>프로젝트</th><th>평균</th><th>강점</th><th>약점</th></tr></thead>
+    <tbody>${rowsHtml}</tbody>
+  </table>`;
 };
   </script>
 </body>
