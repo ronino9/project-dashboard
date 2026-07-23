@@ -492,26 +492,47 @@
 
     #compareView { display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); z-index:9998; align-items:center; justify-content:center; padding:20px; opacity:0; transition:opacity 0.25s ease; }
     #compareView.active { display:flex; opacity:1; }
-    #compareView .compare-modal-box { background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; width:1100px; max-width:95vw; max-height:88vh; overflow:auto; box-shadow:0 20px 60px rgba(15,23,42,0.25); transform:scale(0.96); transition:transform 0.25s cubic-bezier(0.16,1,0.3,1); }
+    #compareView .compare-modal-box { background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; width:1680px; max-width:97vw; max-height:90vh; overflow:auto; box-shadow:0 20px 60px rgba(15,23,42,0.25); transform:scale(0.96); transition:transform 0.25s cubic-bezier(0.16,1,0.3,1); }
     #compareView.active .compare-modal-box { transform:scale(1); }
     .compare-header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #f1f5f9; padding-bottom:16px; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
     .compare-title { font-size:18px; font-weight:800; color:#0f172a; }
-    .compare-chip { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; background:#f1f5f9; margin-right:6px; }
+    .compare-chip { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; background:#f1f5f9; margin-right:6px; cursor:pointer; transition:all 0.18s ease; }
+    .compare-chip:hover, .compare-chip.chip-active { transform:translateY(-2px) scale(1.05); box-shadow:0 4px 10px rgba(0,0,0,0.15); }
     .compare-mode-toggle { display:flex; background:#f1f5f9; padding:3px; border-radius:8px; }
     .compare-mode-btn { padding:6px 12px; border-radius:6px; font-size:11px; font-weight:700; border:none; background:transparent; color:#64748b; cursor:pointer; transition:0.2s; }
     .compare-mode-btn.active { background:#3b82f6; color:#fff; }
     .compare-close-btn { cursor:pointer; color:#94a3b8; font-size:20px; font-weight:bold; }
     .compare-close-btn:hover { color:#0f172a; }
-    .compare-body { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; }
-    .compare-chart-wrap { position:relative; height:400px; }
+    .compare-body { display:grid; grid-template-columns:1.1fr 1fr; gap:24px; }
+    .compare-chart-wrap { position:relative; height:460px; display:flex; flex-direction:column; }
+    .compare-axis-controls { display:flex; justify-content:center; gap:16px; margin-bottom:8px; flex-wrap:wrap; }
+    .compare-axis-control-group { display:flex; align-items:center; gap:6px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:20px; padding:3px 6px 3px 10px; }
+    .compare-axis-control-label { font-size:10px; font-weight:800; color:#64748b; white-space:nowrap; }
+    .compare-toggle-btn { padding:3px 10px; border-radius:14px; border:none; background:transparent; color:#64748b; font-size:11px; font-weight:700; cursor:pointer; transition:0.2s; }
+    .compare-toggle-btn.active { background:#3b82f6; color:#fff; }
+    .compare-canvas-wrap { position:relative; flex:1; }
+
+    .compare-table-scroll { overflow-x:auto; max-width:100%; border-radius:8px; }
     .compare-stat-table { width:100%; border-collapse:separate; border-spacing:0 6px; font-size:12px; }
-    .compare-stat-table th { color:#64748b; font-weight:700; text-align:right; padding:0 8px 4px; }
-    .compare-stat-table th:first-child { text-align:left; }
-    .compare-stat-table td { background:#f8fafc; padding:8px; font-weight:700; text-align:right; }
-    .compare-stat-table td:first-child { text-align:left; font-weight:600; color:#334155; border-radius:8px 0 0 8px; }
+    .compare-stat-table th { color:#64748b; font-weight:700; text-align:center; padding:0 10px 6px; white-space:nowrap; cursor:pointer; border-radius:8px; transition:all 0.18s ease; }
+    .compare-stat-table th:first-child { text-align:left; cursor:default; position:sticky; left:0; background:#ffffff; z-index:2; }
+    .compare-stat-table th.th-hover { background:#eff6ff; transform:translateY(-2px); }
+    .compare-stat-table td { background:#f8fafc; padding:8px 10px; font-weight:700; text-align:center; white-space:nowrap; transition:background 0.2s ease, color 0.2s ease; }
+    .compare-stat-table td:first-child { text-align:left; font-weight:600; color:#334155; border-radius:8px 0 0 8px; position:sticky; left:0; background:#f8fafc; z-index:1; white-space:normal; min-width:130px; }
     .compare-stat-table tr td:last-child { border-radius:0 8px 8px 0; }
+    .compare-cell-high { background:#f0fdf4 !important; color:#16a34a !important; }
+    .compare-cell-low { background:#fef2f2 !important; color:#dc2626 !important; }
+    .compare-cell-na { color:#cbd5e1 !important; font-weight:500; }
+
     .compare-insight-box { margin-top:16px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:14px 16px; font-size:12px; line-height:1.6; color:#15803d; }
     .compare-insight-title { font-weight:800; color:#16a34a; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+    /* 비교 기능 버튼/라벨 사이즈 통일 (텍스트 길이 무관하게 고정폭) */
+    .compare-mode-btn { min-width:120px; text-align:center; }
+    .compare-toggle-btn[data-stage] { min-width:58px; text-align:center; }
+    .compare-toggle-btn[data-mode] { min-width:48px; text-align:center; }
+    .compare-chip { min-width:64px; justify-content:center; }
+    .compare-stat-table th:not(:first-child) { width:92px; min-width:92px; }
+    .compare-stat-table td:not(:first-child) { width:92px; min-width:92px; }
     .kpi-strip { display: flex; gap: 12px; margin-bottom: 16px; }
     .kpi-strip-item { flex: 0 0 calc((100% - 48px) / 10); min-width: 0; background: #fbfcfd; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; height: 56px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: box-shadow 0.15s ease, transform 0.15s ease; }
     .kpi-strip-icon { font-size: 18px; flex-shrink: 0; color: #94a3b8 !important; }
@@ -1435,17 +1456,9 @@
 
   <!-- 1.5 프로젝트 비교 -->
   <div class="sidebar-group sidebar-compare-wrap" style="position:relative;">
-    <button id="sbtn-compare" class="sidebar-search-input" onclick="window.toggleComparePopover(event)">
+    <button id="sbtn-compare" class="sidebar-search-input" onclick="window.openCompareViewAll()">
       프로젝트 비교
     </button>
-    <div class="compare-popover" id="compare-popover">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <span style="font-size:12px; font-weight:800; color:#0f172a;">프로젝트 선택</span>
-        <span onclick="window.toggleComparePopover(event)" style="cursor:pointer; color:#94a3b8; font-size:16px; font-weight:bold; line-height:1;">✕</span>
-      </div>
-      <div class="compare-proj-grid" id="compare-proj-grid"></div>
-      <button class="compare-run-btn" id="compare-run-btn" onclick="window.openCompareView()" disabled>비교하기 (0개 선택)</button>
-    </div>
   </div>
 
   <!-- 2. 프로젝트 현황 -->
@@ -2187,9 +2200,25 @@ window.renderDeviationTrendTest = function() {
           </div>
         </div>
         <div class="compare-body">
-          <div class="compare-chart-wrap"><canvas id="compareRadarChart"></canvas></div>
+          <div class="compare-chart-wrap">
+            <div class="compare-axis-controls">
+              <div class="compare-axis-control-group">
+                <span class="compare-axis-control-label">📦 단계별 공수</span>
+                <button class="compare-toggle-btn active" data-stage="제작" onclick="window.setCompareStage('제작')">제작</button>
+                <button class="compare-toggle-btn" data-stage="FAT" onclick="window.setCompareStage('FAT')">FAT</button>
+                <button class="compare-toggle-btn" data-stage="SET-UP" onclick="window.setCompareStage('SET-UP')">SET-UP</button>
+                <button class="compare-toggle-btn" data-stage="SAT" onclick="window.setCompareStage('SAT')">SAT</button>
+              </div>
+              <div class="compare-axis-control-group">
+                <span class="compare-axis-control-label">💡 개선 활동</span>
+                <button class="compare-toggle-btn active" data-mode="active" onclick="window.setCompareImproveMode('active')">능동</button>
+                <button class="compare-toggle-btn" data-mode="defense" onclick="window.setCompareImproveMode('defense')">방어</button>
+              </div>
+            </div>
+            <div class="compare-canvas-wrap"><canvas id="compareRadarChart"></canvas></div>
+          </div>
           <div>
-            <table class="compare-stat-table" id="compare-stat-table"></table>
+            <div class="compare-table-scroll"><table class="compare-stat-table" id="compare-stat-table"></table></div>
             <div class="compare-insight-box">
               <div class="compare-insight-title">💡 비교 인사이트</div>
               <div id="compare-insight-text"></div>
@@ -9169,70 +9198,67 @@ window.toggleMapController = function() {
 window.COMPARE_COLOR_MAP = { OP10:'#ec4899', OP9:'#14b8a6', OP8:'#d97757', OP7:'#8cc63f', OP6:'#3b82f6', OP5:'#06b6d4', OP4:'#a855f7', OP3:'#f59e0b', OP2:'#db2777' };
 window._compareSelected = new Set();
 window._compareMode = 'scale';
+window._compareStage = '제작';
+window._compareImproveMode = 'active';
 let compareChartInstance = null;
 
-window.toggleComparePopover = function(e) {
-  e.stopPropagation();
-  const pop = document.getElementById('compare-popover');
-  if (!pop) return;
-  const opening = !pop.classList.contains('open');
-  pop.classList.toggle('open');
-  if (opening) window.renderCompareProjGrid();
-};
-document.addEventListener('click', function(e) {
-  const pop = document.getElementById('compare-popover');
-  const wrap = document.querySelector('.sidebar-compare-wrap');
-  if (pop && pop.classList.contains('open') && wrap && !wrap.contains(e.target)) {
-    pop.classList.remove('open');
-  }
-});
-
-window.renderCompareProjGrid = function() {
-  const grid = document.getElementById('compare-proj-grid');
-  if (!grid) return;
+window.openCompareViewAll = function() {
   const order = ['OP10','OP9','OP8','OP7','OP6','OP5','OP4','OP3','OP2'];
   const available = order.filter(p => (window.allMasterData || []).some(r => r._pName === p));
   if (available.length === 0) {
-    grid.innerHTML = '<div style="font-size:12px; color:#94a3b8; text-align:center; padding:10px;">비교할 프로젝트 데이터가 없습니다.</div>';
-    window.updateCompareRunButton();
+    alert('비교할 프로젝트 데이터가 없습니다.');
     return;
   }
-  grid.innerHTML = available.map(code => {
-    const color = window.COMPARE_COLOR_MAP[code] || '#64748b';
-    const isSel = window._compareSelected.has(code);
-    return `<div class="compare-proj-btn ${isSel ? 'selected' : ''}" style="${isSel ? `background:${color}; border-color:${color};` : ''}" onclick="event.stopPropagation(); window.toggleCompareProject('${code}')">
-      <span style="display:flex; align-items:center; gap:6px;"><span class="compare-proj-dot" style="background:${isSel ? '#fff' : color};"></span>${code}</span>
-      ${isSel ? '<span style="font-size:11px;">✓</span>' : ''}
-    </div>`;
+
+  window._compareAllMetrics = available.map(c => window.computeCompareMetrics(c));
+  window._compareSelected = new Set(available);
+
+  document.getElementById('compareView').classList.add('active');
+  window.renderCompareChipRow();
+  window.setCompareMode('scale');
+};
+
+window.renderCompareChipRow = function() {
+  const all = window._compareAllMetrics || [];
+  const html = all.map(m => {
+    const color = window.COMPARE_COLOR_MAP[m.code] || '#64748b';
+    const isOn = window._compareSelected.has(m.code);
+    const offStyle = isOn ? '' : 'opacity:0.35; filter:grayscale(0.6);';
+    return `<span class="compare-chip" style="color:${color}; ${offStyle}" data-code="${m.code}"
+      onclick="window.toggleCompareProjectInModal('${m.code}')"
+      onmouseenter="window.highlightCompareProject('${m.code}')" onmouseleave="window.unhighlightCompareProject()">
+      <span class="compare-proj-dot" style="background:${color};"></span>${m.code}
+    </span>`;
   }).join('');
-  window.updateCompareRunButton();
+  document.getElementById('compare-chip-row').innerHTML = html;
 };
 
-window.toggleCompareProject = function(code) {
-  if (window._compareSelected.has(code)) window._compareSelected.delete(code);
-  else window._compareSelected.add(code);
-  window.renderCompareProjGrid();
+window.toggleCompareProjectInModal = function(code) {
+  if (window._compareSelected.has(code)) {
+    if (window._compareSelected.size <= 1) return; // 마지막 1개는 끄지 못함
+    window._compareSelected.delete(code);
+  } else {
+    window._compareSelected.add(code);
+  }
+  window.renderCompareChipRow();
+  window.recomputeCompareScores();
 };
 
-window.updateCompareRunButton = function() {
-  const btn = document.getElementById('compare-run-btn');
-  if (!btn) return;
-  const n = window._compareSelected.size;
-  btn.textContent = `비교하기 (${n}개 선택)`;
-  btn.classList.toggle('enabled', n >= 2);
-  btn.disabled = n < 2;
-};
+// ── 단계별 완료 여부: summary.complete[stageIdx] >= 100 ──
+const COMPARE_STAGE_IDX = { '제작':0, 'FAT':1, 'SET-UP':2, 'SAT':3 };
+const COMPARE_PKEY_MAP = { OP10:'project10', OP9:'project9', OP8:'project8', OP7:'project7', OP6:'project6', OP5:'project5', OP4:'project4', OP3:'project3', OP2:'project2' };
 
 window.computeCompareMetrics = function(code) {
   const rows = (window.allMasterData || []).filter(r => r._pName === code);
   const repRows = rows.filter(r => r._isRep !== false);
-  const isExtFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
-
   const total = repRows.length;
+
+  // 1) 일정 준수율
   const delayCnt = repRows.filter(r => (r['진행상태'] || '') === '지연중').length;
   const imminentCnt = repRows.filter(r => (r['진행상태'] || '') === '임박').length;
   const complianceRate = total > 0 ? ((total - delayCnt - imminentCnt) / total * 100) : 100;
 
+  // 2) 리소스 효율
   let planSum = 0, actualSum = 0;
   rows.forEach(r => {
     const plan = parseFloat(r['예상 작업 시간(H)']) || 0;
@@ -9241,49 +9267,34 @@ window.computeCompareMetrics = function(code) {
   });
   const execRate = planSum > 0 ? (actualSum / planSum * 100) : 100;
 
-  const completedCnt = repRows.filter(r => (r['진행상태'] || '').includes('완료')).length;
+  // 3) 문제항목 발생률(역산) — PDCA 문제 판정 기준 재사용
+  const improveStats = computeImprovementStats(rows);
+  const problemRate = total > 0 ? (improveStats.problemCnt / total * 100) : 0;
 
-  let reworkCnt = 0, reworkBase = 0;
-  repRows.forEach(r => {
-    if (isExtFactor(r)) return;
-    reworkBase++;
-    const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
-    if (yn === 'Y') reworkCnt++;
+  // 4) 개선 활동 (능동 건수 / 방어 반영률)
+  const activeCnt = improveStats.activeImproveCnt;
+  const defenseRate = improveStats.problemCnt > 0
+    ? (improveStats.problemImproved / improveStats.problemCnt * 100)
+    : 100;
+
+  // 5) 단계별 공수 (4단계 전부 미리 계산)
+  const pKey = COMPARE_PKEY_MAP[code];
+  const summary = (allData[pKey] && allData[pKey].summary) || {};
+  const stageMD = {};
+  ['제작', 'FAT', 'SET-UP', 'SAT'].forEach(stage => {
+    const idx = COMPARE_STAGE_IDX[stage];
+    const completed = summary.complete && summary.complete[idx] !== undefined ? parseFloat(summary.complete[idx]) >= 100 : false;
+    let md = 0;
+    rows.forEach(r => {
+      if ((r['단계 구분'] || '') === stage) md += parseFloat(r['공수(MD)']) || 0;
+    });
+    stageMD[stage] = { value: md, completed };
   });
-  const reworkRate = reworkBase > 0 ? (reworkCnt / reworkBase * 100) : 0;
 
-  return { code, complianceRate, execRate, completedCnt, delayCnt, reworkRate };
+  return { code, complianceRate, execRate, problemRate, activeCnt, defenseRate, stageMD };
 };
 
-window.openCompareView = function() {
-  if (window._compareSelected.size < 2) return;
-  const codes = [...window._compareSelected];
-  const metricsList = codes.map(c => window.computeCompareMetrics(c));
 
-  const maxCompleted = Math.max(...metricsList.map(m => m.completedCnt), 1);
-  const maxDelay = Math.max(...metricsList.map(m => m.delayCnt), 1);
-
-  const scored = metricsList.map(m => ({
-    ...m,
-    scoreCompliance: m.complianceRate,
-    scoreExec: 100 - Math.min(Math.abs(m.execRate - 100), 100),
-    scoreOutput: (m.completedCnt / maxCompleted) * 100,
-    scoreDelay: 100 - (m.delayCnt / maxDelay) * 100,
-    scoreRework: 100 - Math.min(m.reworkRate, 100)
-  }));
-
-  window._compareData = scored;
-  document.getElementById('compare-popover').classList.remove('open');
-
-  const chipHtml = scored.map(m => {
-    const color = window.COMPARE_COLOR_MAP[m.code] || '#64748b';
-    return `<span class="compare-chip" style="color:${color};"><span class="compare-proj-dot" style="background:${color};"></span>${m.code}</span>`;
-  }).join('');
-  document.getElementById('compare-chip-row').innerHTML = chipHtml;
-
-  document.getElementById('compareView').classList.add('active');
-  window.setCompareMode('scale');
-};
 
 window.closeCompareView = function() {
   document.getElementById('compareView').classList.remove('active');
@@ -9291,10 +9302,53 @@ window.closeCompareView = function() {
 
 window.setCompareMode = function(mode) {
   window._compareMode = mode;
-  const btnScale = document.getElementById('compare-mode-scale');
-  const btnAbs = document.getElementById('compare-mode-abs');
-  if (btnScale) btnScale.classList.toggle('active', mode === 'scale');
-  if (btnAbs) btnAbs.classList.toggle('active', mode === 'abs');
+  document.getElementById('compare-mode-scale').classList.toggle('active', mode === 'scale');
+  document.getElementById('compare-mode-abs').classList.toggle('active', mode === 'abs');
+  window.recomputeCompareScores();
+};
+
+window.setCompareStage = function(stage) {
+  window._compareStage = stage;
+  document.querySelectorAll('.compare-toggle-btn[data-stage]').forEach(b => b.classList.toggle('active', b.dataset.stage === stage));
+  window.recomputeCompareScores();
+};
+
+window.setCompareImproveMode = function(mode) {
+  window._compareImproveMode = mode;
+  document.querySelectorAll('.compare-toggle-btn[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  window.recomputeCompareScores();
+};
+
+// ── 선택된 토글(단계/능동방어) 기준으로 점수 재계산 후 차트+표 다시 그림 ──
+window.recomputeCompareScores = function() {
+  const raw = (window._compareAllMetrics || []).filter(m => window._compareSelected.has(m.code));
+  if (raw.length === 0) return;
+
+  const stage = window._compareStage;
+  const completedList = raw.filter(m => m.stageMD[stage].completed);
+  const maxStageMD = Math.max(...completedList.map(m => m.stageMD[stage].value), 0.001);
+  const maxActiveCnt = Math.max(...raw.map(m => m.activeCnt), 0.001);
+
+  window._compareData = raw.map(m => {
+    const stageInfo = m.stageMD[stage];
+    const stageCompleted = stageInfo.completed;
+    const stageScore = stageCompleted ? (100 - (stageInfo.value / maxStageMD * 100)) : 0;
+
+    const improveVal = window._compareImproveMode === 'active' ? m.activeCnt : m.defenseRate;
+    const improveScore = window._compareImproveMode === 'active'
+      ? (m.activeCnt / maxActiveCnt * 100)
+      : m.defenseRate;
+
+    return {
+      code: m.code,
+      complianceRate: m.complianceRate, scoreCompliance: m.complianceRate,
+      execRate: m.execRate, scoreExec: 100 - Math.min(Math.abs(m.execRate - 100), 100),
+      problemRate: m.problemRate, scoreProblem: 100 - Math.min(m.problemRate, 100),
+      improveVal, improveScore,
+      stageValue: stageInfo.value, stageCompleted, stageScore
+    };
+  });
+
   window.renderCompareChart();
   window.renderCompareTable();
   window.renderCompareInsight();
@@ -9302,13 +9356,14 @@ window.setCompareMode = function(mode) {
 
 window.renderCompareChart = function() {
   const data = window._compareData || [];
-  const labels = ['일정 준수율', '리소스 효율', '산출 건수', '지연 방어(역산)', '재작업 방어(역산)'];
+  const stageLabel = `${window._compareStage} 공수(역산)`;
+  const improveLabel = window._compareImproveMode === 'active' ? '개선 활동(능동)' : '개선 활동(방어)';
+  const labels = [stageLabel, '일정 준수율', '리소스 효율', '문제항목 발생률(역산)', improveLabel];
   const ctx = document.getElementById('compareRadarChart');
   if (!ctx) return;
   if (compareChartInstance) compareChartInstance.destroy();
 
-  const rawKeys = ['complianceRate', 'execRate', 'completedCnt', 'delayCnt', 'reworkRate'];
-  const scoreKeys = ['scoreCompliance', 'scoreExec', 'scoreOutput', 'scoreDelay', 'scoreRework'];
+  const scoreKeys = ['stageScore', 'scoreCompliance', 'scoreExec', 'scoreProblem', 'improveScore'];
 
   const datasets = data.map(m => {
     const color = window.COMPARE_COLOR_MAP[m.code] || '#64748b';
@@ -9321,7 +9376,8 @@ window.renderCompareChart = function() {
       pointBackgroundColor: color,
       pointBorderColor: '#fff',
       pointRadius: 4,
-      pointHoverRadius: 6
+      pointHoverRadius: 6,
+      _baseColor: color
     };
   });
 
@@ -9345,10 +9401,13 @@ window.renderCompareChart = function() {
           callbacks: {
             label: (ctx2) => {
               const m = data[ctx2.datasetIndex];
-              const rawKey = rawKeys[ctx2.dataIndex];
-              const raw = m[rawKey];
-              const unit = (rawKey === 'completedCnt' || rawKey === 'delayCnt') ? '건' : '%';
-              return `${m.code} ${labels[ctx2.dataIndex]}: ${raw.toFixed(1)}${unit} (점수 ${ctx2.parsed.r.toFixed(0)})`;
+              const idx = ctx2.dataIndex;
+              if (idx === 0) return `${m.code} ${labels[0]}: ${m.stageCompleted ? m.stageValue.toFixed(1) + 'MD' : '미완료'} (점수 ${ctx2.parsed.r.toFixed(0)})`;
+              if (idx === 1) return `${m.code} 일정 준수율: ${m.complianceRate.toFixed(1)}%`;
+              if (idx === 2) return `${m.code} 리소스 효율: ${m.execRate.toFixed(1)}% (점수 ${ctx2.parsed.r.toFixed(0)})`;
+              if (idx === 3) return `${m.code} 문제항목 발생률: ${m.problemRate.toFixed(1)}% (점수 ${ctx2.parsed.r.toFixed(0)})`;
+              const unit = window._compareImproveMode === 'active' ? '건' : '%';
+              return `${m.code} ${labels[4]}: ${m.improveVal.toFixed(1)}${unit} (점수 ${ctx2.parsed.r.toFixed(0)})`;
             }
           }
         }
@@ -9357,27 +9416,79 @@ window.renderCompareChart = function() {
   });
 };
 
+// ── 프로젝트 라벨(칩/표 헤더) 호버 시 해당 선 강조 ──
+window.highlightCompareProject = function(code) {
+  if (!compareChartInstance) return;
+  compareChartInstance.data.datasets.forEach(ds => {
+    if (ds.label === code) {
+      ds.borderWidth = 4;
+      ds.backgroundColor = ds._baseColor + '55';
+      ds.pointRadius = 6;
+    } else {
+      ds.borderWidth = 1;
+      ds.backgroundColor = ds._baseColor + '0d';
+      ds.pointRadius = 2;
+    }
+  });
+  compareChartInstance.update();
+
+  document.querySelectorAll(`.compare-chip[data-code="${code}"]`).forEach(el => el.classList.add('chip-active'));
+  document.querySelectorAll(`.compare-stat-table th[data-code="${code}"]`).forEach(el => el.classList.add('th-hover'));
+};
+
+window.unhighlightCompareProject = function() {
+  if (!compareChartInstance) return;
+  compareChartInstance.data.datasets.forEach(ds => {
+    ds.borderWidth = 2;
+    ds.backgroundColor = ds._baseColor + '26';
+    ds.pointRadius = 4;
+  });
+  compareChartInstance.update();
+
+  document.querySelectorAll('.compare-chip.chip-active').forEach(el => el.classList.remove('chip-active'));
+  document.querySelectorAll('.compare-stat-table th.th-hover').forEach(el => el.classList.remove('th-hover'));
+};
+
 window.renderCompareTable = function() {
   const data = window._compareData || [];
   const mode = window._compareMode;
+  const stageLabel = `📦 ${window._compareStage} 공수(역산)`;
+  const improveLabel = window._compareImproveMode === 'active' ? '💡 개선 활동(능동)' : '💡 개선 활동(방어)';
+
   const rowsDef = [
     { label: '📅 일정 준수율', raw: m => m.complianceRate, score: m => m.scoreCompliance, unit: '%' },
     { label: '⚡ 리소스 효율', raw: m => m.execRate, score: m => m.scoreExec, unit: '%' },
-    { label: '📈 산출 건수', raw: m => m.completedCnt, score: m => m.scoreOutput, unit: '건' },
-    { label: '🛡️ 지연 방어(역산)', raw: m => m.delayCnt, score: m => m.scoreDelay, unit: '건' },
-    { label: '✔️ 재작업 방어(역산)', raw: m => m.reworkRate, score: m => m.scoreRework, unit: '%' }
+    { label: '⚠️ 문제항목 발생률', raw: m => m.problemRate, score: m => m.scoreProblem, unit: '%' },
+    { label: improveLabel, raw: m => m.improveVal, score: m => m.improveScore, unit: window._compareImproveMode === 'active' ? '건' : '%' },
+    { label: stageLabel, raw: m => m.stageValue, score: m => m.stageScore, unit: 'MD', na: m => !m.stageCompleted }
   ];
+
   const theadCols = data.map(m => {
     const color = window.COMPARE_COLOR_MAP[m.code] || '#64748b';
-    return `<th style="color:${color};">${m.code}</th>`;
+    return `<th style="color:${color};" data-code="${m.code}" onmouseenter="window.highlightCompareProject('${m.code}')" onmouseleave="window.unhighlightCompareProject()">${m.code}</th>`;
   }).join('');
+
   const bodyRows = rowsDef.map(rd => {
-    const cells = data.map(m => {
-      const v = mode === 'abs' ? rd.raw(m) : rd.score(m);
-      return `<td>${v.toFixed(1)}${mode === 'abs' ? rd.unit : ''}</td>`;
+    const scored = data.map(m => ({ code: m.code, val: mode === 'abs' ? rd.raw(m) : rd.score(m), sc: rd.score(m), isNa: rd.na ? rd.na(m) : false }));
+    const validScored = scored.filter(x => !x.isNa);
+    let maxCode = null, minCode = null;
+    if (validScored.length >= 2) {
+      const sorted = [...validScored].sort((a, b) => b.sc - a.sc);
+      if (sorted[0].sc !== sorted[sorted.length - 1].sc) {
+        maxCode = sorted[0].code;
+        minCode = sorted[sorted.length - 1].code;
+      }
+    }
+    const cells = scored.map(x => {
+      if (x.isNa) return `<td class="compare-cell-na">미완료</td>`;
+      let cls = '';
+      if (x.code === maxCode) cls = 'compare-cell-high';
+      else if (x.code === minCode) cls = 'compare-cell-low';
+      return `<td class="${cls}">${x.val.toFixed(1)}${mode === 'abs' ? rd.unit : ''}</td>`;
     }).join('');
     return `<tr><td>${rd.label}</td>${cells}</tr>`;
   }).join('');
+
   const table = document.getElementById('compare-stat-table');
   if (table) table.innerHTML = `<thead><tr><th></th>${theadCols}</tr></thead><tbody>${bodyRows}</tbody>`;
 };
@@ -9386,12 +9497,12 @@ window.renderCompareInsight = function() {
   const data = window._compareData || [];
   const box = document.getElementById('compare-insight-text');
   if (!box || data.length === 0) return;
-  const avg = m => (m.scoreCompliance + m.scoreExec + m.scoreOutput + m.scoreDelay + m.scoreRework) / 5;
+  const avg = m => (m.scoreCompliance + m.scoreExec + m.scoreProblem + m.improveScore + m.stageScore) / 5;
   const best = [...data].sort((a, b) => avg(b) - avg(a))[0];
   const worstDim = (m) => {
     const dims = [
       ['일정 준수율', m.scoreCompliance], ['리소스 효율', m.scoreExec],
-      ['산출 건수', m.scoreOutput], ['지연 방어', m.scoreDelay], ['재작업 방어', m.scoreRework]
+      ['문제항목 발생률', m.scoreProblem], ['개선 활동', m.improveScore], ['단계별 공수', m.stageScore]
     ];
     dims.sort((a, b) => a[1] - b[1]);
     return dims[0][0];
