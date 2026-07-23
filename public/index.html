@@ -2691,7 +2691,7 @@ const centerHeaders = ['접수일', '진행상태', '업무/특이사항', '작�
       const dateVal = row['접수일'] || '-';
 
       html += '<tr>' + headers.map(h => {
-        if (h === '프로젝트 코드') return `<td style="text-align: center; font-weight: bold; color: #3b82f6; vertical-align: top;">${pCode}</td>`;
+        if (h === '프로젝트 코드') return `<td style="text-align: center; font-weight: bold; color: #3b82f6; vertical-align: top;">${pCode}<i class="proj-info-ico" style="font-size:12px; margin-left:4px; color:#93c5fd;" onclick="event.stopPropagation(); window.showProjectInfoPopup('${pCode}', this)" title="프로젝트 정보">ⓘ</i></td>`;
         if (h === '접수일') return `<td style="text-align: center; vertical-align: top; color: #94a3b8;">${dateVal}</td>`;
         
         // ... (이하 기존 로직 동일)
@@ -2997,7 +2997,7 @@ return `
 <div class="main-card" draggable="true" data-card-idx="${cardIdx}" ondragstart="window.cardDragStart(event,${cardIdx})" ondragover="window.cardDragOver(event)" ondrop="window.cardDrop(event,${cardIdx})" ondragend="window.cardDragEnd(event)" onclick="window.cardClick('CP')" style="cursor: pointer; ${selectedSet.has('CP') ? 'border: 2px solid #059669; box-shadow: 0 0 0 3px rgba(5,150,105,0.15);' : ''}">
 <div class="main-card-header">
           <div style="display:flex; align-items:center; gap:8px;">
-            <div class="main-card-title">${proj.id}</div>
+            <div class="main-card-title">${proj.id}<i class="proj-info-ico" style="font-size:13px; margin-left:6px;" onclick="event.stopPropagation(); window.showProjectInfoPopup('${proj.id}', this)" title="프로젝트 정보">ⓘ</i></div>
             ${riskLampHtml}
           </div>
           <span class="badge" style="${badgeStyle}">${statusText}</span>
@@ -3084,7 +3084,7 @@ const summary = proj.d.summary || {};
       <div class="main-card" draggable="true" data-card-idx="${cardIdx}" ondragstart="window.cardDragStart(event,${cardIdx})" ondragover="window.cardDragOver(event)" ondrop="window.cardDrop(event,${cardIdx})" ondragend="window.cardDragEnd(event)" onclick="window.cardClick('${proj.id}')" style="cursor: pointer; ${selectedSet.has(proj.id) ? 'border: 2px solid ' + proj.color + '; box-shadow: 0 0 0 3px ' + proj.color + '33;' : ''}">
 <div class="main-card-header">
           <div style="display:flex; align-items:center; gap:8px;">
-            <div class="main-card-title">${proj.id}</div>
+            <div class="main-card-title">${proj.id}<i class="proj-info-ico" style="font-size:13px; margin-left:6px;" onclick="event.stopPropagation(); window.showProjectInfoPopup('${proj.id}', this)" title="프로젝트 정보">ⓘ</i></div>
             ${riskLampHtml}
           </div>
           <span class="badge" style="${badgeStyle}">${statusText}</span>
