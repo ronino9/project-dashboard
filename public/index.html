@@ -243,6 +243,25 @@
 .sidebar-btn.sub-btn.active::after { background: #ffffff; }
 .sidebar-btn.sub-btn.active::before { display: none; }
 .sidebar-btn.sub-btn.active .sidebar-sub { background: rgba(255,255,255,0.25); color: #ffffff; border-color: rgba(255,255,255,0.4); }
+    .proj-info-ico { font-style:normal; font-size:12px; color:#94a3b8; margin-left:4px; cursor:pointer; flex-shrink:0; transition:color 0.15s ease, transform 0.15s ease; }
+.proj-info-ico:hover { color:#3b82f6; transform:scale(1.15); }
+.sidebar-btn.sub-btn.active .proj-info-ico { color:rgba(255,255,255,0.7); }
+.sidebar-btn.sub-btn.active .proj-info-ico:hover { color:#ffffff; }
+.project-info-popover { display:none; position:fixed; width:280px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 12px 32px rgba(15,23,42,0.18); padding:14px 16px; z-index:10000; }
+.project-info-popover.open { display:block; }
+.project-info-popover .pip-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.project-info-popover .pip-title { font-size:15px; font-weight:800; color:#0f172a; }
+.project-info-popover .pip-close { cursor:pointer; color:#94a3b8; font-size:16px; font-weight:bold; }
+.project-info-popover .pip-close:hover { color:#0f172a; }
+.project-info-popover table { width:100%; font-size:12px; border-collapse:collapse; }
+.project-info-popover td { padding:6px 0; }
+.project-info-popover td.pip-label { color:#64748b; width:80px; }
+.project-info-popover td.pip-val { text-align:right; font-weight:600; color:#0f172a; }
+.project-info-popover tr:not(:first-child) td { border-top:1px solid #f1f5f9; }
+.project-info-popover .pip-memo-box { margin-top:10px; padding-top:8px; border-top:1px solid #f1f5f9; }
+.project-info-popover .pip-memo-label { font-size:10px; color:#94a3b8; margin-bottom:3px; }
+.project-info-popover .pip-memo-text { font-size:12px; color:#475569; line-height:1.5; white-space:pre-wrap; }
+.project-info-popover .pip-empty { font-size:12px; color:#94a3b8; text-align:center; padding:12px 0; }
 
 /* 프리미엄 검색창 */
 .sidebar-search-wrap { position: relative; margin-bottom: 4px; }
@@ -1395,15 +1414,15 @@
   <!-- 4. 개별 프로젝트 -->
   <div class="sidebar-group">
     <div class="sidebar-group-label">Projects</div>
-    <button id="btn-project10" class="sidebar-btn sub-btn" onclick="window.switchTab('project10')">OP10<span class="sidebar-sub">Ongoing</span></button>
-    <button id="btn-project9" class="sidebar-btn sub-btn" onclick="window.switchTab('project9')">OP9<span class="sidebar-sub">Ongoing</span></button>
-    <button id="btn-project8" class="sidebar-btn sub-btn" onclick="window.switchTab('project8')">OP8<span class="sidebar-sub">Ongoing</span></button>
-    <button id="btn-project7" class="sidebar-btn sub-btn" onclick="window.switchTab('project7')">OP7<span class="sidebar-sub">Ongoing</span></button>
-    <button id="btn-project6" class="sidebar-btn sub-btn" onclick="window.switchTab('project6')">OP6<span class="sidebar-sub">Ongoing</span></button>
-    <button id="btn-project5" class="sidebar-btn sub-btn" onclick="window.switchTab('project5')">OP5<span class="sidebar-sub">Ongoing</span></button>
-    <button id="btn-project4" class="sidebar-btn sub-btn" onclick="window.switchTab('project4')">OP4<span class="sidebar-sub">Ongoing</span></button>
-    <button id="btn-project3" class="sidebar-btn sub-btn" onclick="window.switchTab('project3')">OP3<span class="sidebar-sub">Ongoing</span></button>
-    <button id="btn-project2" class="sidebar-btn sub-btn" onclick="window.switchTab('project2')">OP2<span class="sidebar-sub">Ongoing</span></button>
+    <button id="btn-project10" class="sidebar-btn sub-btn" onclick="window.switchTab('project10')">OP10<span class="sidebar-sub">Ongoing</span><i class="proj-info-ico" data-code="OP10" onclick="event.stopPropagation(); window.showProjectInfoPopup('OP10', this)" title="프로젝트 정보">ⓘ</i></button>
+    <button id="btn-project9" class="sidebar-btn sub-btn" onclick="window.switchTab('project9')">OP9<span class="sidebar-sub">Ongoing</span><i class="proj-info-ico" data-code="OP9" onclick="event.stopPropagation(); window.showProjectInfoPopup('OP9', this)" title="프로젝트 정보">ⓘ</i></button>
+    <button id="btn-project8" class="sidebar-btn sub-btn" onclick="window.switchTab('project8')">OP8<span class="sidebar-sub">Ongoing</span><i class="proj-info-ico" data-code="OP8" onclick="event.stopPropagation(); window.showProjectInfoPopup('OP8', this)" title="프로젝트 정보">ⓘ</i></button>
+    <button id="btn-project7" class="sidebar-btn sub-btn" onclick="window.switchTab('project7')">OP7<span class="sidebar-sub">Ongoing</span><i class="proj-info-ico" data-code="OP7" onclick="event.stopPropagation(); window.showProjectInfoPopup('OP7', this)" title="프로젝트 정보">ⓘ</i></button>
+    <button id="btn-project6" class="sidebar-btn sub-btn" onclick="window.switchTab('project6')">OP6<span class="sidebar-sub">Ongoing</span><i class="proj-info-ico" data-code="OP6" onclick="event.stopPropagation(); window.showProjectInfoPopup('OP6', this)" title="프로젝트 정보">ⓘ</i></button>
+    <button id="btn-project5" class="sidebar-btn sub-btn" onclick="window.switchTab('project5')">OP5<span class="sidebar-sub">Ongoing</span><i class="proj-info-ico" data-code="OP5" onclick="event.stopPropagation(); window.showProjectInfoPopup('OP5', this)" title="프로젝트 정보">ⓘ</i></button>
+    <button id="btn-project4" class="sidebar-btn sub-btn" onclick="window.switchTab('project4')">OP4<span class="sidebar-sub">Ongoing</span><i class="proj-info-ico" data-code="OP4" onclick="event.stopPropagation(); window.showProjectInfoPopup('OP4', this)" title="프로젝트 정보">ⓘ</i></button>
+    <button id="btn-project3" class="sidebar-btn sub-btn" onclick="window.switchTab('project3')">OP3<span class="sidebar-sub">Ongoing</span><i class="proj-info-ico" data-code="OP3" onclick="event.stopPropagation(); window.showProjectInfoPopup('OP3', this)" title="프로젝트 정보">ⓘ</i></button>
+    <button id="btn-project2" class="sidebar-btn sub-btn" onclick="window.switchTab('project2')">OP2<span class="sidebar-sub">Ongoing</span><i class="proj-info-ico" data-code="OP2" onclick="event.stopPropagation(); window.showProjectInfoPopup('OP2', this)" title="프로젝트 정보">ⓘ</i></button>
     <button id="btn-project1cs" class="sidebar-btn sub-btn" data-status="complete" onclick="window.switchTab('project1cs')">CP_All<span class="sidebar-sub">Complete</span></button>
   </div>
 
@@ -2087,6 +2106,7 @@ window.renderDeviationTrendTest = function() {
       </div>
     </div>
 
+      <div id="project-info-popover" class="project-info-popover"></div>
 <div id="detailView" onclick="if(event.target===this) window.closeDetail()">
       <div class="detail-modal-box">
         <div style="font-size: 15px; font-weight: 700; color: #3b82f6; margin-bottom: 12px; display: flex; justify-content: space-between; align-items:center; gap:10px; flex-shrink:0;">
@@ -2537,6 +2557,61 @@ window.renderDeviationTrendTest = function() {
       return dateStr.toString().substring(2);
     }
 
+    window.showProjectInfoPopup = function(code, anchorEl) {
+  const pop = document.getElementById('project-info-popover');
+  if (!pop) return;
+
+  if (pop.classList.contains('open') && pop._currentCode === code) {
+    pop.classList.remove('open');
+    pop._currentCode = null;
+    return;
+  }
+
+  const info = (allData.projectInfo && allData.projectInfo[code]) || null;
+
+  let bodyHtml = '';
+  if (!info) {
+    bodyHtml = `<div class="pip-empty">등록된 정보가 없습니다.</div>`;
+  } else {
+    const rows = [
+      ['실제코드', info.실제코드], ['발주처', info.발주처], ['엔드유저', info.엔드유저],
+      ['납품 국가', info.납품국가], ['납품 도시', info.납품도시], ['시작일', info.시작일]
+    ];
+    bodyHtml = `<table>${rows.map(([label, val]) =>
+      `<tr><td class="pip-label">${label}</td><td class="pip-val">${val || '-'}</td></tr>`
+    ).join('')}</table>`;
+    if (info.메모 && info.메모.trim() !== '') {
+      bodyHtml += `<div class="pip-memo-box"><div class="pip-memo-label">메모</div><div class="pip-memo-text">${info.메모}</div></div>`;
+    }
+  }
+
+  pop.innerHTML = `
+    <div class="pip-header">
+      <span class="pip-title">${code}</span>
+      <span class="pip-close" onclick="window.closeProjectInfoPopup()">✕</span>
+    </div>
+    ${bodyHtml}
+  `;
+
+  const rect = anchorEl.getBoundingClientRect();
+  pop.style.left = Math.min(rect.left, window.innerWidth - 300) + 'px';
+  pop.style.top = (rect.bottom + 6) + 'px';
+  pop.classList.add('open');
+  pop._currentCode = code;
+};
+
+window.closeProjectInfoPopup = function() {
+  const pop = document.getElementById('project-info-popover');
+  if (pop) { pop.classList.remove('open'); pop._currentCode = null; }
+};
+
+document.addEventListener('click', function(e) {
+  const pop = document.getElementById('project-info-popover');
+  if (!pop || !pop.classList.contains('open')) return;
+  if (pop.contains(e.target) || e.target.classList.contains('proj-info-ico')) return;
+  pop.classList.remove('open');
+  pop._currentCode = null;
+});
 window.closeDetail = function() {
       document.getElementById('detailView').classList.remove('active');
       window._detailStack = [];
@@ -7942,9 +8017,10 @@ function computeImprovementStats(rows) {
   const activeSolo = [];
   rows.forEach((r, idx) => {
     if (!isImprove(r)) return;
+    if (!getImproveType(r)) return;   // ← 이 줄 추가: 개선유형 태그 없으면 제외
     if (isExternalFactor(r)) return;
     const k = improveKey(r);
-    if (k && countedImproveKeys.has(k)) return; // 이미 방어 개선으로 집계됨
+    if (k && countedImproveKeys.has(k)) return;
     if (k) {
       if (!activeUnits[k]) activeUnits[k] = [];
       activeUnits[k].push(r);
