@@ -7849,93 +7849,139 @@ const project = document.getElementById('gs-project').value;
 // - 개선 태그는 유닛(그룹 또는 단독 행)당 1개만 집계 (중복 방지)
 // ==========================================
 function computeImprovementStats(rows) {
-const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
-  const isHold = (r) => (r['진행상태'] || '').toString().trim() === '보류';
-  const isImprove = (r) => (r['업무 구분'] || '').toString().trim() === '개선';
-  const hasImproveTag = (r) => !!(r['개선유형'] && r['개선유형'] !== '해당없음');
+  const norm = (v) => (v || '').toString().trim();
+  const isExternalFactor = (r) => !!(r['외부요인'] && norm(r['외부요인']) !== '해당없음');
+  const isHold = (r) => norm(r['진행상태']) === '보류';
+  const isImprove = (r) => norm(r['업무 구분']) === '개선';
+  const isDoneRow = (r) => {
+    const st = norm(r['진행상태']);
+    return st === '완료' || st === '지연완료';
+  };
   const getImproveType = (r) => {
-    return (r['개선유형'] && r['개선유형'] !== '해당없음') ? r['개선유형'].toString().trim() : null;
+    const t = norm(r['개선유형']);
+    return (t && t !== '해당없음') ? t : null;
   };
-  // 완료 판정: 완료여부='O'만 완료로 인정
-  const isDoneRow = (r) => (r['완료여부'] || '').toString().trim() === 'O';
-  // 보류인 개선 행은 완료 판정에서 아예 제외(없는 셈)
-  const isHoldRow = (r) => {
-    const cw = (r['완료여부'] || '').toString().trim();
-    const st = (r['진행상태'] || '').toString().trim();
-    return cw === '보류' || st === '보류';
+  const roundDev = (v) => Math.round(v * 10) / 10;
+
+  const groupKey = (r) => norm(r['그룹ID']);
+  const improveKey = (r) => {
+    const g = norm(r['그룹ID']);
+    const i = norm(r['개선ID']);
+    return (g && i) ? `${g}|${i}` : '';
   };
-  // 문제 트리거 자격: 업무구분='개선'인 행은 절대 트리거가 될 수 없음
+
   const isEligibleRow = (r) => {
     if (isHold(r)) return false;
     if (isExternalFactor(r)) return false;
     if (isImprove(r)) return false;
-    const st = (r['진행상태'] || '').toString().trim();
-    const task = (r['업무 구분'] || '').toString().trim();
-    const yn = (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
+    const st = norm(r['진행상태']);
+    const task = norm(r['업무 구분']);
+    const yn = norm(r['재작업 여부(Y/N)']).toUpperCase();
     const dev = parseFloat(r['작업 시간 편차']);
-    return task === 'Issue' || st === '지연중' || st === '지연완료' || yn === 'Y' || (!isNaN(dev) && dev > 0);
+    return task === 'Issue' || st === '지연중' || st === '지연완료' || yn === 'Y'
+        || (!isNaN(dev) && roundDev(dev) > 0);
   };
 
-  const groups = {};
-  const units = [];
+  // ── 인덱스 구축 ──
+  const doneByGroup = {};      // 그룹ID -> 완료 행 존재 여부
+  const improveDoneByKey = {}; // 그룹ID|개선ID -> 개선 완료 행 존재 여부
+  const improveRowsByKey = {}; // 그룹ID|개선ID -> 개선 태그 행들
   rows.forEach(r => {
-    const gid = (r['그룹ID'] || '').toString().trim();
-    if (!gid) { units.push([r]); return; }
-    if (!groups[gid]) { groups[gid] = []; units.push(groups[gid]); }
-    groups[gid].push(r);
-  });
-
-  let problemCnt = 0, problemImproved = 0, activeImproveCnt = 0, activeImproveOngoingCnt = 0;
-  const improveDist = { '일정': 0, '품질': 0, '효율': 0, '동료기여': 0, '기타': 0 };
-  const reflectedRows = [];
-  const unreflectedRows = [];
-  const activeRows = [];
-  const activeOngoingRows = [];
-  const defensiveTaggedRows = [];
-  const activeTaggedRows = [];
-
-  // 그룹(유닛) 안의 개선유형 태그 행들이 전부 완료(보류 제외)인지 판정
-  const groupImproveAllDone = (taggedRows) => {
-    const nonHold = taggedRows.filter(r => !isHoldRow(r));
-    if (nonHold.length === 0) return false; // 전부 보류면 완료로 인정 안 함(판정 불가)
-    return nonHold.every(isDoneRow);
-  };
-
-  units.forEach(unitRows => {
-    const usable = unitRows.filter(r => !isExternalFactor(r));
-    if (usable.length === 0) return;
-
-    const isProb = usable.some(isEligibleRow);
-    const taggedRows = usable.filter(hasImproveTag);
-    const tagged = taggedRows.length > 0;
-
-    if (isProb) {
-      problemCnt++;
-      if (tagged && groupImproveAllDone(taggedRows)) {
-        problemImproved++;
-        reflectedRows.push(...usable);
-        defensiveTaggedRows.push(taggedRows[0]);
-        const type = getImproveType(taggedRows[0]);
-        if (type) { improveDist[type] !== undefined ? improveDist[type]++ : improveDist['기타']++; }
-      } else {
-        // 태그 없음 OR 태그는 있는데 아직 미완료 → 둘 다 미반영으로 취급
-        unreflectedRows.push(...usable);
-      }
-    } else if (tagged) {
-      if (groupImproveAllDone(taggedRows)) {
-        activeImproveCnt++;
-        activeRows.push(...usable);
-        activeTaggedRows.push(taggedRows[0]);
-        const type = getImproveType(taggedRows[0]);
-        if (type) { improveDist[type] !== undefined ? improveDist[type]++ : improveDist['기타']++; }
-      } else {
-        activeImproveOngoingCnt++;
-        activeOngoingRows.push(...usable);
-      }
+    const g = groupKey(r);
+    if (g && isDoneRow(r)) doneByGroup[g] = true;
+    const k = improveKey(r);
+    if (k && isImprove(r)) {
+      if (!improveRowsByKey[k]) improveRowsByKey[k] = [];
+      improveRowsByKey[k].push(r);
+      if (isDoneRow(r)) improveDoneByKey[k] = true;
     }
   });
 
-return { problemCnt, problemImproved, activeImproveCnt, activeImproveOngoingCnt, improveDist, reflectedRows, unreflectedRows, activeRows, activeOngoingRows, defensiveTaggedRows, activeTaggedRows, hasImproveTag };
+  // ── 1) 문제 건: 그룹ID 단위 ──
+  const problemGroups = {};
+  const soloProblems = [];
+  rows.forEach((r, idx) => {
+    if (!isEligibleRow(r)) return;
+    const g = groupKey(r);
+    if (g) {
+      if (!problemGroups[g]) problemGroups[g] = [];
+      problemGroups[g].push(r);
+    } else {
+      soloProblems.push([r]);
+    }
+  });
+  const problemUnits = Object.values(problemGroups).concat(soloProblems);
+
+  let problemCnt = 0, problemImproved = 0;
+  const improveDist = { '일정': 0, '품질': 0, '효율': 0, '동료기여': 0, '기타': 0 };
+  const reflectedRows = [], unreflectedRows = [];
+  const defensiveTaggedRows = [];
+  const countedImproveKeys = new Set();
+
+  problemUnits.forEach(unitRows => {
+    problemCnt++;
+    const keys = [...new Set(unitRows.map(improveKey).filter(Boolean))];
+    const doneKey = keys.find(k => improveDoneByKey[k]);
+    if (doneKey) {
+      problemImproved++;
+      reflectedRows.push(...unitRows);
+      countedImproveKeys.add(doneKey);
+      const tagRow = (improveRowsByKey[doneKey] || []).find(getImproveType);
+      if (tagRow) {
+        defensiveTaggedRows.push(tagRow);
+        const type = getImproveType(tagRow);
+        if (type) { improveDist[type] !== undefined ? improveDist[type]++ : improveDist['기타']++; }
+      }
+    } else {
+      unreflectedRows.push(...unitRows);
+    }
+  });
+
+  // ── 2) 능동 개선: 문제와 연결되지 않은 개선 건 ──
+  const activeUnits = {};
+  const activeSolo = [];
+  rows.forEach((r, idx) => {
+    if (!isImprove(r)) return;
+    if (isExternalFactor(r)) return;
+    const k = improveKey(r);
+    if (k && countedImproveKeys.has(k)) return; // 이미 방어 개선으로 집계됨
+    if (k) {
+      if (!activeUnits[k]) activeUnits[k] = [];
+      activeUnits[k].push(r);
+    } else {
+      activeSolo.push([r]);
+    }
+  });
+  const activeUnitList = Object.values(activeUnits).concat(activeSolo);
+
+  let activeImproveCnt = 0, activeImproveOngoingCnt = 0;
+  const activeRows = [], activeOngoingRows = [], activeTaggedRows = [];
+
+  activeUnitList.forEach(unitRows => {
+    const nonHold = unitRows.filter(r => !isHold(r));
+    if (nonHold.length === 0) return;
+    const done = nonHold.some(isDoneRow);
+    if (done) {
+      activeImproveCnt++;
+      activeRows.push(...unitRows);
+      const tagRow = unitRows.find(getImproveType) || unitRows[0];
+      activeTaggedRows.push(tagRow);
+      const type = getImproveType(tagRow);
+      if (type) { improveDist[type] !== undefined ? improveDist[type]++ : improveDist['기타']++; }
+    } else {
+      activeImproveOngoingCnt++;
+      activeOngoingRows.push(...unitRows);
+    }
+  });
+
+  const hasImproveTag = (r) => !!getImproveType(r);
+
+  return {
+    problemCnt, problemImproved, activeImproveCnt, activeImproveOngoingCnt,
+    improveDist, reflectedRows, unreflectedRows, activeRows, activeOngoingRows,
+    defensiveTaggedRows, activeTaggedRows, hasImproveTag,
+    doneByGroup
+  };
 }
 function computeExternalFactorStats(rows) {
 const isExternalFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
