@@ -1436,9 +1436,13 @@
   <!-- 1.5 프로젝트 비교 -->
   <div class="sidebar-group sidebar-compare-wrap" style="position:relative;">
     <button id="sbtn-compare" class="sidebar-search-input" onclick="window.toggleComparePopover(event)">
-      ⚖️ 비교
+      프로젝트 비교
     </button>
     <div class="compare-popover" id="compare-popover">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span style="font-size:12px; font-weight:800; color:#0f172a;">프로젝트 선택</span>
+        <span onclick="window.toggleComparePopover(event)" style="cursor:pointer; color:#94a3b8; font-size:16px; font-weight:bold; line-height:1;">✕</span>
+      </div>
       <div class="compare-proj-grid" id="compare-proj-grid"></div>
       <button class="compare-run-btn" id="compare-run-btn" onclick="window.openCompareView()" disabled>비교하기 (0개 선택)</button>
     </div>
@@ -9196,7 +9200,7 @@ window.renderCompareProjGrid = function() {
   grid.innerHTML = available.map(code => {
     const color = window.COMPARE_COLOR_MAP[code] || '#64748b';
     const isSel = window._compareSelected.has(code);
-    return `<div class="compare-proj-btn ${isSel ? 'selected' : ''}" style="${isSel ? `background:${color}; border-color:${color};` : ''}" onclick="window.toggleCompareProject('${code}')">
+    return `<div class="compare-proj-btn ${isSel ? 'selected' : ''}" style="${isSel ? `background:${color}; border-color:${color};` : ''}" onclick="event.stopPropagation(); window.toggleCompareProject('${code}')">
       <span style="display:flex; align-items:center; gap:6px;"><span class="compare-proj-dot" style="background:${isSel ? '#fff' : color};"></span>${code}</span>
       ${isSel ? '<span style="font-size:11px;">✓</span>' : ''}
     </div>`;
