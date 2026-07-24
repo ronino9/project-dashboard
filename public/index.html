@@ -1442,56 +1442,124 @@
 }
     .clamp-more-btn.clamp-show { display: inline-block; }
     /* =========================================================
-   📱 아이폰 14 프로 등 스마트폰 가로 모드(Landscape) 전용 패치
-   ========================================================= */
-@media screen and (max-width: 932px) and (orientation: landscape) {
-  /* 1. 다이내믹 아일랜드 Safe Area 여백 확보 */
-  body {
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-  }
-  
-  /* 2. 세로 높이(393px) 한계 극복: 강제 min-height 해제 및 압축 */
-  .chart-card, 
-  .compare-chart-wrap,
-  #csBubbleCanvas {
-    min-height: auto !important;
-    height: 260px !important; /* 스마트폰 가로에서 한눈에 들어오는 최대 높이 */
-    padding: 12px !important;
-  }
-  
-  /* 3. 모달 창 및 고정 폭 테이블 화면 안에 가두기 */
-  #compareView .compare-modal-box,
-  #detailView .detail-modal-box {
-    width: 98vw !important;
-    max-width: 100% !important;
-    max-height: 90vh !important;
-    padding: 12px !important;
-  }
-  
-  /* 테이블 가로 스크롤 허용 및 고정폭 해제 */
-  #detailTable,
-  .compare-stat-table {
-    width: 100% !important;
-    min-width: 700px !important; /* 최소 폭만 유지하여 스크롤 유도 */
-  }
-  
-  /* 4. 대시보드 및 관제탑 레이아웃 1열 강제 축소 */
-  #main-panel .charts-grid,
-  .tower-grid,
-  #cs-view {
-    grid-template-columns: 1fr !important;
-    gap: 10px !important;
-  }
-  
-  /* 5. 간트 차트 및 지도 상단 패널 여백 압축 */
-  #gantt-scroll {
-    max-height: 220px !important;
-  }
-  #tower-map {
-    width: 100% !important;
-  }
-}
+       📱 아이폰 가로 모드(Landscape) 전용 패치 (사이드바 짤림 해결판)
+       ========================================================= */
+    /* =========================================================
+       📱 아이폰 가로 모드(Landscape) 전용 패치 (아크 리액터 단독 모드 포함)
+       ========================================================= */
+    @media screen and (max-width: 932px) and (orientation: landscape) {
+      /* 1. 다이내믹 아일랜드 Safe Area 여백 */
+      body {
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+      }
+      
+      /* 🌟 [핵심] 사이드바를 54px 폭으로 압축하고 스크롤 및 넘침 완벽 차단 */
+      .sidebar {
+        width: 54px !important;
+        min-width: 54px !important;
+        max-width: 54px !important;
+        padding: 16px 6px !important;
+        overflow-x: hidden !important;
+      }
+
+      /* 🌟 [핵심] 텍스트, 로고, 라벨, 뱃지 등 불필요한 글자 완벽 숨김 */
+      .sidebar .sidebar-logo,
+      .sidebar .sidebar-logo-divider,
+      .sidebar .sidebar-group-label,
+      .sidebar .sidebar-sub,
+      .sidebar .proj-info-ico,
+      .sidebar-btn span:not(.sidebar-icon),
+      .sidebar-btn-jarvis .jarvis-brand-text {
+        display: none !important; /* '자비스' 글자 100% 숨김 */
+      }
+
+      /* 🌟 [핵심] 일반 사이드바 버튼 정중앙 정렬 */
+      .sidebar-btn {
+        padding: 10px 0 !important;
+        justify-content: center !important;
+        text-align: center !important;
+      }
+      .sidebar-btn.sub-btn {
+        padding: 10px 0 !important;
+      }
+      .sidebar-btn.sub-btn::after {
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 8px !important;
+        height: 8px !important;
+      }
+      .sidebar-search-wrap,
+      .sidebar-compare-wrap {
+        display: none !important; /* 모바일 가로 뷰에서 상단 검색/비교 버튼 숨김 (공간 확보) */
+      }
+
+      /* 🌟 [핵심] 자비스 버튼: 텍스트 없이 '아크 리액터(SVG)'만 정중앙 배치 */
+      .sidebar-btn-jarvis {
+        padding: 6px 0 !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+        gap: 0 !important; /* 아이콘과 글자 사이 여백 제거 */
+        border-radius: 10px !important;
+      }
+      .sidebar-btn-jarvis svg {
+        margin: 0 auto !important;
+        display: block !important;
+        width: 32px !important;  /* 모바일 사이드바 폭에 맞춘 최적의 아크 리액터 크기 */
+        height: 32px !important;
+      }
+
+      /* 2. 세로 높이(393px) 한계 맞춤 압축 */
+      .chart-card, 
+      .compare-chart-wrap,
+      #csBubbleCanvas {
+        min-height: auto !important;
+        height: 260px !important;
+        padding: 12px !important;
+      }
+      
+      /* 3. 모달 창 및 고정폭 테이블 화면 안에 가두기 */
+      #compareView .compare-modal-box,
+      #detailView .detail-modal-box {
+        width: 98vw !important;
+        max-width: 100% !important;
+        max-height: 90vh !important;
+        padding: 12px !important;
+      }
+      #detailTable,
+      .compare-stat-table {
+        width: 100% !important;
+        min-width: 700px !important;
+      }
+      
+      /* 4. 대시보드, 관제탑, PDCA 레이아웃 1열 강제 축소 */
+      #main-panel .charts-grid,
+      .tower-grid,
+      #cs-view,
+      #pdca-content > div:nth-of-type(2) { /* 🌟 PDCA 차트 2개 감싸는 영역 추가 */
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+      }
+
+      /* 🌟 [신규 추가!] PDCA 우측 도넛 차트 내부도 모바일에서 위아래로 떨어뜨림 */
+      #pdca-content > div:nth-of-type(2) > div:nth-child(2) > div:last-child {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 12px !important;
+      }
+      
+      /* 🌟 [신규 추가!] 도넛 차트 옆 텍스트 범례가 넓게 퍼지도록 폭 최적화 */
+      #pdca-improve-legend {
+        width: 100% !important;
+      }
+      #gantt-scroll {
+        max-height: 220px !important;
+      }
+      #tower-map {
+        width: 100% !important;
+      }
+    }
   </style>
 </head>
 <body>
