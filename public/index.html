@@ -9351,6 +9351,7 @@ window.recomputeCompareScores = function() {
   const stage = window._compareStage;
   const completedList = raw.filter(m => m.stageMD[stage].completed && m.stageMD[stage].hasData);
   const maxStageMD = Math.max(...completedList.map(m => m.stageMD[stage].value), 0.001);
+  const maxActiveCnt = Math.max(...raw.map(m => m.activeCnt), 0.001);
 
   window._compareData = raw.map(m => {
     const stageInfo = m.stageMD[stage];
