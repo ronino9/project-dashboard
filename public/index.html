@@ -9306,13 +9306,14 @@ window.computeCompareMetrics = function(code) {
     rows.forEach(r => {
       if ((r['단계 구분'] || '') === stage) md += parseFloat(r['공수(MD)']) || 0;
     });
-    stageMD[stage] = { value: md, completed };
+    const hasData = rows.some(r => (r['단계 구분'] || '') === stage);
+    stageMD[stage] = { value: md, completed, hasData };
   });
 
   // 전체 공수 (완료여부 상관없이 총 투입량 합산)
   let totalMD = 0;
   rows.forEach(r => { totalMD += parseFloat(r['공수(MD)']) || 0; });
-  stageMD['전체'] = { value: totalMD, completed: true };
+  stageMD['전체'] = { value: totalMD, completed: true, hasData: rows.length > 0 };
 
   return { code, complianceRate, execRate, problemRate, activeCnt, defenseRate, stageMD };
 };
@@ -9348,14 +9349,14 @@ window.recomputeCompareScores = function() {
   if (raw.length === 0) return;
 
   const stage = window._compareStage;
-  const completedList = raw.filter(m => m.stageMD[stage].completed);
+  const completedList = raw.filter(m => m.stageMD[stage].completed && m.stageMD[stage].hasData);
   const maxStageMD = Math.max(...completedList.map(m => m.stageMD[stage].value), 0.001);
-  const maxActiveCnt = Math.max(...raw.map(m => m.activeCnt), 0.001);
 
   window._compareData = raw.map(m => {
     const stageInfo = m.stageMD[stage];
     const stageCompleted = stageInfo.completed;
-    const stageScore = stageCompleted ? (100 - (stageInfo.value / maxStageMD * 100)) : 0;
+    const stageHasData = stageInfo.hasData;
+    const stageScore = (stageCompleted && stageHasData) ? (100 - (stageInfo.value / maxStageMD * 100)) : 0;
 
     const activeScorePart = m.activeCnt / maxActiveCnt * 100;
     let improveVal, improveScore;
@@ -9374,7 +9375,7 @@ window.recomputeCompareScores = function() {
       execRate: m.execRate, scoreExec: 100 - Math.min(Math.abs(m.execRate - 100), 100),
       problemRate: m.problemRate, scoreProblem: 100 - Math.min(m.problemRate, 100),
       improveVal, improveScore,
-      stageValue: stageInfo.value, stageCompleted, stageScore
+      stageValue: stageInfo.value, stageCompleted, stageHasData, stageScore
     };
   });
 
@@ -9531,7 +9532,9 @@ window.renderCompareTable = function() {
     { key: 'exec', label: '리소스 효율', raw: m => m.execRate, score: m => m.scoreExec, unit: '%' },
     { key: 'problem', label: '문제항목 발생률', raw: m => m.problemRate, score: m => m.scoreProblem, unit: '%' },
     { key: improveDescKey, label: improveLabel, raw: m => m.improveVal, score: m => m.improveScore, unit: improveUnit },
-    { key: stageDescKey, label: stageLabel, raw: m => m.stageValue, score: m => m.stageScore, unit: 'MD', na: m => !m.stageCompleted }
+    { key: stageDescKey, label: stageLabel, raw: m => m.stageValue, score: m => m.stageScore, unit: 'MD',
+      na: m => !m.stageHasData,
+      ongoing: m => m.stageHasData && !m.stageCompleted }
   ];
 
   const theadCols = data.map(m => {
@@ -9540,8 +9543,16 @@ window.renderCompareTable = function() {
   }).join('');
 
   const bodyRows = rowsDef.map(rd => {
-    const scored = data.map(m => ({ code: m.code, val: mode === 'abs' ? rd.raw(m) : rd.score(m), sc: rd.score(m), isNa: rd.na ? rd.na(m) : false }));
-    const validScored = scored.filter(x => !x.isNa);
+    const scored = data.map(m => ({
+      code: m.code,
+      val: mode === 'abs' ? rd.raw(m) : rd.score(m),
+      rawVal: rd.raw(m),
+      sc: rd.score(m),
+      isNa: rd.na ? rd.na(m) : false,
+      isOngoing: rd.ongoing ? rd.ongoing(m) : false
+    }));
+    // 강조(최고/최저)는 완료된 항목끼리만 비교
+    const validScored = scored.filter(x => !x.isNa && !x.isOngoing);
     let maxCode = null, minCode = null;
     if (validScored.length >= 2) {
       const sorted = [...validScored].sort((a, b) => b.sc - a.sc);
@@ -9551,7 +9562,10 @@ window.renderCompareTable = function() {
       }
     }
     const cells = scored.map(x => {
-      if (x.isNa) return `<td class="compare-cell-na">미완료</td>`;
+      if (x.isNa) return `<td class="compare-cell-na">해당없음</td>`;
+      if (x.isOngoing) {
+        return `<td style="color:#64748b; font-weight:600;">${x.rawVal.toFixed(1)}${rd.unit}<br><span style="font-size:10px; color:#94a3b8;">진행중</span></td>`;
+      }
       let cls = '';
       if (x.code === maxCode) cls = 'compare-cell-high';
       else if (x.code === minCode) cls = 'compare-cell-low';
