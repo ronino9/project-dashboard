@@ -2220,17 +2220,17 @@ window.renderDeviationTrendTest = function() {
             <div class="compare-axis-controls">
               <div class="compare-axis-control-group">
                 <span class="compare-axis-control-label">📦 단계별 공수</span>
-                <button class="compare-toggle-btn active" data-stage="제작" onclick="window.setCompareStage('제작')">제작</button>
+                <button class="compare-toggle-btn" data-stage="제작" onclick="window.setCompareStage('제작')">제작</button>
                 <button class="compare-toggle-btn" data-stage="FAT" onclick="window.setCompareStage('FAT')">FAT</button>
                 <button class="compare-toggle-btn" data-stage="SET-UP" onclick="window.setCompareStage('SET-UP')">SET-UP</button>
                 <button class="compare-toggle-btn" data-stage="SAT" onclick="window.setCompareStage('SAT')">SAT</button>
-                <button class="compare-toggle-btn" data-stage="전체" onclick="window.setCompareStage('전체')">전체</button>
+                <button class="compare-toggle-btn active" data-stage="전체" onclick="window.setCompareStage('전체')">전체</button>
               </div>
               <div class="compare-axis-control-group">
                 <span class="compare-axis-control-label">💡 개선 활동</span>
-                <button class="compare-toggle-btn active" data-mode="active" onclick="window.setCompareImproveMode('active')">능동</button>
+                <button class="compare-toggle-btn" data-mode="active" onclick="window.setCompareImproveMode('active')">능동</button>
                 <button class="compare-toggle-btn" data-mode="defense" onclick="window.setCompareImproveMode('defense')">방어</button>
-                <button class="compare-toggle-btn" data-mode="전체" onclick="window.setCompareImproveMode('전체')">전체</button>
+                <button class="compare-toggle-btn active" data-mode="전체" onclick="window.setCompareImproveMode('전체')">전체</button>
               </div>
             </div>
             <div class="compare-canvas-wrap"><canvas id="compareRadarChart"></canvas></div>
@@ -9216,8 +9216,8 @@ window.toggleMapController = function() {
 window.COMPARE_COLOR_MAP = { OP10:'#ec4899', OP9:'#14b8a6', OP8:'#d97757', OP7:'#8cc63f', OP6:'#3b82f6', OP5:'#06b6d4', OP4:'#a855f7', OP3:'#f59e0b', OP2:'#db2777' };
 window._compareSelected = new Set();
 window._compareMode = 'scale';
-window._compareStage = '제작';
-window._compareImproveMode = 'active';
+window._compareStage = '전체';
+window._compareImproveMode = '전체';
 let compareChartInstance = null;
 
 window.openCompareViewAll = function() {
@@ -9353,11 +9353,22 @@ window.recomputeCompareScores = function() {
   const maxStageMD = Math.max(...completedList.map(m => m.stageMD[stage].value), 0.001);
   const maxActiveCnt = Math.max(...raw.map(m => m.activeCnt), 0.001);
 
+  // 공수 비교 불가 판정: 완료 프로젝트가 1개뿐이거나, 전부 공수가 동일한 경우
+  let stageIncomparableReason = null;
+  if (completedList.length === 1) {
+    stageIncomparableReason = '완료 1개';
+  } else if (completedList.length >= 2) {
+    const vals = completedList.map(m => m.stageMD[stage].value);
+    if (Math.max(...vals) === Math.min(...vals)) stageIncomparableReason = '공수 동일';
+  }
+
   window._compareData = raw.map(m => {
     const stageInfo = m.stageMD[stage];
     const stageCompleted = stageInfo.completed;
     const stageHasData = stageInfo.hasData;
-    const stageScore = (stageCompleted && stageHasData) ? (100 - (stageInfo.value / maxStageMD * 100)) : 0;
+    const stageIncomparable = !!(stageCompleted && stageHasData && stageIncomparableReason);
+    const stageScore = (stageCompleted && stageHasData && !stageIncomparable)
+      ? (100 - (stageInfo.value / maxStageMD * 100)) : 0;
 
     const activeScorePart = m.activeCnt / maxActiveCnt * 100;
     let improveVal, improveScore;
@@ -9376,7 +9387,8 @@ window.recomputeCompareScores = function() {
       execRate: m.execRate, scoreExec: 100 - Math.min(Math.abs(m.execRate - 100), 100),
       problemRate: m.problemRate, scoreProblem: 100 - Math.min(m.problemRate, 100),
       improveVal, improveScore,
-      stageValue: stageInfo.value, stageCompleted, stageHasData, stageScore
+      stageValue: stageInfo.value, stageCompleted, stageHasData, stageScore,
+      stageIncomparable, stageIncomparableReason
     };
   });
 
@@ -9535,7 +9547,9 @@ window.renderCompareTable = function() {
     { key: improveDescKey, label: improveLabel, raw: m => m.improveVal, score: m => m.improveScore, unit: improveUnit },
     { key: stageDescKey, label: stageLabel, raw: m => m.stageValue, score: m => m.stageScore, unit: 'MD',
       na: m => !m.stageHasData,
-      ongoing: m => m.stageHasData && !m.stageCompleted }
+      ongoing: m => m.stageHasData && !m.stageCompleted,
+      incomparable: m => m.stageIncomparable,
+      incomparableReason: m => m.stageIncomparableReason }
   ];
 
   const theadCols = data.map(m => {
@@ -9550,10 +9564,12 @@ window.renderCompareTable = function() {
       rawVal: rd.raw(m),
       sc: rd.score(m),
       isNa: rd.na ? rd.na(m) : false,
-      isOngoing: rd.ongoing ? rd.ongoing(m) : false
+      isOngoing: rd.ongoing ? rd.ongoing(m) : false,
+      isIncomparable: rd.incomparable ? rd.incomparable(m) : false,
+      reason: rd.incomparableReason ? rd.incomparableReason(m) : ''
     }));
-    // 강조(최고/최저)는 완료된 항목끼리만 비교
-    const validScored = scored.filter(x => !x.isNa && !x.isOngoing);
+    // 강조(최고/최저)는 완료 + 비교 가능한 항목끼리만
+    const validScored = scored.filter(x => !x.isNa && !x.isOngoing && !x.isIncomparable);
     let maxCode = null, minCode = null;
     if (validScored.length >= 2) {
       const sorted = [...validScored].sort((a, b) => b.sc - a.sc);
@@ -9564,6 +9580,9 @@ window.renderCompareTable = function() {
     }
     const cells = scored.map(x => {
       if (x.isNa) return `<td class="compare-cell-na">해당없음</td>`;
+      if (x.isIncomparable) {
+        return `<td style="color:#64748b; font-weight:600;">${x.rawVal.toFixed(1)}${rd.unit}<br><span style="font-size:10px; color:#94a3b8;">비교불가<br>(${x.reason})</span></td>`;
+      }
       if (x.isOngoing) {
         return `<td style="color:#64748b; font-weight:600;">${x.rawVal.toFixed(1)}${rd.unit}<br><span style="font-size:10px; color:#94a3b8;">진행중</span></td>`;
       }
@@ -9592,18 +9611,26 @@ window.renderCompareInsight = function() {
   const box = document.getElementById('compare-insight-text');
   if (!box || data.length === 0) return;
 
-  const dims = [
+  const baseDims = [
     ['일정 준수율', m => m.scoreCompliance],
     ['리소스 효율', m => m.scoreExec],
     ['문제항목 발생률', m => m.scoreProblem],
-    ['개선 활동', m => m.improveScore],
-    ['단계별 공수', m => m.stageScore]
+    ['개선 활동', m => m.improveScore]
   ];
 
   const ranked = data.map(m => {
-    const avg = dims.reduce((s, d) => s + d[1](m), 0) / dims.length;
-    const sortedDims = dims.map(d => [d[0], d[1](m)]).sort((a, b) => b[1] - a[1]);
-    return { code: m.code, avg, strongest: sortedDims[0], weakest: sortedDims[sortedDims.length - 1] };
+    // 공수 축은 해당 단계를 완료했고 비교 가능한 경우에만 평균/강약점에 포함
+    const useDims = (m.stageCompleted && m.stageHasData && !m.stageIncomparable)
+      ? [...baseDims, ['단계별 공수', mm => mm.stageScore]]
+      : baseDims;
+    const avg = useDims.reduce((s, d) => s + d[1](m), 0) / useDims.length;
+    const sortedDims = useDims.map(d => [d[0], d[1](m)]).sort((a, b) => b[1] - a[1]);
+    return {
+      code: m.code, avg,
+      strongest: sortedDims[0],
+      weakest: sortedDims[sortedDims.length - 1],
+      stageExcluded: !(m.stageCompleted && m.stageHasData && !m.stageIncomparable)
+    };
   }).sort((a, b) => b.avg - a.avg);
 
   const rowsHtml = ranked.map((m, idx) => {
@@ -9613,7 +9640,7 @@ window.renderCompareInsight = function() {
       <td style="color:${color}; font-weight:800;">${m.code}</td>
       <td style="color:#0f172a; font-weight:800;">${m.avg.toFixed(0)}점</td>
       <td style="color:#16a34a;">${m.strongest[0]}</td>
-      <td style="color:#dc2626;">${m.weakest[0]}</td>
+      <td style="color:#dc2626;">${m.weakest[0]}${m.stageExcluded ? '<span style="color:#94a3b8; font-size:10px; margin-left:4px;">(공수 제외)</span>' : ''}</td>
     </tr>`;
   }).join('');
 
