@@ -5873,18 +5873,46 @@ row.appendChild(track);
   if (!window.mpPartFilter) window.mpPartFilter = new Set(mpParts);
   mpParts.forEach(p => { if (!window.mpPartFilter.has(p) && window.mpPartFilter.size === 0) window.mpPartFilter.add(p); });
 
+  // 💡 1. 현재 선택된 달(monthStart ~ monthEnd)에 일정이 실제로 겹치는 마스터플랜 항목만 솎아냄!
+  const mpRowsInMonth = mpRows.filter(r => {
+    const recv = calNorm(r['접수일']);
+    const due = calNorm(r['완료예정일']);
+    const compl = calNorm(r['완료일']);
+    const doneFlag = (r['완료여부'] || '').toString().trim();
+    if (!recv && !due) return false;
+    const planStart = recv || due;
+    const planEnd = due || recv;
+    const isDone = doneFlag === 'O';
+    const actStart = recv || due;
+    const actEnd = isDone ? (compl || planEnd) : todayStr;
+    return (planStart <= monthEnd && planEnd >= monthStart) || (actStart <= monthEnd && actEnd >= monthStart);
+  });
+
   const mpBtnWrap = document.getElementById('mp-filter-buttons');
   if (mpBtnWrap) {
-    if (mpParts.length === 0) {
-      mpBtnWrap.innerHTML = '<span style="font-size:11px; color:#cbd5e1;">이 달에 마스터플랜 항목이 없습니다</span>';
+    if (mpRowsInMonth.length === 0) {
+      mpBtnWrap.innerHTML = '<span style="font-size:11px; color:#cbd5e1; font-weight:600;">이 달에 해당하는 마스터플랜 항목이 없습니다</span>';
     } else {
-      const allOn = mpParts.every(p => window.mpPartFilter.has(p));
-      let btnHtml = `<button onclick="window.mpSetAllParts()" style="padding:3px 10px; font-size:11px; font-weight:700; border-radius:12px; border:1px solid ${allOn ? '#0f172a' : '#e2e8f0'}; background:${allOn ? '#0f172a' : '#fff'}; color:${allOn ? '#fff' : '#475569'}; cursor:pointer;">전체보기 (${mpRows.length})</button>`;
+      // 이번 달에 항목이 1개라도 있는 파트들만 확인하여 '전체보기' 활성화 여부 결정
+      const activePartsThisMonth = mpParts.filter(p => 
+        mpRowsInMonth.some(r => ((r['파트 구분'] || '').toString().trim() || '미지정') === p)
+      );
+      const allOn = activePartsThisMonth.every(p => window.mpPartFilter.has(p));
+      
+      let btnHtml = `<button onclick="window.mpSetAllParts()" style="padding:3px 10px; font-size:11px; font-weight:700; border-radius:12px; border:1px solid ${allOn ? '#0f172a' : '#e2e8f0'}; background:${allOn ? '#0f172a' : '#fff'}; color:${allOn ? '#fff' : '#475569'}; cursor:pointer; transition:0.2s;">전체보기 (${mpRowsInMonth.length})</button>`;
+      
       mpParts.forEach(p => {
         const c = mpPartColorMap[p];
         const on = window.mpPartFilter.has(p);
-        const cnt = mpRows.filter(r => ((r['파트 구분'] || '').toString().trim() || '미지정') === p).length;
-        btnHtml += `<button onclick="window.mpTogglePart('${p}')" style="display:flex; align-items:center; gap:5px; padding:3px 10px; font-size:11px; font-weight:700; border-radius:12px; border:1px solid ${on ? c : '#e2e8f0'}; background:${on ? c + '1a' : '#fff'}; color:${on ? c : '#94a3b8'}; cursor:pointer; opacity:${on ? 1 : 0.5};"><span style="width:9px; height:9px; border-radius:2px; background:${c};"></span>${p} ${cnt}</button>`;
+        // 💡 2. 건수 계산을 전체(mpRows)가 아닌 '이번 달(mpRowsInMonth)' 기준으로 변경!
+        const cnt = mpRowsInMonth.filter(r => ((r['파트 구분'] || '').toString().trim() || '미지정') === p).length;
+        
+        // 💡 3. 이번 달에 일정이 없는 파트(0건)는 연한 회색으로 비활성화(disabled)하여 클릭 차단
+        if (cnt === 0) {
+          btnHtml += `<button disabled style="display:flex; align-items:center; gap:5px; padding:3px 10px; font-size:11px; font-weight:700; border-radius:12px; border:1px solid #f1f5f9; background:#f8fafc; color:#cbd5e1; cursor:not-allowed; opacity:0.35;"><span style="width:9px; height:9px; border-radius:2px; background:#cbd5e1;"></span>${p} 0</button>`;
+        } else {
+          btnHtml += `<button onclick="window.mpTogglePart('${p}')" style="display:flex; align-items:center; gap:5px; padding:3px 10px; font-size:11px; font-weight:700; border-radius:12px; border:1px solid ${on ? c : '#e2e8f0'}; background:${on ? c + '1a' : '#fff'}; color:${on ? c : '#94a3b8'}; cursor:pointer; opacity:${on ? 1 : 0.35}; transition:0.2s;"><span style="width:9px; height:9px; border-radius:2px; background:${c};"></span>${p} ${cnt}</button>`;
+        }
       });
       mpBtnWrap.innerHTML = btnHtml;
     }
