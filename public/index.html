@@ -1508,9 +1508,22 @@
       #sbtn-compare { font-size: 0 !important; }
       #sbtn-compare::after { content: '비교'; font-size: 11px; }
 
-      /* 3. 아이폰 미리보기 */
-      button[onclick*="openMobilePreview"] { font-size: 0 !important; border: 1px solid rgba(56,189,248,0.4) !important; }
-      button[onclick*="openMobilePreview"]::after { content: '아이폰'; font-size: 11px; color: #38bdf8; }
+      /* 3. 아이폰 미리보기 (애플 로고 아이콘만 단독 중앙 표시) */
+      button[onclick*="openMobilePreview"] { 
+        padding: 8px 0 !important;
+        justify-content: center !important;
+        align-items: center !important;
+        border: 1px dashed #cbd5e1 !important;
+        gap: 0 !important;
+      }
+      button[onclick*="openMobilePreview"] .preview-text,
+      button[onclick*="openMobilePreview"]::after { 
+        display: none !important; /* 텍스트 및 '아이폰' 글자 완벽 숨김 */ 
+      }
+      button[onclick*="openMobilePreview"] i {
+        font-size: 18px !important; /* 54px 사이드바에 맞춘 깔끔한 아이콘 크기 */
+        margin: 0 !important;
+      }
 
       /* 4. 프로젝트 현황 */
       #sbtn-project { font-size: 0 !important; }
@@ -1567,13 +1580,14 @@
         min-width: 700px !important;
       }
       
-      /* 4. 대시보드 및 관제탑 레이아웃 1열 강제 축소 */
+      /* 4. 대시보드, 관제탑, PDCA, 주간업무 레이아웃 1열 강제 축소 */
       #main-panel .charts-grid,
       .tower-grid,
       #cs-view,
-      #pdca-content > div:nth-of-type(2) {
+      #pdca-content > div:nth-of-type(2),
+      #weekly-columns { /* 🌟 여기에 #weekly-columns 딱 1줄 추가! */
         grid-template-columns: 1fr !important;
-        gap: 12px !important;
+        gap: 20px !important;
       }
       #pdca-content > div:nth-of-type(2) > div:nth-child(2) > div:last-child {
         flex-direction: column !important;
@@ -1583,13 +1597,23 @@
       #pdca-improve-legend {
         width: 100% !important;
       }
-      #gantt-scroll {
+     #gantt-scroll {
         max-height: 220px !important;
       }
       #tower-map {
         width: 100% !important;
       }
-    }
+
+      /* 🌟 간트차트 날짜 짤림 방지 (딱 한 번만 들어가면 됩니다!) 🌟 */
+      #gantt-inner {
+        min-width: 950px !important;
+      }
+      #gantt-date-ticks > div {
+        font-size: 10px !important;
+        letter-spacing: -0.5px !important;
+      }
+
+    } /* 👈 모바일 가로모드(@media) 닫는 중괄호 */
   </style>
 </head>
 <body>
@@ -1627,9 +1651,10 @@
   </div>
 
   <!-- 👇 [여기 추가!] 모바일 미리보기 버튼 👇 -->
-  <div class="sidebar-group" style="margin-top: 4px;">
-    <button class="sidebar-btn" onclick="window.openMobilePreview()" style="color: #38bdf8; border: 1px dashed rgba(56, 189, 248, 0.4);">
-      📱 아이폰 14 Pro 미리보기
+ <div class="sidebar-group" style="margin-top: 4px;">
+    <button class="sidebar-btn" onclick="window.openMobilePreview()" style="color: #475569; border: 1px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; gap: 4px;">
+      <i class="ti ti-brand-apple" style="font-size: 16px; margin-bottom: 2px;"></i>
+      <span class="preview-text">아이폰 14 Pro Ver</span>
     </button>
   </div>
 
