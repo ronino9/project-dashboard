@@ -2209,7 +2209,13 @@ window.renderDeviationTrendTest = function() {
       <span style="margin-left:4px;">📶 원격</span>
       <span>🚨 이슈</span>
     </div>
-<div id="gantt-legend-indiv" style="display:none; align-items:center; gap:6px; margin-left:8px; font-size:11px; flex-wrap:wrap;">
+<div id="gantt-filter-rows" style="display:none; flex-direction:column; gap:6px; width:100%; margin-top:8px;">
+      <div id="gantt-legend-master" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:6px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+        <span style="font-size:10px; font-weight:700; color:#94a3b8; width:60px; flex-shrink:0;">마스터플랜</span>
+        <span id="mp-filter-buttons" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;"></span>
+      </div>
+      <div id="gantt-legend-indiv" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:6px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:11px;">
+        <span style="font-size:10px; font-weight:700; color:#94a3b8; width:60px; flex-shrink:0;">개인업무</span>
       <button id="btn-filter-ALL" onclick="window.filterIndivGantt('ALL')" class="indiv-filter-btn" data-filter="ALL" style="padding:3px 10px; border-radius:12px; border:1px solid #0f172a; background:#0f172a; color:#fff; font-weight:700; cursor:pointer; transition:0.2s;">전체보기</button>
       <button id="btn-filter-ISSUE" onclick="window.filterIndivGantt('ISSUE')" class="indiv-filter-btn" data-filter="ISSUE" style="padding:3px 10px; border-radius:12px; border:1px solid #fca5a5; background:#fef2f2; color:#C0392B; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; transition:0.2s;"><span style="width:10px; height:10px; background:#C0392B; border-radius:2px;"></span>이슈 <span id="cnt-ISSUE">0</span></button>
       <button id="btn-filter-IMPROVE" onclick="window.filterIndivGantt('IMPROVE')" class="indiv-filter-btn" data-filter="IMPROVE" style="padding:3px 10px; border-radius:12px; border:1px solid #86efac; background:#f0fdf4; color:#16a34a; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; transition:0.2s;"><span style="width:10px; height:10px; background:#27AE60; border-radius:2px;"></span>개선 <span id="cnt-IMPROVE">0</span></button>
@@ -2223,6 +2229,7 @@ window.renderDeviationTrendTest = function() {
         <span>📶 원격</span>
         <span>🚨 이슈 발생일</span>
       </span>
+      </div>
     </div>
   </div>
   <div id="gantt-scroll" style="overflow:auto; max-height:480px; border:1px solid #e2e8f0; border-radius:8px;">
@@ -5003,9 +5010,9 @@ if (typeof window.renderMacroGanttAsIndiv === 'function') {
 
 // ② 전체 매크로 간트차트 렌더링 시작
   const legendMacroEl = document.getElementById('gantt-legend-macro');
-  const legendIndivEl = document.getElementById('gantt-legend-indiv');
-  if (legendMacroEl) legendMacroEl.style.display = 'flex';
-  if (legendIndivEl) legendIndivEl.style.display = 'none';
+  const filterRowsEl = document.getElementById('gantt-filter-rows');
+  if (legendMacroEl) legendMacroEl.style.display = 'none';
+  if (filterRowsEl) filterRowsEl.style.display = 'flex';
 
   const modeGroupMacroEl = document.getElementById('gantt-mode-macro-group');
   const modeGroupIndivEl = document.getElementById('gantt-mode-indiv-group');
@@ -5586,9 +5593,9 @@ function lightenColor(hex, ratio) { return window.lightenColor(hex, ratio); }
   if (!indivGanttCursor) indivGanttCursor = new Date();
 
   const legendMacroEl = document.getElementById('gantt-legend-macro');
-  const legendIndivEl = document.getElementById('gantt-legend-indiv');
-  if (legendMacroEl) legendMacroEl.style.display = 'none';
-  if (legendIndivEl) legendIndivEl.style.display = 'flex';
+  const filterRowsEl = document.getElementById('gantt-filter-rows');
+  if (legendMacroEl) legendMacroEl.style.display = 'flex';
+  if (filterRowsEl) filterRowsEl.style.display = 'none';
 
   const modeGroupMacroEl = document.getElementById('gantt-mode-macro-group');
   const modeGroupIndivEl = document.getElementById('gantt-mode-indiv-group');
@@ -5615,8 +5622,8 @@ function lightenColor(hex, ratio) { return window.lightenColor(hex, ratio); }
   const todayStr = calYMD(CAL_TODAY);
   if (titleLabel) {
     titleLabel.textContent = indivGanttMode === 'week'
-      ? `📋 ${code} 세부 · ${monthStart.substring(2).replace(/-/g,'.')} ~ ${monthEnd.substring(2).replace(/-/g,'.')} (도넛 재클릭 시 전체로)`
-      : `📋 ${code} 세부 · ${y}.${String(m + 1).padStart(2, '0')} (도넛 재클릭 시 전체로)`;
+      ? `📋 ${code} 세부 · ${monthStart.substring(2).replace(/-/g,'.')} ~ ${monthEnd.substring(2).replace(/-/g,'.')}`
+      : `📋 ${code} 세부 · ${y}.${String(m + 1).padStart(2, '0')}`;
   }
 
   const dayOffset = (dateStr) => ganttDaysBetween(monthStart, dateStr);
@@ -5628,12 +5635,12 @@ function lightenColor(hex, ratio) { return window.lightenColor(hex, ratio); }
 // 세부 모드: 헤더 왼쪽 sticky 칸 폭을 라벨과 맞춤 + 년월 표시
   const headerLeft = document.querySelector('#gantt-header > div > div:first-child');
   if (headerLeft) {
-    headerLeft.style.width = '120px';
+    headerLeft.style.width = '160px';
     headerLeft.style.cssText += 'display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#0f172a;';
     headerLeft.textContent = indivGanttMode === 'week' ? `${monthStart.substring(2).replace(/-/g,'.')}~` : `${y}년 ${m + 1}월`;
   }
   const dateHeaderLeft = document.querySelector('#gantt-date-ticks-row > div:first-child');
-  if (dateHeaderLeft) dateHeaderLeft.style.width = '120px';
+  if (dateHeaderLeft) dateHeaderLeft.style.width = '160px';
   if (dateTicksEl) dateTicksEl.innerHTML = '';
   rowsEl.innerHTML = '';
   document.getElementById('gantt-date-ticks-row').style.display = 'flex';
@@ -5664,6 +5671,7 @@ const rows = (window.allMasterData || []).filter(r => r._pName === code);
   const groups = {};
   rows.forEach((r, idx) => {
     const taskType = (r['업무 구분'] || '').toString().trim();
+    if (taskType === '마스터플랜') return;
     const gid = ((r['그룹ID'] || '').toString().trim() || `__solo_${idx}`) + '_' + taskType;
     if (!groups[gid]) groups[gid] = [];
     groups[gid].push(r);
@@ -5802,7 +5810,13 @@ items.sort((a, b) => (a.carriedOver !== b.carriedOver) ? (a.carriedOver ? -1 : 1
     return true;
   });
 
-  if (filteredItems.length === 0) {
+  const hasMasterPlanThisMonth = rows.some(r => {
+    if ((r['업무 구분'] || '').toString().trim() !== '마스터플랜') return false;
+    const d1 = calNorm(r['접수일']), d2 = calNorm(r['완료예정일']);
+    const s = d1 || d2, e = d2 || d1;
+    return s && s <= monthEnd && e >= monthStart;
+  });
+  if (filteredItems.length === 0 && !hasMasterPlanThisMonth) {
     rowsEl.innerHTML = '<div style="padding:35px; text-align:center; color:#94a3b8; font-size:13px; font-weight:600;">선택한 업무 구분에 해당하는 이달의 항목이 없습니다.</div>';
     return;
   }
@@ -5811,7 +5825,7 @@ items.sort((a, b) => (a.carriedOver !== b.carriedOver) ? (a.carriedOver ? -1 : 1
     const row = document.createElement('div');
     row.style.cssText = `display:flex; align-items:center; height:20px; background:${stripe ? '#f8fafc' : 'transparent'};`;
     const left = document.createElement('div');
-    left.style.cssText = `width:120px; flex-shrink:0; position:sticky; left:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:11px; padding-left:8px; padding-right:6px; font-weight:${isTop ? 700 : 400}; color:${isTop ? '#0f172a' : '#94a3b8'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-left:${isTop ? '3px solid ' + color : 'none'};`;
+    left.style.cssText = `width:160px; flex-shrink:0; position:sticky; left:0; background:${stripe ? '#f8fafc' : '#fff'}; z-index:1; font-size:11px; padding-left:8px; padding-right:6px; font-weight:${isTop ? 700 : 400}; color:${isTop ? '#0f172a' : '#94a3b8'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-left:${isTop ? '3px solid ' + color : 'none'};`;
     left.innerHTML = labelText;
     if (fullTitle) left.title = fullTitle;
     row.appendChild(left);;
@@ -5849,7 +5863,140 @@ row.appendChild(track);
 
     return { row, track, right };
   }
-filteredItems.forEach((it, idx) => {
+// ===== 마스터플랜 렌더링 블록 =====
+  const MP_PART_COLORS = ['#3498DB', '#D4AC0D', '#16A085', '#D35400', '#8E44AD', '#C0392B'];
+  const mpRows = rows.filter(r => (r['업무 구분'] || '').toString().trim() === '마스터플랜');
+  const mpParts = [...new Set(mpRows.map(r => (r['파트 구분'] || '').toString().trim() || '미지정'))];
+  const mpPartColorMap = {};
+  mpParts.forEach((p, i) => { mpPartColorMap[p] = MP_PART_COLORS[i % MP_PART_COLORS.length]; });
+
+  if (!window.mpPartFilter) window.mpPartFilter = new Set(mpParts);
+  mpParts.forEach(p => { if (!window.mpPartFilter.has(p) && window.mpPartFilter.size === 0) window.mpPartFilter.add(p); });
+
+  const mpBtnWrap = document.getElementById('mp-filter-buttons');
+  if (mpBtnWrap) {
+    if (mpParts.length === 0) {
+      mpBtnWrap.innerHTML = '<span style="font-size:11px; color:#cbd5e1;">이 달에 마스터플랜 항목이 없습니다</span>';
+    } else {
+      const allOn = mpParts.every(p => window.mpPartFilter.has(p));
+      let btnHtml = `<button onclick="window.mpSetAllParts()" style="padding:3px 10px; font-size:11px; font-weight:700; border-radius:12px; border:1px solid ${allOn ? '#0f172a' : '#e2e8f0'}; background:${allOn ? '#0f172a' : '#fff'}; color:${allOn ? '#fff' : '#475569'}; cursor:pointer;">전체보기 (${mpRows.length})</button>`;
+      mpParts.forEach(p => {
+        const c = mpPartColorMap[p];
+        const on = window.mpPartFilter.has(p);
+        const cnt = mpRows.filter(r => ((r['파트 구분'] || '').toString().trim() || '미지정') === p).length;
+        btnHtml += `<button onclick="window.mpTogglePart('${p}')" style="display:flex; align-items:center; gap:5px; padding:3px 10px; font-size:11px; font-weight:700; border-radius:12px; border:1px solid ${on ? c : '#e2e8f0'}; background:${on ? c + '1a' : '#fff'}; color:${on ? c : '#94a3b8'}; cursor:pointer; opacity:${on ? 1 : 0.5};"><span style="width:9px; height:9px; border-radius:2px; background:${c};"></span>${p} ${cnt}</button>`;
+      });
+      mpBtnWrap.innerHTML = btnHtml;
+    }
+  }
+
+  window.mpTogglePart = function(part) {
+    if (!window.mpPartFilter) window.mpPartFilter = new Set();
+    if (window.mpPartFilter.has(part)) window.mpPartFilter.delete(part);
+    else window.mpPartFilter.add(part);
+    window.renderMacroGanttAsIndiv(indivGanttProject);
+  };
+  window.mpSetAllParts = function() {
+    window.mpPartFilter = new Set(mpParts);
+    window.renderMacroGanttAsIndiv(indivGanttProject);
+  };
+
+  const mpVisible = mpRows.filter(r => window.mpPartFilter.has((r['파트 구분'] || '').toString().trim() || '미지정'));
+  const mpByPart = {};
+  mpVisible.forEach(r => {
+    const p = (r['파트 구분'] || '').toString().trim() || '미지정';
+    if (!mpByPart[p]) mpByPart[p] = [];
+    mpByPart[p].push(r);
+  });
+
+  let mpRenderedAny = false;
+  mpParts.forEach(part => {
+    const partRows = mpByPart[part];
+    if (!partRows || partRows.length === 0) return;
+    const partColor = mpPartColorMap[part];
+
+    partRows.forEach((r, pIdx) => {
+      const recv = calNorm(r['접수일']);
+      const due = calNorm(r['완료예정일']);
+      const compl = calNorm(r['완료일']);
+      const doneFlag = (r['완료여부'] || '').toString().trim();
+      if (!recv && !due) return;
+
+      const planStart = recv || due;
+      const planEnd = due || recv;
+      const isDone = doneFlag === 'O';
+      const isHold = doneFlag === '보류';
+      const actStart = recv || due;
+      const actEnd = isDone ? (compl || planEnd) : todayStr;
+      const isDelayed = !isDone && !isHold && todayStr > planEnd;
+
+      const overlapsPlan = planStart <= monthEnd && planEnd >= monthStart;
+      const overlapsAct = actStart <= monthEnd && actEnd >= monthStart;
+      if (!overlapsPlan && !overlapsAct) return;
+
+      mpRenderedAny = true;
+      const stripe = pIdx % 2 === 1;
+      const barColor = isHold ? '#94a3b8' : partColor;
+      const planColor = isHold ? '#cbd5e1' : lightenColor(barColor, 0.5);
+      const title = r['표준 제작 Item / Issue / 개선사항'] || r['제목'] || '(제목 없음)';
+      const shortTitle = title.length > 10 ? title.slice(0, 10) + '…' : title;
+      const partLabel = pIdx === 0
+        ? `<span style="color:${partColor}; font-weight:800; margin-right:6px;">${part}</span>${shortTitle}`
+        : `<span style="display:inline-block; width:${part.length * 11 + 6}px;"></span>${shortTitle}`;
+      const mpKey = `mp_${part}_${pIdx}`;
+
+      const showMpItem = () => {
+        const rowCopy = { '프로젝트 코드': code, '접수일': r['접수일'] || '-', ...r };
+        window.showDetailView(`${actStart} · ${code} 마스터플랜`, title, [rowCopy]);
+      };
+
+      const { row: mpPlanRow, track: mpPlanTrack } = makeRow(partLabel, true, stripe, partColor, `[${part}] ${title}`);
+      if (planStart <= monthEnd && planEnd >= monthStart) {
+        const cs = ganttClamp(planStart, monthStart, monthEnd), ce = ganttClamp(planEnd, monthStart, monthEnd);
+        const sPct = (dayOffset(cs) / totalDays) * 100;
+        const wPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
+        const bar = document.createElement('div');
+        bar.className = 'gantt-bar';
+        bar.dataset.hl = mpKey;
+        bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${sPct}%; width:${wPct}%; background:${planColor}; border-radius:2px; cursor:pointer;`;
+        bar.onclick = showMpItem;
+        mpPlanTrack.appendChild(bar);
+      }
+      rowsEl.appendChild(mpPlanRow);
+
+      const { row: mpActRow, track: mpActTrack, right: mpActRight } = makeRow('', false, stripe, partColor);
+      if (actStart <= monthEnd && actEnd >= monthStart) {
+        const cs = ganttClamp(actStart, monthStart, monthEnd), ce = ganttClamp(actEnd, monthStart, monthEnd);
+        const sPct = (dayOffset(cs) / totalDays) * 100;
+        const wPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
+        const bar = document.createElement('div');
+        bar.className = 'gantt-bar';
+        bar.dataset.hl = mpKey;
+        bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${sPct}%; width:${wPct}%; background:${barColor}; opacity:${isDone ? '1.0' : '0.35'}; border-radius:2px; cursor:pointer;`;
+        bar.onclick = showMpItem;
+        mpActTrack.appendChild(bar);
+      }
+      const mpVar = isDone ? ganttDaysBetween(planEnd, actEnd) : null;
+      const mpVColor = mpVar === null ? (isHold ? '#94a3b8' : (isDelayed ? '#dc2626' : '#94a3b8')) : (mpVar > 0 ? '#dc2626' : mpVar < 0 ? '#16a34a' : '#94a3b8');
+      const mpVText = mpVar === null ? (isHold ? '보류' : (isDelayed ? '지연중' : '진행중')) : ((mpVar > 0 ? '+' + mpVar : mpVar) + '일');
+      mpActRight.style.cssText += `font-size:11px; color:${mpVColor}; text-align:center; font-weight:600; display:flex; align-items:center; justify-content:center;`;
+      mpActRight.textContent = mpVText;
+      rowsEl.appendChild(mpActRow);
+
+      const mpSpacer = document.createElement('div');
+      mpSpacer.style.cssText = 'height:4px;';
+      rowsEl.appendChild(mpSpacer);
+    });
+  });
+
+  if (mpRenderedAny) {
+    const divider = document.createElement('div');
+    divider.style.cssText = 'height:2px; background:#cbd5e1; margin:4px 0 8px;';
+    rowsEl.appendChild(divider);
+  }
+  // ===== 마스터플랜 렌더링 블록 끝 =====
+
+  filteredItems.forEach((it, idx) => {
     const stripe = idx % 2 === 1;
     // 보류면 무조건 회색, 그 외엔 업무구분 색 (완료/지연 여부는 오른쪽 텍스트가 표현)
     const taskType = it.row ? (it.row['업무 구분'] || '') : '';
