@@ -2209,7 +2209,7 @@ window.renderDeviationTrendTest = function() {
       <span style="margin-left:4px;">📶 원격</span>
       <span>🚨 이슈</span>
     </div>
-<div id="gantt-filter-rows" style="display:none; flex-direction:column; gap:6px; width:100%; margin-top:8px;">
+<div id="gantt-filter-rows" style="display:none; flex-direction:column; gap:6px; width:100%; flex-basis:100%; flex-shrink:0; margin-top:8px;">
       <div id="gantt-legend-master" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:6px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
         <span style="font-size:10px; font-weight:700; color:#94a3b8; width:60px; flex-shrink:0;">마스터플랜</span>
         <span id="mp-filter-buttons" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;"></span>
@@ -5012,7 +5012,7 @@ if (typeof window.renderMacroGanttAsIndiv === 'function') {
   const legendMacroEl = document.getElementById('gantt-legend-macro');
   const filterRowsEl = document.getElementById('gantt-filter-rows');
   if (legendMacroEl) legendMacroEl.style.display = 'none';
-  if (filterRowsEl) filterRowsEl.style.display = 'flex';
+  if (filterRowsEl) { filterRowsEl.style.display = 'flex'; filterRowsEl.style.flexDirection = 'column'; }
 
   const modeGroupMacroEl = document.getElementById('gantt-mode-macro-group');
   const modeGroupIndivEl = document.getElementById('gantt-mode-indiv-group');
