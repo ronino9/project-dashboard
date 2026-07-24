@@ -1528,6 +1528,13 @@
     </button>
   </div>
 
+  <!-- 👇 [여기 추가!] 모바일 미리보기 버튼 👇 -->
+  <div class="sidebar-group" style="margin-top: 4px;">
+    <button class="sidebar-btn" onclick="window.openMobilePreview()" style="color: #38bdf8; border: 1px dashed rgba(56, 189, 248, 0.4);">
+      📱 아이폰 14 Pro 미리보기
+    </button>
+  </div>
+
   <!-- 2. 프로젝트 현황 -->
   <div class="sidebar-group">
     <button id="sbtn-project" class="sidebar-btn active" onclick="window.sidebarGoMain('project')">프로젝트 현황</button>
@@ -2296,6 +2303,65 @@ window.renderDeviationTrendTest = function() {
         </div>
       </div>
     </div>
+
+    <!-- =========================================================
+       📱 [여기에 추가!] 아이폰 14 Pro 실시간 미리보기 모달 창
+       ========================================================= -->
+    <div id="mobilePreviewModal" onclick="if(event.target===this) window.closeMobilePreview()" style="display:none; position:fixed; inset:0; background:rgba(2, 6, 23, 0.85); z-index:100000; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(6px);">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; max-width:852px; background:#0f172a; border:1px solid #334155; padding:10px 16px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.5);">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:14px; font-weight:800; color:#38bdf8; font-family:'Orbitron', sans-serif;">iPhone 14 Pro Preview</span>
+            <span id="previewOrientationBadge" style="font-size:11px; background:#1e293b; color:#94a3b8; padding:2px 8px; border-radius:6px; font-weight:600;">Landscape (852×393)</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <button onclick="window.rotateMobilePreview()" style="background:#3b82f6; color:#fff; border:none; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 0 10px rgba(59,130,246,0.4);">
+              🔄 가로/세로 회전
+            </button>
+            <button onclick="window.closeMobilePreview()" style="background:#ef4444; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:14px; font-weight:bold; cursor:pointer;">✕</button>
+          </div>
+        </div>
+        <div id="iphoneFrame" style="width:852px; height:393px; background:#000; border:14px solid #1e293b; border-radius:48px; box-shadow:0 25px 60px rgba(0,0,0,0.8), inset 0 0 0 2px #475569; position:relative; overflow:hidden; transition:width 0.3s cubic-bezier(0.16,1,0.3,1), height 0.3s cubic-bezier(0.16,1,0.3,1);">
+          <div id="dynamicIsland" style="position:absolute; top:50%; left:12px; transform:translateY(-50%); width:24px; height:90px; background:#020617; border-radius:12px; z-index:10; pointer-events:none; border:1px solid #1e293b; transition:all 0.3s ease;"></div>
+          <iframe id="mobilePreviewFrame" src="" style="width:100%; height:100%; border:none; background:#0f172a;"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window._isPreviewLandscape = true;
+      window.openMobilePreview = function() {
+        const modal = document.getElementById('mobilePreviewModal');
+        const iframe = document.getElementById('mobilePreviewFrame');
+        if (!modal || !iframe) return;
+        if (!iframe.src || iframe.src === 'about:blank') { iframe.src = window.location.href; }
+        modal.style.display = 'flex';
+      };
+      window.closeMobilePreview = function() {
+        const modal = document.getElementById('mobilePreviewModal');
+        if (modal) modal.style.display = 'none';
+      };
+      window.rotateMobilePreview = function() {
+        window._isPreviewLandscape = !window._isPreviewLandscape;
+        const frame = document.getElementById('iphoneFrame');
+        const notch = document.getElementById('dynamicIsland');
+        const badge = document.getElementById('previewOrientationBadge');
+        if (window._isPreviewLandscape) {
+          frame.style.width = '852px'; frame.style.height = '393px';
+          notch.style.top = '50%'; notch.style.left = '12px'; notch.style.transform = 'translateY(-50%)';
+          notch.style.width = '24px'; notch.style.height = '90px';
+          badge.textContent = 'Landscape (852×393)';
+        } else {
+          frame.style.width = '393px'; frame.style.height = '852px';
+          notch.style.top = '12px'; notch.style.left = '50%'; notch.style.transform = 'translateX(-50%)';
+          notch.style.width = '90px'; notch.style.height = '24px';
+          badge.textContent = 'Portrait (393×852)';
+        }
+      };
+    </script>
+    <!-- =========================================================
+       📱 [추가 끝] 아이폰 미리보기 모달 창
+       ========================================================= -->
 
     <div id="cs-view" style="display: none; grid-template-columns: 1fr 300px; gap: 16px;">
       <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px;">
