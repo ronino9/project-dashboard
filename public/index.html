@@ -2329,36 +2329,77 @@ window.renderDeviationTrendTest = function() {
     </div>
 
     <script>
-      window._isPreviewLandscape = true;
-      window.openMobilePreview = function() {
-        const modal = document.getElementById('mobilePreviewModal');
-        const iframe = document.getElementById('mobilePreviewFrame');
-        if (!modal || !iframe) return;
-        if (!iframe.src || iframe.src === 'about:blank') { iframe.src = window.location.href; }
-        modal.style.display = 'flex';
-      };
-      window.closeMobilePreview = function() {
-        const modal = document.getElementById('mobilePreviewModal');
-        if (modal) modal.style.display = 'none';
-      };
-      window.rotateMobilePreview = function() {
-        window._isPreviewLandscape = !window._isPreviewLandscape;
-        const frame = document.getElementById('iphoneFrame');
-        const notch = document.getElementById('dynamicIsland');
-        const badge = document.getElementById('previewOrientationBadge');
-        if (window._isPreviewLandscape) {
-          frame.style.width = '852px'; frame.style.height = '393px';
-          notch.style.top = '50%'; notch.style.left = '12px'; notch.style.transform = 'translateY(-50%)';
-          notch.style.width = '24px'; notch.style.height = '90px';
-          badge.textContent = 'Landscape (852×393)';
-        } else {
-          frame.style.width = '393px'; frame.style.height = '852px';
-          notch.style.top = '12px'; notch.style.left = '50%'; notch.style.transform = 'translateX(-50%)';
-          notch.style.width = '90px'; notch.style.height = '24px';
-          badge.textContent = 'Portrait (393×852)';
-        }
-      };
-    </script>
+  window._isPreviewLandscape = true;
+
+  // 미리보기 창 열기 (CORS 차단 및 API 재호출 완벽 해결 버전)
+  window.openMobilePreview = function() {
+    const modal = document.getElementById('mobilePreviewModal');
+    const iframe = document.getElementById('mobilePreviewFrame');
+    if (!modal || !iframe) return;
+    
+    // 1. 무한 중첩(iPhone 안에 iPhone) 방지를 위해 모달창을 띄우기 *전*에 현재 HTML을 가져옴
+    let htmlContent = document.documentElement.outerHTML;
+    
+    // 2. 모달창 표시
+    modal.style.display = 'flex';
+    
+    // 3. iframe 안에서 구글 서버를 다시 부르지 않고, 현재 창의 데이터를 즉시 복사해 그리는 고속 스크립트 주입
+    const fastLoadScript = `
+      <script>
+        window.addEventListener('DOMContentLoaded', function() {
+          if (window.self !== window.top && window.parent && window.parent.allData) {
+            // 기존 syncDashboard 가로채기 (서버 재호출 및 로딩 지연 완벽 차단)
+            window.syncDashboard = function() {
+              window.allData = window.parent.allData;
+              window.csRiskData = window.parent.csRiskData || [];
+              window.csStatsData = window.parent.csStatsData || {};
+              window.documentLinksData = window.parent.documentLinksData || [];
+              
+              // 현재 부모 창에서 보고 있던 탭 화면 그대로 0.1초 만에 즉시 표시
+              const currentTab = window.parent._mainTab || 'project';
+              if (document.getElementById('main-panel') && document.getElementById('main-panel').style.display !== 'none') {
+                if (typeof window.switchMainTab === 'function') window.switchMainTab(currentTab);
+              } else {
+                if (typeof window.switchTab === 'function') window.switchTab('main');
+              }
+            };
+          }
+        });
+      <\/script>
+    `;
+    
+    // <head> 태그 안에 고속 로딩 스크립트 삽입
+    htmlContent = htmlContent.replace('<head>', '<head>' + fastLoadScript);
+    
+    // 4. 로컬 파일(file://)이나 CORS 차단 없이 무조건 작동하도록 srcdoc에 주입!
+    iframe.srcdoc = htmlContent;
+  };
+
+  // 미리보기 창 닫기
+  window.closeMobilePreview = function() {
+    const modal = document.getElementById('mobilePreviewModal');
+    if (modal) modal.style.display = 'none';
+  };
+
+  // 가로 / 세로 모드 회전
+  window.rotateMobilePreview = function() {
+    window._isPreviewLandscape = !window._isPreviewLandscape;
+    const frame = document.getElementById('iphoneFrame');
+    const notch = document.getElementById('dynamicIsland');
+    const badge = document.getElementById('previewOrientationBadge');
+    if (window._isPreviewLandscape) {
+      frame.style.width = '852px'; frame.style.height = '393px';
+      notch.style.top = '50%'; notch.style.left = '12px'; notch.style.transform = 'translateY(-50%)';
+      notch.style.width = '24px'; notch.style.height = '90px';
+      badge.textContent = 'Landscape (852×393)';
+    } else {
+      frame.style.width = '393px'; frame.style.height = '852px';
+      notch.style.top = '12px'; notch.style.left = '50%'; notch.style.transform = 'translateX(-50%)';
+      notch.style.width = '90px'; notch.style.height = '24px';
+      badge.textContent = 'Portrait (393×852)';
+    }
+  };
+</script>
     <!-- =========================================================
        📱 [추가 끝] 아이폰 미리보기 모달 창
        ========================================================= -->
