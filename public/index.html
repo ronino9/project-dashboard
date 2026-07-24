@@ -1442,10 +1442,7 @@
 }
     .clamp-more-btn.clamp-show { display: inline-block; }
     /* =========================================================
-       📱 아이폰 가로 모드(Landscape) 전용 패치 (사이드바 짤림 해결판)
-       ========================================================= */
-    /* =========================================================
-       📱 아이폰 가로 모드(Landscape) 전용 패치 (아크 리액터 단독 모드 포함)
+       📱 아이폰 가로 모드(Landscape) 전용 패치 (사이드바 완결판)
        ========================================================= */
     @media screen and (max-width: 932px) and (orientation: landscape) {
       /* 1. 다이내믹 아일랜드 Safe Area 여백 */
@@ -1454,60 +1451,97 @@
         padding-right: env(safe-area-inset-right);
       }
       
-      /* 🌟 [핵심] 사이드바를 54px 폭으로 압축하고 스크롤 및 넘침 완벽 차단 */
+      /* 🌟 [핵심] 사이드바 54px 고정 및 스크롤바 숨김 */
       .sidebar {
         width: 54px !important;
         min-width: 54px !important;
         max-width: 54px !important;
-        padding: 16px 6px !important;
+        padding: 12px 4px !important;
         overflow-x: hidden !important;
       }
 
-      /* 🌟 [핵심] 텍스트, 로고, 라벨, 뱃지 등 불필요한 글자 완벽 숨김 */
+      /* 🌟 [핵심] 로고, 라벨, 뱃지, 정보 아이콘 등 불필요한 요소 숨김 */
       .sidebar .sidebar-logo,
       .sidebar .sidebar-logo-divider,
       .sidebar .sidebar-group-label,
       .sidebar .sidebar-sub,
       .sidebar .proj-info-ico,
-      .sidebar-btn span:not(.sidebar-icon),
       .sidebar-btn-jarvis .jarvis-brand-text {
-        display: none !important; /* '자비스' 글자 100% 숨김 */
+        display: none !important;
       }
 
-      /* 🌟 [핵심] 일반 사이드바 버튼 정중앙 정렬 */
-      .sidebar-btn {
-        padding: 10px 0 !important;
+      /* 🌟 [핵심] 숨겼던 상단 메뉴(검색, 비교, 아이폰) 다시 보이게 복구! */
+      .sidebar-search-wrap,
+      .sidebar-compare-wrap,
+      .sidebar-group {
+        display: flex !important;
+        width: 100% !important;
+      }
+
+      /* 🌟 [핵심] 사이드바 버튼 공통 스타일 (정중앙 정렬 및 폰트 축소) */
+      .sidebar-btn,
+      .sidebar-search-input {
+        padding: 8px 0 !important;
         justify-content: center !important;
         text-align: center !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.5px !important;
+        white-space: nowrap !important;
+        width: 100% !important;
       }
+      
+      /* 개별 프로젝트 목록(OP10 등) 중앙 정렬 및 점 인디케이터 제거 */
       .sidebar-btn.sub-btn {
-        padding: 10px 0 !important;
+        padding: 8px 0 !important;
       }
       .sidebar-btn.sub-btn::after {
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        width: 8px !important;
-        height: 8px !important;
-      }
-      .sidebar-search-wrap,
-      .sidebar-compare-wrap {
-        display: none !important; /* 모바일 가로 뷰에서 상단 검색/비교 버튼 숨김 (공간 확보) */
+        display: none !important; /* 글자 옆의 점을 없애서 코드가 정중앙에 오게 함 */
       }
 
-      /* 🌟 [핵심] 자비스 버튼: 텍스트 없이 '아크 리액터(SVG)'만 정중앙 배치 */
+      /* 🌟 [텍스트 자동 변경] 글자 숨기고 짧은 단어(2~3글자)로 교체 🌟 */
+      /* 1. 검색 */
+      #sbtn-search { font-size: 0 !important; }
+      #sbtn-search::after { content: '검색'; font-size: 11px; }
+      
+      /* 2. 비교 */
+      #sbtn-compare { font-size: 0 !important; }
+      #sbtn-compare::after { content: '비교'; font-size: 11px; }
+
+      /* 3. 아이폰 미리보기 */
+      button[onclick*="openMobilePreview"] { font-size: 0 !important; border: 1px solid rgba(56,189,248,0.4) !important; }
+      button[onclick*="openMobilePreview"]::after { content: '아이폰'; font-size: 11px; color: #38bdf8; }
+
+      /* 4. 프로젝트 현황 */
+      #sbtn-project { font-size: 0 !important; }
+      #sbtn-project::after { content: '프로젝트'; font-size: 11px; }
+
+      /* 5. PDCA 현황 */
+      #sbtn-pdca { font-size: 0 !important; }
+      #sbtn-pdca::after { content: 'PDCA'; font-size: 11px; }
+
+      /* 6. 기간별 업무 내역 */
+      #btn-daily { font-size: 0 !important; }
+      #btn-daily::after { content: '기간별'; font-size: 11px; }
+
+      /* 7. 주간 업무 요약 */
+      #btn-weekly { font-size: 0 !important; }
+      #btn-weekly::after { content: '주간업무'; font-size: 11px; }
+
+      /* 🌟 [핵심] 자비스 버튼: 아크 리액터만 단독 중앙 정렬 */
       .sidebar-btn-jarvis {
         padding: 6px 0 !important;
         justify-content: center !important;
         align-items: center !important;
         width: 100% !important;
-        gap: 0 !important; /* 아이콘과 글자 사이 여백 제거 */
+        gap: 0 !important;
         border-radius: 10px !important;
       }
       .sidebar-btn-jarvis svg {
         margin: 0 auto !important;
         display: block !important;
-        width: 32px !important;  /* 모바일 사이드바 폭에 맞춘 최적의 아크 리액터 크기 */
-        height: 32px !important;
+        width: 30px !important;
+        height: 30px !important;
       }
 
       /* 2. 세로 높이(393px) 한계 맞춤 압축 */
@@ -1533,23 +1567,19 @@
         min-width: 700px !important;
       }
       
-      /* 4. 대시보드, 관제탑, PDCA 레이아웃 1열 강제 축소 */
+      /* 4. 대시보드 및 관제탑 레이아웃 1열 강제 축소 */
       #main-panel .charts-grid,
       .tower-grid,
       #cs-view,
-      #pdca-content > div:nth-of-type(2) { /* 🌟 PDCA 차트 2개 감싸는 영역 추가 */
+      #pdca-content > div:nth-of-type(2) {
         grid-template-columns: 1fr !important;
-        gap: 16px !important;
+        gap: 12px !important;
       }
-
-      /* 🌟 [신규 추가!] PDCA 우측 도넛 차트 내부도 모바일에서 위아래로 떨어뜨림 */
       #pdca-content > div:nth-of-type(2) > div:nth-child(2) > div:last-child {
         flex-direction: column !important;
         align-items: center !important;
         gap: 12px !important;
       }
-      
-      /* 🌟 [신규 추가!] 도넛 차트 옆 텍스트 범례가 넓게 퍼지도록 폭 최적화 */
       #pdca-improve-legend {
         width: 100% !important;
       }
