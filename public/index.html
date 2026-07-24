@@ -5011,8 +5011,8 @@ if (typeof window.renderMacroGanttAsIndiv === 'function') {
 // ② 전체 매크로 간트차트 렌더링 시작
   const legendMacroEl = document.getElementById('gantt-legend-macro');
   const filterRowsEl = document.getElementById('gantt-filter-rows');
-  if (legendMacroEl) legendMacroEl.style.display = 'none';
-  if (filterRowsEl) { filterRowsEl.style.display = 'flex'; filterRowsEl.style.flexDirection = 'column'; }
+  if (legendMacroEl) legendMacroEl.style.display = 'flex';
+  if (filterRowsEl) filterRowsEl.style.display = 'none';
 
   const modeGroupMacroEl = document.getElementById('gantt-mode-macro-group');
   const modeGroupIndivEl = document.getElementById('gantt-mode-indiv-group');
@@ -5594,8 +5594,8 @@ function lightenColor(hex, ratio) { return window.lightenColor(hex, ratio); }
 
   const legendMacroEl = document.getElementById('gantt-legend-macro');
   const filterRowsEl = document.getElementById('gantt-filter-rows');
-  if (legendMacroEl) legendMacroEl.style.display = 'flex';
-  if (filterRowsEl) filterRowsEl.style.display = 'none';
+  if (legendMacroEl) legendMacroEl.style.display = 'none';
+  if (filterRowsEl) { filterRowsEl.style.display = 'flex'; filterRowsEl.style.flexDirection = 'column'; }
 
   const modeGroupMacroEl = document.getElementById('gantt-mode-macro-group');
   const modeGroupIndivEl = document.getElementById('gantt-mode-indiv-group');
