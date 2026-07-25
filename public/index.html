@@ -3621,11 +3621,18 @@ if (!window.masterMdFilters) {
 
   // 모든 프로젝트의 데이터를 한 곳에 모음 (필터링을 위해)
 window.allMasterData = [];
+  window.allMasterPlanData = [];
+  const MP_TYPES = ['마스터플랜', '마스터메모', '마스터이슈'];
 ['project10', 'project9', 'project8', 'project7', 'project6', 'project5', 'project4', 'project3', 'project2', 'project1', 'projectEtc'].forEach(pKey => {
     const pName = pKey === 'project1' ? 'CP' : (pKey === 'projectEtc' ? 'ETC' : pKey.replace('project', 'OP'));
       if(allData[pKey] && allData[pKey].history) {
           allData[pKey].history.forEach(r => {
-              window.allMasterData.push({ ...r, _pName: pName });
+              const row = { ...r, _pName: pName };
+              if (MP_TYPES.includes((r['업무 구분'] || '').toString().trim())) {
+                window.allMasterPlanData.push(row);
+              } else {
+                window.allMasterData.push(row);
+              }
           });
       }
   });
