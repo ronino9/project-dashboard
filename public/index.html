@@ -6984,6 +6984,7 @@ window.renderTowerSidebar = function(groups) {
 };
     // 프로젝트 개별 온라인/경고/오프라인 판정 (보류 제외, 지연중만 카운트, 30일 미접수=오프라인)
 function towerGetProjectStatus(code) {
+  const _mpTypes = ['마스터플랜', '마스터메모', '마스터이슈'];
   let hist;
   if (code.startsWith('CP')) {
     hist = ((allData.project1 && allData.project1.history) || []).filter(r => (r['프로젝트 코드'] || '').toString().trim() === code);
@@ -6991,6 +6992,7 @@ function towerGetProjectStatus(code) {
     const pKey = TOWER_PKEY_MAP[code];
     hist = (allData[pKey] && allData[pKey].history) || [];
   }
+  hist = hist.filter(r => !_mpTypes.includes((r['업무 구분'] || '').toString().trim()));
   const usable = hist.filter(r => (r['진행상태'] || '').toString().trim() !== '보류');
   if (usable.length === 0) return 'offline';
 
