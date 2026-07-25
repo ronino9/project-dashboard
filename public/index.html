@@ -5871,7 +5871,7 @@ row.appendChild(track);
 
     return { row, track, right };
   }
-// ===== 마스터플랜 렌더링 블록 (그룹ID 기반 3줄: 계획 / 메모·이슈 / 실행) =====
+// ===== 마스터플랜 렌더링 블록 (그룹ID 기반 1줄: 계획+메모이슈 아이콘+완료색) =====
   const MP_PART_COLORS = ['#3498DB', '#D4AC0D', '#16A085', '#D35400', '#8E44AD', '#C0392B'];
   const mpRows = (window.allMasterPlanData || []).filter(r => r._pName === code);
 
@@ -5901,7 +5901,7 @@ row.appendChild(track);
   if (!window.mpPartFilter) window.mpPartFilter = new Set(mpParts);
   mpParts.forEach(p => { if (!window.mpPartFilter.has(p) && window.mpPartFilter.size === 0) window.mpPartFilter.add(p); });
 
-  // 그룹별 계획/실행 날짜 계산
+  // 그룹별 계획/완료 날짜 계산
   function mpComputeGroupDates(g) {
     const r = g.planRow;
     const recv = calNorm(r['접수일']);
@@ -5913,23 +5913,22 @@ row.appendChild(track);
     const planEnd = due || recv;
     const isDone = doneFlag === 'O';
     const isHold = doneFlag === '보류';
-    const actStart = recv || due;
-    const actEnd = isDone ? (compl || planEnd) : todayStr;
     const isDelayed = !isDone && !isHold && todayStr > planEnd;
-    return { planStart, planEnd, isDone, isHold, actStart, actEnd, isDelayed };
+    // 막대의 실제 끝 지점: 완료면 완료일, 지연 중이면 오늘까지 연장, 그 외엔 계획 종료일
+    const barEnd = isDone ? (compl || planEnd) : (isDelayed ? todayStr : planEnd);
+    return { planStart, planEnd, barEnd, isDone, isHold, isDelayed };
   }
 
   // 💡 1. 현재 선택된 달에 일정이 실제로 겹치는 마스터플랜 그룹만 솎아냄!
   const mpGroupsInMonth = mpGroupList.filter(g => {
     const d = mpComputeGroupDates(g);
     if (!d) return false;
-    const overlapsPlan = d.planStart <= monthEnd && d.planEnd >= monthStart;
-    const overlapsAct = d.actStart <= monthEnd && d.actEnd >= monthStart;
+    const overlapsBar = d.planStart <= monthEnd && d.barEnd >= monthStart;
     const overlapsNote = g.noteRows.some(nr => {
       const nd = calNorm(nr['접수일']);
       return nd && nd >= monthStart && nd <= monthEnd;
     });
-    return overlapsPlan || overlapsAct || overlapsNote;
+    return overlapsBar || overlapsNote;
   });
 
   const mpBtnWrap = document.getElementById('mp-filter-buttons');
@@ -5987,19 +5986,16 @@ row.appendChild(track);
     partGroups.forEach((g, pIdx) => {
       const d = mpComputeGroupDates(g);
       if (!d) return;
-      const { planStart, planEnd, isDone, isHold, actStart, actEnd, isDelayed } = d;
+      const { planStart, planEnd, barEnd, isDone, isHold, isDelayed } = d;
 
-      const overlapsPlan = planStart <= monthEnd && planEnd >= monthStart;
-      const overlapsAct = actStart <= monthEnd && actEnd >= monthStart;
+      const overlapsBar = planStart <= monthEnd && barEnd >= monthStart;
       const noteDatesInMonth = g.noteRows
         .map(nr => calNorm(nr['접수일']))
         .filter(nd => nd && nd >= monthStart && nd <= monthEnd);
-      if (!overlapsPlan && !overlapsAct && noteDatesInMonth.length === 0) return;
+      if (!overlapsBar && noteDatesInMonth.length === 0) return;
 
       mpRenderedAny = true;
       const stripe = pIdx % 2 === 1;
-      const barColor = isHold ? '#94a3b8' : partColor;
-      const planColor = isHold ? '#cbd5e1' : lightenColor(barColor, 0.5);
       const title = g.planRow['표준 제작 Item / Issue / 개선사항'] || g.planRow['제목'] || '(제목 없음)';
       const shortTitle = title.length > 10 ? title.slice(0, 10) + '…' : title;
       const partLabel = pIdx === 0
@@ -6009,30 +6005,32 @@ row.appendChild(track);
 
       const showMpItem = () => {
         const rowCopy = { '프로젝트 코드': code, '접수일': g.planRow['접수일'] || '-', ...g.planRow };
-        window.showDetailView(`${actStart} · ${code} 마스터플랜`, title, [rowCopy]);
+        window.showDetailView(`${planStart} · ${code} 마스터플랜`, title, [rowCopy]);
       };
       const showMpNotes = (dateStr, notesOnDate) => {
         const rowsForDisplay = notesOnDate.map(nr => ({ '프로젝트 코드': code, '접수일': nr['접수일'] || '-', ...nr }));
         window.showDetailView(`${dateStr} · ${code} 메모/이슈`, title, rowsForDisplay);
       };
 
-      // 1) 계획 줄
-      const { row: mpPlanRow, track: mpPlanTrack } = makeRow(partLabel, true, stripe, partColor, `[${part}] ${title}`);
-      if (overlapsPlan) {
-        const cs = ganttClamp(planStart, monthStart, monthEnd), ce = ganttClamp(planEnd, monthStart, monthEnd);
+      // 단일 줄: 막대(계획~완료/지연 반영) + 메모이슈 아이콘 오버레이
+      const { row: mpRow, track: mpTrack, right: mpRight } = makeRow(partLabel, true, stripe, partColor, `[${part}] ${title}`);
+
+      if (overlapsBar) {
+        const cs = ganttClamp(planStart, monthStart, monthEnd), ce = ganttClamp(barEnd, monthStart, monthEnd);
         const sPct = (dayOffset(cs) / totalDays) * 100;
         const wPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
+        const barColor = isHold ? '#94a3b8' : partColor;
+        // 완료면 진하게(불투명), 미완료면 흐리게(계획중)
+        const barOpacity = isHold ? 0.5 : (isDone ? 1.0 : 0.4);
         const bar = document.createElement('div');
         bar.className = 'gantt-bar';
         bar.dataset.hl = mpKey;
-        bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${sPct}%; width:${wPct}%; background:${planColor}; border-radius:2px; cursor:pointer;`;
+        bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${sPct}%; width:${wPct}%; background:${barColor}; opacity:${barOpacity}; border-radius:2px; cursor:pointer;`;
         bar.onclick = showMpItem;
-        mpPlanTrack.appendChild(bar);
+        mpTrack.appendChild(bar);
       }
-      rowsEl.appendChild(mpPlanRow);
 
-      // 2) 메모/이슈 줄 (날짜별 마커: 이슈 있으면 🚨, 없으면 📝)
-      const { row: mpNoteRow, track: mpNoteTrack } = makeRow('', false, stripe, partColor);
+      // 메모/이슈 아이콘 오버레이 (날짜별: 이슈 있으면 🚨, 없으면 📝)
       const notesByDate = {};
       g.noteRows.forEach(nr => {
         const nd = calNorm(nr['접수일']);
@@ -6046,33 +6044,20 @@ row.appendChild(track);
         const icon = hasIssue ? '🚨' : '📝';
         const pct = (dayOffset(nd) / totalDays) * 100;
         const marker = document.createElement('div');
-        marker.style.cssText = `position:absolute; top:2px; left:${pct}%; font-size:11px; line-height:1; z-index:9; transform:translateX(-50%); cursor:pointer;`;
+        marker.style.cssText = `position:absolute; top:-3px; left:${pct}%; font-size:10px; line-height:1; z-index:9; transform:translateX(-50%); cursor:pointer;`;
         marker.textContent = icon;
         marker.title = `${nd} · ${notesOnDate.length}건`;
         marker.onclick = (e) => { e.stopPropagation(); showMpNotes(nd, notesOnDate); };
-        mpNoteTrack.appendChild(marker);
+        mpTrack.appendChild(marker);
       });
-      rowsEl.appendChild(mpNoteRow);
 
-      // 3) 실행(완료) 줄
-      const { row: mpActRow, track: mpActTrack, right: mpActRight } = makeRow('', false, stripe, partColor);
-      if (overlapsAct) {
-        const cs = ganttClamp(actStart, monthStart, monthEnd), ce = ganttClamp(actEnd, monthStart, monthEnd);
-        const sPct = (dayOffset(cs) / totalDays) * 100;
-        const wPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
-        const bar = document.createElement('div');
-        bar.className = 'gantt-bar';
-        bar.dataset.hl = mpKey;
-        bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${sPct}%; width:${wPct}%; background:${barColor}; opacity:${isDone ? '1.0' : '0.35'}; border-radius:2px; cursor:pointer;`;
-        bar.onclick = showMpItem;
-        mpActTrack.appendChild(bar);
-      }
-      const mpVar = isDone ? ganttDaysBetween(planEnd, actEnd) : null;
+      // 오른쪽 상태 텍스트
+      const mpVar = isDone ? ganttDaysBetween(planEnd, barEnd) : null;
       const mpVColor = mpVar === null ? (isHold ? '#94a3b8' : (isDelayed ? '#dc2626' : '#94a3b8')) : (mpVar > 0 ? '#dc2626' : mpVar < 0 ? '#16a34a' : '#94a3b8');
       const mpVText = mpVar === null ? (isHold ? '보류' : (isDelayed ? '지연중' : '진행중')) : ((mpVar > 0 ? '+' + mpVar : mpVar) + '일');
-      mpActRight.style.cssText += `font-size:11px; color:${mpVColor}; text-align:center; font-weight:600; display:flex; align-items:center; justify-content:center;`;
-      mpActRight.textContent = mpVText;
-      rowsEl.appendChild(mpActRow);
+      mpRight.style.cssText += `font-size:11px; color:${mpVColor}; text-align:center; font-weight:600; display:flex; align-items:center; justify-content:center;`;
+      mpRight.textContent = mpVText;
+      rowsEl.appendChild(mpRow);
 
       const mpSpacer = document.createElement('div');
       mpSpacer.style.cssText = 'height:4px;';
