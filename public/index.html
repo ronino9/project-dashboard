@@ -3370,7 +3370,8 @@ if (!window.cardOrder) {
   const selectedSet = (window.masterMdFilters && window.masterMdFilters['프로젝트']) || new Set();
 const summaryCardsHtml = projectList.map((proj, cardIdx) => {
     // 💡 램프식 위험도 계산 (지연/임박/안정 각각 존재 여부 판단)
-    const _history = (proj.d && proj.d.history) ? proj.d.history : [];
+    const _mpTypes = ['마스터플랜', '마스터메모', '마스터이슈'];
+    const _history = ((proj.d && proj.d.history) ? proj.d.history : []).filter(r => !_mpTypes.includes((r['업무 구분'] || '').toString().trim()));
     const _hasDelay = _history.some(r => (r['진행상태'] || '') === '지연중');
     const _hasImminent = _history.some(r => (r['진행상태'] || '') === '임박');
     const _isStable = !_hasDelay && !_hasImminent;
