@@ -5945,6 +5945,16 @@ row.appendChild(track);
     mpByPart[p].push(r);
   });
 
+  const mpExecByGid = {};
+  (window.allMasterPlanData || []).filter(r => r._pName === code).forEach(r => {
+    const kind = (r['업무 구분'] || '').toString().trim();
+    if (kind !== '마스터메모' && kind !== '마스터이슈') return;
+    const gid = (r['그룹ID'] || '').toString().trim();
+    if (!gid) return;
+    if (!mpExecByGid[gid]) mpExecByGid[gid] = [];
+    mpExecByGid[gid].push({ row: r, kind: kind === '마스터이슈' ? 'issue' : 'memo' });
+  });
+
   let mpRenderedAny = false;
   mpParts.forEach(part => {
     const partRows = mpByPart[part];
@@ -6000,28 +6010,66 @@ row.appendChild(track);
       }
       rowsEl.appendChild(mpPlanRow);
 
-      const { row: mpActRow, track: mpActTrack, right: mpActRight } = makeRow('', false, stripe, partColor);
-      if (actStart <= monthEnd && actEnd >= monthStart) {
-        const cs = ganttClamp(actStart, monthStart, monthEnd), ce = ganttClamp(actEnd, monthStart, monthEnd);
-        const sPct = (dayOffset(cs) / totalDays) * 100;
-        const wPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
-        const bar = document.createElement('div');
-        bar.className = 'gantt-bar';
-        bar.dataset.hl = mpKey;
-        bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${sPct}%; width:${wPct}%; background:${barColor}; opacity:${isDone ? '1.0' : '0.35'}; border-radius:2px; cursor:pointer;`;
-        bar.onclick = showMpItem;
-        mpActTrack.appendChild(bar);
-      }
-      const mpVar = isDone ? ganttDaysBetween(planEnd, actEnd) : null;
-      const mpVColor = mpVar === null ? (isHold ? '#94a3b8' : (isDelayed ? '#dc2626' : '#94a3b8')) : (mpVar > 0 ? '#dc2626' : mpVar < 0 ? '#16a34a' : '#94a3b8');
-      const mpVText = mpVar === null ? (isHold ? '보류' : (isDelayed ? '지연중' : '진행중')) : ((mpVar > 0 ? '+' + mpVar : mpVar) + '일');
-      mpActRight.style.cssText += `font-size:11px; color:${mpVColor}; text-align:center; font-weight:600; display:flex; align-items:center; justify-content:center;`;
-      mpActRight.textContent = mpVText;
-      rowsEl.appendChild(mpActRow);
+      const gid = (r['그룹ID'] || '').toString().trim();
+      const execList = gid ? (mpExecByGid[gid] || []) : [];
 
-      const mpSpacer = document.createElement('div');
-      mpSpacer.style.cssText = 'height:4px;';
-      rowsEl.appendChild(mpSpacer);
+      if (execList.length > 0) {
+        // 그룹ID로 묶인 마스터메모/마스터이슈가 있으면, 그것들을 실행 줄로 각각 그림
+        execList.forEach((ex, exIdx) => {
+          const er = ex.row;
+          const eRecv = calNorm(er['접수일']);
+          const eDue = calNorm(er['완료예정일']);
+          const eCompl = calNorm(er['완료일']);
+          const eDoneFlag = (er['완료여부'] || '').toString().trim();
+          const eStart = eRecv || eDue;
+          if (!eStart) return;
+          const eIsDone = eDoneFlag === 'O';
+          const eIsHold = eDoneFlag === '보류';
+          const eEnd = eIsDone ? (eCompl || eDue || eStart) : todayStr;
+          if (!(eStart <= monthEnd && eEnd >= monthStart)) return;
+
+          const isIssue = ex.kind === 'issue';
+          const execColor = isIssue ? '#dc2626' : partColor;
+          const execTitle = er['표준 제작 Item / Issue / 개선사항'] || er['제목'] || (isIssue ? '이슈' : '메모');
+
+          const { row: exRow, track: exTrack, right: exRight } = makeRow('', false, stripe, execColor);
+          const cs = ganttClamp(eStart, monthStart, monthEnd), ce = ganttClamp(eEnd, monthStart, monthEnd);
+          const sPct = (dayOffset(cs) / totalDays) * 100;
+          const wPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
+          const bar = document.createElement('div');
+          bar.className = 'gantt-bar';
+          bar.dataset.hl = mpKey;
+          bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${sPct}%; width:${wPct}%; background:${execColor}; opacity:${isIssue ? '0.9' : '0.75'}; border-radius:2px; cursor:pointer;`;
+          bar.onclick = () => {
+            const rowCopy = { '프로젝트 코드': code, '접수일': er['접수일'] || '-', ...er };
+            window.showDetailView(`${eStart} · ${code} 마스터${isIssue ? '이슈' : '메모'}`, execTitle, [rowCopy]);
+          };
+          exTrack.appendChild(bar);
+          exRight.style.cssText += `font-size:11px; color:${isIssue ? '#dc2626' : '#94a3b8'}; text-align:center; font-weight:600; display:flex; align-items:center; justify-content:center;`;
+          exRight.textContent = isIssue ? '🚨 이슈' : '메모';
+          rowsEl.appendChild(exRow);
+        });
+      } else {
+        // 기존 방식: 마스터메모/이슈가 없으면 계획 행 자체의 완료여부로 실행 줄 하나만 그림
+        const { row: mpActRow, track: mpActTrack, right: mpActRight } = makeRow('', false, stripe, partColor);
+        if (actStart <= monthEnd && actEnd >= monthStart) {
+          const cs = ganttClamp(actStart, monthStart, monthEnd), ce = ganttClamp(actEnd, monthStart, monthEnd);
+          const sPct = (dayOffset(cs) / totalDays) * 100;
+          const wPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
+          const bar = document.createElement('div');
+          bar.className = 'gantt-bar';
+          bar.dataset.hl = mpKey;
+          bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${sPct}%; width:${wPct}%; background:${barColor}; opacity:${isDone ? '1.0' : '0.35'}; border-radius:2px; cursor:pointer;`;
+          bar.onclick = showMpItem;
+          mpActTrack.appendChild(bar);
+        }
+        const mpVar = isDone ? ganttDaysBetween(planEnd, actEnd) : null;
+        const mpVColor = mpVar === null ? (isHold ? '#94a3b8' : (isDelayed ? '#dc2626' : '#94a3b8')) : (mpVar > 0 ? '#dc2626' : mpVar < 0 ? '#16a34a' : '#94a3b8');
+        const mpVText = mpVar === null ? (isHold ? '보류' : (isDelayed ? '지연중' : '진행중')) : ((mpVar > 0 ? '+' + mpVar : mpVar) + '일');
+        mpActRight.style.cssText += `font-size:11px; color:${mpVColor}; text-align:center; font-weight:600; display:flex; align-items:center; justify-content:center;`;
+        mpActRight.textContent = mpVText;
+        rowsEl.appendChild(mpActRow);
+      }
     });
   });
 
