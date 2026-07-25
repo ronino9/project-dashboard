@@ -5818,8 +5818,8 @@ items.sort((a, b) => (a.carriedOver !== b.carriedOver) ? (a.carriedOver ? -1 : 1
     return true;
   });
 
-  const hasMasterPlanThisMonth = rows.some(r => {
-    if ((r['업무 구분'] || '').toString().trim() !== '마스터플랜') return false;
+  const hasMasterPlanThisMonth = (window.allMasterPlanData || []).some(r => {
+    if (r._pName !== code) return false;
     const d1 = calNorm(r['접수일']), d2 = calNorm(r['완료예정일']);
     const s = d1 || d2, e = d2 || d1;
     return s && s <= monthEnd && e >= monthStart;
@@ -5873,7 +5873,7 @@ row.appendChild(track);
   }
 // ===== 마스터플랜 렌더링 블록 =====
   const MP_PART_COLORS = ['#3498DB', '#D4AC0D', '#16A085', '#D35400', '#8E44AD', '#C0392B'];
-  const mpRows = rows.filter(r => (r['업무 구분'] || '').toString().trim() === '마스터플랜');
+  const mpRows = (window.allMasterPlanData || []).filter(r => r._pName === code);
   const mpParts = [...new Set(mpRows.map(r => (r['파트 구분'] || '').toString().trim() || '미지정'))];
   const mpPartColorMap = {};
   mpParts.forEach((p, i) => { mpPartColorMap[p] = MP_PART_COLORS[i % MP_PART_COLORS.length]; });
