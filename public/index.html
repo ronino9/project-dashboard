@@ -6959,7 +6959,8 @@ window.renderTowerSidebar = function(groups) {
       maxDelay = info ? Math.round(parseFloat(info.y) || 0) : 0;
     } else {
       const pKey = TOWER_PKEY_MAP[code];
-      const hist = (allData[pKey] && allData[pKey].history) || [];
+      let hist = (allData[pKey] && allData[pKey].history) || [];
+      hist = hist.filter(r => !['마스터플랜','마스터메모','마스터이슈'].includes((r['업무 구분'] || '').toString().trim()));
       const delays = hist.map(r => parseInt(r['지연일']) || 0).filter(d => d > 0);
       maxDelay = delays.length > 0 ? Math.max(...delays) : 0;
     }
@@ -7030,6 +7031,7 @@ window.renderTowerDefaultState = function() {
       const pKey = TOWER_PKEY_MAP[code];
       hist = (allData[pKey] && allData[pKey].history) || [];
     }
+    hist = hist.filter(r => !['마스터플랜','마스터메모','마스터이슈'].includes((r['업무 구분'] || '').toString().trim()));
     const delays = hist
       .filter(r => (r['진행상태'] || '').toString().trim() === '지연중')
       .map(r => parseInt(r['지연일']) || 0)
