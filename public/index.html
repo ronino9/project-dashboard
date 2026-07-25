@@ -6696,7 +6696,8 @@ function towerIsDelayed(code) {
     return info ? info.status !== '안정' : false;
   }
   const pKey = TOWER_PKEY_MAP[code];
-  const hist = (allData[pKey] && allData[pKey].history) || [];
+  const _mpTypes = ['마스터플랜', '마스터메모', '마스터이슈'];
+  const hist = ((allData[pKey] && allData[pKey].history) || []).filter(r => !_mpTypes.includes((r['업무 구분'] || '').toString().trim()));
   return hist.some(r => r['진행상태'] === '지연중');
 }
 
