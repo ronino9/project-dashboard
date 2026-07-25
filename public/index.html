@@ -5871,51 +5871,84 @@ row.appendChild(track);
 
     return { row, track, right };
   }
-// ===== 마스터플랜 렌더링 블록 =====
+// ===== 마스터플랜 렌더링 블록 (그룹ID 기반 3줄: 계획 / 메모·이슈 / 실행) =====
   const MP_PART_COLORS = ['#3498DB', '#D4AC0D', '#16A085', '#D35400', '#8E44AD', '#C0392B'];
   const mpRows = (window.allMasterPlanData || []).filter(r => r._pName === code);
-  const mpParts = [...new Set(mpRows.map(r => (r['파트 구분'] || '').toString().trim() || '미지정'))];
+
+  // 그룹ID 기준으로 묶기. 그룹ID 없는 마스터플랜 행은 단독 그룹으로, 그룹ID 없는 메모/이슈는 붙일 곳이 없으므로 제외.
+  const mpGroupMap = {};
+  mpRows.forEach((r, idx) => {
+    const gid = (r['그룹ID'] || '').toString().trim();
+    const taskType = (r['업무 구분'] || '').toString().trim();
+    const key = gid || (taskType === '마스터플랜' ? `__solo_${idx}` : null);
+    if (!key) return; // 그룹ID 없는 메모/이슈는 붙일 계획이 없으므로 제외
+    if (!mpGroupMap[key]) mpGroupMap[key] = [];
+    mpGroupMap[key].push(r);
+  });
+
+  // 각 그룹에서 마스터플랜 행(계획 소스)을 찾고, 없는 그룹은 제외
+  const mpGroupList = Object.values(mpGroupMap).map(groupRows => {
+    const planRow = groupRows.find(r => (r['업무 구분'] || '').toString().trim() === '마스터플랜');
+    if (!planRow) return null;
+    const noteRows = groupRows.filter(r => r !== planRow);
+    return { planRow, noteRows };
+  }).filter(Boolean);
+
+  const mpParts = [...new Set(mpGroupList.map(g => (g.planRow['파트 구분'] || '').toString().trim() || '미지정'))];
   const mpPartColorMap = {};
   mpParts.forEach((p, i) => { mpPartColorMap[p] = MP_PART_COLORS[i % MP_PART_COLORS.length]; });
 
   if (!window.mpPartFilter) window.mpPartFilter = new Set(mpParts);
   mpParts.forEach(p => { if (!window.mpPartFilter.has(p) && window.mpPartFilter.size === 0) window.mpPartFilter.add(p); });
 
-  // 💡 1. 현재 선택된 달(monthStart ~ monthEnd)에 일정이 실제로 겹치는 마스터플랜 항목만 솎아냄!
-  const mpRowsInMonth = mpRows.filter(r => {
+  // 그룹별 계획/실행 날짜 계산
+  function mpComputeGroupDates(g) {
+    const r = g.planRow;
     const recv = calNorm(r['접수일']);
     const due = calNorm(r['완료예정일']);
     const compl = calNorm(r['완료일']);
     const doneFlag = (r['완료여부'] || '').toString().trim();
-    if (!recv && !due) return false;
+    if (!recv && !due) return null;
     const planStart = recv || due;
     const planEnd = due || recv;
     const isDone = doneFlag === 'O';
+    const isHold = doneFlag === '보류';
     const actStart = recv || due;
     const actEnd = isDone ? (compl || planEnd) : todayStr;
-    return (planStart <= monthEnd && planEnd >= monthStart) || (actStart <= monthEnd && actEnd >= monthStart);
+    const isDelayed = !isDone && !isHold && todayStr > planEnd;
+    return { planStart, planEnd, isDone, isHold, actStart, actEnd, isDelayed };
+  }
+
+  // 💡 1. 현재 선택된 달에 일정이 실제로 겹치는 마스터플랜 그룹만 솎아냄!
+  const mpGroupsInMonth = mpGroupList.filter(g => {
+    const d = mpComputeGroupDates(g);
+    if (!d) return false;
+    const overlapsPlan = d.planStart <= monthEnd && d.planEnd >= monthStart;
+    const overlapsAct = d.actStart <= monthEnd && d.actEnd >= monthStart;
+    const overlapsNote = g.noteRows.some(nr => {
+      const nd = calNorm(nr['접수일']);
+      return nd && nd >= monthStart && nd <= monthEnd;
+    });
+    return overlapsPlan || overlapsAct || overlapsNote;
   });
 
   const mpBtnWrap = document.getElementById('mp-filter-buttons');
   if (mpBtnWrap) {
-    if (mpRowsInMonth.length === 0) {
+    if (mpGroupsInMonth.length === 0) {
       mpBtnWrap.innerHTML = '<span style="font-size:11px; color:#cbd5e1; font-weight:600;">이 달에 해당하는 마스터플랜 항목이 없습니다</span>';
     } else {
-      // 이번 달에 항목이 1개라도 있는 파트들만 확인하여 '전체보기' 활성화 여부 결정
-      const activePartsThisMonth = mpParts.filter(p => 
-        mpRowsInMonth.some(r => ((r['파트 구분'] || '').toString().trim() || '미지정') === p)
+      const activePartsThisMonth = mpParts.filter(p =>
+        mpGroupsInMonth.some(g => ((g.planRow['파트 구분'] || '').toString().trim() || '미지정') === p)
       );
       const allOn = activePartsThisMonth.every(p => window.mpPartFilter.has(p));
-      
-      let btnHtml = `<button onclick="window.mpSetAllParts()" style="padding:3px 10px; font-size:11px; font-weight:700; border-radius:12px; border:1px solid ${allOn ? '#0f172a' : '#e2e8f0'}; background:${allOn ? '#0f172a' : '#fff'}; color:${allOn ? '#fff' : '#475569'}; cursor:pointer; transition:0.2s;">전체보기 (${mpRowsInMonth.length})</button>`;
-      
+
+      let btnHtml = `<button onclick="window.mpSetAllParts()" style="padding:3px 10px; font-size:11px; font-weight:700; border-radius:12px; border:1px solid ${allOn ? '#0f172a' : '#e2e8f0'}; background:${allOn ? '#0f172a' : '#fff'}; color:${allOn ? '#fff' : '#475569'}; cursor:pointer; transition:0.2s;">전체보기 (${mpGroupsInMonth.length})</button>`;
+
       mpParts.forEach(p => {
         const c = mpPartColorMap[p];
         const on = window.mpPartFilter.has(p);
-        // 💡 2. 건수 계산을 전체(mpRows)가 아닌 '이번 달(mpRowsInMonth)' 기준으로 변경!
-        const cnt = mpRowsInMonth.filter(r => ((r['파트 구분'] || '').toString().trim() || '미지정') === p).length;
-        
-        // 💡 3. 이번 달에 일정이 없는 파트(0건)는 연한 회색으로 비활성화(disabled)하여 클릭 차단
+        const cnt = mpGroupsInMonth.filter(g => ((g.planRow['파트 구분'] || '').toString().trim() || '미지정') === p).length;
+
         if (cnt === 0) {
           btnHtml += `<button disabled style="display:flex; align-items:center; gap:5px; padding:3px 10px; font-size:11px; font-weight:700; border-radius:12px; border:1px solid #f1f5f9; background:#f8fafc; color:#cbd5e1; cursor:not-allowed; opacity:0.35;"><span style="width:9px; height:9px; border-radius:2px; background:#cbd5e1;"></span>${p} 0</button>`;
         } else {
@@ -5937,54 +5970,37 @@ row.appendChild(track);
     window.renderMacroGanttAsIndiv(indivGanttProject);
   };
 
-  const mpVisible = mpRows.filter(r => window.mpPartFilter.has((r['파트 구분'] || '').toString().trim() || '미지정'));
+  const mpVisibleGroups = mpGroupList.filter(g => window.mpPartFilter.has((g.planRow['파트 구분'] || '').toString().trim() || '미지정'));
   const mpByPart = {};
-  mpVisible.forEach(r => {
-    const p = (r['파트 구분'] || '').toString().trim() || '미지정';
+  mpVisibleGroups.forEach(g => {
+    const p = (g.planRow['파트 구분'] || '').toString().trim() || '미지정';
     if (!mpByPart[p]) mpByPart[p] = [];
-    mpByPart[p].push(r);
-  });
-
-  const mpExecByGid = {};
-  (window.allMasterPlanData || []).filter(r => r._pName === code).forEach(r => {
-    const kind = (r['업무 구분'] || '').toString().trim();
-    if (kind !== '마스터메모' && kind !== '마스터이슈') return;
-    const gid = (r['그룹ID'] || '').toString().trim();
-    if (!gid) return;
-    if (!mpExecByGid[gid]) mpExecByGid[gid] = [];
-    mpExecByGid[gid].push({ row: r, kind: kind === '마스터이슈' ? 'issue' : 'memo' });
+    mpByPart[p].push(g);
   });
 
   let mpRenderedAny = false;
   mpParts.forEach(part => {
-    const partRows = mpByPart[part];
-    if (!partRows || partRows.length === 0) return;
+    const partGroups = mpByPart[part];
+    if (!partGroups || partGroups.length === 0) return;
     const partColor = mpPartColorMap[part];
 
-    partRows.forEach((r, pIdx) => {
-      const recv = calNorm(r['접수일']);
-      const due = calNorm(r['완료예정일']);
-      const compl = calNorm(r['완료일']);
-      const doneFlag = (r['완료여부'] || '').toString().trim();
-      if (!recv && !due) return;
-
-      const planStart = recv || due;
-      const planEnd = due || recv;
-      const isDone = doneFlag === 'O';
-      const isHold = doneFlag === '보류';
-      const actStart = recv || due;
-      const actEnd = isDone ? (compl || planEnd) : todayStr;
-      const isDelayed = !isDone && !isHold && todayStr > planEnd;
+    partGroups.forEach((g, pIdx) => {
+      const d = mpComputeGroupDates(g);
+      if (!d) return;
+      const { planStart, planEnd, isDone, isHold, actStart, actEnd, isDelayed } = d;
 
       const overlapsPlan = planStart <= monthEnd && planEnd >= monthStart;
       const overlapsAct = actStart <= monthEnd && actEnd >= monthStart;
-      if (!overlapsPlan && !overlapsAct) return;
+      const noteDatesInMonth = g.noteRows
+        .map(nr => calNorm(nr['접수일']))
+        .filter(nd => nd && nd >= monthStart && nd <= monthEnd);
+      if (!overlapsPlan && !overlapsAct && noteDatesInMonth.length === 0) return;
 
       mpRenderedAny = true;
       const stripe = pIdx % 2 === 1;
       const barColor = isHold ? '#94a3b8' : partColor;
       const planColor = isHold ? '#cbd5e1' : lightenColor(barColor, 0.5);
-      const title = r['표준 제작 Item / Issue / 개선사항'] || r['제목'] || '(제목 없음)';
+      const title = g.planRow['표준 제작 Item / Issue / 개선사항'] || g.planRow['제목'] || '(제목 없음)';
       const shortTitle = title.length > 10 ? title.slice(0, 10) + '…' : title;
       const partLabel = pIdx === 0
         ? `<span style="color:${partColor}; font-weight:800; margin-right:6px;">${part}</span>${shortTitle}`
@@ -5992,12 +6008,17 @@ row.appendChild(track);
       const mpKey = `mp_${part}_${pIdx}`;
 
       const showMpItem = () => {
-        const rowCopy = { '프로젝트 코드': code, '접수일': r['접수일'] || '-', ...r };
+        const rowCopy = { '프로젝트 코드': code, '접수일': g.planRow['접수일'] || '-', ...g.planRow };
         window.showDetailView(`${actStart} · ${code} 마스터플랜`, title, [rowCopy]);
       };
+      const showMpNotes = (dateStr, notesOnDate) => {
+        const rowsForDisplay = notesOnDate.map(nr => ({ '프로젝트 코드': code, '접수일': nr['접수일'] || '-', ...nr }));
+        window.showDetailView(`${dateStr} · ${code} 메모/이슈`, title, rowsForDisplay);
+      };
 
+      // 1) 계획 줄
       const { row: mpPlanRow, track: mpPlanTrack } = makeRow(partLabel, true, stripe, partColor, `[${part}] ${title}`);
-      if (planStart <= monthEnd && planEnd >= monthStart) {
+      if (overlapsPlan) {
         const cs = ganttClamp(planStart, monthStart, monthEnd), ce = ganttClamp(planEnd, monthStart, monthEnd);
         const sPct = (dayOffset(cs) / totalDays) * 100;
         const wPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
@@ -6010,66 +6031,52 @@ row.appendChild(track);
       }
       rowsEl.appendChild(mpPlanRow);
 
-      const gid = (r['그룹ID'] || '').toString().trim();
-      const execList = gid ? (mpExecByGid[gid] || []) : [];
+      // 2) 메모/이슈 줄 (날짜별 마커: 이슈 있으면 🚨, 없으면 📝)
+      const { row: mpNoteRow, track: mpNoteTrack } = makeRow('', false, stripe, partColor);
+      const notesByDate = {};
+      g.noteRows.forEach(nr => {
+        const nd = calNorm(nr['접수일']);
+        if (!nd || nd < monthStart || nd > monthEnd) return;
+        if (!notesByDate[nd]) notesByDate[nd] = [];
+        notesByDate[nd].push(nr);
+      });
+      Object.keys(notesByDate).forEach(nd => {
+        const notesOnDate = notesByDate[nd];
+        const hasIssue = notesOnDate.some(nr => (nr['업무 구분'] || '').toString().trim() === '마스터이슈');
+        const icon = hasIssue ? '🚨' : '📝';
+        const pct = (dayOffset(nd) / totalDays) * 100;
+        const marker = document.createElement('div');
+        marker.style.cssText = `position:absolute; top:2px; left:${pct}%; font-size:11px; line-height:1; z-index:9; transform:translateX(-50%); cursor:pointer;`;
+        marker.textContent = icon;
+        marker.title = `${nd} · ${notesOnDate.length}건`;
+        marker.onclick = (e) => { e.stopPropagation(); showMpNotes(nd, notesOnDate); };
+        mpNoteTrack.appendChild(marker);
+      });
+      rowsEl.appendChild(mpNoteRow);
 
-      if (execList.length > 0) {
-        // 그룹ID로 묶인 마스터메모/마스터이슈가 있으면, 그것들을 실행 줄로 각각 그림
-        execList.forEach((ex, exIdx) => {
-          const er = ex.row;
-          const eRecv = calNorm(er['접수일']);
-          const eDue = calNorm(er['완료예정일']);
-          const eCompl = calNorm(er['완료일']);
-          const eDoneFlag = (er['완료여부'] || '').toString().trim();
-          const eStart = eRecv || eDue;
-          if (!eStart) return;
-          const eIsDone = eDoneFlag === 'O';
-          const eIsHold = eDoneFlag === '보류';
-          const eEnd = eIsDone ? (eCompl || eDue || eStart) : todayStr;
-          if (!(eStart <= monthEnd && eEnd >= monthStart)) return;
-
-          const isIssue = ex.kind === 'issue';
-          const execColor = isIssue ? '#dc2626' : partColor;
-          const execTitle = er['표준 제작 Item / Issue / 개선사항'] || er['제목'] || (isIssue ? '이슈' : '메모');
-
-          const { row: exRow, track: exTrack, right: exRight } = makeRow('', false, stripe, execColor);
-          const cs = ganttClamp(eStart, monthStart, monthEnd), ce = ganttClamp(eEnd, monthStart, monthEnd);
-          const sPct = (dayOffset(cs) / totalDays) * 100;
-          const wPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
-          const bar = document.createElement('div');
-          bar.className = 'gantt-bar';
-          bar.dataset.hl = mpKey;
-          bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${sPct}%; width:${wPct}%; background:${execColor}; opacity:${isIssue ? '0.9' : '0.75'}; border-radius:2px; cursor:pointer;`;
-          bar.onclick = () => {
-            const rowCopy = { '프로젝트 코드': code, '접수일': er['접수일'] || '-', ...er };
-            window.showDetailView(`${eStart} · ${code} 마스터${isIssue ? '이슈' : '메모'}`, execTitle, [rowCopy]);
-          };
-          exTrack.appendChild(bar);
-          exRight.style.cssText += `font-size:11px; color:${isIssue ? '#dc2626' : '#94a3b8'}; text-align:center; font-weight:600; display:flex; align-items:center; justify-content:center;`;
-          exRight.textContent = isIssue ? '🚨 이슈' : '메모';
-          rowsEl.appendChild(exRow);
-        });
-      } else {
-        // 기존 방식: 마스터메모/이슈가 없으면 계획 행 자체의 완료여부로 실행 줄 하나만 그림
-        const { row: mpActRow, track: mpActTrack, right: mpActRight } = makeRow('', false, stripe, partColor);
-        if (actStart <= monthEnd && actEnd >= monthStart) {
-          const cs = ganttClamp(actStart, monthStart, monthEnd), ce = ganttClamp(actEnd, monthStart, monthEnd);
-          const sPct = (dayOffset(cs) / totalDays) * 100;
-          const wPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
-          const bar = document.createElement('div');
-          bar.className = 'gantt-bar';
-          bar.dataset.hl = mpKey;
-          bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${sPct}%; width:${wPct}%; background:${barColor}; opacity:${isDone ? '1.0' : '0.35'}; border-radius:2px; cursor:pointer;`;
-          bar.onclick = showMpItem;
-          mpActTrack.appendChild(bar);
-        }
-        const mpVar = isDone ? ganttDaysBetween(planEnd, actEnd) : null;
-        const mpVColor = mpVar === null ? (isHold ? '#94a3b8' : (isDelayed ? '#dc2626' : '#94a3b8')) : (mpVar > 0 ? '#dc2626' : mpVar < 0 ? '#16a34a' : '#94a3b8');
-        const mpVText = mpVar === null ? (isHold ? '보류' : (isDelayed ? '지연중' : '진행중')) : ((mpVar > 0 ? '+' + mpVar : mpVar) + '일');
-        mpActRight.style.cssText += `font-size:11px; color:${mpVColor}; text-align:center; font-weight:600; display:flex; align-items:center; justify-content:center;`;
-        mpActRight.textContent = mpVText;
-        rowsEl.appendChild(mpActRow);
+      // 3) 실행(완료) 줄
+      const { row: mpActRow, track: mpActTrack, right: mpActRight } = makeRow('', false, stripe, partColor);
+      if (overlapsAct) {
+        const cs = ganttClamp(actStart, monthStart, monthEnd), ce = ganttClamp(actEnd, monthStart, monthEnd);
+        const sPct = (dayOffset(cs) / totalDays) * 100;
+        const wPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
+        const bar = document.createElement('div');
+        bar.className = 'gantt-bar';
+        bar.dataset.hl = mpKey;
+        bar.style.cssText = `position:absolute; top:5px; bottom:5px; left:${sPct}%; width:${wPct}%; background:${barColor}; opacity:${isDone ? '1.0' : '0.35'}; border-radius:2px; cursor:pointer;`;
+        bar.onclick = showMpItem;
+        mpActTrack.appendChild(bar);
       }
+      const mpVar = isDone ? ganttDaysBetween(planEnd, actEnd) : null;
+      const mpVColor = mpVar === null ? (isHold ? '#94a3b8' : (isDelayed ? '#dc2626' : '#94a3b8')) : (mpVar > 0 ? '#dc2626' : mpVar < 0 ? '#16a34a' : '#94a3b8');
+      const mpVText = mpVar === null ? (isHold ? '보류' : (isDelayed ? '지연중' : '진행중')) : ((mpVar > 0 ? '+' + mpVar : mpVar) + '일');
+      mpActRight.style.cssText += `font-size:11px; color:${mpVColor}; text-align:center; font-weight:600; display:flex; align-items:center; justify-content:center;`;
+      mpActRight.textContent = mpVText;
+      rowsEl.appendChild(mpActRow);
+
+      const mpSpacer = document.createElement('div');
+      mpSpacer.style.cssText = 'height:4px;';
+      rowsEl.appendChild(mpSpacer);
     });
   });
 
