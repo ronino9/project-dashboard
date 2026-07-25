@@ -73,8 +73,10 @@
 .pdca-kpi-item.clickable:hover { background:#ffffff; box-shadow:0 2px 6px rgba(59,130,246,0.15); transform:translateY(-1px); }
 .pdca-kpi-divider { width:1px; align-self:stretch; background:#cbd5e1; margin:2px 4px; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-.gantt-filter-pill { height:24px; box-sizing:border-box; display:inline-flex; align-items:center; gap:5px; padding:0 10px; border-radius:12px; font-size:11px; font-family:inherit; line-height:1; font-weight:700; cursor:pointer; transition:0.2s; white-space:nowrap; }
+.gantt-filter-pill { height:24px; box-sizing:border-box; display:inline-flex; align-items:center; gap:5px; padding:0 10px; border-radius:12px; font-size:11px; font-family:inherit; line-height:1; font-weight:700; cursor:pointer; white-space:nowrap; transition:transform 0.18s cubic-bezier(0.16,1,0.3,1), box-shadow 0.18s ease, opacity 0.18s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease; }
 .gantt-filter-pill:disabled { cursor:not-allowed; }
+.gantt-filter-pill:not(:disabled):hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(15,23,42,0.15); }
+.gantt-filter-pill:not(:disabled):active { transform:translateY(0) scale(0.94); box-shadow:none; transition-duration:0.08s; }
 #gantt-legend-master, #gantt-legend-indiv { height:36px; box-sizing:border-box; display:flex; align-items:center; gap:6px; flex-wrap:nowrap; overflow-x:auto; padding:6px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:11px; }
 #gantt-legend-master > span:first-child, #gantt-legend-indiv > span:first-child { font-size:10px; font-weight:700; color:#94a3b8; width:60px; flex-shrink:0; }
 /* 👇 여기에 한 줄만 딱 추가해 주시면 됩니다 👇 */
@@ -5783,20 +5785,16 @@ items.sort((a, b) => (a.carriedOver !== b.carriedOver) ? (a.carriedOver ? -1 : 1
       if (counts[key] === 0) {
         btnEl.style.opacity = '0.25';
         btnEl.style.cursor = 'not-allowed';
-        btnEl.style.boxShadow = 'none';
       } else {
         btnEl.style.opacity = (window.indivTaskFilter === 'ALL' || isTarget) ? '1' : '0.35';
         btnEl.style.cursor = 'pointer';
-        btnEl.style.boxShadow = isTarget ? '0 0 0 2px #0f172a' : 'none'; // 선택된 버튼 테두리 강조!
       }
     }
   });
   const allBtn = document.getElementById('btn-filter-ALL');
   if (allBtn) {
     allBtn.innerHTML = `전체보기 (${items.length})`;
-    const isAll = window.indivTaskFilter === 'ALL';
     allBtn.style.opacity = '1';
-    allBtn.style.boxShadow = isAll ? '0 0 0 2px #0f172a' : 'none';
   }
 
   // 💡 3. 슬라이서 클릭 함수 (언제 눌러도 100% 즉시 작동)
