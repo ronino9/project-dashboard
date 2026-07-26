@@ -3731,9 +3731,8 @@ window.selectMasterProject = function(pName) {
 
   // 간트 라벨 클릭 등으로 넘어온 코드값(ETC/CP)을 카드 id(projectEtc/CP_ALL)로 역매핑해서 스크롤
   let cardId = pName;
-  if (pName === 'ETC') cardId = 'projectEtc';
-  else if (pName === 'CP') cardId = 'CP_ALL';
-  const cardEl = document.querySelector(`.main-card[onclick*="'${cardId}'"]`);
+      if (pName === 'ETC') cardId = 'projectEtc';
+      const cardEl = document.querySelector(`.main-card[onclick*="'${cardId}'"]`);
   if (cardEl) {
     cardEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   } else {
