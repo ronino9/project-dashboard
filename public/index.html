@@ -567,6 +567,9 @@
     .kpi-strip-value { font-size: 16px; font-weight: 800; line-height: 1.2; }
     .kpi-strip-unit { font-size: 10px; color: #94a3b8; font-weight: 600; margin-left: 2px; }
     @media(max-width: 1024px) { .sidebar { width: 64px; } .sidebar-btn span:not(.sidebar-icon) { display: none; } .sidebar-group-label { display: none; } }
+@media screen and (max-width: 932px) {
+  #mobile-preview-btn-wrap { display: none !important; }
+}
 
     /* Master MD 도넛 범례 스크롤 고정 */
     #main-md-legend {
@@ -1660,7 +1663,7 @@
   </div>
 
   <!-- 👇 [여기 추가!] 모바일 미리보기 버튼 👇 -->
- <div class="sidebar-group" style="margin-top: 4px;">
+ <div class="sidebar-group" id="mobile-preview-btn-wrap" style="margin-top: 4px;">
     <button class="sidebar-btn" onclick="window.openMobilePreview()" style="color: #475569; border: 1px dashed #cbd5e1; gap: 6px;">
       <i class="ti ti-brand-apple" style="font-size: 16px; margin-bottom: 2px;"></i>
       <span class="preview-text">아이폰 14 Pro 미리보기</span>
