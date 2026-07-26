@@ -7159,18 +7159,18 @@ window.renderTowerDefaultState = function() {
     const patchesHtml = patches.length === 0
       ? `<div class="hud-patch-empty">NO ACTIVE NODES</div>`
       : patches.map(p => `
-          <div class="hud-project-patch ${p.status}" title="${p.code === 'ETC' ? 'ETC' : (TOWER_LABEL_MAP[p.code] || p.code)}">
+          <div class="hud-project-patch ${p.status}" style="cursor:pointer;" onclick="event.stopPropagation(); window.towerNavClick('${p.code}', ${JSON.stringify(g).replace(/"/g, '&quot;')})" title="${p.code === 'ETC' ? 'ETC' : (TOWER_LABEL_MAP[p.code] || p.code)}">
             <div class="hud-patch-dot"></div>${p.code === 'ETC' ? 'ETC' : (TOWER_LABEL_MAP[p.code] || p.code)}
           </div>`).join('');
 
     return `
-      <div class="hud-sector-card" ${patches.length > 0 ? `onclick="window.towerBreadcrumbCountry('${country}')" style="cursor:pointer;"` : ''}>
+      <div class="hud-sector-card">
         <div class="hud-sector-header">
-          <span class="hud-sector-name">${TOWER_COUNTRY_EN[country] || country}</span>
+          <span class="hud-sector-name" ${patches.length > 0 ? `onclick="window.towerBreadcrumbCountry('${country}')" style="cursor:pointer;"` : ''}>${TOWER_COUNTRY_EN[country] || country}</span>
           <span class="hud-sector-badge ${sectorStatus}">${sectorBadgeText}</span>
         </div>
         <div class="hud-patch-grid">${patchesHtml}</div>
-      </div>`;
+      </div>`;;
   }).join('');
 
   const buildTickerRow = (t) => {
