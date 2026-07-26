@@ -5521,7 +5521,8 @@ orderList.forEach((cardId) => {
       window.showDetailView(`${date} · ${label}`, `${dayRows.length}건`, dayRows);
     };
 
-renderProjectBlock(cardId, label, projColorMap[cardId] || '#94a3b8', flat, true, null, onDayClick);
+const clickCode = cardId === 'CP_ALL' ? 'CP' : cardId;
+renderProjectBlock(clickCode, label, projColorMap[cardId] || '#94a3b8', flat, true, null, onDayClick);
   }
 });
 };
