@@ -567,6 +567,12 @@
     .kpi-strip-value { font-size: 16px; font-weight: 800; line-height: 1.2; }
     .kpi-strip-unit { font-size: 10px; color: #94a3b8; font-weight: 600; margin-left: 2px; }
     @media(max-width: 1024px) { .sidebar { width: 64px; } .sidebar-btn span:not(.sidebar-icon) { display: none; } .sidebar-group-label { display: none; } }
+    @media screen and (max-width: 700px) {
+      .kpi-strip { flex-wrap: wrap; gap: 8px; }
+      .kpi-strip-item { flex: 0 0 calc((100% - 16px) / 3); height: auto; padding: 10px 8px; }
+      .kpi-strip-label { white-space: normal; font-size: 10px; }
+      .kpi-strip-value { font-size: 15px; }
+    }
 @media screen and (max-width: 932px) {
   #mobile-preview-btn-wrap { display: none !important; }
 }
