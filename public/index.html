@@ -2817,8 +2817,7 @@ window.renderDeviationTrendTest = function() {
                 <div class="routing-path"><span style="color:#475569; font-size:11px;">로딩중...</span></div>
               </div>
             </div>
-            <div class="tower-map-frame">
-              <div id="jd-travel-controls" style="position:absolute; top:16px; left:calc(-9.52% - 10px); z-index:5010; display:flex; flex-direction:column; gap:8px; align-items:flex-start;">
+            <div id="jd-travel-controls" style="position:absolute; top:16px; left:calc(-9.52% - 10px); z-index:5010; display:flex; flex-direction:column; gap:8px; align-items:flex-start;">
   <!-- 1층: 텍스트 (Full Capacity와 동일한 강렬한 색상) -->
   <div id="jd-travel-label" style="font-family:'Orbitron', sans-serif; font-size:11px; font-weight:800; letter-spacing:1px; color:#67e8f9; text-shadow:0 0 6px rgba(103,232,249,0.7); margin-left:2px;">BUSINESS TRIP LOG</div>
   
@@ -2835,6 +2834,17 @@ window.renderDeviationTrendTest = function() {
     <button id="jd-speed-fast" onclick="window.travelSetSpeed('fast')" class="jd-hud-btn">FAST</button>
   </div>
 </div>
+            <div id="jd-eq-frame" aria-hidden="true" style="position:absolute; top:290px; left:calc(-9.52% - 10px); z-index:5010; display:flex; align-items:flex-end; gap:5px; height:64px; margin-left:2px;">
+                <span class="eqbar-f"></span>
+                <span class="eqbar-f"></span>
+                <span class="eqbar-f"></span>
+                <span class="eqbar-f"></span>
+                <span class="eqbar-f"></span>
+                <span class="eqbar-f"></span>
+                <span class="eqbar-f"></span>
+                <span class="eqbar-f"></span>
+              </div>
+            <div class="tower-map-frame">
               <!-- ✨ 맵 종합 컨트롤 패널 ✨ -->
               <div id="map-controller-panel" style="position:absolute; top:16px; right:16px; z-index:5010; background:rgba(2,6,23,0.85); border:1px solid #0e7490; border-radius:8px; padding:12px; width:220px; display:none; flex-direction:column; gap:12px; box-shadow:0 4px 16px rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
                 <div style="font-family:'Orbitron', sans-serif; font-size:11px; font-weight:800; color:#67e8f9; letter-spacing:1px; border-bottom:1px solid rgba(14,116,144,0.5); padding-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
@@ -2870,16 +2880,6 @@ window.renderDeviationTrendTest = function() {
                   <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8; font-weight:600;"><span>필터 농도 (Tint)</span><span id="val-op" style="color:#67e8f9; font-family:monospace;">100%</span></div>
                   <input type="range" id="map-slider-op" class="hud-slider" min="0" max="2" step="0.1" value="1" oninput="window.updateMapSlider('opacity', this.value)">
                 </div>
-              </div>
-              <div id="jd-eq-frame" aria-hidden="true" style="position:absolute; top:290px; left:calc(-9.52% - 10px); z-index:5010; display:flex; align-items:flex-end; gap:5px; height:64px; margin-left:2px;">
-                <span class="eqbar-f"></span>
-                <span class="eqbar-f"></span>
-                <span class="eqbar-f"></span>
-                <span class="eqbar-f"></span>
-                <span class="eqbar-f"></span>
-                <span class="eqbar-f"></span>
-                <span class="eqbar-f"></span>
-                <span class="eqbar-f"></span>
               </div>
               <div id="tower-map">
                 <div class="tower-tint"></div>
