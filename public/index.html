@@ -1631,6 +1631,23 @@
         letter-spacing: -0.5px !important;
       }
 
+      /* 🌟 KPI 카드 (총 공수/지연/임박/보류/일정 준수율) 가로모드 대응 */
+      .kpi-strip {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+      }
+      .kpi-strip-item {
+        flex: 0 0 calc((100% - 32px) / 5) !important;
+        height: auto !important;
+        padding: 8px 6px !important;
+      }
+      .kpi-strip-label {
+        white-space: normal !important;
+        font-size: 9px !important;
+      }
+      .kpi-strip-value {
+        font-size: 13px !important;
+      }
     } /* 👈 모바일 가로모드(@media) 닫는 중괄호 */
   </style>
 </head>
