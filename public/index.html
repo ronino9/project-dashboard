@@ -3147,7 +3147,7 @@ if (h === '진행상태') {
           const statusColorMap = { '완료': '#059669', '지연완료': '#7c3aed', '지연중': '#dc2626', 'Issue': '#dc2626', '보류': '#475569', '임박': '#d97706', '진행중': '#2563eb' };
           const color = statusColorMap[val] || '#3b82f6';
 
-          const badges = [`<span class="badge" style="background:${color}; color:#ffffff; font-weight:700;">${val}</span>`];
+          const badges = [`<span class="badge" style="background:#ffffff; color:${color}; font-weight:700; border:1.5px solid ${color}; min-width:56px; display:inline-block; text-align:center;">${val}</span>`];
 
           const delayDays = parseFloat(row['지연일']);
           if (!isNaN(delayDays) && delayDays > 0) {
@@ -3244,7 +3244,7 @@ if (h === '업무/특이사항') {
 
   const badges = [];
   if (val !== '-') {
-    badges.push(`<span class="badge" style="background:${tColor}; color:#ffffff; font-weight:700;">${val}</span>`);
+    badges.push(`<span class="badge" style="background:#ffffff; color:${tColor}; font-weight:700; border:1.5px solid ${tColor}; min-width:56px; display:inline-block; text-align:center;">${val}</span>`);
   }
 
   const reworkYN = (row['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
