@@ -3156,7 +3156,7 @@ if (h === '진행상태') {
 
           const extFactor = (row['외부요인'] || '').toString().trim();
           if (extFactor && extFactor !== '해당없음') {
-            badges.push(`<span style="background:#f1f5f9; color:#475569; font-size:11px; font-weight:600; padding:1px 6px; border-radius:4px; border:1px solid #cbd5e1;">🌩️ ${extFactor}</span>`);
+            badges.push(`<span style="background:#ffffff; color:#475569; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; border:1.5px solid #475569; min-width:56px; display:inline-block; text-align:center;">${extFactor}</span>`);
           }
 
           return `<td style="text-align: center; vertical-align: top; white-space: nowrap;"><div style="display:flex; flex-direction:column; gap:4px; align-items:center;">${badges.join('')}</div></td>`;
@@ -3249,7 +3249,7 @@ if (h === '업무/특이사항') {
 
   const reworkYN = (row['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
 if (reworkYN === 'Y') {
-    badges.push(`<span style="background:#fef3e2; color:#b45309; font-size:11px; font-weight:600; padding:1px 6px; border-radius:4px;">재작업</span>`);
+    badges.push(`<span style="background:#ffffff; color:#b45309; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; border:1.5px solid #b45309; min-width:56px; display:inline-block; text-align:center;">재작업</span>`);
   }
 
   const dev = parseFloat(row['작업 시간 편차']);
@@ -3257,12 +3257,12 @@ if (reworkYN === 'Y') {
     const devBg = dev > 0 ? '#fef3e2' : '#ecfdf5';
     const devText = dev > 0 ? '#b91c1c' : '#15803d';
     const devSign = dev > 0 ? '+' : '';
-    badges.push(`<span style="background:${devBg}; color:${devText}; font-size:11px; font-weight:600; padding:1px 6px; border-radius:4px;">편차 ${devSign}${dev}H</span>`);
+    badges.push(`<span style="background:#ffffff; color:${devText}; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; border:1.5px solid ${devText}; min-width:56px; display:inline-block; text-align:center;">편차 ${devSign}${dev}H</span>`);
   }
 
   const improveType = (row['개선유형'] || '').toString().trim();
   if (improveType && improveType !== '해당없음') {
-    badges.push(`<span style="background:#eef2ff; color:#4338ca; font-size:11px; font-weight:600; padding:1px 6px; border-radius:4px; border:1px solid #c7d2fe;">💡 ${improveType}</span>`);
+    badges.push(`<span style="background:#ffffff; color:#4338ca; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; border:1.5px solid #4338ca; min-width:56px; display:inline-block; text-align:center;">${improveType}</span>`);
   }
 
   if (badges.length === 0) return `<td style="text-align: center; vertical-align: top; color: #cbd5e1;">-</td>`;
