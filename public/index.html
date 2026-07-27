@@ -4992,6 +4992,42 @@ window.ganttSetMode = function(mode) {
   if (btnZoom) btnZoom.classList.toggle('cal-mode-active', mode === 'zoom');
   window.renderProjectGantt();
 };
+    window.ganttSetMode = function(mode) {
+  ganttMode = mode;
+  const btnYear = document.getElementById('gantt-mode-year');
+  const btnZoom = document.getElementById('gantt-mode-zoom');
+  if (btnYear) btnYear.classList.toggle('cal-mode-active', mode === 'year');
+  if (btnZoom) btnZoom.classList.toggle('cal-mode-active', mode === 'zoom');
+  window.renderProjectGantt();
+};
+
+// 👉 신규 추가: 공휴일 판별 + 날짜 클릭 상세 카드
+window.getHolidayName = function(dateStr) {
+  if (!allData.holidays) return null;
+  const found = allData.holidays.find(h => h.날짜 === dateStr);
+  return found ? found.이름 : null;
+};
+
+window.showDateTickDetail = function(dateStr, scopeRows) {
+  const holidayName = window.getHolidayName(dateStr);
+  const dayRows = (scopeRows || []).filter(r =>
+    (r['접수일'] || '').toString().replace(/[./]/g, '-').substring(0, 10) === dateStr
+  );
+
+  if (!holidayName && dayRows.length === 0) {
+    window.showDetailView(dateStr, '해당 없음', []);
+    return;
+  }
+
+  const rowsForDisplay = dayRows.map(r => ({ '프로젝트 코드': r._pName, '접수일': r['접수일'] || '-', ...r }));
+  const subtitle = holidayName
+    ? `🎌 ${holidayName}` + (dayRows.length ? ` · ${dayRows.length}건` : '')
+    : `${dayRows.length}건`;
+  window.showDetailView(dateStr, subtitle, rowsForDisplay);
+};
+
+// 🟢 변경할 코드 (붙여넣을 부분)
+window.ganttMove = function(dir) {
 
 // 🟢 변경할 코드 (붙여넣을 부분)
 window.ganttMove = function(dir) {
@@ -5140,9 +5176,14 @@ let cursor = new Date(windowStart)
       const offset = dayOffset(dStr);
       const pct = (offset / totalDays) * 100;
       const cellWidth = 100 / totalDays;
+      const dow = d.getDay();
+      const isHol = !!window.getHolidayName(dStr);
+      const dowColor = (dow === 0 || isHol) ? '#ef4444' : (dow === 6 ? '#3b82f6' : '#cbd5e1');
       const dt = document.createElement('div');
-      dt.style.cssText = `position:absolute; left:${pct}%; width:${cellWidth}%; top:0; bottom:0; border-left:1px solid #f8fafc; font-size:10px; color:#cbd5e1; display:flex; align-items:center; justify-content:center;`;
+      dt.style.cssText = `position:absolute; left:${pct}%; width:${cellWidth}%; top:0; bottom:0; border-left:1px solid #f8fafc; font-size:10px; color:${dowColor}; display:flex; align-items:center; justify-content:center; cursor:pointer;`;
       dt.textContent = d.getDate();
+      const capturedDStr = dStr;
+      dt.onclick = (e) => { e.stopPropagation(); window.showDateTickDetail(capturedDStr, window.allMasterData || []); };
       dateTicksEl.appendChild(dt);
       d.setDate(d.getDate() + 1);
     }
@@ -5690,14 +5731,21 @@ function lightenColor(hex, ratio) { return window.lightenColor(hex, ratio); }
 
   let d = new Date(monthStart);
   while (calYMD(d) <= monthEnd) {
-    const offset = dayOffset(calYMD(d));
+    const dStr = calYMD(d);
+    const offset = dayOffset(dStr);
     const pct = (offset / totalDays) * 100;
     const cellWidth = 100 / totalDays;
     const dow = d.getDay();
-    const dowColor = dow === 0 ? '#ef4444' : (dow === 6 ? '#3b82f6' : '#94a3b8');
+    const isHol = !!window.getHolidayName(dStr);
+    const dowColor = (dow === 0 || isHol) ? '#ef4444' : (dow === 6 ? '#3b82f6' : '#94a3b8');
     const dt = document.createElement('div');
-    dt.style.cssText = `position:absolute; left:${pct}%; width:${cellWidth}%; top:0; bottom:0; border-left:1px solid #f1f5f9; font-size:10px; color:${dowColor}; display:flex; align-items:center; justify-content:center; font-weight:600;`;
+    dt.style.cssText = `position:absolute; left:${pct}%; width:${cellWidth}%; top:0; bottom:0; border-left:1px solid #f1f5f9; font-size:10px; color:${dowColor}; display:flex; align-items:center; justify-content:center; font-weight:600; cursor:pointer;`;
     dt.textContent = d.getDate();
+    const capturedDStr = dStr, capturedCode = code;
+    dt.onclick = (e) => {
+      e.stopPropagation();
+      window.showDateTickDetail(capturedDStr, (window.allMasterData || []).filter(r => r._pName === capturedCode));
+    };
     (dateTicksEl || ticksEl).appendChild(dt);
     d.setDate(d.getDate() + 1);
   }
