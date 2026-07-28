@@ -5097,11 +5097,11 @@ function ganttClamp(dateStr, min, max) {
   window.ganttIconMarker = function(emoji, color, corner, pct, title, onClick) {
   const el = document.createElement('div');
   const pos = {
-    tl: `top:-11px; left:${pct}%; transform:translate(-85%,0);`,
-    tr: `top:-11px; left:${pct}%; transform:translate(-15%,0);`,
-    br: `top:auto; bottom:-11px; left:${pct}%; transform:translate(-15%,0);`
+    tl: `top:-8px; left:${pct}%; transform:translate(-85%,0);`,
+    tr: `top:-8px; left:${pct}%; transform:translate(-15%,0);`,
+    br: `top:auto; bottom:-8px; left:${pct}%; transform:translate(-15%,0);`
   }[corner];
-  el.style.cssText = `position:absolute; ${pos} font-size:16px; line-height:1; z-index:11; pointer-events:auto; cursor:${onClick ? 'pointer' : 'default'};`;
+  el.style.cssText = `position:absolute; ${pos} font-size:12px; line-height:1; z-index:11; pointer-events:auto; cursor:${onClick ? 'pointer' : 'default'};`;
   el.textContent = emoji;
   if (title) el.title = title;
   if (onClick) el.onclick = onClick;
