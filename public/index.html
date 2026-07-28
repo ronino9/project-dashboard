@@ -2219,11 +2219,39 @@ window.renderDeviationTrendTest = function() {
   </button>
   <div id="pending-issue-panel" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-top:none; border-radius:0 0 12px 12px; padding:16px; margin-top:-1px;">
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-[... 1번에서 지운 처리대기/고질이슈 카드 2개 내용을 그대로 여기 붙여넣기 ...]
-  <div id="main-issue-top5">
-    <div style="color: #64748b; font-size: 13px; padding: 10px;">집계된 이슈 데이터가 없습니다.</div>
-  </div>
 
+    <!-- 1. 처리 대기 Top 5 카드 복원 -->
+    <div class="chart-card" style="min-height: 440px; display: flex; flex-direction: column; box-shadow:none;">
+      <div class="chart-title">⏳ 처리 대기 Top 5 <span style="font-size: 11px; font-weight: 600; color: #475569; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; border: 1px solid #e2e8f0;">지연일 순</span></div>
+      <div id="main-issue-pending" style="overflow-y: auto; flex: 1;">
+        <div style="color: #64748b; font-size: 13px;">대기 중인 이슈를 불러오고 있습니다...</div>
+      </div>
+    </div>
+
+    <!-- 2. 고질 이슈 Top 5 카드 복원 -->
+    <div class="chart-card" style="min-height: 440px;">
+      <div class="chart-title" style="display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: flex-start; align-items: center; width: 100%;">
+          <div style="font-size: 16px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+            🚨 고질 이슈 Top 5
+            <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; flex-shrink: 0;">빈도순</span>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 8px;">
+          <span id="last-update-time" style="font-size: 11px; color: #64748b; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">최근 갱신: 로딩중...</span>
+          <div style="display: flex; flex-direction: column; gap: 4px; flex-shrink: 0;">
+            <button id="rebuild-btn" onclick="triggerRebuild()" style="background: #3b82f6; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2); display: flex; align-items: center; gap: 4px;">
+              🔄 AI 재분석
+            </button>
+          </div>
+        </div>
+      </div>
+      <div id="main-issue-top5">
+        <div style="color: #64748b; font-size: 13px; padding: 10px;">집계된 이슈 데이터가 없습니다.</div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
       </div>
@@ -2231,11 +2259,10 @@ window.renderDeviationTrendTest = function() {
   </div>
 
       <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:16px;">
-        <div class="donuts-row" id="main-summary-cards"
-        <div class="donuts-row" id="main-summary-cards" style="margin-bottom: 0;">
-          <div style="padding: 20px; color: #64748b;">데이터 로드 중...</div>
-        </div>
-      </div>
+  <div class="donuts-row" id="main-summary-cards" style="margin-bottom: 0;">
+    <div style="padding: 20px; color: #64748b;">데이터 로드 중...</div>
+  </div>
+</div>
       <!-- ▼▼▼ 프로젝트 간트차트 (계획 vs 실행) ▼▼▼ -->
 <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:16px;">
 <div class="chart-card" style="margin-top:0; border:none; padding:0; box-shadow:none;">
@@ -2940,7 +2967,6 @@ window.renderDeviationTrendTest = function() {
       </div>
     </div>
 
-</parameter>
     <div id="daily-panel" style="display:none;">
       <div style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:24px;">
         <div style="display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
@@ -3659,13 +3685,10 @@ window.allMasterData = [];
   });
 
   // 슬라이서 및 차트 그리기 함수 최초 1회 호출
-  window.renderMasterSlicers();
-  window.updateMasterMdChart();
-  window.populateGlobalSearchFilters();
-  window.renderMasterSlicers();
-  window.updateMasterMdChart();
-  window.populateGlobalSearchFilters();
-  window.renderProjectGantt();   // ← 추가
+window.renderMasterSlicers();
+window.updateMasterMdChart();
+window.populateGlobalSearchFilters();
+window.renderProjectGantt();   // ← 추가
 
 }; // <--- 기존 window.renderMainDashboard 함수의 끝을 닫아줍니다.
 
