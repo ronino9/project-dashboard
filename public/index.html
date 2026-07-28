@@ -5474,11 +5474,11 @@ function renderExecSegments(track, execDays, windowStart, windowEnd, totalDays, 
     const pct = (dayOffset(date) / totalDays) * 100;
 
     if (isRemote) {
-      const marker = window.ganttIconMarker('ti-wifi', '#0891b2', 'tr', pct, `${date} 원격 (${stage})`, (e) => { e.stopPropagation(); onDayClick && onDayClick(date, stage); });
+      const marker = window.ganttIconMarker('📶', null, 'tr', pct, `${date} 원격 (${stage})`, (e) => { e.stopPropagation(); onDayClick && onDayClick(date, stage); });
       track.appendChild(marker);
     }
     if (window.ganttHasLogPhoto(hlPrefix, stage, date)) {
-      const logMarker = window.ganttIconMarker('ti-paperclip', '#334155', 'br', pct, `${date} 로그 사진 있음`, (e) => { e.stopPropagation(); onDayClick && onDayClick(date, stage); });
+      const logMarker = window.ganttIconMarker('📷', null, 'br', pct, `${date} 로그 사진 있음`, (e) => { e.stopPropagation(); onDayClick && onDayClick(date, stage); });
       track.appendChild(logMarker);
     }
   });
@@ -6244,11 +6244,7 @@ row.appendChild(track);
         const hasIssue = notesOnDate.some(nr => (nr['업무 구분'] || '').toString().trim() === '마스터이슈');
         const icon = hasIssue ? '🚨' : '📝';
         const pct = (dayOffset(nd) / totalDays) * 100;
-        const marker = document.createElement('div');
-        marker.style.cssText = `position:absolute; top:-3px; left:${pct}%; font-size:10px; line-height:1; z-index:9; transform:translateX(-50%); cursor:pointer;`;
-        marker.textContent = icon;
-        marker.title = `${nd} · ${notesOnDate.length}건`;
-        marker.onclick = (e) => { e.stopPropagation(); showMpNotes(nd, notesOnDate); };
+        const marker = window.ganttIconMarker(icon, null, 'tl', pct, `${nd} · ${notesOnDate.length}건`, (e) => { e.stopPropagation(); showMpNotes(nd, notesOnDate); });
         mpTrack.appendChild(marker);
       });
 
