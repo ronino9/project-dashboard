@@ -3151,7 +3151,7 @@ if (h === '진행상태') {
 
           const delayDays = parseFloat(row['지연일']);
           if (!isNaN(delayDays) && delayDays > 0) {
-            badges.push(`<span style="background:#fef3e2; color:#b91c1c; font-size:11px; font-weight:600; padding:1px 6px; border-radius:4px;">${delayDays}일 지연</span>`);
+            badges.push(`<span style="background:#fef3e2; color:#b91c1c; font-size:11px; font-weight:700; padding:1px 6px; border-radius:4px;">${delayDays}일 지연</span>`);
           }
 
           const extFactor = (row['외부요인'] || '').toString().trim();
@@ -3165,7 +3165,15 @@ if (h === '진행상태') {
   const start = row['시작 시간'] || '';
   const end = row['종료 시간'] || '';
   let val = start && end ? `${start}<br>~ ${end}` : (start || end || '-');
-  return `<td style="text-align: center; font-size: 11px; color: #94a3b8; vertical-align: top; padding-top: 12px; line-height: 1.4;">${val}</td>`;
+  const dev = parseFloat(row['작업 시간 편차']);
+  let devBadge = '';
+  if (!isNaN(dev) && dev !== 0) {
+    const devBg = dev > 0 ? '#fef3e2' : '#ecfdf5';
+    const devText = dev > 0 ? '#b91c1c' : '#15803d';
+    const devSign = dev > 0 ? '+' : '';
+    devBadge = `<div style="margin-top:4px;"><span style="background:${devBg}; color:${devText}; font-size:10px; font-weight:700; padding:1px 6px; border-radius:4px;">${devSign}${dev}H</span></div>`;
+  }
+  return `<td style="text-align: center; font-size: 11px; color: #94a3b8; vertical-align: top; padding-top: 12px; line-height: 1.4;">${val}${devBadge}</td>`;
 }
         if (h === '분석 데이터') {
           let val = row[h] || '-';
@@ -3252,13 +3260,6 @@ if (reworkYN === 'Y') {
     badges.push(`<span style="background:#ffffff; color:#b45309; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; border:1.5px solid #b45309; min-width:56px; display:inline-block; text-align:center;">재작업</span>`);
   }
 
-  const dev = parseFloat(row['작업 시간 편차']);
-  if (!isNaN(dev) && dev !== 0) {
-    const devBg = dev > 0 ? '#fef3e2' : '#ecfdf5';
-    const devText = dev > 0 ? '#b91c1c' : '#15803d';
-    const devSign = dev > 0 ? '+' : '';
-    badges.push(`<span style="background:#ffffff; color:${devText}; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; border:1.5px solid ${devText}; min-width:56px; display:inline-block; text-align:center;">편차 ${devSign}${dev}H</span>`);
-  }
 
   const improveType = (row['개선유형'] || '').toString().trim();
   if (improveType && improveType !== '해당없음') {
