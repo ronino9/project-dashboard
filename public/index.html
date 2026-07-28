@@ -2214,41 +2214,49 @@ window.renderDeviationTrendTest = function() {
     <div id="project-content">
       
       <!-- 1. 처리 대기 / 고질 이슈 탭 (최상단 배치) -->
-      <div id="pending-issue-toggle-wrap" style="margin-bottom:14px;">
-        <button onclick="window.togglePendingIssuePanel()" id="pending-issue-toggle-btn" style="width:100%; display:flex; align-items:center; justify-content:space-between; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 16px; cursor:pointer; font-size:13px; font-weight:700; color:#334155;">
-          <span>⏳ 처리 대기 · 🚨 고질 이슈</span>
-          <span id="pending-issue-toggle-icon" style="font-size:11px; color:#94a3b8;">펼치기 ▾</span>
+      <!-- 1. 처리 대기 / 고질 이슈 탭 (외곽 테두리 완벽 일체화 & 헤더 높이 동기화) -->
+      <div id="pending-issue-toggle-wrap" style="margin-bottom: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; transition: all 0.2s ease;">
+        <button onclick="window.togglePendingIssuePanel()" id="pending-issue-toggle-btn" style="width: 100%; display: flex; align-items: center; justify-content: space-between; background: transparent; border: none; padding: 14px 20px; cursor: pointer; font-size: 14px; font-weight: 700; color: #0f172a; outline: none;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span>⏳ 처리 대기 Top 5</span>
+            <span style="color: #cbd5e1;">|</span>
+            <span>🚨 고질 이슈 Top 5</span>
+          </div>
+          <span id="pending-issue-toggle-icon" style="font-size: 12px; color: #64748b; font-weight: 600;">펼치기 ▾</span>
         </button>
-        <div id="pending-issue-panel" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-top:none; border-radius:0 0 12px 12px; padding:16px; margin-top:-1px;">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        
+        <div id="pending-issue-panel" style="display: none; border-top: 1px solid #e2e8f0; padding: 20px; background: #ffffff;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch;">
             
-            <!-- 처리 대기 Top 5 -->
-            <div class="chart-card" style="min-height: 440px; display: flex; flex-direction: column; box-shadow:none;">
-              <div class="chart-title">⏳ 처리 대기 Top 5 <span style="font-size: 11px; font-weight: 600; color: #475569; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; border: 1px solid #e2e8f0;">지연일 순</span></div>
-              <div id="main-issue-pending" style="overflow-y: auto; flex: 1;">
-                <div style="color: #64748b; font-size: 13px;">대기 중인 이슈를 불러오고 있습니다...</div>
+            <!-- 좌측: 처리 대기 Top 5 -->
+            <div class="chart-card" style="margin: 0; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; background: #ffffff; box-shadow: none; display: flex; flex-direction: column;">
+              <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; margin-bottom: 14px; min-height: 38px; box-sizing: border-box;">
+                <div style="font-size: 15px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+                  ⏳ 처리 대기 Top 5
+                  <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600;">지연일 순</span>
+                </div>
+                <div style="font-size: 11px; color: #64748b; font-weight: 500;">⚡ 실시간 트래킹</div>
+              </div>
+              <div id="main-issue-pending" style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
+                <div style="color: #64748b; font-size: 13px; padding: 10px;">대기 중인 이슈를 불러오고 있습니다...</div>
               </div>
             </div>
 
-            <!-- 고질 이슈 Top 5 -->
-            <div class="chart-card" style="min-height: 440px;">
-              <div class="chart-title" style="display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px;">
-                <div style="display: flex; justify-content: flex-start; align-items: center; width: 100%;">
-                  <div style="font-size: 16px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+            <!-- 우측: 고질 이슈 Top 5 -->
+            <div class="chart-card" style="margin: 0; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; background: #ffffff; box-shadow: none; display: flex; flex-direction: column;">
+              <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; margin-bottom: 14px; min-height: 38px; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div style="font-size: 15px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">
                     🚨 고질 이슈 Top 5
-                    <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; flex-shrink: 0;">빈도순</span>
+                    <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600;">빈도순</span>
                   </div>
+                  <span id="last-update-time" style="font-size: 11px; color: #94a3b8; font-weight: 500; white-space: nowrap;">최근 갱신: 로딩중...</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 8px;">
-                  <span id="last-update-time" style="font-size: 11px; color: #64748b; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">최근 갱신: 로딩중...</span>
-                  <div style="display: flex; flex-direction: column; gap: 4px; flex-shrink: 0;">
-                    <button id="rebuild-btn" onclick="triggerRebuild()" style="background: #3b82f6; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2); display: flex; align-items: center; gap: 4px;">
-                      🔄 AI 재분석
-                    </button>
-                  </div>
-                </div>
+                <button id="rebuild-btn" onclick="triggerRebuild()" style="background: #3b82f6; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 11px; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2); display: flex; align-items: center; gap: 4px; flex-shrink: 0; transition: background 0.2s;">
+                  🔄 AI 재분석
+                </button>
               </div>
-              <div id="main-issue-top5">
+              <div id="main-issue-top5" style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
                 <div style="color: #64748b; font-size: 13px; padding: 10px;">집계된 이슈 데이터가 없습니다.</div>
               </div>
             </div>
@@ -3572,44 +3580,43 @@ window.animateMainCards();
   if (allData.issueRanking && allData.issueRanking.length > 0) {
     // 1) 데이터가 있을 때: 시간 업데이트
     const updateTime = allData.issueRanking[0]['갱신시각'] || '-';
-    document.getElementById('last-update-time').innerText = '최근 갱신: ' + updateTime;
+    const timeEl = document.getElementById('last-update-time');
+    if (timeEl) timeEl.innerText = '최근 갱신: ' + updateTime;
 
-    // 2) 데이터가 있을 때: 리스트 그리기
-// 2) 데이터가 있을 때: 리스트 그리기
+    // 2) 데이터가 있을 때: 리스트 그리기 (높이 56px 고정 & 1줄 정렬)
     const topIssuesHtml = allData.issueRanking.slice(0, 5).map((issue, idx) => {
       const issueTitle = issue['이름'] || issue.name || issue['제목'] || '이슈 명칭 없음';
       return `
-      <div class="issue-list-item" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="window.showIssueDetail(${idx})">
-        <div style="display: flex; gap: 8px; align-items: center; overflow: hidden; flex: 1; padding-right: 10px;">
-          <span style="font-weight: 700; color: #64748b; flex-shrink: 0;">${idx + 1}.</span>
-          <span style="font-size: 14px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${issueTitle}">${issueTitle}</span>
+      <div class="issue-list-item" style="height: 56px; min-height: 56px; box-sizing: border-box; cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; margin: 0; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px;" onclick="window.showIssueDetail(${idx})">
+        <div style="display: flex; align-items: center; gap: 10px; overflow: hidden; flex: 1; padding-right: 12px;">
+          <span style="font-weight: 700; color: #64748b; font-size: 13px; flex-shrink: 0;">${idx + 1}.</span>
+          <span style="font-size: 13.5px; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${issueTitle}">${issueTitle}</span>
         </div>
-        <span class="badge" style="background: #ffffff; border: 1px solid #e2e8f0; color: #334155; flex-shrink: 0;">${issue['빈도'] || issue.count || 0}건</span>
+        <span class="badge" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-weight: 700; flex-shrink: 0; padding: 4px 10px; border-radius: 12px;">${issue['빈도'] || issue.count || 0}건</span>
       </div>
       `;
     }).join('');
     topIssuesContainer.innerHTML = topIssuesHtml;
 
   } else {
-    // 데이터가 아예 없을 때 (시간 표시와 리스트 모두 '없음' 처리)
-    document.getElementById('last-update-time').innerText = '최근 갱신: 데이터 없음';
+    // 데이터가 아예 없을 때
+    const timeEl = document.getElementById('last-update-time');
+    if (timeEl) timeEl.innerText = '최근 갱신: 데이터 없음';
     topIssuesContainer.innerHTML = `<div style="color: #64748b; font-size: 13px; padding: 10px;">집계된 이슈 데이터가 없습니다.</div>`;
   }
 
-  // 3. 지연 이슈 (처리 대기 Top 3)
-// 3. 지연 이슈 (처리 대기 Top 5 - 지연일 계산 및 표시)
-// 3. 지연 이슈 (처리 대기 Top 5 - 디버깅 포함)
+  // 3. 지연 이슈 (처리 대기 Top 5 - 지연일 계산 및 표시)
   const pendingContainer = document.getElementById('main-issue-pending');
   const allIssues = [];
   const today = new Date('2026-06-12'); 
 
   ['project10', 'project9', 'project8', 'project7', 'project6', 'project5', 'project4', 'project3', 'project2', 'project1', 'projectEtc'].forEach(pKey => {
-if(allData[pKey] && allData[pKey].history) {
+    if(allData[pKey] && allData[pKey].history) {
       allData[pKey].history.forEach(r => {
         if (r._isRep === false) return;   // 그룹 비대표행은 상태 집계 제외
         const _mpTaskTypes = ['마스터플랜', '마스터메모', '마스터이슈'];
         if (_mpTaskTypes.includes((r['업무 구분'] || '').toString().trim())) return;
-if(['지연중', 'Issue', '임박'].includes(r['진행상태'])) {
+        if(['지연중', 'Issue', '임박'].includes(r['진행상태'])) {
             const delayDays = parseInt(r['지연일']) || 0;
             
             allIssues.push({
@@ -3625,39 +3632,30 @@ if(['지연중', 'Issue', '임박'].includes(r['진행상태'])) {
     }
   });
 
-  // 데이터 확인 (콘솔창 F12에서 확인 가능)
-  console.log("전체 지연 이슈 개수:", allIssues.length);
-  
-// 지연일이 긴 순서대로 정렬 후 5개만 추출
+  // 지연일이 긴 순서대로 정렬 후 5개만 추출
   allIssues.sort((a, b) => b.delay - a.delay);
   const displayList = allIssues.slice(0, 5);
   
   if (displayList.length > 0) {
+    // 좌측 처리 대기 Top 5 (높이 56px 고정 & 1줄 정렬)
     const pendingHtml = displayList.map((issue, idx) => {
-      
-      // 💡 여기가 핵심! 제목의 따옴표와 줄바꿈을 안전하게 포장해서 에러를 막습니다.
-      const safeTitle = (issue.title || '')
-          .replace(/'/g, "\\'")     // 작은따옴표 무력화
-          .replace(/"/g, "&quot;")  // 큰따옴표 무력화
-          .replace(/[\n\r]/g, " "); // 줄바꿈 무력화
+      const safeTitle = (issue.title || '').replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/[\n\r]/g, " ");
 
       return `
-      <div class="issue-list-item" style="cursor: pointer; flex-direction: column; align-items: flex-start;" 
+      <div class="issue-list-item" style="height: 56px; min-height: 56px; box-sizing: border-box; cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; margin: 0; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px;" 
            onclick="window.showPendingDetail('${issue.proj}', '${safeTitle}')">
-        <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 4px;">
-           <div style="font-size: 14px; color: #1e293b; font-weight: 700;">
-             <span style="font-weight: 700; color: #64748b; margin-right: 8px;">${idx + 1}.</span>
-             <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; display: inline-block; vertical-align: bottom;">${issue.title}</span>
-           </div>
-           <span class="badge" style="background: #fee2e2; color: #dc2626; font-weight: 700; border: 1px solid #fca5a5;">${issue.delay}일 지연</span>
+        <div style="display: flex; align-items: center; gap: 10px; overflow: hidden; flex: 1; padding-right: 12px;">
+          <span style="font-weight: 700; color: #64748b; font-size: 13px; flex-shrink: 0;">${idx + 1}.</span>
+          <span style="font-size: 13.5px; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${issue.title}">${issue.title}</span>
+          <span style="font-size: 11px; font-weight: 600; color: #64748b; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; flex-shrink: 0;">${issue.proj} · ${issue.task}</span>
         </div>
-        <div style="font-size: 11px; color: #64748b; padding-left: 22px;">${issue.proj} / ${issue.task}</div>
+        <span class="badge" style="background: #fee2e2; color: #dc2626; font-weight: 700; border: 1px solid #fca5a5; flex-shrink: 0; padding: 4px 10px; border-radius: 12px;">${issue.delay}일 지연</span>
       </div>
       `;
     }).join('');
     pendingContainer.innerHTML = pendingHtml;
   } else {
-    pendingContainer.innerHTML = `<div style="color: #64748b; font-size: 13px;">대기 중인 이슈가 없습니다.</div>`;
+    pendingContainer.innerHTML = `<div style="color: #64748b; font-size: 13px; padding: 10px;">대기 중인 이슈가 없습니다.</div>`;
   }
 
 // 4. 다중 선택 슬라이서 및 Master MD 차트 연동
