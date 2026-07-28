@@ -2462,6 +2462,16 @@ window.renderDeviationTrendTest = function() {
           </div>
           <span id="detailClose" onclick="window.closeDetail()" style="cursor: pointer; flex-shrink:0;">✕</span>
         </div>
+        <div id="detailSummaryBar" style="display:none; align-items:center; gap:12px; padding:0 0 10px; border-bottom:1px solid #f1f5f9; flex-shrink:0;">
+          <div id="detailBadgeScroll" style="display:flex; gap:8px; overflow-x:auto; flex:1; min-width:0; cursor:grab; scrollbar-width:none;">
+            <div id="detailBadgeRow" style="display:flex; gap:8px; flex-shrink:0;"></div>
+          </div>
+          <div style="flex-shrink:0; display:flex; align-items:center; gap:8px; padding-left:12px; border-left:1px solid #e2e8f0; white-space:nowrap;">
+            <span id="detailSummaryText" style="font-size:12px; color:#64748b;">전체</span>
+            <span id="detailSummaryValue" style="font-size:15px; font-weight:800; color:#0f172a;">0.0MD</span>
+            <button id="detailResetBtn" onclick="window.detailResetFilter()" style="display:none; font-size:11px; padding:3px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; cursor:pointer; color:#3b82f6; font-weight:700;">전체보기</button>
+          </div>
+        </div>
         <div class="detail-modal-scroll">
           <table id="detailTable"></table>
         </div>
@@ -3162,6 +3172,7 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows, _fromBack) {
   if (backBtn) backBtn.style.display = window._detailStack.length > 0 ? 'inline-flex' : 'none';
 
   detailTitle.textContent = `${dateLabel} - [${typeLabel}] 상세 내역`;
+  window.renderDetailSummaryBar(dataRows);
 
   if (dataRows.length === 0) {
     detailTable.innerHTML = '<tr><td style="text-align:center;">데이터가 없습니다.</td></tr>';
@@ -3181,7 +3192,7 @@ const centerHeaders = ['접수일', '진행상태', '업무/특이사항', '작�
       const pCode = row['프로젝트 코드'] || row._pName || document.getElementById('projectTitle').textContent || '-';
       const dateVal = row['접수일'] || '-';
 
-      html += '<tr>' + headers.map(h => {
+      html += '<tr data-proj="' + pCode.toString().replace(/"/g, '&quot;') + '">' + headers.map(h => {
         if (h === '프로젝트 코드') return `<td style="text-align: center; font-weight: bold; color: #3b82f6; vertical-align: top;">${pCode}<i class="proj-info-ico" style="font-size:12px; margin-left:4px; color:#93c5fd;" onclick="event.stopPropagation(); window.showProjectInfoPopup('${pCode}', this)" title="프로젝트 정보">ⓘ</i></td>`;
         if (h === '접수일') return `<td style="text-align: center; vertical-align: top; color: #94a3b8;">${dateVal}</td>`;
         
@@ -3352,6 +3363,73 @@ window.showGroupHistory = function(groupId) {
   window.showDetailView(`🔗 그룹 이력 · ${groupId}`, `${rows.length}건 (접수일 순)`, rows);
 };
 
+    window.renderDetailSummaryBar = function(dataRows) {
+  const bar = document.getElementById('detailSummaryBar');
+  const badgeRow = document.getElementById('detailBadgeRow');
+  const summaryText = document.getElementById('detailSummaryText');
+  const summaryValue = document.getElementById('detailSummaryValue');
+  const resetBtn = document.getElementById('detailResetBtn');
+  if (!bar || !badgeRow) return;
+
+  const totals = {};
+  dataRows.forEach(row => {
+    const p = (row['프로젝트 코드'] || row._pName || '-').toString().trim();
+    const md = parseFloat(row['공수(MD)']) || 0;
+    totals[p] = (totals[p] || 0) + md;
+  });
+  const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+  const grandTotal = Object.values(totals).reduce((a, b) => a + b, 0);
+
+  window._detailFilterProject = null;
+  window._detailProjectTotals = totals;
+  window._detailGrandTotal = grandTotal;
+
+  if (sorted.length <= 1) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+
+  function paint() {
+    badgeRow.innerHTML = sorted.map(([p, md]) => {
+      const active = window._detailFilterProject === p;
+      const bg = active ? '#3b82f6' : '#ffffff';
+      const color = active ? '#ffffff' : '#334155';
+      const border = active ? '#3b82f6' : '#e2e8f0';
+      const safeP = p.replace(/'/g, "\\'");
+      return `<span onclick="window.detailFilterByProject('${safeP}')" style="display:flex; align-items:baseline; gap:5px; background:${bg}; border:1px solid ${border}; color:${color}; padding:4px 10px; border-radius:999px; font-size:12px; white-space:nowrap; flex-shrink:0; cursor:pointer;"><span style="font-weight:700;">${p}</span><span style="font-size:11px;">${md.toFixed(1)}</span></span>`;
+    }).join('');
+    summaryText.textContent = window._detailFilterProject ? `${window._detailFilterProject}만 보는 중` : '전체';
+    summaryValue.textContent = (window._detailFilterProject ? totals[window._detailFilterProject] : grandTotal).toFixed(1) + 'MD';
+    resetBtn.style.display = window._detailFilterProject ? 'inline-block' : 'none';
+  }
+  window._detailRepaintBadges = paint;
+  paint();
+};
+
+window.detailFilterByProject = function(p) {
+  window._detailFilterProject = (window._detailFilterProject === p) ? null : p;
+  const detailTable = document.getElementById('detailTable');
+  detailTable.querySelectorAll('tr[data-proj]').forEach(tr => {
+    tr.style.display = (!window._detailFilterProject || tr.dataset.proj === window._detailFilterProject) ? '' : 'none';
+  });
+  if (typeof window._detailRepaintBadges === 'function') window._detailRepaintBadges();
+};
+
+window.detailResetFilter = function() {
+  window._detailFilterProject = null;
+  const detailTable = document.getElementById('detailTable');
+  detailTable.querySelectorAll('tr[data-proj]').forEach(tr => { tr.style.display = ''; });
+  if (typeof window._detailRepaintBadges === 'function') window._detailRepaintBadges();
+};
+
+(function wireDetailBadgeScroll() {
+  const el = document.getElementById('detailBadgeScroll');
+  if (!el) return;
+  let isDown = false, startX, scrollLeft;
+  el.addEventListener('mousedown', (e) => { isDown = true; el.style.cursor = 'grabbing'; startX = e.pageX - el.offsetLeft; scrollLeft = el.scrollLeft; });
+  el.addEventListener('mouseleave', () => { isDown = false; el.style.cursor = 'grab'; });
+  el.addEventListener('mouseup', () => { isDown = false; el.style.cursor = 'grab'; });
+  el.addEventListener('mousemove', (e) => { if (!isDown) return; e.preventDefault(); const x = e.pageX - el.offsetLeft; el.scrollLeft = scrollLeft - (x - startX) * 1.2; });
+  el.addEventListener('wheel', (e) => { if (e.shiftKey) { e.preventDefault(); el.scrollLeft += e.deltaY; } });
+})();
     window.toggleSection = function(section) {
       const content = document.getElementById(section + 'Content');
       if (content) {
