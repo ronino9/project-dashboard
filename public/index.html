@@ -3605,7 +3605,7 @@ if(['지연중', 'Issue', '임박'].includes(r['진행상태'])) {
             const delayDays = parseInt(r['지연일']) || 0;
             
             allIssues.push({
-               proj: pKey.replace('project', 'OP'),
+               proj: pKey === 'projectEtc' ? 'ETC' : (pKey === 'project1' ? 'CP' : pKey.replace('project', 'OP')),
                title: r['제목'] || r['표준 제작 Item / Issue / 개선사항'] || '제목 없음',
                date: r['접수일'] || '',
                status: r['진행상태'],
