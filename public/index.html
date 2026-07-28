@@ -709,7 +709,8 @@
 #stageModalTable th { text-align:center; padding:6px 8px; color:#64748b; font-weight:700; border-bottom:1px solid #e2e8f0; }
 #stageModalTable th:first-child { text-align:left; }
 #stageModalTable td { padding:8px; text-align:center; border-bottom:1px solid #f1f5f9; }
-#stageModalTable td:first-child { text-align:left; color:#0f172a; font-weight:600; }
+#stageModalTable td:first-child { text-align:left; color:#64748b; font-weight:600; }
+#stageModalTable tr.stage-row-current td:first-child { color:#0f172a; }
 .stage-table-row { transition:background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; cursor:default; }
 .stage-table-row:hover { background:#eff6ff; transform:translateX(3px); box-shadow:-3px 0 0 #3b82f6; }
 .stage-cell-clickable { cursor:pointer; text-decoration:underline; text-decoration-color:transparent; transition:color 0.15s ease, text-decoration-color 0.15s ease; }
@@ -3240,21 +3241,30 @@ window.showStageDetailModal = function(rawCode) {
 
   const kickoffRows = (window.allMasterPlanData || []).filter(r => r._pName === code && (r['업무 구분'] || '').toString().trim() === '마스터플랜');
   const kickoffDates = kickoffRows.map(r => (r['접수일'] || '').toString().replace(/[./]/g, '-').substring(0, 10)).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+  const summaryForKickoff = (allData[pKey].summary) || {};
+  const plcStartRaw = summaryForKickoff.details && summaryForKickoff.details[0] ? summaryForKickoff.details[0][0] : null;
+  const plcStartDate = (plcStartRaw || '').toString().trim();
   const kickoffLineEl = document.getElementById('stageKickoffLine');
   if (kickoffLineEl) {
-    if (kickoffDates.length > 0 && stageData[0] && stageData[0].startDate) {
-      kickoffLineEl.innerHTML = `킥오프 <b>${kickoffDates[0].substring(2).replace(/-/g,'.')}</b> → PLC 착수 <b>${stageData[0].startDate.substring(2).replace(/-/g,'.')}</b>`;
+    if (kickoffDates.length > 0 && plcStartDate) {
+      kickoffLineEl.innerHTML = `킥오프 <b>${kickoffDates[0].substring(2).replace(/-/g,'.')}</b> → PLC 착수 <b>${plcStartDate}</b>`;
       kickoffLineEl.style.display = 'flex';
-    } else if (stageData[0] && stageData[0].startDate) {
-      kickoffLineEl.innerHTML = `PLC 착수 <b>${stageData[0].startDate.substring(2).replace(/-/g,'.')}</b>`;
+    } else if (plcStartDate) {
+      kickoffLineEl.innerHTML = `PLC 착수 <b>${plcStartDate}</b>`;
+      kickoffLineEl.style.display = 'flex';
+    } else if (kickoffDates.length > 0) {
+      kickoffLineEl.innerHTML = `킥오프 <b>${kickoffDates[0].substring(2).replace(/-/g,'.')}</b>`;
       kickoffLineEl.style.display = 'flex';
     } else {
       kickoffLineEl.style.display = 'none';
     }
   }
 
+  const currentStageIdx = stageData.findIndex(s => !s.isComplete);
+
   const barsEl = document.getElementById('stageModalBars');
   barsEl.innerHTML = stageData.map((s, idx) => {
+    const isCurrent = (idx === currentStageIdx);
     const totalWidthPct = s.plannedMD !== null ? Math.min(s.pct / 2, 100) : Math.min(s.pct, 100);
     const marker = s.plannedMD !== null ? `<div class="stage-bar-marker"></div>` : '';
     const darkColor = s.overCapacity ? '#C24C4A' : '#1D9E75';
@@ -3287,7 +3297,7 @@ window.showStageDetailModal = function(rawCode) {
     return `
       <div class="stage-bar-row">
         <div class="stage-bar-line">
-          <span class="stage-bar-label">${s.stage}</span>
+          <span class="stage-bar-label" style="${isCurrent ? 'color:#0f172a; font-weight:700;' : ''}">${s.stage}</span>
           <div class="stage-bar-track" onclick="window.stageBarClick(${idx})" style="display:flex;">
             ${marker}
             ${fillHtml}
@@ -3301,7 +3311,7 @@ window.showStageDetailModal = function(rawCode) {
   const tableEl = document.getElementById('stageModalTable');
   const headHtml = `<tr><th>단계</th><th>시작일</th><th>완료일</th><th>이슈</th><th>미완료</th><th>보류</th></tr>`;
   const bodyHtml = stageData.map((s, idx) => `
-    <tr class="stage-table-row">
+    <tr class="stage-table-row${idx === currentStageIdx ? ' stage-row-current' : ''}">
       <td>${s.stage}</td>
       <td>${s.startDate ? s.startDate.substring(2).replace(/-/g,'.') : '-'}</td>
       <td style="${!s.isComplete && s.startDate ? 'color:#dc2626; font-weight:700;' : ''}">${s.isComplete ? (s.endDate ? s.endDate.substring(2).replace(/-/g,'.') : '완료') : (s.startDate ? '진행중' : '-')}</td>
