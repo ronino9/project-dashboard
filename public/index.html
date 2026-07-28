@@ -3218,8 +3218,10 @@ const analysisCellId = `clamp-analysis-${rowIdx}`;
     const safeServer = encodeURIComponent(p.server);
     return `<div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; font-size:11px;">
       <span style="color:#334155;">📷 ${p.file}</span>
-      <button class="log-photo-copy-btn" data-path="${safePc}" style="background:#1e293b; border:1px solid #334155; color:#93c5fd; padding:2px 8px; border-radius:4px; cursor:pointer; font-size:10px;">PC</button>
-      <button class="log-photo-copy-btn" data-path="${safeServer}" style="background:#1e293b; border:1px solid #334155; color:#6ee7b7; padding:2px 8px; border-radius:4px; cursor:pointer; font-size:10px;">서버</button>
+      <div style="display:flex; flex-direction:column; gap:2px;">
+        <button class="log-photo-copy-btn" data-path="${safePc}" style="background:#1e293b; border:1px solid #334155; color:#93c5fd; padding:2px 8px; border-radius:4px; cursor:pointer; font-size:10px; white-space:nowrap;">PC</button>
+        <button class="log-photo-copy-btn" data-path="${safeServer}" style="background:#1e293b; border:1px solid #334155; color:#6ee7b7; padding:2px 8px; border-radius:4px; cursor:pointer; font-size:10px; white-space:nowrap;">서버</button>
+      </div>
     </div>`;
   }).join('');
   return `<td style="vertical-align:top; overflow:hidden;">${listHtml}</td>`;
