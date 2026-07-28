@@ -2345,9 +2345,10 @@ window.renderDeviationTrendTest = function() {
                 
                 <span style="color:#cbd5e1; margin:0 4px;">|</span>
                 
-                <span style="color:#64748b; display:flex; align-items:center; gap:10px; font-weight:600; white-space:nowrap;">
-                  <span>📶 원격</span>
-                  <span>🚨 이슈 발생일</span>
+                <span style="color:#64748b; display:flex; align-items:center; gap:14px; font-weight:600; white-space:nowrap;">
+                  <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:#fff; box-shadow:0 0 0 1px rgba(15,23,42,0.15);"><i class="ti ti-wifi" style="font-size:9px; color:#0891b2;" aria-hidden="true"></i></span>원격</span>
+                  <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:#fff; box-shadow:0 0 0 1px rgba(15,23,42,0.15);"><i class="ti ti-alert-triangle" style="font-size:9px; color:#dc2626;" aria-hidden="true"></i></span>이슈</span>
+                  <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:#fff; box-shadow:0 0 0 1px rgba(15,23,42,0.15);"><i class="ti ti-paperclip" style="font-size:9px; color:#334155;" aria-hidden="true"></i></span>로그</span>
                 </span>
               </div>
             </div>
@@ -5093,6 +5094,27 @@ function ganttDaysBetween(a, b) {
 }
 
 function ganttClamp(dateStr, min, max) {
+  window.ganttIconMarker = function(iconClass, color, corner, pct, title, onClick) {
+  const el = document.createElement('div');
+  const pos = {
+    tl: `top:-7px; left:${pct}%; transform:translate(-85%,0);`,
+    tr: `top:-7px; left:${pct}%; transform:translate(-15%,0);`,
+    br: `top:auto; bottom:-7px; left:${pct}%; transform:translate(-15%,0);`
+  }[corner];
+  el.style.cssText = `position:absolute; ${pos} width:14px; height:14px; border-radius:50%; background:#fff; box-shadow:0 0 0 1px rgba(15,23,42,0.15); display:flex; align-items:center; justify-content:center; z-index:11; pointer-events:auto; cursor:${onClick ? 'pointer' : 'default'};`;
+  el.innerHTML = `<i class="ti ${iconClass}" style="font-size:9px; color:${color};" aria-hidden="true"></i>`;
+  if (title) el.title = title;
+  if (onClick) el.onclick = onClick;
+  return el;
+};
+window.ganttHasLogPhoto = function(proj, stage, dateStr) {
+  return (window.allMasterData || []).some(r =>
+    r._pName === proj &&
+    (!stage || (r['단계 구분'] || '') === stage) &&
+    (r['접수일'] || '').toString().replace(/[./]/g, '-').substring(0, 10) === dateStr &&
+    (r['로그사진경로'] || []).length > 0
+  );
+};
   if (dateStr < min) return min;
   if (dateStr > max) return max;
   return dateStr;
@@ -5443,20 +5465,22 @@ function renderExecSegments(track, execDays, windowStart, windowEnd, totalDays, 
     }
   }
 
-  // 원격 마커 (📶) 로직
-  const seenRemote = new Set();
+  // 원격 / 로그 마커
+  const seenDay = new Set();
   execDays.forEach(({ date, stage, isRemote }) => {
-    if (!isRemote) return;
     if (date < windowStart || date > windowEnd) return;
-    if (seenRemote.has(date)) return;
-    seenRemote.add(date);
+    if (seenDay.has(date + '_' + stage)) return;
+    seenDay.add(date + '_' + stage);
     const pct = (dayOffset(date) / totalDays) * 100;
-    const marker = document.createElement('div');
-    marker.style.cssText = `position:absolute; top:10px; left:${pct}%; font-size:9px; line-height:1; cursor:pointer; z-index:9; transform:translateX(-50%); pointer-events:auto;`;
-    marker.textContent = '📶';
-    marker.title = `${date} 원격 (${stage})`;
-    if (onDayClick) marker.onclick = (e) => { e.stopPropagation(); onDayClick(date, stage); };
-    track.appendChild(marker);
+
+    if (isRemote) {
+      const marker = window.ganttIconMarker('ti-wifi', '#0891b2', 'tr', pct, `${date} 원격 (${stage})`, (e) => { e.stopPropagation(); onDayClick && onDayClick(date, stage); });
+      track.appendChild(marker);
+    }
+    if (window.ganttHasLogPhoto(hlPrefix, stage, date)) {
+      const logMarker = window.ganttIconMarker('ti-paperclip', '#334155', 'br', pct, `${date} 로그 사진 있음`, (e) => { e.stopPropagation(); onDayClick && onDayClick(date, stage); });
+      track.appendChild(logMarker);
+    }
   });
 }
 
@@ -5468,11 +5492,7 @@ function renderIssueMarkers(track, dates, windowStart, windowEnd, totalDays, day
     if (seen.has(date)) return;
     seen.add(date);
     const pct = (dayOffset(date) / totalDays) * 100;
-    const marker = document.createElement('div');
-    marker.style.cssText = `position:absolute; top:1px; left:${pct}%; font-size:10px; line-height:1; cursor:pointer; z-index:10; transform:translateX(-50%); pointer-events:auto;`;
-    marker.textContent = '🚨';
-    marker.title = `${date} 이슈 (${stage})`;
-    if (onClick) marker.onclick = (e) => { e.stopPropagation(); onClick(date, stage); };
+    const marker = window.ganttIconMarker('ti-alert-triangle', '#dc2626', 'tl', pct, `${date} 이슈 (${stage})`, (e) => { e.stopPropagation(); onClick && onClick(date, stage); });
     track.appendChild(marker);
   });
 }
@@ -6328,26 +6348,18 @@ if (!it.execDays) {
         // 완료되었다면 완료일(actEnd)에 1칸짜리 진한 막대 표시 (접수일과 다른 날짜일 경우만)
         if (it.isDone && it.actStart !== it.actEnd) drawSolidDay(it.actEnd);
 
-        // 4. 마커 (원격, 이슈) - 접수일 기준 최상단에 표시
+        // 4. 마커 (원격, 이슈, 로그) - 접수일 기준 표시
         const isRemote = it.row && (it.row['대응 구분'] || '').toString().includes('원격');
         const isIssueType = it.row && (it.row['업무 구분'] || '').toString().trim() === 'Issue';
-        
-        if (isRemote || isIssueType) {
+        const hasLog = it.row && (it.row['로그사진경로'] || []).length > 0;
+
+        if (isRemote || isIssueType || hasLog) {
           const markStart = ganttClamp(it.actStart, monthStart, monthEnd);
           const markPct = (dayOffset(markStart) / totalDays) * 100;
-          
-          if (isRemote) {
-            const remoteMark = document.createElement('div');
-            remoteMark.style.cssText = `position:absolute; top:9px; left:${markPct}%; font-size:9px; line-height:1; z-index:9; transform:translateX(-50%); pointer-events:none;`;
-            remoteMark.textContent = '📶';
-            actTrack.appendChild(remoteMark);
-          }
-          if (isIssueType) {
-            const issueMark = document.createElement('div');
-            issueMark.style.cssText = `position:absolute; top:-2px; left:${markPct}%; font-size:10px; line-height:1; z-index:10; transform:translateX(-50%); pointer-events:none;`;
-            issueMark.textContent = '🚨';
-            actTrack.appendChild(issueMark);
-          }
+
+          if (isIssueType) actTrack.appendChild(window.ganttIconMarker('ti-alert-triangle', '#dc2626', 'tl', markPct, '이슈'));
+          if (isRemote) actTrack.appendChild(window.ganttIconMarker('ti-wifi', '#0891b2', 'tr', markPct, '원격'));
+          if (hasLog) actTrack.appendChild(window.ganttIconMarker('ti-paperclip', '#334155', 'br', markPct, '로그 사진 있음'));
         }
       }
     } else {
@@ -6388,24 +6400,17 @@ if (!it.execDays) {
         };
         actTrack.appendChild(solidBar);
 
-        // 📶 원격 / 🚨 이슈 마커 (진한 실작업 바 위에 표시)
+        // 원격 / 이슈 / 로그 마커 (진한 실작업 바 위에 표시)
         for (let k = ei; k <= ej; k++) {
           const dRow = execDaysInMonth[k].row;
           const dPct = (dayOffset(execDaysInMonth[k].date) / totalDays) * 100;
           const isRemote = dRow && (dRow['대응 구분'] || '').toString().includes('원격');
           const isIssueType = dRow && (dRow['업무 구분'] || '').toString().trim() === 'Issue';
-          if (isRemote) {
-            const remoteMark = document.createElement('div');
-            remoteMark.style.cssText = `position:absolute; top:9px; left:${dPct}%; font-size:9px; line-height:1; z-index:9; transform:translateX(-50%); pointer-events:none;`;
-            remoteMark.textContent = '📶';
-            actTrack.appendChild(remoteMark);
-          }
-          if (isIssueType) {
-            const issueMark = document.createElement('div');
-            issueMark.style.cssText = `position:absolute; top:-2px; left:${dPct}%; font-size:10px; line-height:1; z-index:10; transform:translateX(-50%); pointer-events:none;`;
-            issueMark.textContent = '🚨';
-            actTrack.appendChild(issueMark);
-          }
+          const hasLog = dRow && (dRow['로그사진경로'] || []).length > 0;
+
+          if (isIssueType) actTrack.appendChild(window.ganttIconMarker('ti-alert-triangle', '#dc2626', 'tl', dPct, '이슈'));
+          if (isRemote) actTrack.appendChild(window.ganttIconMarker('ti-wifi', '#0891b2', 'tr', dPct, '원격'));
+          if (hasLog) actTrack.appendChild(window.ganttIconMarker('ti-paperclip', '#334155', 'br', dPct, '로그 사진 있음'));
         }
         ei = ej + 1;
       }
