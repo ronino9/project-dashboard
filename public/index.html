@@ -1864,49 +1864,7 @@
         </div>
       </div>
     </div>
-      <div style="position:relative; flex-shrink:0;">
-        <button onclick="window.togglePendingIssuePanel()" id="pending-issue-toggle-btn" style="height:100%; padding:12px 16px; background:#fbfcfd; border:1px solid #e2e8f0; border-radius:10px; cursor:pointer; font-size:12px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:6px; white-space:nowrap;">
-          <span>⏳ 처리 대기</span><span style="color:#cbd5e1;">|</span><span>🚨 고질 이슈</span>
-          <span id="pending-issue-toggle-icon" style="font-size:11px; color:#64748b; font-weight:600;">▾</span>
-        </button>
-        <div id="pending-issue-panel" style="display:none; position:absolute; top:calc(100% + 8px); right:0; z-index:50; width:900px; max-width:80vw; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 12px 32px rgba(15,23,42,0.15); padding:20px;">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch;">
-            
-            <div class="chart-card" style="margin: 0; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; background: #ffffff; box-shadow: none; display: flex; flex-direction: column; max-height:360px; overflow-y:auto;">
-              <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; margin-bottom: 14px; min-height: 38px; box-sizing: border-box;">
-                <div style="font-size: 15px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">
-                  ⏳ 처리 대기 Top 5
-                  <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600;">지연일 순</span>
-                </div>
-              </div>
-              <div id="main-issue-pending" style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
-                <div style="color: #64748b; font-size: 13px; padding: 10px;">대기 중인 이슈를 불러오고 있습니다...</div>
-              </div>
-            </div>
-
-            <div class="chart-card" style="margin: 0; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; background: #ffffff; box-shadow: none; display: flex; flex-direction: column; max-height:360px; overflow-y:auto;">
-              <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; margin-bottom: 14px; min-height: 38px; box-sizing: border-box;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <div style="font-size: 15px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">
-                    🚨 고질 이슈 Top 5
-                    <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600;">빈도순</span>
-                  </div>
-                  <span id="last-update-time" style="font-size: 11px; color: #94a3b8; font-weight: 500; white-space: nowrap;">최근 갱신: 로딩중...</span>
-                </div>
-                <button id="rebuild-btn" onclick="triggerRebuild()" style="background: #3b82f6; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 11px; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2); display: flex; align-items: center; gap: 4px; flex-shrink: 0; transition: background 0.2s;">
-                  🔄 AI 재분석
-                </button>
-              </div>
-              <div id="main-issue-top5" style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
-                <div style="color: #64748b; font-size: 13px; padding: 10px;">집계된 이슈 데이터가 없습니다.</div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </div>
-
+      
 <div id="pdca-top-kpi" style="display:none; flex-direction:column; gap:12px;">
       <div style="display:flex; gap:12px; align-items:stretch;">
 <div style="flex:1; min-width:0; position:relative; background:#f5f9ff; border:1px solid #bfdbfe; border-radius:12px; padding:14px 14px 10px;">
