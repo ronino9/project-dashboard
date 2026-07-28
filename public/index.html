@@ -701,6 +701,8 @@
 .stage-bar-pct { width:48px; flex-shrink:0; font-size:13px; font-weight:700; text-align:right; }
 .stage-bar-sub { padding-left:66px; font-size:11px; color:#64748b; }
 .stage-bar-legend { display:flex; align-items:center; gap:6px; font-size:11px; color:#94a3b8; margin:4px 0 18px; }
+.stage-color-legend { display:flex; align-items:center; gap:14px; flex-wrap:wrap; font-size:11px; color:#64748b; margin-bottom:14px; }
+.stage-color-legend .swatch { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:-1px; }
 #stageModalTable { width:100%; border-collapse:collapse; font-size:12px; margin-top:4px; }
 #stageModalTable th { text-align:center; padding:6px 8px; color:#64748b; font-weight:700; border-bottom:1px solid #e2e8f0; }
 #stageModalTable th:first-child { text-align:left; }
@@ -2480,8 +2482,14 @@ window.renderDeviationTrendTest = function() {
       <span class="stage-modal-close" onclick="window.closeStageDetail()">✕</span>
     </div>
     <div id="stageModalSub" class="stage-modal-sub"></div>
+    <div class="stage-color-legend">
+      <span><span class="swatch" style="background:#1D9E75;"></span>출장(정상)</span>
+      <span><span class="swatch" style="background:#8ED3BA;"></span>원격(정상)</span>
+      <span><span class="swatch" style="background:#C24C4A;"></span>출장(초과)</span>
+      <span><span class="swatch" style="background:#E8A9A4;"></span>원격(초과)</span>
+    </div>
     <div id="stageModalBars"></div>
-    <div class="stage-bar-legend"><span style="display:inline-block; width:1px; height:10px; background:#94a3b8;"></span>계획 공수(100%) 지점 · 넘으면 초과로 빨간색 표시</div>
+    <div class="stage-bar-legend"><span style="display:inline-block; width:1px; height:10px; background:#94a3b8;"></span>계획 공수(100%) 지점 · 넘으면 초과로 빨간색 표시 · 원격 집계는 SET-UP·SAT만 적용</div>
     <table id="stageModalTable"></table>
   </div>
 </div>
@@ -3174,6 +3182,18 @@ window.computeStageDetailData = function(code) {
     let actualMD = 0;
     stageRows.forEach(r => { actualMD += parseFloat(r['공수(MD)']) || 0; });
 
+    const isSplittable = (stage === 'SET-UP' || stage === 'SAT');
+    let onsiteMD = actualMD, remoteMD = 0;
+    if (isSplittable) {
+      onsiteMD = 0; remoteMD = 0;
+      stageRows.forEach(r => {
+        const md = parseFloat(r['공수(MD)']) || 0;
+        const resp = (r['대응 구분'] || '').toString().trim();
+        if (resp.includes('원격')) remoteMD += md;
+        else onsiteMD += md;
+      });
+    }
+
     let plannedMD = null;
     if (idx > 0 && summary.details && summary.details[idx] && summary.details[idx][1] !== undefined && summary.details[idx][1] !== '') {
       const p = parseFloat(summary.details[idx][1]);
@@ -3196,7 +3216,7 @@ window.computeStageDetailData = function(code) {
       overCapacity = false;
     }
 
-    return { stage, startDate, endDate, isComplete, actualMD, plannedMD, pct, overCapacity, issueCnt, holdCnt, incompleteCnt, rows: stageRows };
+    return { stage, startDate, endDate, isComplete, actualMD, plannedMD, pct, overCapacity, issueCnt, holdCnt, incompleteCnt, rows: stageRows, isSplittable, onsiteMD, remoteMD };
   });
 };
 
@@ -3217,23 +3237,46 @@ window.showStageDetailModal = function(rawCode) {
 
   const barsEl = document.getElementById('stageModalBars');
   barsEl.innerHTML = stageData.map((s, idx) => {
-    const barColor = s.overCapacity ? '#E24B4A' : (s.plannedMD !== null || s.pct > 0 ? '#1D9E75' : '#B4B2A9');
-    const widthPct = s.plannedMD !== null ? Math.min(s.pct / 2, 100) : Math.min(s.pct, 100);
+    const totalWidthPct = s.plannedMD !== null ? Math.min(s.pct / 2, 100) : Math.min(s.pct, 100);
     const marker = s.plannedMD !== null ? `<div class="stage-bar-marker"></div>` : '';
-    const subText = s.plannedMD !== null
-      ? `${s.actualMD.toFixed(1)}MD 사용 / 계획 ${s.plannedMD.toFixed(1)}MD`
-      : (s.actualMD > 0 ? `${s.actualMD.toFixed(1)}MD 사용 / 계획 미정` : '계획 미정');
+    const darkColor = s.overCapacity ? '#C24C4A' : '#1D9E75';
+    const lightColor = s.overCapacity ? '#E8A9A4' : '#8ED3BA';
+
+    let fillHtml;
+    if (s.actualMD <= 0 && s.pct <= 0) {
+      fillHtml = `<div class="stage-bar-fill" data-target-width="0" style="background:#B4B2A9; border-radius:4px; flex-shrink:0;"></div>`;
+    } else if (s.isSplittable && s.remoteMD > 0) {
+      const onsiteW = s.actualMD > 0 ? totalWidthPct * (s.onsiteMD / s.actualMD) : 0;
+      const remoteW = s.actualMD > 0 ? totalWidthPct * (s.remoteMD / s.actualMD) : 0;
+      fillHtml = `
+        <div class="stage-bar-fill" data-target-width="${onsiteW}" style="background:${darkColor}; border-radius:4px 0 0 4px; flex-shrink:0;"></div>
+        <div class="stage-bar-fill" data-target-width="${remoteW}" style="background:${lightColor}; border-radius:0 4px 4px 0; flex-shrink:0;"></div>`;
+    } else {
+      fillHtml = `<div class="stage-bar-fill" data-target-width="${totalWidthPct}" style="background:${darkColor}; border-radius:4px; flex-shrink:0;"></div>`;
+    }
+
+    const subParts = [];
+    if (s.plannedMD !== null) {
+      subParts.push(s.isSplittable && s.remoteMD > 0
+        ? `출장 ${s.onsiteMD.toFixed(1)}MD + 원격 ${s.remoteMD.toFixed(1)}MD / 계획 ${s.plannedMD.toFixed(1)}MD`
+        : `${s.actualMD.toFixed(1)}MD 사용 / 계획 ${s.plannedMD.toFixed(1)}MD`);
+    } else {
+      subParts.push(s.actualMD > 0 ? `${s.actualMD.toFixed(1)}MD 사용 / 계획 미정` : '계획 미정');
+    }
+    if (!s.isSplittable) subParts.push('출장 전용 단계');
+    const subText = subParts.join(' · ');
+
     return `
       <div class="stage-bar-row">
         <div class="stage-bar-line">
           <span class="stage-bar-label">${s.stage}</span>
-          <div class="stage-bar-track" onclick="window.stageBarClick(${idx})">
+          <div class="stage-bar-track" onclick="window.stageBarClick(${idx})" style="display:flex;">
             ${marker}
-            <div class="stage-bar-fill" data-target-width="${widthPct}" style="background:${barColor};"></div>
+            ${fillHtml}
           </div>
           <span class="stage-bar-pct" style="color:${s.overCapacity ? '#dc2626' : '#0f172a'};">${s.pct}%</span>
         </div>
-        <div class="stage-bar-sub" style="${s.overCapacity ? 'color:#dc2626; font-weight:600;' : ''}">${subText}</div>
+        <div class="stage-bar-sub" style="${s.overCapacity ? 'color:#dc2626; font-weight:600;' : (s.isSplittable ? '' : 'color:#94a3b8;')}">${subText}</div>
       </div>`;
   }).join('');
 
