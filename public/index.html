@@ -682,6 +682,34 @@
 #detailTable tbody tr:hover td { background:#eff6ff !important; box-shadow:0 2px 8px rgba(59,130,246,0.08); }
 #detailTable tbody tr:hover td:first-child { box-shadow: inset 3px 0 0 #3b82f6, 0 2px 8px rgba(59,130,246,0.08); }
 .log-photo-copy-btn { background:#f8fafc !important; border:1px solid #e2e8f0 !important; }
+    #stageDetailModal { display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); z-index:9999; align-items:center; justify-content:center; padding:20px; }
+#stageDetailModal.active { display:flex; }
+#stageDetailModal .stage-modal-box { background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:22px; width:640px; max-width:95vw; max-height:88vh; overflow:auto; box-shadow:0 20px 60px rgba(15,23,42,0.25); }
+.stage-modal-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:2px; }
+.stage-modal-title-wrap { display:flex; align-items:center; gap:6px; }
+#stageModalTitle { font-size:18px; font-weight:700; color:#0f172a; }
+.stage-modal-close { cursor:pointer; color:#94a3b8; font-size:18px; font-weight:bold; flex-shrink:0; }
+.stage-modal-close:hover { color:#0f172a; }
+.stage-modal-sub { font-size:13px; color:#64748b; margin:2px 0 18px; }
+.stage-bar-row { margin-bottom:14px; }
+.stage-bar-line { display:flex; align-items:center; gap:10px; margin-bottom:3px; }
+.stage-bar-label { width:56px; flex-shrink:0; font-size:13px; color:#64748b; font-weight:600; }
+.stage-bar-track { flex:1; height:20px; background:#f1f5f9; border-radius:4px; overflow:hidden; position:relative; cursor:pointer; transition:transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease; }
+.stage-bar-track:hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(15,23,42,0.15); filter:brightness(1.06); }
+.stage-bar-fill { width:0%; height:100%; border-radius:4px; transition:width 0.9s cubic-bezier(0.16,1,0.3,1); }
+.stage-bar-marker { position:absolute; left:50%; top:0; bottom:0; width:1px; background:#94a3b8; z-index:2; pointer-events:none; }
+.stage-bar-pct { width:48px; flex-shrink:0; font-size:13px; font-weight:700; text-align:right; }
+.stage-bar-sub { padding-left:66px; font-size:11px; color:#64748b; }
+.stage-bar-legend { display:flex; align-items:center; gap:6px; font-size:11px; color:#94a3b8; margin:4px 0 18px; }
+#stageModalTable { width:100%; border-collapse:collapse; font-size:12px; margin-top:4px; }
+#stageModalTable th { text-align:center; padding:6px 8px; color:#64748b; font-weight:700; border-bottom:1px solid #e2e8f0; }
+#stageModalTable th:first-child { text-align:left; }
+#stageModalTable td { padding:8px; text-align:center; border-bottom:1px solid #f1f5f9; }
+#stageModalTable td:first-child { text-align:left; color:#0f172a; font-weight:600; }
+.stage-table-row { transition:background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; cursor:default; }
+.stage-table-row:hover { background:#eff6ff; transform:translateX(3px); box-shadow:-3px 0 0 #3b82f6; }
+.stage-cell-clickable { cursor:pointer; text-decoration:underline; text-decoration-color:transparent; transition:color 0.15s ease, text-decoration-color 0.15s ease; }
+.stage-cell-clickable:hover { color:#1d4ed8; text-decoration-color:#1d4ed8; }
     .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
     @media(max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } .donuts-row { grid-template-columns: 1fr 1fr; } }
     .doc-loc-btn { padding: 8px 16px; background: #0f172a; border: 1px solid #334155; color: #94a3b8; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
@@ -2443,6 +2471,21 @@ window.renderDeviationTrendTest = function() {
 
       <div id="project-info-popover" class="project-info-popover"></div>
 <div id="detailView" onclick="if(event.target===this) window.closeDetail()">
+  <div id="stageDetailModal" onclick="if(event.target===this) window.closeStageDetail()">
+  <div class="stage-modal-box">
+    <div class="stage-modal-header">
+      <div class="stage-modal-title-wrap">
+        <span id="stageModalTitle"></span>
+        <i class="proj-info-ico" id="stageModalInfoIco" title="프로젝트 정보">ⓘ</i>
+      </div>
+      <span class="stage-modal-close" onclick="window.closeStageDetail()">✕</span>
+    </div>
+    <div id="stageModalSub" class="stage-modal-sub"></div>
+    <div id="stageModalBars"></div>
+    <div class="stage-bar-legend"><span style="display:inline-block; width:1px; height:10px; background:#94a3b8;"></span>계획 공수(100%) 지점 · 넘으면 초과로 빨간색 표시</div>
+    <table id="stageModalTable"></table>
+  </div>
+</div>
       <div class="detail-modal-box">
         <div style="font-size: 15px; font-weight: 700; color: #3b82f6; margin-bottom: 12px; display: flex; justify-content: space-between; align-items:center; gap:10px; flex-shrink:0;">
           <div style="display:flex; align-items:center; gap:10px; min-width:0;">
@@ -3102,6 +3145,159 @@ document.addEventListener('click', function(e) {
   pop.classList.remove('open');
   pop._currentCode = null;
 });
+
+    const STAGE_LIST = ['제작', 'FAT', 'SET-UP', 'SAT'];
+const STAGE_MP_TYPES = ['마스터플랜', '마스터메모', '마스터이슈'];
+
+function stageNormalizeCode(rawCode) {
+  if (rawCode === 'projectEtc') return 'ETC';
+  return rawCode;
+}
+function stageGetPKey(code) {
+  if (code === 'CP') return 'project1';
+  if (code === 'ETC') return 'projectEtc';
+  return 'project' + code.replace('OP', '');
+}
+
+window.computeStageDetailData = function(code) {
+  const rows = (window.allMasterData || []).filter(r => r._pName === code && !STAGE_MP_TYPES.includes((r['업무 구분'] || '').toString().trim()));
+  const pKey = stageGetPKey(code);
+  const summary = (allData[pKey] && allData[pKey].summary) || {};
+
+  return STAGE_LIST.map((stage, idx) => {
+    const stageRows = rows.filter(r => (r['단계 구분'] || '') === stage);
+    const dates = stageRows.map(r => (r['접수일'] || '').toString().replace(/[./]/g, '-').substring(0, 10)).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+    const startDate = dates.length > 0 ? dates[0] : null;
+    const isComplete = summary.complete && summary.complete[idx] !== undefined ? parseFloat(summary.complete[idx]) >= 100 : false;
+    const endDate = isComplete && dates.length > 0 ? dates[dates.length - 1] : null;
+
+    let actualMD = 0;
+    stageRows.forEach(r => { actualMD += parseFloat(r['공수(MD)']) || 0; });
+
+    let plannedMD = null;
+    if (idx > 0 && summary.details && summary.details[idx] && summary.details[idx][1] !== undefined && summary.details[idx][1] !== '') {
+      const p = parseFloat(summary.details[idx][1]);
+      if (!isNaN(p) && p > 0) plannedMD = p;
+    }
+
+    const issueCnt = stageRows.filter(r => (r['업무 구분'] || '').toString().trim() === 'Issue').length;
+    const holdCnt = stageRows.filter(r => (r['진행상태'] || '').toString().trim() === '보류').length;
+    const incompleteCnt = stageRows.filter(r => {
+      const st = (r['진행상태'] || '').toString().trim();
+      return st !== '완료' && st !== '지연완료' && st !== '보류';
+    }).length;
+
+    let pct, overCapacity;
+    if (plannedMD !== null) {
+      pct = Math.round((actualMD / plannedMD) * 100);
+      overCapacity = pct > 100;
+    } else {
+      pct = summary.complete && summary.complete[idx] !== undefined ? Math.round(parseFloat(summary.complete[idx])) : 0;
+      overCapacity = false;
+    }
+
+    return { stage, startDate, endDate, isComplete, actualMD, plannedMD, pct, overCapacity, issueCnt, holdCnt, incompleteCnt, rows: stageRows };
+  });
+};
+
+window.showStageDetailModal = function(rawCode) {
+  const code = stageNormalizeCode(rawCode);
+  const pKey = stageGetPKey(code);
+  if (!allData[pKey]) return;
+
+  const stageData = window.computeStageDetailData(code);
+  window._stageModalCode = code;
+
+  const overall = (allData[pKey].summary && allData[pKey].summary.overall) || '0%';
+  const overCnt = stageData.filter(s => s.overCapacity).length;
+
+  document.getElementById('stageModalTitle').textContent = code;
+  document.getElementById('stageModalInfoIco').setAttribute('onclick', `event.stopPropagation(); window.showProjectInfoPopup('${code}', this)`);
+  document.getElementById('stageModalSub').innerHTML = `전체 진행률 <strong style="color:#0f172a;">${overall}</strong>` + (overCnt > 0 ? ` &nbsp;·&nbsp; <span style="color:#dc2626; font-weight:700;">공수 초과 ${overCnt}단계</span>` : '');
+
+  const barsEl = document.getElementById('stageModalBars');
+  barsEl.innerHTML = stageData.map((s, idx) => {
+    const barColor = s.overCapacity ? '#E24B4A' : (s.plannedMD !== null || s.pct > 0 ? '#1D9E75' : '#B4B2A9');
+    const widthPct = s.plannedMD !== null ? Math.min(s.pct / 2, 100) : Math.min(s.pct, 100);
+    const marker = s.plannedMD !== null ? `<div class="stage-bar-marker"></div>` : '';
+    const subText = s.plannedMD !== null
+      ? `${s.actualMD.toFixed(1)}MD 사용 / 계획 ${s.plannedMD.toFixed(1)}MD`
+      : (s.actualMD > 0 ? `${s.actualMD.toFixed(1)}MD 사용 / 계획 미정` : '계획 미정');
+    return `
+      <div class="stage-bar-row">
+        <div class="stage-bar-line">
+          <span class="stage-bar-label">${s.stage}</span>
+          <div class="stage-bar-track" onclick="window.stageBarClick(${idx})">
+            ${marker}
+            <div class="stage-bar-fill" data-target-width="${widthPct}" style="background:${barColor};"></div>
+          </div>
+          <span class="stage-bar-pct" style="color:${s.overCapacity ? '#dc2626' : '#0f172a'};">${s.pct}%</span>
+        </div>
+        <div class="stage-bar-sub" style="${s.overCapacity ? 'color:#dc2626; font-weight:600;' : ''}">${subText}</div>
+      </div>`;
+  }).join('');
+
+  const tableEl = document.getElementById('stageModalTable');
+  const headHtml = `<tr><th>단계</th><th>시작일</th><th>완료일</th><th>이슈</th><th>미완료</th><th>보류</th></tr>`;
+  const bodyHtml = stageData.map((s, idx) => `
+    <tr class="stage-table-row">
+      <td>${s.stage}</td>
+      <td>${s.startDate ? s.startDate.substring(2).replace(/-/g,'.') : '-'}</td>
+      <td style="${!s.isComplete && s.startDate ? 'color:#dc2626; font-weight:700;' : ''}">${s.isComplete ? (s.endDate ? s.endDate.substring(2).replace(/-/g,'.') : '완료') : (s.startDate ? '진행중' : '-')}</td>
+      <td class="${s.issueCnt > 0 ? 'stage-cell-clickable' : ''}" style="${s.issueCnt > 0 ? 'color:#dc2626; font-weight:700;' : 'color:#cbd5e1;'}" ${s.issueCnt > 0 ? `onclick="window.stageStatClick(${idx}, 'issue')"` : ''}>${s.issueCnt}건</td>
+      <td class="${s.incompleteCnt > 0 ? 'stage-cell-clickable' : ''}" style="${s.incompleteCnt > 0 ? 'color:#d97706; font-weight:700;' : 'color:#cbd5e1;'}" ${s.incompleteCnt > 0 ? `onclick="window.stageStatClick(${idx}, 'incomplete')"` : ''}>${s.incompleteCnt}건</td>
+      <td class="${s.holdCnt > 0 ? 'stage-cell-clickable' : ''}" style="${s.holdCnt > 0 ? 'color:#64748b; font-weight:700;' : 'color:#cbd5e1;'}" ${s.holdCnt > 0 ? `onclick="window.stageStatClick(${idx}, 'hold')"` : ''}>${s.holdCnt}건</td>
+    </tr>`).join('');
+  tableEl.innerHTML = headHtml + bodyHtml;
+
+  window._stageModalData = stageData;
+  document.getElementById('stageDetailModal').classList.add('active');
+
+  const fills = barsEl.querySelectorAll('.stage-bar-fill');
+  fills.forEach((el, idx) => {
+    el.style.width = '0%';
+    el.style.transitionDelay = (idx * 100) + 'ms';
+  });
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      fills.forEach(el => { el.style.width = el.dataset.targetWidth + '%'; });
+    });
+  });
+};
+
+window.closeStageDetail = function() {
+  document.getElementById('stageDetailModal').classList.remove('active');
+};
+
+window.stageBarClick = function(idx) {
+  const s = window._stageModalData[idx];
+  if (!s) return;
+  const code = window._stageModalCode;
+  const rowsForDisplay = s.rows.map(r => ({ '프로젝트 코드': code, '접수일': r['접수일'] || '-', ...r }));
+  window.showDetailView(`${code} · ${s.stage}`, `${rowsForDisplay.length}건`, rowsForDisplay);
+};
+
+window.stageStatClick = function(idx, type) {
+  const s = window._stageModalData[idx];
+  if (!s) return;
+  const code = window._stageModalCode;
+  let filtered, label;
+  if (type === 'issue') {
+    filtered = s.rows.filter(r => (r['업무 구분'] || '').toString().trim() === 'Issue');
+    label = '이슈';
+  } else if (type === 'hold') {
+    filtered = s.rows.filter(r => (r['진행상태'] || '').toString().trim() === '보류');
+    label = '보류';
+  } else {
+    filtered = s.rows.filter(r => {
+      const st = (r['진행상태'] || '').toString().trim();
+      return st !== '완료' && st !== '지연완료' && st !== '보류';
+    });
+    label = '미완료';
+  }
+  const rowsForDisplay = filtered.map(r => ({ '프로젝트 코드': code, '접수일': r['접수일'] || '-', ...r }));
+  window.showDetailView(`${code} · ${s.stage} · ${label}`, `${rowsForDisplay.length}건`, rowsForDisplay);
+};
 window.closeDetail = function() {
       document.getElementById('detailView').classList.remove('active');
       window._detailStack = [];
@@ -3906,6 +4102,9 @@ window.cardDragEnd = function(e) {
 window.cardClick = function(pName) {
   if (window._cardDidDrag) return;   // 방금 드래그한 거면 클릭 무시
   window.selectMasterProject(pName);
+  if (pName !== 'CP' && pName !== 'projectEtc') {
+    window.showStageDetailModal(pName);
+  }
 };
 // 👇 여기서부터 복사해서 기존 updateMasterMdChart 함수를 완전히 덮어쓰세요 👇
 
