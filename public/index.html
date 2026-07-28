@@ -3599,6 +3599,8 @@ window.animateMainCards();
 if(allData[pKey] && allData[pKey].history) {
       allData[pKey].history.forEach(r => {
         if (r._isRep === false) return;   // 그룹 비대표행은 상태 집계 제외
+        const _mpTaskTypes = ['마스터플랜', '마스터메모', '마스터이슈'];
+        if (_mpTaskTypes.includes((r['업무 구분'] || '').toString().trim())) return;
 if(['지연중', 'Issue', '임박'].includes(r['진행상태'])) {
             const delayDays = parseInt(r['지연일']) || 0;
             
