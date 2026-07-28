@@ -4020,23 +4020,15 @@ const titleMap = { delay: '🔴 지연 항목 전체', imminent: '🟡 임박 �
 // --- 아래는 독립된 함수들입니다 ---
 
 window.showPendingDetail = function(projCode, title) {
-  // 1단계: 버튼이 정상적으로 눌렸는지 확인하는 알림창
-  alert("1. 버튼 클릭 성공! \n넘어온 프로젝트: [" + projCode + "]\n넘어온 제목: [" + title + "]");
-
-  // 프로젝트 코드 매핑 (CP5도 추가했습니다)
-  const pMap = { 'OP10': 'project10', 'OP9': 'project9', 'OP8': 'project8', 'OP7': 'project7', 'OP6': 'project6', 'OP5': 'project5', 'OP4': 'project4', 'OP3': 'project3', 'OP2': 'project2'  , 'CP_ALL': 'project1' };
+  // 프로젝트 코드 매핑
+  const pMap = { 'OP10': 'project10', 'OP9': 'project9', 'OP8': 'project8', 'OP7': 'project7', 'OP6': 'project6', 'OP5': 'project5', 'OP4': 'project4', 'OP3': 'project3', 'OP2': 'project2', 'CP_ALL': 'project1', 'CP': 'project1', 'ETC': 'projectEtc' };
   const pKey = pMap[(projCode || '').toUpperCase()];
-  
-  if (!pKey) {
-      alert("2. 에러: [" + projCode + "]에 해당하는 프로젝트 시트를 찾을 수 없습니다.");
-      return;
-  }
-  if (!allData[pKey] || !allData[pKey].history) {
-      alert("2. 에러: " + pKey + " 시트의 데이터를 불러오지 못했습니다.");
+
+  if (!pKey || !allData[pKey] || !allData[pKey].history) {
+      alert("[" + projCode + "]에 해당하는 프로젝트 데이터를 찾을 수 없습니다.");
       return;
   }
 
-  // 3단계: 검색 시작
   const cleanTargetTitle = (title || '').replace(/[\[\]\(\)\-\_\n]/g, ' ');
   const keywords = cleanTargetTitle.split(/\s+/).filter(word => word.length >= 2);
 
@@ -4055,18 +4047,17 @@ window.showPendingDetail = function(projCode, title) {
       }
   });
 
-  // 4단계: 결과 확인
   if (bestMatchRow && maxScore > 0) {
-      alert("3. 데이터 매칭 성공! 팝업을 엽니다. (유사도 점수: " + maxScore + ")");
       const rowCopy = {
           '프로젝트 코드': projCode,
           '접수일': bestMatchRow['접수일'] || '-',
-          ...bestMatchRow
+          ...bestMatchRow,
+          '프로젝트 코드': projCode
       };
       const displayTitle = (bestMatchRow['제목'] || bestMatchRow['표준 제작 Item / Issue / 개선사항'] || title);
       window.showDetailView('⏳ 처리 대기 상세', displayTitle, [rowCopy]);
   } else {
-      alert("3. 실패: [" + title + "] 과 일치하는 단어를 가진 원본 데이터가 하나도 없습니다.");
+      alert("[" + title + "]와 일치하는 원본 데이터를 찾을 수 없습니다.");
   }
 };
 
