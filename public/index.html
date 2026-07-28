@@ -6358,8 +6358,8 @@ if (!it.execDays) {
           const markPct = (dayOffset(markStart) / totalDays) * 100;
 
           if (isIssueType) actTrack.appendChild(window.ganttIconMarker('ti-alert-triangle', '#dc2626', 'tl', markPct, '이슈'));
-          if (isRemote) actTrack.appendChild(window.ganttIconMarker('ti-wifi', '#0891b2', 'tr', markPct, '원격'));
-          if (hasLog) actTrack.appendChild(window.ganttIconMarker('ti-paperclip', '#334155', 'br', markPct, '로그 사진 있음'));
+          if (isRemote) actTrack.appendChild(window.ganttIconMarker('📶', null, 'tr', markPct, '원격'));
+if (hasLog) actTrack.appendChild(window.ganttIconMarker('📷', null, 'br', markPct, '로그 사진 있음'));
         }
       }
     } else {
