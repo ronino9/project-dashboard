@@ -2345,10 +2345,10 @@ window.renderDeviationTrendTest = function() {
                 
                 <span style="color:#cbd5e1; margin:0 4px;">|</span>
                 
-                <span style="color:#64748b; display:flex; align-items:center; gap:14px; font-weight:600; white-space:nowrap;">
-                  <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:#fff; box-shadow:0 0 0 1px rgba(15,23,42,0.15);"><i class="ti ti-wifi" style="font-size:9px; color:#0891b2;" aria-hidden="true"></i></span>원격</span>
-                  <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:#fff; box-shadow:0 0 0 1px rgba(15,23,42,0.15);"><i class="ti ti-alert-triangle" style="font-size:9px; color:#dc2626;" aria-hidden="true"></i></span>이슈</span>
-                  <span style="display:flex; align-items:center; gap:5px;"><span style="display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:#fff; box-shadow:0 0 0 1px rgba(15,23,42,0.15);"><i class="ti ti-paperclip" style="font-size:9px; color:#334155;" aria-hidden="true"></i></span>로그</span>
+                <span style="color:#64748b; display:flex; align-items:center; gap:12px; font-weight:600; white-space:nowrap;">
+                  <span>📶 원격</span>
+                  <span>🚨 이슈</span>
+                  <span>📷 로그</span>
                 </span>
               </div>
             </div>
@@ -5094,15 +5094,15 @@ function ganttDaysBetween(a, b) {
 }
 
 function ganttClamp(dateStr, min, max) {
-  window.ganttIconMarker = function(iconClass, color, corner, pct, title, onClick) {
+  window.ganttIconMarker = function(emoji, color, corner, pct, title, onClick) {
   const el = document.createElement('div');
   const pos = {
-    tl: `top:-7px; left:${pct}%; transform:translate(-85%,0);`,
-    tr: `top:-7px; left:${pct}%; transform:translate(-15%,0);`,
-    br: `top:auto; bottom:-7px; left:${pct}%; transform:translate(-15%,0);`
+    tl: `top:-11px; left:${pct}%; transform:translate(-85%,0);`,
+    tr: `top:-11px; left:${pct}%; transform:translate(-15%,0);`,
+    br: `top:auto; bottom:-11px; left:${pct}%; transform:translate(-15%,0);`
   }[corner];
-  el.style.cssText = `position:absolute; ${pos} width:14px; height:14px; border-radius:50%; background:#fff; box-shadow:0 0 0 1px rgba(15,23,42,0.15); display:flex; align-items:center; justify-content:center; z-index:11; pointer-events:auto; cursor:${onClick ? 'pointer' : 'default'};`;
-  el.innerHTML = `<i class="ti ${iconClass}" style="font-size:9px; color:${color};" aria-hidden="true"></i>`;
+  el.style.cssText = `position:absolute; ${pos} font-size:16px; line-height:1; z-index:11; pointer-events:auto; cursor:${onClick ? 'pointer' : 'default'};`;
+  el.textContent = emoji;
   if (title) el.title = title;
   if (onClick) el.onclick = onClick;
   return el;
@@ -5492,7 +5492,7 @@ function renderIssueMarkers(track, dates, windowStart, windowEnd, totalDays, day
     if (seen.has(date)) return;
     seen.add(date);
     const pct = (dayOffset(date) / totalDays) * 100;
-    const marker = window.ganttIconMarker('ti-alert-triangle', '#dc2626', 'tl', pct, `${date} 이슈 (${stage})`, (e) => { e.stopPropagation(); onClick && onClick(date, stage); });
+    const marker = window.ganttIconMarker('🚨', null, 'tl', pct, `${date} 이슈 (${stage})`, (e) => { e.stopPropagation(); onClick && onClick(date, stage); });
     track.appendChild(marker);
   });
 }
