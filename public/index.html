@@ -6357,7 +6357,7 @@ if (!it.execDays) {
           const markStart = ganttClamp(it.actStart, monthStart, monthEnd);
           const markPct = (dayOffset(markStart) / totalDays) * 100;
 
-          if (isIssueType) actTrack.appendChild(window.ganttIconMarker('ti-alert-triangle', '#dc2626', 'tl', markPct, '이슈'));
+          if (isIssueType) actTrack.appendChild(window.ganttIconMarker('🚨', null, 'tl', markPct, '이슈'));
           if (isRemote) actTrack.appendChild(window.ganttIconMarker('📶', null, 'tr', markPct, '원격'));
 if (hasLog) actTrack.appendChild(window.ganttIconMarker('📷', null, 'br', markPct, '로그 사진 있음'));
         }
@@ -6408,9 +6408,9 @@ if (hasLog) actTrack.appendChild(window.ganttIconMarker('📷', null, 'br', mark
           const isIssueType = dRow && (dRow['업무 구분'] || '').toString().trim() === 'Issue';
           const hasLog = dRow && (dRow['로그사진경로'] || []).length > 0;
 
-          if (isIssueType) actTrack.appendChild(window.ganttIconMarker('ti-alert-triangle', '#dc2626', 'tl', dPct, '이슈'));
-          if (isRemote) actTrack.appendChild(window.ganttIconMarker('ti-wifi', '#0891b2', 'tr', dPct, '원격'));
-          if (hasLog) actTrack.appendChild(window.ganttIconMarker('ti-paperclip', '#334155', 'br', dPct, '로그 사진 있음'));
+          if (isIssueType) actTrack.appendChild(window.ganttIconMarker('🚨', null, 'tl', dPct, '이슈'));
+          if (isRemote) actTrack.appendChild(window.ganttIconMarker('📶', null, 'tr', dPct, '원격'));
+if (hasLog) actTrack.appendChild(window.ganttIconMarker('📷', null, 'br', dPct, '로그 사진 있음'));
         }
         ei = ej + 1;
       }
