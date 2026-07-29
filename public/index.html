@@ -1776,35 +1776,32 @@
   transition: stroke-dasharray 0.85s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.3s ease;
 }
     /* =========================================================
-       👇 J.A.R.V.I.S TARGET LOCK-ON (YELLOW/ORANGE) 👇
+       👇 J.A.R.V.I.S HIGH-END TARGET LOCK-ON 👇
        ========================================================= */
-    @keyframes lockonSpin {
-      0% { transform: translate(-50%, -50%) rotate(0deg); }
-      100% { transform: translate(-50%, -50%) rotate(90deg); }
+    @keyframes hudLockonSpin { 100% { transform: rotate(360deg); } }
+    @keyframes hudLockonSpinRev { 100% { transform: rotate(-360deg); } }
+    @keyframes hudLockonPulse {
+      0% { transform: translate(-50%, -50%) scale(0.6); opacity: 1; border-width: 4px; }
+      100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; border-width: 1px; }
     }
-    @keyframes lockonPulse {
-      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; border-width: 4px; }
-      100% { transform: translate(-50%, -50%) scale(3.5); opacity: 0; border-width: 1px; }
+    @keyframes hudLockonBlink {
+      0%, 100% { opacity: 1; filter: drop-shadow(0 0 8px #ffffff); }
+      50% { opacity: 0.3; filter: none; }
     }
-    .global-lockon-target {
-  position: absolute; top: 50%; left: 50%;
-  width: 70px; height: 70px; transform: translate(-50%, -50%);
-  border: 2px dashed #f5d061; border-radius: 50%;
-  animation: lockonSpin 2s linear infinite;
-  box-shadow: 0 0 15px rgba(245, 208, 97, 0.6), inset 0 0 10px rgba(245, 208, 97, 0.4);
-}
-.global-lockon-pulse {
-  position: absolute; top: 50%; left: 50%;
-  width: 70px; height: 70px; transform: translate(-50%, -50%);
-  border: 2px solid #f5d061; border-radius: 50%;
-  animation: lockonPulse 1.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-}
-.global-lockon-center {
-  position: absolute; top: 50%; left: 50%;
-  width: 10px; height: 10px; background: #f5d061; border-radius: 50%;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 12px #f5d061, 0 0 24px #f5d061;
-}
+
+    .hud-lockon-svg { transform-origin: center center; overflow: visible; }
+    .hud-lockon-spin { transform-origin: 60px 60px; animation: hudLockonSpin 6s linear infinite; }
+    .hud-lockon-spin-rev { transform-origin: 60px 60px; animation: hudLockonSpinRev 4s linear infinite; }
+    .hud-lockon-spin-fast { transform-origin: 60px 60px; animation: hudLockonSpin 3s linear infinite; }
+    .hud-lockon-blink { animation: hudLockonBlink 1s ease-in-out infinite; }
+
+    .hud-lockon-pulse {
+      position: absolute; top: 0; left: 0;
+      width: 100px; height: 100px; transform: translate(-50%, -50%);
+      border: 2px solid #f59e0b; border-radius: 50%;
+      animation: hudLockonPulse 1.5s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -7918,14 +7915,29 @@ window.handleTargetAction = function() {
       towerMapInstance.flyTo([30, 115], 3, { duration: 1.0 }); // 지구 전체 뷰
       
       setTimeout(() => {
-        // 주황색 타겟 마커 생성
+        // 🚀 하이엔드 SVG 타겟 마커 생성
         const lockonIcon = L.divIcon({
           className: '',
-          html: `<div style="position:relative; width:0; height:0;">
-                   <div class="global-lockon-pulse"></div>
-                   <div class="global-lockon-target"></div>
-                   <div class="global-lockon-center"></div>
-                 </div>`,
+          html: `
+            <div style="position:relative; width:0; height:0; z-index:9999;">
+              <div class="hud-lockon-pulse"></div>
+              <svg class="hud-lockon-svg" viewBox="0 0 120 120" style="position:absolute; top:-60px; left:-60px; width:120px; height:120px;">
+                <defs>
+                  <filter id="lockGlow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                  </filter>
+                </defs>
+                <g filter="url(#lockGlow)">
+                  <path d="M 25 15 L 15 15 L 15 25 M 95 15 L 105 15 L 105 25 M 15 95 L 15 105 L 25 105 M 105 95 L 105 105 L 95 105" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="square"/>
+                  <circle cx="60" cy="60" r="40" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="20 10 5 10" class="hud-lockon-spin"/>
+                  <polygon points="60,30 86,75 34,75" fill="rgba(245, 158, 11, 0.15)" stroke="#fbbf24" stroke-width="1.5" class="hud-lockon-spin-rev"/>
+                  <circle cx="60" cy="60" r="25" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="3 6" class="hud-lockon-spin-fast"/>
+                  <path d="M 60 45 L 60 55 M 60 65 L 60 75 M 45 60 L 55 60 M 65 60 L 75 60" fill="none" stroke="#f59e0b" stroke-width="2"/>
+                  <circle cx="60" cy="60" r="3" fill="#ffffff" class="hud-lockon-blink"/>
+                </g>
+              </svg>
+            </div>`,
           iconSize: [0, 0]
         });
         if (window._targetMarker) towerMapInstance.removeLayer(window._targetMarker);
