@@ -35,7 +35,8 @@
 }
 .macro-proj-clickable { transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; cursor:pointer; }
 .macro-proj-clickable:hover { transform: translateX(2px); box-shadow: inset 0 0 0 1px rgba(59,130,246,0.35); background:#eff6ff !important; }
-.macro-proj-clickable.macro-proj-active { box-shadow: inset 0 0 0 2px currentColor; }
+.macro-proj-clickable.macro-proj-active { box-shadow: inset 0 0 0 2px #3b82f6, 0 0 8px rgba(59,130,246,0.35); }
+.macro-proj-clickable.macro-proj-active > div:last-child > div { font-weight:900 !important; }
 .macro-stage-pill { transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease; }
 .macro-stage-pill:hover { transform: translateY(-1px); filter: brightness(1.05); }
 .macro-stage-pill.macro-stage-active { box-shadow: 0 0 0 2px currentColor, 0 2px 6px rgba(0,0,0,0.15); }
@@ -5440,24 +5441,26 @@ let ganttCursor = new Date();
 let ganttMode = 'zoom';
 const GANTT_ZOOM_DAYS = 30;
 
-// 🎯 매크로 간트 포커스(프로젝트 / 단계) 상태
-window._macroFocusProject = null;
-window._macroFocusStage = null;
+// 🎯 매크로 간트 포커스(프로젝트 / 단계) 상태 - 다중 선택 (Set)
+window._macroFocusProjects = new Set();
+window._macroFocusStages = new Set();
 
 window.macroToggleFocusProject = function(proj) {
-  window._macroFocusProject = (window._macroFocusProject === proj) ? null : proj;
+  if (window._macroFocusProjects.has(proj)) window._macroFocusProjects.delete(proj);
+  else window._macroFocusProjects.add(proj);
   window.applyMacroFocusStyles();
 };
 
 window.macroToggleFocusStage = function(stage) {
-  window._macroFocusStage = (window._macroFocusStage === stage) ? null : stage;
+  if (window._macroFocusStages.has(stage)) window._macroFocusStages.delete(stage);
+  else window._macroFocusStages.add(stage);
   window.applyMacroFocusStyles();
 };
 
 window.applyMacroFocusStyles = function() {
   const rowsEl = document.getElementById('gantt-rows');
-  const fp = window._macroFocusProject;
-  const fs = window._macroFocusStage;
+  const fp = window._macroFocusProjects;
+  const fs = window._macroFocusStages;
 
   if (rowsEl) {
     rowsEl.querySelectorAll('.gantt-bar[data-hl]').forEach(bar => {
@@ -5466,15 +5469,23 @@ window.applyMacroFocusStyles = function() {
       const proj = us === -1 ? hl : hl.substring(0, us);
       const stage = us === -1 ? null : hl.substring(us + 1);
       let dim = false;
-      if (fp && proj !== fp) dim = true;
-      if (fs && stage !== fs) dim = true;
-      bar.style.opacity = dim ? '0.25' : '1';
+      if (fp.size > 0 && !fp.has(proj)) dim = true;
+      if (fs.size > 0 && stage !== null && !fs.has(stage)) dim = true;
+      bar.style.opacity = dim ? '0.12' : '1';
     });
   }
 
   ['제작', 'FAT', 'SET-UP', 'SAT'].forEach(stage => {
     const el = document.getElementById('macro-stage-label-' + stage);
-    if (el) el.classList.toggle('macro-stage-active', fs === stage);
+    if (el) el.classList.toggle('macro-stage-active', fs.has(stage));
+  });
+
+  document.querySelectorAll('.macro-proj-clickable[data-proj]').forEach(el => {
+    const p = el.dataset.proj;
+    const active = fp.has(p);
+    el.classList.toggle('macro-proj-active', active);
+    const bar = el.querySelector('.macro-proj-colorbar');
+    if (bar) bar.style.width = active ? '9px' : '5px';
   });
 };
 
@@ -5911,12 +5922,14 @@ function renderProjectBlock(proj, label, soloColor, segs, isClickable, onSegClic
   block.style.cssText = 'display:flex; position:relative; border-top:1px solid #e5e9f0;';
 
   const projLabel = document.createElement('div');
-  const isFocusActive = isClickable && window._macroFocusProject === proj;
+  const isFocusActive = isClickable && window._macroFocusProjects.has(proj);
   projLabel.className = isClickable ? 'macro-proj-clickable' + (isFocusActive ? ' macro-proj-active' : '') : '';
-  projLabel.style.cssText = `width:34px; flex-shrink:0; position:sticky; left:0; z-index:2; background:#fff; display:flex; align-items:stretch; color:${soloColor};`;
+  if (isClickable) projLabel.dataset.proj = proj;
+  projLabel.style.cssText = `width:34px; flex-shrink:0; position:sticky; left:0; z-index:2; background:${isFocusActive ? '#eff6ff' : '#fff'}; display:flex; align-items:stretch; color:${soloColor};`;
   if (isClickable) projLabel.onclick = () => { window.macroToggleFocusProject(proj); };
   const colorBar = document.createElement('div');
-  colorBar.style.cssText = `width:5px; background:${soloColor};`;
+  colorBar.className = 'macro-proj-colorbar';
+  colorBar.style.cssText = `width:${isFocusActive ? '9px' : '5px'}; background:${soloColor}; transition:width 0.18s ease;`;
   const projNameWrap = document.createElement('div');
   projNameWrap.style.cssText = `flex:1; display:flex; align-items:center; justify-content:center;`;
   const projNameText = document.createElement('div');
