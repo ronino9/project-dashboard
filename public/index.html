@@ -7358,11 +7358,11 @@ window.renderTowerMap = function() {
   Object.values(polygonGroups).forEach(g => {
     const hasDelay = g.projects.some(code => towerIsDelayed(code));
     
-    // 정상 상태: 에메랄드, 지연 상태: 빨간색
-    const fillColor = hasDelay ? '#ff073a' : '#10b981'; 
-    const lineColor = hasDelay ? '#ff5c7a' : '#34d399'; 
+    // 정상 상태: 에메랄드, 지연 상태: 톤다운 레드
+    const fillColor = hasDelay ? '#e64556' : '#10b981'; 
+    const lineColor = hasDelay ? '#ee7986' : '#34d399'; 
     const glowFilter = hasDelay 
-      ? 'drop-shadow(0 0 10px rgba(255,7,58,1)) drop-shadow(0 0 22px rgba(255,7,58,0.8))' 
+      ? 'drop-shadow(0 0 10px rgba(230,69,86,0.75)) drop-shadow(0 0 22px rgba(230,69,86,0.55))' 
       : 'drop-shadow(0 0 10px rgba(16,185,129,0.8)) drop-shadow(0 0 22px rgba(16,185,129,0.6))';
     
     const layer = L.geoJSON(g.geojson, {
@@ -7388,10 +7388,10 @@ window.renderTowerMap = function() {
   Object.values(pointGroups).forEach(g => {
     const hasDelay = g.projects.some(code => towerIsDelayed(code));
     
-    // 정상 마커: 에메랄드, 지연 마커: 빨간색
-    const markerColor = hasDelay ? '#ff073a' : '#10b981'; 
-    const glow = hasDelay ? 'rgba(255,7,58,0.85)' : 'rgba(16,185,129,0.7)'; 
-    const glowStrong = hasDelay ? 'rgba(255,7,58,1)' : 'rgba(16,185,129,1)';
+    // 정상 마커: 에메랄드, 지연 마커: 톤다운 레드
+    const markerColor = hasDelay ? '#e64556' : '#10b981'; 
+    const glow = hasDelay ? 'rgba(230,69,86,0.7)' : 'rgba(16,185,129,0.7)'; 
+    const glowStrong = hasDelay ? 'rgba(230,69,86,0.9)' : 'rgba(16,185,129,1)';
     
     const size = Math.min(22 + (g.projects.length - 1) * 6, 40);
     const coreSize = Math.min(14 + (g.projects.length - 1) * 4, 26);
@@ -7927,9 +7927,9 @@ function towerBuildCountryIcon(g) {
   const hasDelay = g.projects.some(code => towerIsDelayed(code));
   const count = g.projects.length;
 
-  // 정상 상태: 에메랄드(#10b981), 지연/이슈 상태: 빨간색(#ff003c)
-  const color = hasDelay ? '#ff003c' : '#10b981';
-  const glow = hasDelay ? 'rgba(255,0,60,0.45)' : 'rgba(16,185,129,0.7)';
+  // 정상 상태: 에메랄드(#10b981), 지연/이슈 상태: 톤다운 레드(#e64556)
+  const color = hasDelay ? '#e64556' : '#10b981';
+  const glow = hasDelay ? 'rgba(230,69,86,0.45)' : 'rgba(16,185,129,0.7)';
   const size = hasDelay ? Math.min(48 + (count - 1) * 8, 78) : Math.min(56 + (count - 1) * 8, 92);
   const hitSize = Math.round(size * 0.34); // 👈 실제 클릭/호버 반응 영역 (원 크기)
 
