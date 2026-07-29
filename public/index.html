@@ -7692,7 +7692,10 @@ window.towerBreadcrumbCountry = function(country) {
 };
 
 window.towerNavClick = function(code, group) {
-  const towerInfo = (allData.controlTower && allData.controlTower[code]) || {};
+  let towerInfo = (allData.controlTower && allData.controlTower[code]) || {};
+  if (code === 'ETC' && (!towerInfo.country || !towerInfo.city)) {
+    towerInfo = { ...towerInfo, country: '대한민국', city: '동탄' };
+  }
   const coords = getTowerCoords(towerInfo.country, towerInfo.city);
 
   if (coords && towerMapInstance) {
