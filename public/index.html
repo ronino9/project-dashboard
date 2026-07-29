@@ -3058,11 +3058,14 @@ window.renderDeviationTrendTest = function() {
                 <div class="tower-tint"></div>
                 <div class="tower-tint-light"></div>
               </div>
-
-             
-
-              
-
+<!-- 👇 [여기 추가] 타겟 위치 추적 시스템 (Personnel Locator) 👇 -->
+              <div style="position:absolute; bottom:20px; right:20px; z-index:5010; display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+                <div id="target-scan-status" style="font-family:'Orbitron', sans-serif; font-size:9px; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.5); opacity:0; transition:opacity 0.3s;">SCANNING RECENT LOGS...</div>
+                <button onclick="window.locateTargetEngineer('TEAM JARVIS')" style="background:rgba(2, 6, 23, 0.85); border:1px solid #0891b2; border-left:3px solid #22d3ee; color:#cffafe; font-family:'Orbitron', sans-serif; font-size:11px; font-weight:700; padding:6px 14px; border-radius:0; cursor:pointer; box-shadow:0 4px 12px rgba(8,145,178,0.4); display:flex; align-items:center; gap:8px; transition:all 0.2s; clip-path:polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);">
+                  <span style="color:#22d3ee; font-size:14px; line-height:1;">⌖</span> LOCATE TARGET
+                </button>
+              </div>
+              <!-- 👆 [추가 끝] 👆 -->
               <div class="tower-hud-overlay">
                 <div class="tower-hud-outer-glow"></div>
                 <div class="tower-hud-ticks" id="tower-hud-ticks"></div>
@@ -7696,6 +7699,87 @@ window.renderTowerDefaultState = function() {
       <div class="hud-telemetry-box"><div class="hud-ticker-wrap">${tickerHtmlLoop}</div></div>
     </div>
   `;
+};
+      // ============================================================================
+// 🚀 PERSONNEL LOCATOR (타겟 최신 로그 역추적 및 물리적 위치 추정 엔진)
+// ============================================================================
+window.locateTargetEngineer = function(targetName) {
+  const statusEl = document.getElementById('target-scan-status');
+  if (statusEl) {
+    statusEl.style.opacity = 1;
+    statusEl.textContent = `SCANNING LOGS FOR ${targetName}...`;
+  }
+
+  // 1. 전체 데이터에서 가장 최근 접수일(작업일)을 가진 로그 찾기
+  // (실제 적용 시 r['담당자'] === targetName 조건 추가 가능)
+  const allLogs = (window.allMasterData || []).filter(r => r['접수일']);
+  if (allLogs.length === 0) {
+    if (statusEl) statusEl.textContent = 'NO DATA FOUND';
+    return;
+  }
+  
+  // 날짜 기준 내림차순 정렬 후 최신 로그 1개 획득
+  allLogs.sort((a, b) => {
+    const dA = a['접수일'].toString().replace(/[./]/g, '-');
+    const dB = b['접수일'].toString().replace(/[./]/g, '-');
+    return dB > dA ? 1 : (dB < dA ? -1 : 0);
+  });
+  
+  const latestLog = allLogs[0];
+  const projCode = latestLog._pName;
+  const stage = latestLog['단계 구분'] || '기타 단계';
+  const responseType = latestLog['대응 구분'] || '';
+  const taskTitle = latestLog['표준 제작 Item / Issue / 개선사항'] || latestLog['제목'] || '알 수 없는 작업';
+
+  // 2. 물리적 위치 판정 (원격 vs 현장)
+  let targetCountry = '대한민국';
+  let targetCity = '동탄'; // 본진(HQ) 기본값
+  let isRemote = responseType.includes('원격');
+
+  // '현장' 작업일 경우 해당 프로젝트의 발주처 위치로 오버라이드
+  if (!isRemote) {
+    const towerInfo = (allData.controlTower && allData.controlTower[projCode]) || {};
+    targetCountry = towerInfo.country || '대한민국';
+    targetCity = towerInfo.city || '동탄';
+  }
+
+  // 3. J.A.R.V.I.S UI 애니메이션 & 비행 (FlyTo)
+  if (statusEl) statusEl.textContent = 'TARGET ACQUIRED. INITIATING FLY-TO...';
+  towerSetHudLocation('TRACKING TARGET UPLINK...');
+
+  const coords = getTowerCoords(targetCountry, targetCity) || getTowerCoords('대한민국', '동탄');
+  const normCountry = towerNormalize(targetCountry, TOWER_COUNTRY_ALIAS);
+  const normCity = towerNormalize(targetCity, TOWER_CITY_ALIAS);
+  const locString = `${(TOWER_COUNTRY_EN[normCountry] || normCountry).toUpperCase()} - ${(TOWER_CITY_EN[normCity] || normCity).toUpperCase()}`;
+
+  if (towerMapInstance) {
+    // 줌 레벨을 국가가 아닌 '도시' 수준(줌 레벨 8)으로 깊게 들어감
+    towerMapInstance.flyTo(coords, 8, { duration: 1.8, easeLinearity: 0.25 });
+    
+    // 비행이 끝날 때쯤 HUD 데이터 자동 스위칭
+    setTimeout(() => {
+      if (statusEl) statusEl.style.opacity = 0;
+      towerSetHudLocation(`LOCATED : ${locString}`);
+
+      // 가상의 그룹 객체를 만들어 프로젝트 디테일 패널 렌더링
+      const tempGroup = { country: targetCountry, city: targetCity, projects: [projCode] };
+      window.renderTowerCards(tempGroup, projCode);
+
+      // HUD 내 설명(Desc) 박스를 타겟 브리핑 포맷으로 덮어쓰기!
+      const descEl = document.querySelector('.hud-desc');
+      if (descEl) {
+        descEl.innerHTML = `
+          <div style="margin-bottom:4px;"><span style="color:#4ade80;">[TARGET IDENTIFIED]</span> <b>${targetName}</b></div>
+          <div style="margin-bottom:4px;"><span style="color:#38bdf8;">[PHYSICAL LOC]</span> ${locString} <span style="background:${isRemote ? '#0f766e' : '#b45309'}; color:#fff; padding:1px 4px; border-radius:2px; font-size:9px;">${isRemote ? 'HQ (REMOTE)' : 'ON-SITE'}</span></div>
+          <div><span style="color:#94a3b8;">[LATEST ACTION]</span> ${projCode} ${stage} - ${taskTitle.substring(0, 18)}...</div>
+        `;
+      }
+      
+      // 타겟 주변으로 핑(점멸) 효과
+      setTimeout(() => window.towerBlinkCountryCities(normCountry), 300);
+
+    }, 1800);
+  }
 };
     window.towerBreadcrumbWorld = function() {
   if (towerMapInstance) {
