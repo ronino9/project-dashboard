@@ -7766,8 +7766,19 @@ window.cancelTargetLock = function() {
     window._targetMarker = null;
   }
   window._targetScanData = null;
+
+  const select = document.getElementById('target-select');
+  if (select) select.disabled = false;
+
   const wrap = document.getElementById('target-tracker-ui');
   if (wrap) wrap.outerHTML = window.buildTargetTrackerUI();
+
+  if (towerMapInstance) {
+    towerMapInstance.setMinZoom(0);
+    towerMapInstance.fitWorld({ animate: true });
+    towerMapInstance.setZoom(towerMapInstance.getZoom() + 0.1);
+    towerMapInstance.setMinZoom(towerMapInstance.getZoom());
+  }
   towerSetHudLocation('EARTH');
 };
 
