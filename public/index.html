@@ -7194,8 +7194,11 @@ function towerBuildGroups() {
   const pointGroups = {};
 
   Object.keys(towerData).forEach(code => {
-    const info = towerData[code];
+    let info = towerData[code];
     if (!info) return;
+    if (code === 'ETC' && (!info.country || !info.city)) {
+      info = { ...info, country: '대한민국', city: '동탄' };
+    }
 
     const regionGeoJSON = getTowerRegionGeoJSON(info.country, info.city);
     if (regionGeoJSON) {
