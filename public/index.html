@@ -27,12 +27,18 @@
   background: #e2e8f0 !important; 
   color: #0f172a !important;
 }
-.gantt-bar { transition: filter 0.15s ease, box-shadow 0.15s ease; }
+.gantt-bar { transition: filter 0.15s ease, box-shadow 0.15s ease, opacity 0.2s ease; }
 .gantt-bar:hover, .gantt-bar.gantt-hl {
   filter: brightness(1.18) saturate(1.15);
   box-shadow: 0 3px 10px rgba(0,0,0,0.22);
   z-index: 60 !important;
 }
+.macro-proj-clickable { transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; cursor:pointer; }
+.macro-proj-clickable:hover { transform: translateX(2px); box-shadow: inset 0 0 0 1px rgba(59,130,246,0.35); background:#eff6ff !important; }
+.macro-proj-clickable.macro-proj-active { box-shadow: inset 0 0 0 2px currentColor; }
+.macro-stage-pill { transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease; }
+.macro-stage-pill:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.macro-stage-pill.macro-stage-active { box-shadow: 0 0 0 2px currentColor, 0 2px 6px rgba(0,0,0,0.15); }
   .clamp-wrap { position: relative; }
 .clamp-text {
   display: -webkit-box;
@@ -2429,10 +2435,10 @@ window.renderDeviationTrendTest = function() {
             <div id="gantt-period-label" style="font-size:14px; font-weight:700; color:#0f172a;"></div>
             
             <div id="gantt-legend-macro" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-left:8px; font-size:11px; color:#64748b;">
-              <span style="display:inline-flex; align-items:center; justify-content:center; height:24px; min-width:62px; box-sizing:border-box; padding:0 8px; border-radius:12px; border:1px solid #5b9bd5; background:#eaf2fb; color:#2d6ca8; font-weight:700;">제작</span>
-              <span style="display:inline-flex; align-items:center; justify-content:center; height:24px; min-width:62px; box-sizing:border-box; padding:0 8px; border-radius:12px; border:1px solid #d9b84a; background:#fbf3d9; color:#8a6d1f; font-weight:700;">FAT</span>
-              <span style="display:inline-flex; align-items:center; justify-content:center; height:24px; min-width:62px; box-sizing:border-box; padding:0 8px; border-radius:12px; border:1px solid #e0975a; background:#fce9db; color:#a15c26; font-weight:700;">SET-UP</span>
-              <span style="display:inline-flex; align-items:center; justify-content:center; height:24px; min-width:62px; box-sizing:border-box; padding:0 8px; border-radius:12px; border:1px solid #6fb583; background:#e3f2e7; color:#3d7a4d; font-weight:700;">SAT</span>
+              <span id="macro-stage-label-제작" onclick="window.macroToggleFocusStage('제작')" class="macro-stage-pill" style="display:inline-flex; align-items:center; justify-content:center; height:24px; min-width:62px; box-sizing:border-box; padding:0 8px; border-radius:12px; border:1px solid #5b9bd5; background:#eaf2fb; color:#2d6ca8; font-weight:700; cursor:pointer;">제작</span>
+              <span id="macro-stage-label-FAT" onclick="window.macroToggleFocusStage('FAT')" class="macro-stage-pill" style="display:inline-flex; align-items:center; justify-content:center; height:24px; min-width:62px; box-sizing:border-box; padding:0 8px; border-radius:12px; border:1px solid #d9b84a; background:#fbf3d9; color:#8a6d1f; font-weight:700; cursor:pointer;">FAT</span>
+              <span id="macro-stage-label-SET-UP" onclick="window.macroToggleFocusStage('SET-UP')" class="macro-stage-pill" style="display:inline-flex; align-items:center; justify-content:center; height:24px; min-width:62px; box-sizing:border-box; padding:0 8px; border-radius:12px; border:1px solid #e0975a; background:#fce9db; color:#a15c26; font-weight:700; cursor:pointer;">SET-UP</span>
+              <span id="macro-stage-label-SAT" onclick="window.macroToggleFocusStage('SAT')" class="macro-stage-pill" style="display:inline-flex; align-items:center; justify-content:center; height:24px; min-width:62px; box-sizing:border-box; padding:0 8px; border-radius:12px; border:1px solid #6fb583; background:#e3f2e7; color:#3d7a4d; font-weight:700; cursor:pointer;">SAT</span>
               <span style="margin-left:4px;">📶 원격</span>
               <span>🚨 이슈</span>
               <span>📷 로그</span>
@@ -5434,6 +5440,44 @@ let ganttCursor = new Date();
 let ganttMode = 'zoom';
 const GANTT_ZOOM_DAYS = 30;
 
+// 🎯 매크로 간트 포커스(프로젝트 / 단계) 상태
+window._macroFocusProject = null;
+window._macroFocusStage = null;
+
+window.macroToggleFocusProject = function(proj) {
+  window._macroFocusProject = (window._macroFocusProject === proj) ? null : proj;
+  window.applyMacroFocusStyles();
+};
+
+window.macroToggleFocusStage = function(stage) {
+  window._macroFocusStage = (window._macroFocusStage === stage) ? null : stage;
+  window.applyMacroFocusStyles();
+};
+
+window.applyMacroFocusStyles = function() {
+  const rowsEl = document.getElementById('gantt-rows');
+  const fp = window._macroFocusProject;
+  const fs = window._macroFocusStage;
+
+  if (rowsEl) {
+    rowsEl.querySelectorAll('.gantt-bar[data-hl]').forEach(bar => {
+      const hl = bar.dataset.hl;
+      const us = hl.indexOf('_');
+      const proj = us === -1 ? hl : hl.substring(0, us);
+      const stage = us === -1 ? null : hl.substring(us + 1);
+      let dim = false;
+      if (fp && proj !== fp) dim = true;
+      if (fs && stage !== fs) dim = true;
+      bar.style.opacity = dim ? '0.25' : '1';
+    });
+  }
+
+  ['제작', 'FAT', 'SET-UP', 'SAT'].forEach(stage => {
+    const el = document.getElementById('macro-stage-label-' + stage);
+    if (el) el.classList.toggle('macro-stage-active', fs === stage);
+  });
+};
+
 function ganttDaysBetween(a, b) {
   return Math.round((new Date(b) - new Date(a)) / 86400000);
 }
@@ -5867,8 +5911,10 @@ function renderProjectBlock(proj, label, soloColor, segs, isClickable, onSegClic
   block.style.cssText = 'display:flex; position:relative; border-top:1px solid #e5e9f0;';
 
   const projLabel = document.createElement('div');
-  projLabel.style.cssText = `width:34px; flex-shrink:0; position:sticky; left:0; z-index:2; background:#fff; display:flex; align-items:stretch; ${isClickable ? 'cursor:pointer;' : ''}`;
-  if (isClickable) projLabel.onclick = () => { if (typeof window.selectMasterProject === 'function') window.selectMasterProject(proj); };
+  const isFocusActive = isClickable && window._macroFocusProject === proj;
+  projLabel.className = isClickable ? 'macro-proj-clickable' + (isFocusActive ? ' macro-proj-active' : '') : '';
+  projLabel.style.cssText = `width:34px; flex-shrink:0; position:sticky; left:0; z-index:2; background:#fff; display:flex; align-items:stretch; color:${soloColor};`;
+  if (isClickable) projLabel.onclick = () => { window.macroToggleFocusProject(proj); };
   const colorBar = document.createElement('div');
   colorBar.style.cssText = `width:5px; background:${soloColor};`;
   const projNameWrap = document.createElement('div');
@@ -6061,6 +6107,8 @@ const clickCode = cardId === 'CP_ALL' ? 'CP' : cardId;
 renderProjectBlock(clickCode, label, projColorMap[cardId] || '#94a3b8', flat, true, null, onDayClick);
   }
 });
+
+window.applyMacroFocusStyles();
 };
 let indivGanttCursor = new Date();
 let indivGanttProject = null; // 👈 팝업 에러를 막아주는 핵심 변수 추가!
