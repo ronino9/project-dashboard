@@ -7358,12 +7358,12 @@ window.renderTowerMap = function() {
   Object.values(polygonGroups).forEach(g => {
     const hasDelay = g.projects.some(code => towerIsDelayed(code));
     
-    // 정상 상태: 초록색, 지연 상태: 빨간색
-    const fillColor = hasDelay ? '#ff073a' : '#22c55e'; 
-    const lineColor = hasDelay ? '#ff5c7a' : '#4ade80'; 
+    // 정상 상태: 에메랄드, 지연 상태: 빨간색
+    const fillColor = hasDelay ? '#ff073a' : '#10b981'; 
+    const lineColor = hasDelay ? '#ff5c7a' : '#34d399'; 
     const glowFilter = hasDelay 
       ? 'drop-shadow(0 0 10px rgba(255,7,58,1)) drop-shadow(0 0 22px rgba(255,7,58,0.8))' 
-      : 'drop-shadow(0 0 10px rgba(34,197,94,0.8)) drop-shadow(0 0 22px rgba(34,197,94,0.6))';
+      : 'drop-shadow(0 0 10px rgba(16,185,129,0.8)) drop-shadow(0 0 22px rgba(16,185,129,0.6))';
     
     const layer = L.geoJSON(g.geojson, {
       style: { fillColor, fillOpacity: hasDelay ? 0.65 : 0.5, color: lineColor, weight: hasDelay ? 2 : 1.5 }
@@ -7388,10 +7388,10 @@ window.renderTowerMap = function() {
   Object.values(pointGroups).forEach(g => {
     const hasDelay = g.projects.some(code => towerIsDelayed(code));
     
-    // 정상 마커: 초록색, 지연 마커: 빨간색
-    const markerColor = hasDelay ? '#ff073a' : '#22c55e'; 
-    const glow = hasDelay ? 'rgba(255,7,58,0.85)' : 'rgba(34,197,94,0.7)'; 
-    const glowStrong = hasDelay ? 'rgba(255,7,58,1)' : 'rgba(34,197,94,1)';
+    // 정상 마커: 에메랄드, 지연 마커: 빨간색
+    const markerColor = hasDelay ? '#ff073a' : '#10b981'; 
+    const glow = hasDelay ? 'rgba(255,7,58,0.85)' : 'rgba(16,185,129,0.7)'; 
+    const glowStrong = hasDelay ? 'rgba(255,7,58,1)' : 'rgba(16,185,129,1)';
     
     const size = Math.min(22 + (g.projects.length - 1) * 6, 40);
     const coreSize = Math.min(14 + (g.projects.length - 1) * 4, 26);
@@ -7927,9 +7927,9 @@ function towerBuildCountryIcon(g) {
   const hasDelay = g.projects.some(code => towerIsDelayed(code));
   const count = g.projects.length;
 
-  // 정상 상태: 초록색(#22c55e), 지연/이슈 상태: 빨간색(#ff003c)
-  const color = hasDelay ? '#ff003c' : '#22c55e';
-  const glow = hasDelay ? 'rgba(255,0,60,0.45)' : 'rgba(34,197,94,0.7)';
+  // 정상 상태: 에메랄드(#10b981), 지연/이슈 상태: 빨간색(#ff003c)
+  const color = hasDelay ? '#ff003c' : '#10b981';
+  const glow = hasDelay ? 'rgba(255,0,60,0.45)' : 'rgba(16,185,129,0.7)';
   const size = hasDelay ? Math.min(48 + (count - 1) * 8, 78) : Math.min(56 + (count - 1) * 8, 92);
   const hitSize = Math.round(size * 0.34); // 👈 실제 클릭/호버 반응 영역 (원 크기)
 
