@@ -1716,6 +1716,47 @@
       box-shadow: -2px 0 0 #1d4ed8 !important;
       transition-duration: 0.05s !important;
     }
+    /* =========================================================
+   👇 J.A.R.V.I.S SYSTEM MONITOR 실시간 게이지 & 경고 펄스 👇
+   ========================================================= */
+@keyframes hudGaugeWarningPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px #f87171) drop-shadow(0 0 10px rgba(248, 113, 113, 0.8));
+    opacity: 1;
+  }
+  50% {
+    filter: drop-shadow(0 0 2px #f87171);
+    opacity: 0.55;
+  }
+}
+
+.hud-gauge-warning {
+  animation: hudGaugeWarningPulse 1.2s ease-in-out infinite !important;
+}
+
+.hud-dial-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-align: center;
+  white-space: nowrap;
+  margin-top: -2px;
+  transition: color 0.3s ease;
+}
+
+.hud-dial-circle svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  overflow: visible;
+}
+
+.hud-gauge-ring {
+  transition: stroke-dasharray 0.85s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.3s ease;
+}
   </style>
 </head>
 <body>
@@ -7722,7 +7763,135 @@ window.towerNavClick = function(code, group) {
   window.renderTowerCards(group, code);
   setTimeout(() => window.towerBlinkCountryCities(normCountry), 800);
 };
+// ============================================================================
+// 🚀 J.A.R.V.I.S 관제탑 실시간 SYSTEM MONITOR KPI 계산 엔진
+// ============================================================================
+window.computeTowerSystemMonitor = function(code) {
+  const _mpTypes = ['마스터플랜', '마스터메모', '마스터이슈'];
+  let hist = [];
+  
+  if (code && code.startsWith('CP')) {
+    hist = ((allData.project1 && allData.project1.history) || []).filter(r => 
+      !code || code === 'CP_ALL' || (r['프로젝트 코드'] || '').toString().trim() === code
+    );
+  } else if (code && TOWER_PKEY_MAP[code]) {
+    const pKey = TOWER_PKEY_MAP[code];
+    hist = (allData[pKey] && allData[pKey].history) || [];
+  }
 
+  // 대표행 및 공정 이력만 추출 (마스터플랜 등 제외)
+  const usableRows = hist.filter(r => !_mpTypes.includes((r['업무 구분'] || '').toString().trim()));
+  const totalCount = usableRows.length;
+
+  // --------------------------------------------------------------------------
+  // 1) SCHEDULE (일정 준수율): (전체 - 지연 - 임박) ÷ 전체 × 100
+  // --------------------------------------------------------------------------
+  const delayCount = usableRows.filter(r => (r['진행상태'] || '') === '지연중').length;
+  const imminentCount = usableRows.filter(r => (r['진행상태'] || '') === '임박').length;
+  const schedPct = totalCount > 0 
+    ? Math.round(((totalCount - delayCount - imminentCount) / totalCount) * 100) 
+    : 100;
+  
+  let schedStatus = 'NORMAL', schedColor = '#22d3ee', schedSub = 'ON SCHEDULE';
+  if (schedPct < 80) {
+    schedStatus = 'WARNING'; schedColor = '#f87171'; schedSub = '⚠ DELAY ALERT';
+  } else if (schedPct < 95) {
+    schedStatus = 'CAUTION'; schedColor = '#facc15'; schedSub = 'CHECK IMMINENT';
+  }
+
+  // --------------------------------------------------------------------------
+  // 2) WORKLOAD (계획 대비 실행률 - 토탈 + 현재 단계 하이브리드)
+  // --------------------------------------------------------------------------
+  let planSum = 0, actualSum = 0;
+  usableRows.forEach(r => {
+    const plan = parseFloat(r['예상 작업 시간(H)']) || 0;
+    const actual = parseFloat(r['작업 시간']) || 0;
+    if (plan > 0) { planSum += plan; actualSum += actual; }
+  });
+  
+  // 전체 누적 실행률 (예상시간 공란 시 summary.overall 참조 방어로직)
+  const pKey = TOWER_PKEY_MAP[code];
+  const summary = (pKey && allData[pKey] && allData[pKey].summary) || {};
+  let workloadPct = planSum > 0 
+    ? Math.round((actualSum / planSum) * 100) 
+    : parseInt((summary.overall || '0').replace('%', '')) || 0;
+
+  // 💡 현재 진행 중인 단계(100% 미만 첫 단계)의 징후 감시
+  const stages = ['제작', 'FAT', 'SET-UP', 'SAT'];
+  const curStageIdx = stages.findIndex((_, i) => {
+    const v = summary.complete && summary.complete[i] !== undefined ? parseFloat(summary.complete[i]) : 0;
+    return v < 100;
+  });
+  const curStageName = curStageIdx !== -1 ? stages[curStageIdx] : 'SAT';
+
+  // 현재 단계 행들만 모아서 해당 단계 소진율 계산
+  let stagePlan = 0, stageActual = 0;
+  usableRows.filter(r => (r['단계 구분'] || '') === curStageName).forEach(r => {
+    const plan = parseFloat(r['예상 작업 시간(H)']) || 0;
+    const actual = parseFloat(r['작업 시간']) || 0;
+    if (plan > 0) { stagePlan += plan; stageActual += actual; }
+  });
+  const stageWorkloadPct = stagePlan > 0 ? Math.round((stageActual / stagePlan) * 100) : 0;
+
+  let workStatus = 'NORMAL', workColor = '#22d3ee', workSub = 'TOTAL MD // NORMAL';
+  // 전체 기준 색상 판정
+  if (workloadPct > 120) {
+    workStatus = 'WARNING'; workColor = '#f87171';
+  } else if (workloadPct > 100) {
+    workStatus = 'CAUTION'; workColor = '#facc15';
+  }
+  // 하단 서브 텍스트는 현재 단계 위험 시 최우선 표시!
+  if (stageWorkloadPct > 120) {
+    workSub = `⚠ ${curStageName}: ${stageWorkloadPct}% HOT`;
+    if (workStatus !== 'WARNING') workColor = '#f87171'; // 단계가 심각하면 링도 경고색으로
+    workStatus = 'WARNING';
+  } else if (stageWorkloadPct > 100) {
+    workSub = `CAUTION: ${curStageName} ${stageWorkloadPct}%`;
+  }
+
+  // --------------------------------------------------------------------------
+  // 3) REWORK (재작업률 - 낮을수록 좋음, 색상 반전)
+  // --------------------------------------------------------------------------
+  const isExtFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
+  const repRows = usableRows.filter(r => r._isRep !== false && !isExtFactor(r));
+  const reworkCnt = repRows.filter(r => (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase() === 'Y').length;
+  const reworkPct = repRows.length > 0 ? Math.round((reworkCnt / repRows.length) * 100) : 0;
+
+  let reworkStatus = 'NORMAL', reworkColor = '#4ade80', reworkSub = 'QUALITY CLEAR';
+  if (reworkPct > 15) {
+    reworkStatus = 'WARNING'; reworkColor = '#f87171'; reworkSub = '⚠ HIGH REWORK';
+  } else if (reworkPct > 5) {
+    reworkStatus = 'CAUTION'; reworkColor = '#facc15'; reworkSub = 'CHECK DEFECTS';
+  }
+
+  // --------------------------------------------------------------------------
+  // 4) 하단 3줄 상태값 (TELEMETRY)
+  // --------------------------------------------------------------------------
+  const syncTimeStr = window._lastSyncTime 
+    ? window._lastSyncTime.toTimeString().slice(0, 8) 
+    : 'ONLINE';
+  
+  const issueCnt = usableRows.filter(r => (r['업무 구분'] || '') === 'Issue').length;
+  const pendingTotal = delayCount + issueCnt;
+  const pendingText = pendingTotal === 0 ? '0 ISSUES' : `${delayCount} DELAYED`;
+  const pendingColor = pendingTotal === 0 ? '#4ade80' : '#f87171';
+  const pendingBlink = pendingTotal > 0 ? 'towerHudBlink' : 'none';
+
+  const holdCount = usableRows.filter(r => (r['진행상태'] || '') === '보류').length;
+  const integrityText = holdCount === 0 ? 'SECURE' : `${holdCount} ON HOLD`;
+  const integrityColor = holdCount === 0 ? '#4ade80' : '#facc15';
+
+  return {
+    schedule: { val: schedPct, text: `${schedPct}%`, status: schedStatus, color: schedColor, sub: schedSub },
+    workload: { val: workloadPct, text: `${workloadPct}%`, status: workStatus, color: workColor, sub: workSub },
+    rework:   { val: reworkPct,   text: `${reworkPct}%`,   status: reworkStatus, color: reworkColor, sub: reworkSub },
+    telemetry: {
+      sync:      { text: syncTimeStr,   color: '#4ade80', blink: 'none' },
+      pending:   { text: pendingText,   color: pendingColor, blink: pendingBlink },
+      integrity: { text: integrityText, color: integrityColor, blink: 'none' }
+    }
+  };
+};
 window.renderTowerCards = function(group, activeCode) {
   window._towerSelectedCode = null;
 
@@ -7825,6 +7994,29 @@ window.renderTowerCards = function(group, activeCode) {
     }).join('');
     stageHtml = `<div class="hud-stage-track"><div class="hud-stage-inner"><div class="hud-stage-line"></div><div class="hud-stage-grid">${nodesHtml}</div></div></div>`;
   }
+  const sysMon = window.computeTowerSystemMonitor(firstCode);
+
+  const buildSvgDial = (kpi, label) => {
+    const dashVal = Math.min(Math.max(kpi.val, 0), 100) * 0.88;
+    const isWarn = kpi.status === 'WARNING';
+    const warnClass = isWarn ? 'hud-gauge-warning' : '';
+    
+    return `
+      <div class="hud-dial" style="cursor:pointer;" onclick="event.stopPropagation(); window.showProjectInfoPopup('${firstCode}', this)" title="${firstCode} 실시간 KPI 상세">
+        <div class="hud-dial-circle ${warnClass}" style="border-color:${kpi.color}40;">
+          <svg viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(34,211,238,0.12)" stroke-width="2.6"/>
+            <circle class="hud-gauge-ring" cx="18" cy="18" r="14" fill="none" stroke="${kpi.color}" stroke-width="2.8"
+                    stroke-dasharray="${dashVal}, 100" stroke-linecap="round"
+                    style="filter: drop-shadow(0 0 5px ${kpi.color});"/>
+          </svg>
+          <span class="hud-dial-val" style="color:#ffffff; text-shadow:0 0 8px ${kpi.color}; z-index:2;">${kpi.text}</span>
+        </div>
+        <span class="hud-dial-lbl">${label}</span>
+        <span class="hud-dial-sub" style="color:${kpi.color};">${kpi.sub}</span>
+      </div>
+    `;
+  };
 
   container.innerHTML = `
     <div class="hud-panel">
@@ -7870,25 +8062,27 @@ window.renderTowerCards = function(group, activeCode) {
     </div>
 
     <div class="hud-panel">
-      <div class="hud-panel-title">SYSTEM MONITOR</div>
-      <div class="hud-monitor-row">
-        <div class="hud-dial">
-          <div class="hud-dial-circle"><span class="hud-dial-val">${Math.floor(Math.random()*20)+30}%</span></div>
-          <span class="hud-dial-lbl">CPU</span>
-        </div>
-        <div class="hud-dial">
-          <div class="hud-dial-circle" style="border-color:rgba(74, 222, 128, 0.4);"><span class="hud-dial-val" style="color:#4ade80; text-shadow:0 0 6px rgba(74,222,128,0.5);">${Math.floor(Math.random()*20)+65}%</span></div>
-          <span class="hud-dial-lbl">MEMORY</span>
-        </div>
-        <div class="hud-dial">
-          <div class="hud-dial-circle"><span class="hud-dial-val">${Math.floor(Math.random()*15)+80}%</span></div>
-          <span class="hud-dial-lbl">NETWORK</span>
-        </div>
+      <div class="hud-panel-title">SYSTEM MONITOR // ${firstCode}</div>
+      <div class="hud-monitor-row" style="padding: 6px 10px 10px;">
+        ${buildSvgDial(sysMon.schedule, 'SCHEDULE')}
+        ${buildSvgDial(sysMon.workload, 'WORKLOAD')}
+        ${buildSvgDial(sysMon.rework,   'REWORK')}
       </div>
       <div class="hud-sys-status">
-        <div class="hud-sys-item"><span>DATABASE</span><span>ONLINE</span></div>
-        <div class="hud-sys-item"><span>BACKUP</span><span>OK</span></div>
-        <div class="hud-sys-item"><span>SECURITY</span><span>SECURE</span></div>
+        <div class="hud-sys-item">
+          <span>LAST SYNC</span>
+          <span style="color:${sysMon.telemetry.sync.color};">${sysMon.telemetry.sync.text}</span>
+        </div>
+        <div class="hud-sys-item">
+          <span>PENDING ISSUE</span>
+          <span style="color:${sysMon.telemetry.pending.color}; animation:${sysMon.telemetry.pending.blink} 1.2s infinite;">
+            ${sysMon.telemetry.pending.text}
+          </span>
+        </div>
+        <div class="hud-sys-item">
+          <span>INTEGRITY</span>
+          <span style="color:${sysMon.telemetry.integrity.color};">${sysMon.telemetry.integrity.text}</span>
+        </div>
       </div>
     </div>
   `;
