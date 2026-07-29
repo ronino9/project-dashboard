@@ -2312,7 +2312,7 @@ window.renderDeviationTrendTest = function() {
   const withTrend = ranking.filter(r => r.편차건수 !== '' && r.편차건수 !== undefined && r.편차건수 >= 1);
 
   if (withTrend.length === 0) {
-    container.innerHTML = `<div style="color:#94a3b8; font-size:13px;">아직 편차 데이터가 있는 클러스터가 없습니다. (예상 작업 시간 / 작업 시간 편차가 기록된 이슈가 2건 이상 같은 계열로 묶여야 표시됩니다)</div>`;
+    <div style="color:#94a3b8; font-size:13px;">아직 편차 데이터가 있는 클러스터가 없습니다. (예상 작업 시간 / 작업 시간 편차가 기록된 이슈가 2건 이상 같은 계열로 묶여야 표시됩니다)</div>`;
     return;
   }
 
@@ -2822,6 +2822,7 @@ window.renderDeviationTrendTest = function() {
           <div style="text-align:right;">
             <div class="tower-hud-title" style="font-size:16px; color:#f5d061; text-shadow:0 0 10px rgba(232,185,35,0.45);">MARK · VII</div>
             <div class="tower-hud-sub tower-hud-sub-gold" style="font-size:11px; margin-top:4px;">SUIT STATUS // ACTIVE</div>
+            <div id="target-tracker-slot" style="margin-top:8px;"></div>
           </div>
         </div>
         <div class="tower-grid">
@@ -4038,7 +4039,7 @@ window.animateMainCards();
     // 데이터가 아예 없을 때
     const timeEl = document.getElementById('last-update-time');
     if (timeEl) timeEl.innerText = '최근 갱신: 데이터 없음';
-    topIssuesContainer.innerHTML = `<div style="color: #64748b; font-size: 13px; padding: 10px;">집계된 이슈 데이터가 없습니다.</div>`;
+    topIssues<div style="color: #64748b; font-size: 13px; padding: 10px;">집계된 이슈 데이터가 없습니다.</div>`;
   }
 
   // 3. 지연 이슈 (처리 대기 Top 5 - 지연일 계산 및 표시)
@@ -4091,7 +4092,7 @@ window.animateMainCards();
     }).join('');
     pendingContainer.innerHTML = pendingHtml;
   } else {
-    pendingContainer.innerHTML = `<div style="color: #64748b; font-size: 13px; padding: 10px;">대기 중인 이슈가 없습니다.</div>`;
+    pending<div style="color: #64748b; font-size: 13px; padding: 10px;">대기 중인 이슈가 없습니다.</div>`;
   }
 
 // 4. 다중 선택 슬라이서 및 Master MD 차트 연동
@@ -7706,7 +7707,6 @@ window.renderTowerDefaultState = function() {
   const tickerHtmlLoop = tickerHtml + tickerHtml; // 무한 스크롤용 2배 복제
 
   container.innerHTML = `
-    ${window.buildTargetTrackerUI()}
     <div class="hud-panel">
       <div class="hud-panel-title">GLOBAL OVERVIEW</div>
       ${kpiHtml}
@@ -7724,6 +7724,7 @@ window.renderTowerDefaultState = function() {
       <div class="hud-telemetry-box"><div class="hud-ticker-wrap">${tickerHtmlLoop}</div></div>
     </div>
   `;
+  window.renderTargetTrackerSlot();
 };
 // ============================================================================
 // 🚀 PERSONNEL LOCATOR UI 빌더 (우측 패널 최상단 고정 삽입용)
@@ -7733,7 +7734,6 @@ window._lastTargetSelect = 'TEAM JARVIS';
 
 window.buildTargetTrackerUI = function() {
   const isExplore = !!window._targetScanData;
-  // 설정 완료 상태면 주황색, 아니면 사이언(기본) 색상
   const btnColor = isExplore ? '#f5d061' : '#0891b2'; 
   const btnText = isExplore ? '탐색 (DIVE)' : '타겟 설정';
   const disabledStr = isExplore ? 'disabled' : '';
@@ -7742,23 +7742,21 @@ window.buildTargetTrackerUI = function() {
   const opt = (val, label) => `<option value="${val}" ${val === selectedVal ? 'selected' : ''}>${label}</option>`;
 
   return `
-  <div id="target-tracker-ui" style="display:flex; justify-content:space-between; align-items:center; background:rgba(2,6,23,0.8); border:1px solid ${btnColor}; padding:8px 12px; margin-bottom:12px; box-shadow:0 4px 12px${btnColor}40;">
-    <div style="display:flex; align-items:center; gap:8px;">
-      <span onclick="${isExplore ? 'window.cancelTargetLock()' : ''}" title="${isExplore ? '클릭 시 타겟 해제' : ''}" style="color:#67e8f9; font-family:'Orbitron',sans-serif; font-size:10px; font-weight:700; ${isExplore ? 'cursor:pointer; text-decoration:underline; text-decoration-style:dotted;' : ''}">PERSONNEL${isExplore ? ' ✕' : ''}</span>
-      <select id="target-select" onchange="window._lastTargetSelect=this.value" ${disabledStr} style="background:#0f172a; border:1px solid #334155; color:#f8fafc; font-size:11px; font-family:'Share Tech Mono', monospace; padding:4px 8px; border-radius:4px; outline:none; cursor:pointer;">
-        ${opt('Tony Stark', 'Tony Stark')}
-      </select>
-    </div>
-    <div style="display:flex; align-items:center; gap:10px;">
-      <span id="target-scan-status" style="font-family:'Orbitron', sans-serif; font-size:9px; color:${btnColor}; opacity:${isExplore?1:0}; transition:opacity 0.3s; white-space:nowrap;">
-        ${isExplore ? 'TARGET LOCKED' : ''}
-      </span>
-      <button id="target-action-btn" onclick="window.handleTargetAction()" style="background:#020617; border:1px solid ${btnColor}; color:#cffafe; font-family:'Orbitron', sans-serif; font-size:11px; font-weight:700; padding:6px 14px; cursor:pointer; box-shadow:0 0 10px ${btnColor}66; display:flex; align-items:center; gap:6px; transition:all 0.2s;">
-        <span style="color:${btnColor}; font-size:14px; line-height:1;">⌖</span> ${btnText}
-      </button>
-    </div>
+  <div id="target-tracker-ui" style="display:flex; justify-content:flex-end; align-items:center; gap:8px;">
+    <span onclick="window.cancelTargetLock()" title="클릭 시 초기화" style="color:#67e8f9; font-family:'Orbitron',sans-serif; font-size:10px; font-weight:700; cursor:pointer; text-decoration:underline; text-decoration-style:dotted; white-space:nowrap;">PERSONNEL${isExplore ? ' ✕' : ''}</span>
+    <select id="target-select" onchange="window._lastTargetSelect=this.value" ${disabledStr} style="background:#0f172a; border:1px solid #334155; color:#f8fafc; font-size:11px; font-family:'Share Tech Mono', monospace; padding:4px 8px; border-radius:4px; outline:none; cursor:pointer;">
+      ${opt('Tony Stark', 'Tony Stark')}
+    </select>
+    <button id="target-action-btn" onclick="window.handleTargetAction()" style="background:#020617; border:1px solid ${btnColor}; color:#cffafe; font-family:'Orbitron', sans-serif; font-size:11px; font-weight:700; padding:6px 14px; cursor:pointer; box-shadow:0 0 10px ${btnColor}66; display:flex; align-items:center; gap:6px; transition:all 0.2s; white-space:nowrap;">
+      <span style="color:${btnColor}; font-size:14px; line-height:1;">⌖</span> ${btnText}
+    </button>
   </div>
   `;
+};
+
+window.renderTargetTrackerSlot = function() {
+  const el = document.getElementById('target-tracker-slot');
+  if (el) el.innerHTML = window.buildTargetTrackerUI();
 };
 window.cancelTargetLock = function() {
   if (window._targetMarker && towerMapInstance) {
@@ -7770,8 +7768,7 @@ window.cancelTargetLock = function() {
   const select = document.getElementById('target-select');
   if (select) select.disabled = false;
 
-  const wrap = document.getElementById('target-tracker-ui');
-  if (wrap) wrap.outerHTML = window.buildTargetTrackerUI();
+  window.renderTargetTrackerSlot();
 
   if (towerMapInstance) {
     towerMapInstance.setMinZoom(0);
@@ -8275,7 +8272,6 @@ window.renderTowerCards = function(group, activeCode) {
   };
 
   container.innerHTML = `
-    ${window.buildTargetTrackerUI()}
     <div class="hud-panel">
       <div class="hud-panel-title">PROJECT NAVIGATION</div>
       <div class="hud-nav-breadcrumb">
@@ -8343,10 +8339,8 @@ window.renderTowerCards = function(group, activeCode) {
       </div>
     </div>
   `;
+  window.renderTargetTrackerSlot();
 };
-
- 
-
     // ===== 관제탑: 국가 단위 원(펄스) — 줌 레벨에 따라 표시/숨김 =====
 let towerCountryLayerGroup = null;
     const TOWER_COUNTRY_EN = { '대한민국':'Korea', '중국':'China', '말레이시아':'Malaysia', '루마니아':'Romania' };
@@ -10043,7 +10037,7 @@ window.renderPdcaCharts = function(rows, improveStats, TARGET) {
   if (chartCanvas && chartCanvas.parentElement) {
     const titleContainer = chartCanvas.parentElement.querySelector('div');
     if (titleContainer) {
-      titleContainer.innerHTML = `
+      title
         <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
           <div style="font-size:15px; font-weight:800; color:#0f172a;">
             📈 개선 효과 추이
