@@ -7069,6 +7069,7 @@ const TOWER_COUNTRY_ALIAS = {
   '루마니아': '루마니아', 'romania': '루마니아'
 };
 const TOWER_CITY_ALIAS = {
+  'chengdu': '청두', '청두': '청두',
   'penang': '페낭', '페낭': '페낭',
   'kuala lumpur': '쿠알라룸푸르', 'kl': '쿠알라룸푸르', '쿠알라룸푸르': '쿠알라룸푸르',
   'huizhou': '후이저우', '후이저우': '후이저우', '후이조우': '후이저우', '후이주': '후이저우',
@@ -7096,6 +7097,7 @@ const TOWER_COUNTRY_COORDS = {
   '대한민국': [36.4, 127.8]
 };
 const TOWER_CITY_COORDS = {
+  '중국-청두': [30.5728, 104.0668],
   '말레이시아-페낭': [5.4141, 100.3288],
   '말레이시아-쿠알라룸푸르': [3.1390, 101.6869],
   '중국-후이저우': [23.1115, 114.4152],
@@ -7125,6 +7127,7 @@ async function loadTowerGeoJSON() {
   _towerGeoJSONLoaded = true;
 }
 const TOWER_CITY_TO_REGION = {
+  '중국-청두': '중국-청두',
   '말레이시아-페낭': '말레이시아-페낭',
   '말레이시아-쿠알라룸푸르': '말레이시아-쿠알라룸푸르',
   '대한민국-동탄': '대한민국-화성시',
@@ -7899,7 +7902,7 @@ let towerCountryLayerGroup = null;
 const TOWER_CITY_EN = {
   '동탄':'Hwaseong', '평택':'Pyeongtaek', '서산':'Seosan',
   '페낭':'Penang', '쿠알라룸푸르':'Kuala Lumpur',
-  '후이저우':'Huizhou', '난징':'Nanjing', '창저우':'Changzhou', '화이안':"Huai'an", '난양':'Nanyang', '징먼':'Jingmen', '장가장':'Zhangjiajie',
+  '후이저우':'Huizhou', '난징':'Nanjing', '창저우':'Changzhou', '화이안':"Huai'an", '난양':'Nanyang', '징먼':'Jingmen', '장가장':'Zhangjiajie', '청두':'Chengdu',
   '부쿠레슈티':'Bucharest'
 };
 function towerSetHudLocation(text) {
