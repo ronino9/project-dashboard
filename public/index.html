@@ -1770,24 +1770,24 @@
       100% { transform: translate(-50%, -50%) scale(3.5); opacity: 0; border-width: 1px; }
     }
     .global-lockon-target {
-      position: absolute; top: 50%; left: 50%;
-      width: 70px; height: 70px; transform: translate(-50%, -50%);
-      border: 2px dashed #f59e0b; border-radius: 50%;
-      animation: lockonSpin 2s linear infinite;
-      box-shadow: 0 0 15px rgba(245, 158, 11, 0.6), inset 0 0 10px rgba(245, 158, 11, 0.4);
-    }
-    .global-lockon-pulse {
-      position: absolute; top: 50%; left: 50%;
-      width: 70px; height: 70px; transform: translate(-50%, -50%);
-      border: 2px solid #f59e0b; border-radius: 50%;
-      animation: lockonPulse 1.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-    }
-    .global-lockon-center {
-      position: absolute; top: 50%; left: 50%;
-      width: 10px; height: 10px; background: #f59e0b; border-radius: 50%;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 12px #f59e0b, 0 0 24px #f59e0b;
-    }
+  position: absolute; top: 50%; left: 50%;
+  width: 70px; height: 70px; transform: translate(-50%, -50%);
+  border: 2px dashed #f5d061; border-radius: 50%;
+  animation: lockonSpin 2s linear infinite;
+  box-shadow: 0 0 15px rgba(245, 208, 97, 0.6), inset 0 0 10px rgba(245, 208, 97, 0.4);
+}
+.global-lockon-pulse {
+  position: absolute; top: 50%; left: 50%;
+  width: 70px; height: 70px; transform: translate(-50%, -50%);
+  border: 2px solid #f5d061; border-radius: 50%;
+  animation: lockonPulse 1.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+.global-lockon-center {
+  position: absolute; top: 50%; left: 50%;
+  width: 10px; height: 10px; background: #f5d061; border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 12px #f5d061, 0 0 24px #f5d061;
+}
   </style>
 </head>
 <body>
@@ -7734,7 +7734,7 @@ window._lastTargetSelect = 'TEAM JARVIS';
 window.buildTargetTrackerUI = function() {
   const isExplore = !!window._targetScanData;
   // 설정 완료 상태면 주황색, 아니면 사이언(기본) 색상
-  const btnColor = isExplore ? '#f59e0b' : '#0891b2'; 
+  const btnColor = isExplore ? '#f5d061' : '#0891b2'; 
   const btnText = isExplore ? '탐색 (DIVE)' : '타겟 설정';
   const disabledStr = isExplore ? 'disabled' : '';
   const selectedVal = isExplore ? window._targetScanData.targetName : window._lastTargetSelect;
@@ -7853,15 +7853,15 @@ window.handleTargetAction = function() {
         // 버튼을 '탐색' 상태로 변경
         if (statusEl) {
           statusEl.textContent = `TARGET LOCKED`;
-          statusEl.style.color = '#f59e0b';
+          statusEl.style.color = '#f5d061';
         }
         towerSetHudLocation(`LOCK-ON : ${locString}`);
 
-        btn.innerHTML = `<span style="color:#f59e0b; font-size:14px; line-height:1;">⌖</span> 탐색 (DIVE)`;
-        btn.style.borderColor = '#f59e0b';
-        btn.style.boxShadow = '0 4px 12px rgba(245,158,11,0.4)';
-        btn.parentElement.parentElement.style.borderColor = '#f59e0b';
-        btn.parentElement.parentElement.style.boxShadow = '0 4px 12px rgba(245,158,11,0.2)';
+        btn.innerHTML = `<span style="color:#f5d061; font-size:14px; line-height:1;">⌖</span> 탐색 (DIVE)`;
+        btn.style.borderColor = '#f5d061';
+        btn.style.boxShadow = '0 4px 12px rgba(245,208,97,0.4)';
+        btn.parentElement.parentElement.style.borderColor = '#f5d061';
+        btn.parentElement.parentElement.style.boxShadow = '0 4px 12px rgba(245,208,97,0.2)';
         select.disabled = true;
 
       }, 1000);
