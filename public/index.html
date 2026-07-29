@@ -7742,13 +7742,11 @@ window.buildTargetTrackerUI = function() {
   const opt = (val, label) => `<option value="${val}" ${val === selectedVal ? 'selected' : ''}>${label}</option>`;
 
   return `
-  <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(2,6,23,0.8); border:1px solid ${btnColor}; padding:8px 12px; margin-bottom:12px; box-shadow:0 4px 12px${btnColor}40;">
+  <div id="target-tracker-ui" style="display:flex; justify-content:space-between; align-items:center; background:rgba(2,6,23,0.8); border:1px solid ${btnColor}; padding:8px 12px; margin-bottom:12px; box-shadow:0 4px 12px${btnColor}40;">
     <div style="display:flex; align-items:center; gap:8px;">
-      <span style="color:#67e8f9; font-family:'Orbitron',sans-serif; font-size:10px; font-weight:700;">PERSONNEL</span>
+      <span onclick="${isExplore ? 'window.cancelTargetLock()' : ''}" title="${isExplore ? '클릭 시 타겟 해제' : ''}" style="color:#67e8f9; font-family:'Orbitron',sans-serif; font-size:10px; font-weight:700; ${isExplore ? 'cursor:pointer; text-decoration:underline; text-decoration-style:dotted;' : ''}">PERSONNEL${isExplore ? ' ✕' : ''}</span>
       <select id="target-select" onchange="window._lastTargetSelect=this.value" ${disabledStr} style="background:#0f172a; border:1px solid #334155; color:#f8fafc; font-size:11px; font-family:'Share Tech Mono', monospace; padding:4px 8px; border-radius:4px; outline:none; cursor:pointer;">
-        ${opt('TEAM JARVIS', 'TEAM JARVIS')}${opt('최상현', '최상현 (S.H. CHOI)')}
-        ${opt('김기연', '김기연 (K.Y. KIM)')}
-        ${opt('Tuấn Anh', 'Tuấn Anh')}
+        ${opt('Tony Stark', 'Tony Stark')}
       </select>
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
@@ -7762,7 +7760,18 @@ window.buildTargetTrackerUI = function() {
   </div>
   `;
 };
+window.cancelTargetLock = function() {
+  if (window._targetMarker && towerMapInstance) {
+    towerMapInstance.removeLayer(window._targetMarker);
+    window._targetMarker = null;
+  }
+  window._targetScanData = null;
+  const wrap = document.getElementById('target-tracker-ui');
+  if (wrap) wrap.outerHTML = window.buildTargetTrackerUI();
+  towerSetHudLocation('EARTH');
+};
 
+window.handleTargetAction = function() {
 // ============================================================================
 // 🚀 2단계 조작 (1단계: 타겟 설정 & 글로벌 락온 / 2단계: 탐색 & 줌인 다이브)
 // ============================================================================
@@ -7866,8 +7875,14 @@ window.handleTargetAction = function() {
     towerSetHudLocation('DIVING TO TARGET...');
     
     if (towerMapInstance) {
-      // 해당 도시로 줌인 다이브
-      towerMapInstance.flyTo(d.coords, 8, { duration: 1.8, easeLinearity: 0.25 });
+      const diveRegionGeo = getTowerRegionGeoJSON(d.targetCountry, d.targetCity);
+      if (diveRegionGeo) {
+        const diveLayer = L.geoJSON(diveRegionGeo);
+        const diveZoom = towerMapInstance.getBoundsZoom(diveLayer.getBounds()) - 1;
+        towerMapInstance.flyTo(diveLayer.getBounds().getCenter(), diveZoom, { duration: 1.8, easeLinearity: 0.25 });
+      } else {
+        towerMapInstance.flyTo(d.coords, 5, { duration: 1.8, easeLinearity: 0.25 });
+      }
       
       setTimeout(() => {
         if (window._targetMarker) {
