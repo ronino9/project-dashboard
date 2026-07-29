@@ -1158,6 +1158,16 @@
   0%, 100% { fill-opacity: 0.5; }
   50% { fill-opacity: 0.15; }
 }
+.tower-region-blink-gold {
+  animation: towerRegionBlinkGold 1.1s ease-in-out infinite;
+  stroke: #f5d061 !important;
+  stroke-width: 3px !important;
+  filter: drop-shadow(0 0 6px rgba(245,208,97,0.8));
+}
+@keyframes towerRegionBlinkGold {
+  0%, 100% { fill-opacity: 0.5; }
+  50% { fill-opacity: 0.15; }
+}
  .tower-callout-pulse { animation: towerPulse 2s ease-out infinite; }   
 @keyframes towerPulse {
   0% { transform: scale(0.6); opacity: 0.9; }
@@ -7735,7 +7745,7 @@ window._lastTargetSelect = 'TEAM JARVIS';
 window.buildTargetTrackerUI = function() {
   const isExplore = !!window._targetScanData;
   const btnColor = isExplore ? '#f5d061' : '#0891b2'; 
-  const btnText = isExplore ? '탐색 (DIVE)' : '타겟 설정';
+  const btnText = isExplore ? 'DIVE' : 'SET TARGET';
   const disabledStr = isExplore ? 'disabled' : '';
   const selectedVal = isExplore ? window._targetScanData.targetName : window._lastTargetSelect;
   
@@ -7865,7 +7875,7 @@ window.handleTargetAction = function() {
         }
         towerSetHudLocation(`LOCK-ON : ${locString}`);
 
-        btn.innerHTML = `<span style="color:#f5d061; font-size:14px; line-height:1;">⌖</span> 탐색 (DIVE)`;
+        btn.innerHTML = `<span style="color:#f5d061; font-size:14px; line-height:1;">⌖</span> DIVE`;
         btn.style.borderColor = '#f5d061';
         btn.style.boxShadow = '0 4px 12px rgba(245,208,97,0.4)';
         btn.parentElement.parentElement.style.borderColor = '#f5d061';
@@ -7914,7 +7924,7 @@ window.handleTargetAction = function() {
             `;
           }
           
-          window.towerBlinkCountryCities(d.normCountry);
+          window.towerBlinkTargetCity(d.targetCountry, d.targetCity);
 
           // 데이터 초기화: 다음 번에는 다시 '타겟 설정'으로 돌아감
           window._targetScanData = null;
@@ -8400,7 +8410,34 @@ function towerBuildCountryIcon(g) {
     </div>`;
   return L.divIcon({ className: '', html, iconSize: [hitSize, hitSize], iconAnchor: [hitSize/2, hitSize/2] });
 }
+window.towerBlinkTargetCity = function(country, city) {
+  if (!towerMapInstance) return;
+  document.querySelectorAll('.tower-region-blink, .tower-region-blink-gold').forEach(el => {
+    el.classList.remove('tower-region-blink');
+    el.classList.remove('tower-region-blink-gold');
+    el.style.stroke = '';
+    el.style.strokeWidth = '';
+    el.style.filter = '';
+  });
+  const normCountry = towerNormalize(country, TOWER_COUNTRY_ALIAS);
+  const normCity = towerNormalize(city, TOWER_CITY_ALIAS);
+  const label = `${normCountry} ${normCity}`;
+  towerMapInstance.eachLayer(layer => {
+    if (layer.getTooltip) {
+      const tooltip = layer.getTooltip();
+      if (tooltip && tooltip.getContent().startsWith(label)) {
+        if (layer.eachLayer && typeof layer.eachLayer === 'function') {
+          layer.eachLayer(sub => {
+            const el = sub.getElement && sub.getElement();
+            if (el) el.classList.add('tower-region-blink-gold');
+          });
+        }
+      }
+    }
+  });
+};
 
+window.towerBlinkCountryCities = function(country) {
     window.towerBlinkCountryCities = function(country) {
   if (!towerMapInstance) return;
   document.querySelectorAll('.tower-region-blink').forEach(el => el.classList.remove('tower-region-blink'));
