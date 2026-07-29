@@ -7926,8 +7926,8 @@ function towerBuildCountryIcon(g) {
 
   // 정상 상태: 명확한 파란색(#3b82f6), 지연/이슈 상태: 빨간색(#ff003c)
   const color = hasDelay ? '#ff003c' : '#3b82f6';
-  const glow = hasDelay ? 'rgba(255,0,60,0.7)' : 'rgba(59,130,246,0.7)';
-  const size = Math.min(56 + (count - 1) * 8, 92);
+  const glow = hasDelay ? 'rgba(255,0,60,0.45)' : 'rgba(59,130,246,0.7)';
+  const size = hasDelay ? Math.min(48 + (count - 1) * 8, 78) : Math.min(56 + (count - 1) * 8, 92);
   const hitSize = Math.round(size * 0.34); // 👈 실제 클릭/호버 반응 영역 (원 크기)
 
   const html = `<div style="position:relative; width:${hitSize}px; height:${hitSize}px;">
