@@ -35,9 +35,9 @@
 }
 .macro-proj-clickable { transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; cursor:pointer; }
 .macro-proj-clickable:hover { transform: translateX(2px); box-shadow: inset 0 0 0 1px rgba(59,130,246,0.35); background:#eff6ff !important; }
-.macro-proj-clickable.macro-proj-active { box-shadow: inset 0 0 0 2px #3b82f6, 0 0 8px rgba(59,130,246,0.35); }
-.macro-proj-clickable.macro-proj-active > div:last-child > div { font-weight:900 !important; }
-.macro-stage-pill { transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease; }
+.macro-proj-clickable.macro-proj-active { box-shadow: none; }
+.macro-proj-clickable .macro-proj-colorbar { transition: width 0.18s ease, background 0.18s ease, box-shadow 0.18s ease; }
+.macro-proj-clickable.macro-proj-active .macro-proj-colorbar { background:#3b82f6 !important; box-shadow: 0 0 8px rgba(59,130,246,0.7), 0 0 3px rgba(59,130,246,0.9); }
 .macro-stage-pill:hover { transform: translateY(-1px); filter: brightness(1.05); }
 .macro-stage-pill.macro-stage-active { box-shadow: 0 0 0 2px currentColor, 0 2px 6px rgba(0,0,0,0.15); }
   .clamp-wrap { position: relative; }
@@ -5463,7 +5463,7 @@ window.applyMacroFocusStyles = function() {
   const fs = window._macroFocusStages;
 
   if (rowsEl) {
-    rowsEl.querySelectorAll('.gantt-bar[data-hl]').forEach(bar => {
+    rowsEl.querySelectorAll('[data-hl]').forEach(bar => {
       const hl = bar.dataset.hl;
       const us = hl.indexOf('_');
       const proj = us === -1 ? hl : hl.substring(0, us);
@@ -5494,17 +5494,18 @@ function ganttDaysBetween(a, b) {
 }
 
 function ganttClamp(dateStr, min, max) {
-  window.ganttIconMarker = function(emoji, color, corner, pct, title, onClick) {
+  window.ganttIconMarker = function(emoji, color, corner, pct, title, onClick, hlKey) {
   const el = document.createElement('div');
   const pos = {
     tl: `top:-8px; left:${pct}%; transform:translate(-85%,0);`,
     tr: `top:-8px; left:${pct}%; transform:translate(-15%,0);`,
     br: `top:auto; bottom:-8px; left:${pct}%; transform:translate(-15%,0);`
   }[corner];
-  el.style.cssText = `position:absolute; ${pos} font-size:12px; line-height:1; z-index:11; pointer-events:auto; cursor:${onClick ? 'pointer' : 'default'};`;
+  el.style.cssText = `position:absolute; ${pos} font-size:12px; line-height:1; z-index:11; pointer-events:auto; cursor:${onClick ? 'pointer' : 'default'}; transition:opacity 0.2s ease;`;
   el.textContent = emoji;
   if (title) el.title = title;
   if (onClick) el.onclick = onClick;
+  if (hlKey) el.dataset.hl = hlKey;
   return el;
 };
 window.ganttHasLogPhoto = function(proj, stage, dateStr) {
@@ -5874,25 +5875,25 @@ function renderExecSegments(track, execDays, windowStart, windowEnd, totalDays, 
     const pct = (dayOffset(date) / totalDays) * 100;
 
     if (isRemote) {
-      const marker = window.ganttIconMarker('📶', null, 'tr', pct, `${date} 원격 (${stage})`, (e) => { e.stopPropagation(); onDayClick && onDayClick(date, stage); });
+      const marker = window.ganttIconMarker('📶', null, 'tr', pct, `${date} 원격 (${stage})`, (e) => { e.stopPropagation(); onDayClick && onDayClick(date, stage); }, `${hlPrefix}_${stage}`);
       track.appendChild(marker);
     }
     if (window.ganttHasLogPhoto(hlPrefix, stage, date)) {
-      const logMarker = window.ganttIconMarker('📷', null, 'br', pct, `${date} 로그 사진 있음`, (e) => { e.stopPropagation(); onDayClick && onDayClick(date, stage); });
+      const logMarker = window.ganttIconMarker('📷', null, 'br', pct, `${date} 로그 사진 있음`, (e) => { e.stopPropagation(); onDayClick && onDayClick(date, stage); }, `${hlPrefix}_${stage}`);
       track.appendChild(logMarker);
     }
   });
 }
 
 // 이슈 마커
-function renderIssueMarkers(track, dates, windowStart, windowEnd, totalDays, dayOffset, onClick) {
+function renderIssueMarkers(track, dates, windowStart, windowEnd, totalDays, dayOffset, onClick, hlPrefix) {
   const seen = new Set();
   dates.forEach(({ date, stage }) => {
     if (date < windowStart || date > windowEnd) return;
     if (seen.has(date)) return;
     seen.add(date);
     const pct = (dayOffset(date) / totalDays) * 100;
-    const marker = window.ganttIconMarker('🚨', null, 'tl', pct, `${date} 이슈 (${stage})`, (e) => { e.stopPropagation(); onClick && onClick(date, stage); });
+    const marker = window.ganttIconMarker('🚨', null, 'tl', pct, `${date} 이슈 (${stage})`, (e) => { e.stopPropagation(); onClick && onClick(date, stage); }, hlPrefix ? `${hlPrefix}_${stage}` : null);
     track.appendChild(marker);
   });
 }
@@ -5925,7 +5926,7 @@ function renderProjectBlock(proj, label, soloColor, segs, isClickable, onSegClic
   const isFocusActive = isClickable && window._macroFocusProjects.has(proj);
   projLabel.className = isClickable ? 'macro-proj-clickable' + (isFocusActive ? ' macro-proj-active' : '') : '';
   if (isClickable) projLabel.dataset.proj = proj;
-  projLabel.style.cssText = `width:34px; flex-shrink:0; position:sticky; left:0; z-index:2; background:${isFocusActive ? '#eff6ff' : '#fff'}; display:flex; align-items:stretch; color:${soloColor};`;
+  projLabel.style.cssText = `width:34px; flex-shrink:0; position:sticky; left:0; z-index:2; background:#fff; display:flex; align-items:stretch; color:${soloColor};`;
   if (isClickable) projLabel.onclick = () => { window.macroToggleFocusProject(proj); };
   const colorBar = document.createElement('div');
   colorBar.className = 'macro-proj-colorbar';
@@ -5987,7 +5988,7 @@ const { row: planRow, track: planTrack } = createSubRow('계획', false);
   } else {
     renderSolidDaySegments(execTrack, segs.execSegs, soloColor, windowStart, windowEnd, totalDays, dayOffset, onDayClick, proj);
   }
-  renderIssueMarkers(execTrack, segs.issueDates || [], windowStart, windowEnd, totalDays, dayOffset, onDayClick);
+  renderIssueMarkers(execTrack, segs.issueDates || [], windowStart, windowEnd, totalDays, dayOffset, onDayClick, proj);
 
   execRight.style.cssText += `font-size:10px; text-align:center; font-weight:700; color:${segs.statusColor || '#64748b'}; display:flex; align-items:center; justify-content:center;`;
   execRight.textContent = segs.statusText || '';
