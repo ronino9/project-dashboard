@@ -7766,33 +7766,79 @@ window.towerNavClick = function(code, group) {
 // ============================================================================
 // 🚀 J.A.R.V.I.S 관제탑 실시간 SYSTEM MONITOR KPI 계산 엔진
 // ============================================================================
-window.computeTowerSystemMonitor = function(code) {
+// ============================================================================
+// 🚀 J.A.R.V.I.S SYSTEM MONITOR 3단 계층(WORLD / COUNTRY / NODE) 실시간 연산 엔진
+// ============================================================================
+window.computeTowerSystemMonitor = function(target) {
   const _mpTypes = ['마스터플랜', '마스터메모', '마스터이슈'];
-  let hist = [];
   
-  if (code && code.startsWith('CP')) {
-    hist = ((allData.project1 && allData.project1.history) || []).filter(r => 
-      !code || code === 'CP_ALL' || (r['프로젝트 코드'] || '').toString().trim() === code
-    );
-  } else if (code && TOWER_PKEY_MAP[code]) {
+  // 1) 입력값이 단일 코드('OP8')인지, 프로젝트 배열(['OP8', 'OP7'])인지 감지하여 배열로 통일
+  const targetCodes = Array.isArray(target) ? target : [target];
+  const isMulti = targetCodes.length > 1;
+
+  let allUsableRows = [];
+  let totalPlanSum = 0, totalActualSum = 0;
+  let hottestWorkload = { code: '', pct: 0, stage: '' };
+  let overallSum = 0, overallCount = 0;
+
+  // 2) 대상 프로젝트들의 이력을 순회하며 합산 데이터 및 섹터 내 핫스팟 추출
+  targetCodes.forEach(code => {
+    let hist = [];
+    if (code && code.startsWith('CP')) {
+      hist = ((allData.project1 && allData.project1.history) || []).filter(r => 
+        !code || code === 'CP_ALL' || (r['프로젝트 코드'] || '').toString().trim() === code
+      );
+    } else if (code && TOWER_PKEY_MAP[code]) {
+      const pKey = TOWER_PKEY_MAP[code];
+      hist = (allData[pKey] && allData[pKey].history) || [];
+    }
+
+    const usable = hist.filter(r => !_mpTypes.includes((r['업무 구분'] || '').toString().trim()));
+    allUsableRows.push(...usable);
+
+    // 공수(WORKLOAD) 합산
+    let pPlan = 0, pActual = 0;
+    usable.forEach(r => {
+      const plan = parseFloat(r['예상 작업 시간(H)']) || 0;
+      const actual = parseFloat(r['작업 시간']) || 0;
+      if (plan > 0) { pPlan += plan; pActual += actual; }
+    });
+    totalPlanSum += pPlan;
+    totalActualSum += pActual;
+
+    // 공란 대비 summary.overall 평균 누적
     const pKey = TOWER_PKEY_MAP[code];
-    hist = (allData[pKey] && allData[pKey].history) || [];
-  }
+    const summary = (pKey && allData[pKey] && allData[pKey].summary) || {};
+    const ovPct = parseInt((summary.overall || '0').replace('%', '')) || 0;
+    overallSum += ovPct;
+    overallCount++;
 
-  // 대표행 및 공정 이력만 추출 (마스터플랜 등 제외)
-  const usableRows = hist.filter(r => !_mpTypes.includes((r['업무 구분'] || '').toString().trim()));
-  const totalCount = usableRows.length;
+    // 프로젝트별 소진율 계산 및 섹터 내 최고 위험 프로젝트(Hottest Node) 추적
+    const pWorkPct = pPlan > 0 ? Math.round((pActual / pPlan) * 100) : ovPct;
+    const stages = ['제작', 'FAT', 'SET-UP', 'SAT'];
+    const curStageIdx = stages.findIndex((_, i) => {
+      const v = summary.complete && summary.complete[i] !== undefined ? parseFloat(summary.complete[i]) : 0;
+      return v < 100;
+    });
+    const curStageName = curStageIdx !== -1 ? stages[curStageIdx] : 'SAT';
+
+    if (pWorkPct > hottestWorkload.pct) {
+      hottestWorkload = { code, pct: pWorkPct, stage: curStageName };
+    }
+  });
+
+  const totalCount = allUsableRows.length;
 
   // --------------------------------------------------------------------------
-  // 1) SCHEDULE (일정 준수율): (전체 - 지연 - 임박) ÷ 전체 × 100
+  // A) SCHEDULE (일정 준수율) - 섹터 전체 항목 합산
   // --------------------------------------------------------------------------
-  const delayCount = usableRows.filter(r => (r['진행상태'] || '') === '지연중').length;
-  const imminentCount = usableRows.filter(r => (r['진행상태'] || '') === '임박').length;
+  const delayCount = allUsableRows.filter(r => (r['진행상태'] || '') === '지연중').length;
+  const imminentCount = allUsableRows.filter(r => (r['진행상태'] || '') === '임박').length;
   const schedPct = totalCount > 0 
     ? Math.round(((totalCount - delayCount - imminentCount) / totalCount) * 100) 
     : 100;
   
-  let schedStatus = 'NORMAL', schedColor = '#22d3ee', schedSub = 'ON SCHEDULE';
+  let schedStatus = 'NORMAL', schedColor = '#22d3ee', schedSub = isMulti ? 'SECTOR ON SCHEDULE' : 'ON SCHEDULE';
   if (schedPct < 80) {
     schedStatus = 'WARNING'; schedColor = '#f87171'; schedSub = '⚠ DELAY ALERT';
   } else if (schedPct < 95) {
@@ -7800,60 +7846,33 @@ window.computeTowerSystemMonitor = function(code) {
   }
 
   // --------------------------------------------------------------------------
-  // 2) WORKLOAD (계획 대비 실행률 - 토탈 + 현재 단계 하이브리드)
+  // B) WORKLOAD (계획 대비 실행률) - 합산 공수 + 핫스팟 프로젝트 라벨링
   // --------------------------------------------------------------------------
-  let planSum = 0, actualSum = 0;
-  usableRows.forEach(r => {
-    const plan = parseFloat(r['예상 작업 시간(H)']) || 0;
-    const actual = parseFloat(r['작업 시간']) || 0;
-    if (plan > 0) { planSum += plan; actualSum += actual; }
-  });
-  
-  // 전체 누적 실행률 (예상시간 공란 시 summary.overall 참조 방어로직)
-  const pKey = TOWER_PKEY_MAP[code];
-  const summary = (pKey && allData[pKey] && allData[pKey].summary) || {};
-  let workloadPct = planSum > 0 
-    ? Math.round((actualSum / planSum) * 100) 
-    : parseInt((summary.overall || '0').replace('%', '')) || 0;
+  let workloadPct = totalPlanSum > 0 
+    ? Math.round((totalActualSum / totalPlanSum) * 100) 
+    : (overallCount > 0 ? Math.round(overallSum / overallCount) : 0);
 
-  // 💡 현재 진행 중인 단계(100% 미만 첫 단계)의 징후 감시
-  const stages = ['제작', 'FAT', 'SET-UP', 'SAT'];
-  const curStageIdx = stages.findIndex((_, i) => {
-    const v = summary.complete && summary.complete[i] !== undefined ? parseFloat(summary.complete[i]) : 0;
-    return v < 100;
-  });
-  const curStageName = curStageIdx !== -1 ? stages[curStageIdx] : 'SAT';
+  let workStatus = 'NORMAL', workColor = '#22d3ee';
+  let workSub = isMulti ? `SECTOR TOTAL // NORMAL` : `TOTAL MD // NORMAL`;
 
-  // 현재 단계 행들만 모아서 해당 단계 소진율 계산
-  let stagePlan = 0, stageActual = 0;
-  usableRows.filter(r => (r['단계 구분'] || '') === curStageName).forEach(r => {
-    const plan = parseFloat(r['예상 작업 시간(H)']) || 0;
-    const actual = parseFloat(r['작업 시간']) || 0;
-    if (plan > 0) { stagePlan += plan; stageActual += actual; }
-  });
-  const stageWorkloadPct = stagePlan > 0 ? Math.round((stageActual / stagePlan) * 100) : 0;
-
-  let workStatus = 'NORMAL', workColor = '#22d3ee', workSub = 'TOTAL MD // NORMAL';
-  // 전체 기준 색상 판정
-  if (workloadPct > 120) {
+  // 전체 또는 소속 프로젝트 중 하나라도 예산이 크게 넘쳤는지 검사
+  if (workloadPct > 120 || hottestWorkload.pct > 120) {
     workStatus = 'WARNING'; workColor = '#f87171';
-  } else if (workloadPct > 100) {
+    workSub = isMulti 
+      ? `⚠ ${hottestWorkload.code}: ${hottestWorkload.pct}% HOT` 
+      : `⚠ ${hottestWorkload.stage}: ${hottestWorkload.pct}% HOT`;
+  } else if (workloadPct > 100 || hottestWorkload.pct > 100) {
     workStatus = 'CAUTION'; workColor = '#facc15';
-  }
-  // 하단 서브 텍스트는 현재 단계 위험 시 최우선 표시!
-  if (stageWorkloadPct > 120) {
-    workSub = `⚠ ${curStageName}: ${stageWorkloadPct}% HOT`;
-    if (workStatus !== 'WARNING') workColor = '#f87171'; // 단계가 심각하면 링도 경고색으로
-    workStatus = 'WARNING';
-  } else if (stageWorkloadPct > 100) {
-    workSub = `CAUTION: ${curStageName} ${stageWorkloadPct}%`;
+    workSub = isMulti 
+      ? `CAUTION: ${hottestWorkload.code} ${hottestWorkload.pct}%` 
+      : `CAUTION: ${hottestWorkload.stage} ${hottestWorkload.pct}%`;
   }
 
   // --------------------------------------------------------------------------
-  // 3) REWORK (재작업률 - 낮을수록 좋음, 색상 반전)
+  // C) REWORK (재작업률) - 섹터 전체 품질 통계
   // --------------------------------------------------------------------------
   const isExtFactor = (r) => !!(r['외부요인'] && r['외부요인'] !== '해당없음');
-  const repRows = usableRows.filter(r => r._isRep !== false && !isExtFactor(r));
+  const repRows = allUsableRows.filter(r => r._isRep !== false && !isExtFactor(r));
   const reworkCnt = repRows.filter(r => (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase() === 'Y').length;
   const reworkPct = repRows.length > 0 ? Math.round((reworkCnt / repRows.length) * 100) : 0;
 
@@ -7865,19 +7884,19 @@ window.computeTowerSystemMonitor = function(code) {
   }
 
   // --------------------------------------------------------------------------
-  // 4) 하단 3줄 상태값 (TELEMETRY)
+  // D) TELEMETRY (관제 상태 3줄)
   // --------------------------------------------------------------------------
   const syncTimeStr = window._lastSyncTime 
     ? window._lastSyncTime.toTimeString().slice(0, 8) 
     : 'ONLINE';
   
-  const issueCnt = usableRows.filter(r => (r['업무 구분'] || '') === 'Issue').length;
+  const issueCnt = allUsableRows.filter(r => (r['업무 구분'] || '') === 'Issue').length;
   const pendingTotal = delayCount + issueCnt;
   const pendingText = pendingTotal === 0 ? '0 ISSUES' : `${delayCount} DELAYED`;
   const pendingColor = pendingTotal === 0 ? '#4ade80' : '#f87171';
   const pendingBlink = pendingTotal > 0 ? 'towerHudBlink' : 'none';
 
-  const holdCount = usableRows.filter(r => (r['진행상태'] || '') === '보류').length;
+  const holdCount = allUsableRows.filter(r => (r['진행상태'] || '') === '보류').length;
   const integrityText = holdCount === 0 ? 'SECURE' : `${holdCount} ON HOLD`;
   const integrityColor = holdCount === 0 ? '#4ade80' : '#facc15';
 
@@ -7994,7 +8013,14 @@ window.renderTowerCards = function(group, activeCode) {
     }).join('');
     stageHtml = `<div class="hud-stage-track"><div class="hud-stage-inner"><div class="hud-stage-line"></div><div class="hud-stage-grid">${nodesHtml}</div></div></div>`;
   }
-  const sysMon = window.computeTowerSystemMonitor(firstCode);
+  // 1) 국가 선택 시에는 소속 프로젝트 배열(group.projects), 프로젝트 콕 찍었을 땐 해당 코드(activeCode) 전달
+  const monitorTarget = activeCode ? activeCode : group.projects;
+  const sysMon = window.computeTowerSystemMonitor(monitorTarget);
+
+  // 2) 관제 모니터 헤더도 SECTOR / NODE로 직관적 구분
+  const monitorHeaderTitle = activeCode 
+    ? `SYSTEM MONITOR // NODE: ${activeCode}` 
+    : `SYSTEM MONITOR // SECTOR: ${(group.country || 'GLOBAL').toUpperCase()}`;
 
   const buildSvgDial = (kpi, label) => {
     const dashVal = Math.min(Math.max(kpi.val, 0), 100) * 0.88;
@@ -8062,7 +8088,7 @@ window.renderTowerCards = function(group, activeCode) {
     </div>
 
     <div class="hud-panel">
-      <div class="hud-panel-title">SYSTEM MONITOR // ${firstCode}</div>
+      <div class="hud-panel-title">${monitorHeaderTitle}</div>
       <div class="hud-monitor-row" style="padding: 6px 10px 10px;">
         ${buildSvgDial(sysMon.schedule, 'SCHEDULE')}
         ${buildSvgDial(sysMon.workload, 'WORKLOAD')}
