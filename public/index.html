@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  
   <style>
     /* PDCA 현황 / 프로젝트 현황 버튼 Hover 애니메이션 */
 #btn-main-pdca:hover, #btn-main-project:hover {
@@ -1757,6 +1758,36 @@
 .hud-gauge-ring {
   transition: stroke-dasharray 0.85s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.3s ease;
 }
+    /* =========================================================
+       👇 J.A.R.V.I.S TARGET LOCK-ON ANIMATION 👇
+       ========================================================= */
+    @keyframes lockonSpin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(90deg); }
+    }
+    @keyframes lockonPulse {
+      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; border-width: 4px; }
+      100% { transform: translate(-50%, -50%) scale(3.5); opacity: 0; border-width: 1px; }
+    }
+    .global-lockon-target {
+      position: absolute; top: 50%; left: 50%;
+      width: 70px; height: 70px; transform: translate(-50%, -50%);
+      border: 2px dashed #f87171; border-radius: 50%;
+      animation: lockonSpin 2s linear infinite;
+      box-shadow: 0 0 15px rgba(248, 113, 113, 0.5), inset 0 0 10px rgba(248, 113, 113, 0.5);
+    }
+    .global-lockon-pulse {
+      position: absolute; top: 50%; left: 50%;
+      width: 70px; height: 70px; transform: translate(-50%, -50%);
+      border: 2px solid #ef4444; border-radius: 50%;
+      animation: lockonPulse 1.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+    .global-lockon-center {
+      position: absolute; top: 50%; left: 50%;
+      width: 10px; height: 10px; background: #ef4444; border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 12px #ef4444, 0 0 24px #ef4444;
+    }
   </style>
 </head>
 <body>
@@ -7700,25 +7731,23 @@ window.renderTowerDefaultState = function() {
     </div>
   `;
 };
-      // ============================================================================
-// 🚀 PERSONNEL LOCATOR (타겟 최신 로그 역추적 및 물리적 위치 추정 엔진)
+// ============================================================================
+// 🚀 PERSONNEL LOCATOR (글로벌 락온 & 도시 강하 시퀀스)
 // ============================================================================
 window.locateTargetEngineer = function(targetName) {
   const statusEl = document.getElementById('target-scan-status');
   if (statusEl) {
     statusEl.style.opacity = 1;
-    statusEl.textContent = `SCANNING LOGS FOR ${targetName}...`;
+    statusEl.textContent = `SCANNING GLOBAL NETWORK FOR [${targetName}]...`;
   }
 
-  // 1. 전체 데이터에서 가장 최근 접수일(작업일)을 가진 로그 찾기
-  // (실제 적용 시 r['담당자'] === targetName 조건 추가 가능)
+  // 1. 타겟의 최신 로그 역추적
   const allLogs = (window.allMasterData || []).filter(r => r['접수일']);
   if (allLogs.length === 0) {
     if (statusEl) statusEl.textContent = 'NO DATA FOUND';
     return;
   }
   
-  // 날짜 기준 내림차순 정렬 후 최신 로그 1개 획득
   allLogs.sort((a, b) => {
     const dA = a['접수일'].toString().replace(/[./]/g, '-');
     const dB = b['접수일'].toString().replace(/[./]/g, '-');
@@ -7731,54 +7760,79 @@ window.locateTargetEngineer = function(targetName) {
   const responseType = latestLog['대응 구분'] || '';
   const taskTitle = latestLog['표준 제작 Item / Issue / 개선사항'] || latestLog['제목'] || '알 수 없는 작업';
 
-  // 2. 물리적 위치 판정 (원격 vs 현장)
+  // 2. 물리적 위치 판정 (원격 = 동탄 HQ / 출장 = 현장)
   let targetCountry = '대한민국';
-  let targetCity = '동탄'; // 본진(HQ) 기본값
+  let targetCity = '동탄';
   let isRemote = responseType.includes('원격');
 
-  // '현장' 작업일 경우 해당 프로젝트의 발주처 위치로 오버라이드
   if (!isRemote) {
     const towerInfo = (allData.controlTower && allData.controlTower[projCode]) || {};
     targetCountry = towerInfo.country || '대한민국';
     targetCity = towerInfo.city || '동탄';
   }
 
-  // 3. J.A.R.V.I.S UI 애니메이션 & 비행 (FlyTo)
-  if (statusEl) statusEl.textContent = 'TARGET ACQUIRED. INITIATING FLY-TO...';
-  towerSetHudLocation('TRACKING TARGET UPLINK...');
-
   const coords = getTowerCoords(targetCountry, targetCity) || getTowerCoords('대한민국', '동탄');
   const normCountry = towerNormalize(targetCountry, TOWER_COUNTRY_ALIAS);
   const normCity = towerNormalize(targetCity, TOWER_CITY_ALIAS);
   const locString = `${(TOWER_COUNTRY_EN[normCountry] || normCountry).toUpperCase()} - ${(TOWER_CITY_EN[normCity] || normCity).toUpperCase()}`;
 
+  // ==========================================================================
+  // 🎬 [Phase 1] 글로벌 스캔 및 락온 (Lock-on)
+  // ==========================================================================
+  towerSetHudLocation('GLOBAL SATELLITE SCAN...');
+  
   if (towerMapInstance) {
-    // 줌 레벨을 국가가 아닌 '도시' 수준(줌 레벨 8)으로 깊게 들어감
-    towerMapInstance.flyTo(coords, 8, { duration: 1.8, easeLinearity: 0.25 });
+    towerMapInstance.setMinZoom(0);
+    towerMapInstance.flyTo([30, 115], 3, { duration: 1.0 }); // 글로벌 시야
     
-    // 비행이 끝날 때쯤 HUD 데이터 자동 스위칭
     setTimeout(() => {
-      if (statusEl) statusEl.style.opacity = 0;
-      towerSetHudLocation(`LOCATED : ${locString}`);
-
-      // 가상의 그룹 객체를 만들어 프로젝트 디테일 패널 렌더링
-      const tempGroup = { country: targetCountry, city: targetCity, projects: [projCode] };
-      window.renderTowerCards(tempGroup, projCode);
-
-      // HUD 내 설명(Desc) 박스를 타겟 브리핑 포맷으로 덮어쓰기!
-      const descEl = document.querySelector('.hud-desc');
-      if (descEl) {
-        descEl.innerHTML = `
-          <div style="margin-bottom:4px;"><span style="color:#4ade80;">[TARGET IDENTIFIED]</span> <b>${targetName}</b></div>
-          <div style="margin-bottom:4px;"><span style="color:#38bdf8;">[PHYSICAL LOC]</span> ${locString} <span style="background:${isRemote ? '#0f766e' : '#b45309'}; color:#fff; padding:1px 4px; border-radius:2px; font-size:9px;">${isRemote ? 'HQ (REMOTE)' : 'ON-SITE'}</span></div>
-          <div><span style="color:#94a3b8;">[LATEST ACTION]</span> ${projCode} ${stage} - ${taskTitle.substring(0, 18)}...</div>
-        `;
-      }
+      // 십자선 마커 생성
+      const lockonIcon = L.divIcon({
+        className: '',
+        html: `<div style="position:relative; width:0; height:0;">
+                 <div class="global-lockon-pulse"></div>
+                 <div class="global-lockon-target"></div>
+                 <div class="global-lockon-center"></div>
+               </div>`,
+        iconSize: [0, 0]
+      });
+      const lockonMarker = L.marker(coords, { icon: lockonIcon, zIndexOffset: 9999 }).addTo(towerMapInstance);
       
-      // 타겟 주변으로 핑(점멸) 효과
-      setTimeout(() => window.towerBlinkCountryCities(normCountry), 300);
+      if (statusEl) statusEl.textContent = `TARGET LOCKED : ${locString}`;
+      towerSetHudLocation(`LOCK-ON : ${locString}`);
 
-    }, 1800);
+      // ==========================================================================
+      // 🎬 [Phase 2] 도시로 강하 (City Dive) 및 데이터 렌더링
+      // ==========================================================================
+      setTimeout(() => {
+        if (statusEl) statusEl.textContent = 'INITIATING DIVE SEQUENCE...';
+        towerSetHudLocation('DIVING TO TARGET...');
+        
+        towerMapInstance.flyTo(coords, 8, { duration: 1.8, easeLinearity: 0.25 });
+        
+        setTimeout(() => {
+          towerMapInstance.removeLayer(lockonMarker); // 십자선 제거
+          if (statusEl) statusEl.style.opacity = 0;
+          towerSetHudLocation(`LOCATED : ${locString}`);
+
+          const tempGroup = { country: targetCountry, city: targetCity, projects: [projCode] };
+          window.renderTowerCards(tempGroup, projCode);
+
+          const descEl = document.querySelector('.hud-desc');
+          if (descEl) {
+            descEl.innerHTML = `
+              <div style="margin-bottom:4px;"><span style="color:#4ade80;">[TARGET IDENTIFIED]</span> <b style="color:#fff;">${targetName}</b></div>
+              <div style="margin-bottom:4px;"><span style="color:#38bdf8;">[PHYSICAL LOC]</span> ${locString} <span style="background:${isRemote ? '#0f766e' : '#b45309'}; color:#fff; padding:1px 5px; border-radius:2px; font-size:9px;">${isRemote ? 'HQ (REMOTE)' : 'ON-SITE'}</span></div>
+              <div><span style="color:#94a3b8;">[LATEST ACTION]</span> ${projCode} ${stage} - ${taskTitle.substring(0, 18)}...</div>
+            `;
+          }
+          
+          setTimeout(() => window.towerBlinkCountryCities(normCountry), 300);
+
+        }, 1800);
+      }, 2200);
+
+    }, 1000);
   }
 };
     window.towerBreadcrumbWorld = function() {
