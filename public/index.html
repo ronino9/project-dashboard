@@ -7649,7 +7649,7 @@ window.renderTowerDefaultState = function() {
   if (typeof window.renderTowerMacroTimeline === 'function') window.renderTowerMacroTimeline(null);
 
   const towerData = allData.controlTower || {};
-  const codes = Object.keys(towerData).filter(c => c !== 'ETC');
+  const codes = Object.keys(towerData);
 
   // 1. 글로벌 KPI
   let delayCount = 0;
