@@ -1257,9 +1257,9 @@
       --map-tint2: #5eead4;
       --map-op1: 0.35;
       --map-op2: 0.5;
-      --map-op-mult: 1; /* 농도 조절용 배수 */
-      --map-brightness: 3;
-      --map-contrast: 1.15;
+      --map-op-mult: 2; /* 농도 조절용 배수 */
+      --map-brightness: 4;
+      --map-contrast: 2.5;
     }
 
     /* 3. 지도 틴트 샌드위치 (농도 슬라이더 연동) */
@@ -2998,18 +2998,18 @@ window.renderDeviationTrendTest = function() {
                 </select>
                 
                 <div style="display:flex; flex-direction:column; gap:2px;">
-                  <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8; font-weight:600;"><span>밝기 (Brightness)</span><span id="val-br" style="color:#67e8f9; font-family:monospace;">3.00</span></div>
-                  <input type="range" id="map-slider-br" class="hud-slider" min="0.2" max="4.0" step="0.1" value="3.0" oninput="window.updateMapSlider('brightness', this.value)">
+                  <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8; font-weight:600;"><span>밝기 (Brightness)</span><span id="val-br" style="color:#67e8f9; font-family:monospace;">4.00</span></div>
+                  <input type="range" id="map-slider-br" class="hud-slider" min="0.2" max="4.0" step="0.1" value="4.0" oninput="window.updateMapSlider('brightness', this.value)">
                 </div>
                 
                 <div style="display:flex; flex-direction:column; gap:2px;">
-                  <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8; font-weight:600;"><span>대비 (Contrast)</span><span id="val-ct" style="color:#67e8f9; font-family:monospace;">1.15</span></div>
-                  <input type="range" id="map-slider-ct" class="hud-slider" min="0.5" max="2.5" step="0.05" value="1.15" oninput="window.updateMapSlider('contrast', this.value)">
+                  <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8; font-weight:600;"><span>대비 (Contrast)</span><span id="val-ct" style="color:#67e8f9; font-family:monospace;">2.50</span></div>
+                  <input type="range" id="map-slider-ct" class="hud-slider" min="0.5" max="2.5" step="0.05" value="2.5" oninput="window.updateMapSlider('contrast', this.value)">
                 </div>
                 
                 <div style="display:flex; flex-direction:column; gap:2px;">
-                  <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8; font-weight:600;"><span>필터 농도 (Tint)</span><span id="val-op" style="color:#67e8f9; font-family:monospace;">100%</span></div>
-                  <input type="range" id="map-slider-op" class="hud-slider" min="0" max="2" step="0.1" value="1" oninput="window.updateMapSlider('opacity', this.value)">
+                  <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8; font-weight:600;"><span>필터 농도 (Tint)</span><span id="val-op" style="color:#67e8f9; font-family:monospace;">200%</span></div>
+                  <input type="range" id="map-slider-op" class="hud-slider" min="0" max="2" step="0.1" value="2" oninput="window.updateMapSlider('opacity', this.value)">
                 </div>
               </div>
               <div id="tower-map">
@@ -10061,7 +10061,7 @@ window.changeMapBase = function(theme, isInit) {
 
   if (theme === 'dark_all') {
     url = 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png';
-    bVal = 3.0; cVal = 1.15;
+    bVal = 4.0; cVal = 2.5;
   } else if (theme === 'light_all') {
     url = 'https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png';
     bVal = 0.95; cVal = 1.0;
