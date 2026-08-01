@@ -1340,11 +1340,11 @@
     .jd-t1-ring-inner { position:absolute; inset:38px; border-radius:50%; border:1px solid rgba(103,232,249,0.2); }
     .jd-t1-ring-smile { position:absolute; inset:50px; border-radius:50%; border:3px solid transparent; border-bottom-color:#67e8f9; }
     .jd-t1-text { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; margin-top:-5px; }
-    .jd-t1-text .jd-t1-month { font-family:'Share Tech Mono', monospace; font-size:17px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; margin-bottom:-1px; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6), 0 0 10px rgba(103,232,249,0.6); }
-    .jd-t1-text .jd-t1-day { font-family:'Share Tech Mono', monospace; font-size:34px; font-weight:700; line-height:1; letter-spacing:1px; color:#67e8f9; text-shadow:0 0 3px rgba(103,232,249,0.7); }
+   .jd-t1-text .jd-t1-month { font-family:'Orbitron', sans-serif; font-size:16px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; margin-bottom:-1px; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6), 0 0 10px rgba(103,232,249,0.6); }
+    .jd-t1-text .jd-t1-day { font-family:'Orbitron', sans-serif; font-size:32px; font-weight:700; line-height:1; letter-spacing:1px; color:#67e8f9; text-shadow:0 0 3px rgba(103,232,249,0.7); }
     .jd-t1-clock-block { margin-top:12px; text-align:left; }
-    .jd-t1-clock-block .jd-t1-clock { font-family:'Share Tech Mono', monospace; font-size:14px; font-weight:700; letter-spacing:2px; border-bottom:1px solid rgba(103,232,249,0.2); padding-bottom:4px; display:inline-block; color:#67e8f9; text-shadow:0 0 2px rgba(103,232,249,0.6); }
-    .jd-t1-clock-block .jd-t1-day-str { font-family:'Share Tech Mono', monospace; font-size:13px; font-weight:700; margin-top:5px; letter-spacing:1.5px; text-transform:uppercase; color:#67e8f9; text-shadow:0 0 2px rgba(103,232,249,0.4); }
+    .jd-t1-clock-block .jd-t1-clock { font-family:'Orbitron', sans-serif; font-size:13px; font-weight:700; letter-spacing:1.5px; border-bottom:1px solid rgba(103,232,249,0.2); padding-bottom:4px; display:inline-block; color:#67e8f9; text-shadow:0 0 2px rgba(103,232,249,0.6); }
+    .jd-t1-clock-block .jd-t1-day-str { font-family:'Share Tech Mono', monospace; font-size:12px; font-weight:700; margin-top:5px; letter-spacing:1.5px; text-transform:uppercase; color:rgba(103,232,249,0.75); text-shadow:0 0 2px rgba(103,232,249,0.4); }
     @keyframes jdPlaybackBlink {
       0%, 100% { opacity:1; text-shadow:0 0 6px rgba(103,232,249,0.7); }
       50% { opacity:0.45; text-shadow:none; }
@@ -1421,8 +1421,8 @@
   animation: spinBladeHUD 2.5s linear infinite reverse; /* 작은 아이콘은 반대 방향으로 살짝 빠르게 회전 */
 }
     .jd-capacity-row { display:flex; align-items:center; gap:10px; margin-bottom:6px; color:#67e8f9; }
-    .jd-capacity-row .jd-cap-label { font-family:'Orbitron', sans-serif; font-size:10px; font-weight:700; letter-spacing:0.3px; }
-    .jd-capacity-row .jd-cap-label b { font-size:12px; font-weight:900; }
+    .jd-capacity-row .jd-cap-label { font-family:'Share Tech Mono', monospace; font-size:10.5px; font-weight:700; letter-spacing:0.8px; }
+    .jd-capacity-row .jd-cap-label b { font-family:'Orbitron', sans-serif; font-size:11px; font-weight:700; letter-spacing:0.5px; }
     .jd-primary-storage-row { font-family:'Orbitron', sans-serif; display:flex; justify-content:space-between; align-items:center; font-size:8.5px; font-weight:700; letter-spacing:0.5px; color:rgba(103,232,249,0.5); padding-left:30px; margin-bottom:6px; }
     .jd-capacity-bar-wrap { margin-top:8px; }
     .jd-capacity-bar { position:relative; width:100%; height:6px; background:rgba(103,232,249,0.1); border-radius:2px; overflow:hidden; }
@@ -1457,15 +1457,15 @@
     .jd-win-logo { width:34px; height:34px; flex-shrink:0; filter:drop-shadow(0 0 6px rgba(103,232,249,0.6)); }
     .jd-resource-block, .jd-emergency-block { margin-bottom:20px; }
     .jd-block-title { font-family:'Orbitron', sans-serif; font-size:10px; font-weight:700; letter-spacing:0.5px; opacity:0.85; margin-bottom:10px; display:flex; align-items:center; gap:8px; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
-    .jd-item-list { display:flex; flex-direction:column; gap:8px; padding-left:26px; font-size:13px; color:#67e8f9; }
+    .jd-item-list { display:flex; flex-direction:column; gap:8px; padding-left:26px; font-family:'Share Tech Mono', monospace; font-size:12.5px; letter-spacing:0.5px; color:#67e8f9; }
     .jd-item-list .jd-item { display:flex; align-items:center; gap:8px; cursor:pointer; }
     .jd-item-list .jd-item:hover { text-shadow:0 0 5px rgba(103,232,249,0.6); }
     .jd-item-list.emergency .jd-item { font-weight:700; }
     .jd-tier3-row { display:flex; align-items:flex-start; gap:16px; }
     .jd-tier3-text-col { flex:0 0 auto; }
     .jd-donut-col-3 { display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:20px; margin-top:4px; }
-    .jd-sd-text .jd-val1 { font-size:15px; font-weight:700; }
-    .jd-sd-text .jd-val2 { font-size:13px; opacity:0.6; }
+    .jd-sd-text .jd-val1 { font-family:'Orbitron', sans-serif; font-size:14px; font-weight:700; }
+    .jd-sd-text .jd-val2 { font-family:'Share Tech Mono', monospace; font-size:12px; opacity:0.6; }
     .jd-stats-donut { position:relative; width:110px; height:110px; flex-shrink:0; }
     .jd-stats-donut-svg { position:absolute; inset:0; }
     .jd-sd-text { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
