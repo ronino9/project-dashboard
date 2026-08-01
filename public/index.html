@@ -1333,15 +1333,76 @@
     .jarvis-deco .jd-circles { position:absolute; bottom:6px; left:0; display:flex; flex-direction:column; gap:5px; }
     .jarvis-deco .jd-circle { width:10px; height:10px; border-left:1.5px solid #67e8f9; border-right:1.5px solid #67e8f9; border-top:1.5px solid transparent; border-bottom:1.5px solid transparent; border-radius:50%; box-shadow:0 0 4px rgba(103,232,249,0.5), inset 0 0 4px rgba(103,232,249,0.5); }
     .jd-tier1 { position:relative; z-index:10; margin-left:50px; margin-bottom:20px; width:auto; display:flex; align-items:flex-start; gap:12px; }
+    /* =========================================================
+       ✨ 왼쪽 메인 도넛 (날짜) 글로우 강화
+       ========================================================= */
+    .jd-tier1 { position:relative; z-index:10; margin-left:50px; margin-bottom:20px; width:auto; display:flex; align-items:flex-start; gap:12px; }
     .jd-tier1-donut { position:relative; width:170px; height:170px; }
-    .jd-t1-ring-outer { position:absolute; inset:0; border-radius:50%; border:4px solid #67e8f9; box-shadow:0 0 10px rgba(103,232,249,0.6); }
-    .jd-t1-ring-mid { position:absolute; inset:8px; border-radius:50%; border:4px solid rgba(103,232,249,0.5); }
-    .jd-t1-ring-thick { position:absolute; inset:16px; border-radius:50%; border:16px solid transparent; border-right-color:#67e8f9; border-bottom-color:#67e8f9; transform:rotate(-15deg); }
-    .jd-t1-ring-inner { position:absolute; inset:38px; border-radius:50%; border:1px solid rgba(103,232,249,0.2); }
-    .jd-t1-ring-smile { position:absolute; inset:50px; border-radius:50%; border:3px solid transparent; border-bottom-color:#67e8f9; }
+    
+    /* 제일 바깥 얇은 링: 안쪽과 바깥쪽 모두 은은하게 빛이 번지도록 설정 */
+    .jd-t1-ring-outer { 
+      position:absolute; inset:0; border-radius:50%; 
+      border:3px solid #67e8f9; 
+      box-shadow: 0 0 14px rgba(103,232,249,0.5), inset 0 0 10px rgba(103,232,249,0.3); 
+    }
+    
+    /* 중간 점선 링: 자체적인 그림자(drop-shadow)를 부여해 홀로그램 느낌 강조 */
+    .jd-t1-ring-mid { 
+      position:absolute; inset:8px; border-radius:50%; 
+      border:3px dashed rgba(103,232,249,0.4); 
+      filter: drop-shadow(0 0 6px rgba(103,232,249,0.6));
+    }
+    
+    /* 두꺼운 궤적 링: 투명도를 조절하고 강한 글로우 부여 */
+    .jd-t1-ring-thick { 
+      position:absolute; inset:16px; border-radius:50%; 
+      border:14px solid transparent; 
+      border-right-color: rgba(103,232,249,0.7); 
+      border-bottom-color: rgba(103,232,249,0.7); 
+      transform:rotate(-15deg); 
+      filter: drop-shadow(0 0 8px rgba(103,232,249,0.6));
+    }
+    
+    /* 안쪽 얇은 링 */
+    .jd-t1-ring-inner { 
+      position:absolute; inset:38px; border-radius:50%; 
+      border:1px solid rgba(103,232,249,0.2); 
+    }
+    
+    /* 하단 스마일 링 (포인트) */
+    .jd-t1-ring-smile { 
+      position:absolute; inset:50px; border-radius:50%; 
+      border:3px solid transparent; 
+      border-bottom-color: #67e8f9; 
+      filter: drop-shadow(0 0 6px #67e8f9);
+    }
+    
+    /* 중앙 텍스트: 빛이 퍼져나가는 듯한 다중 text-shadow 적용 */
     .jd-t1-text { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; margin-top:-5px; }
-   .jd-t1-text .jd-t1-month { font-family:'Orbitron', sans-serif; font-size:16px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; margin-bottom:-1px; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6), 0 0 10px rgba(103,232,249,0.6); }
-    .jd-t1-text .jd-t1-day { font-family:'Orbitron', sans-serif; font-size:32px; font-weight:700; line-height:1; letter-spacing:1px; color:#67e8f9; text-shadow:0 0 3px rgba(103,232,249,0.7); }
+    .jd-t1-text .jd-t1-month { font-family:'Orbitron', sans-serif; font-size:16px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; margin-bottom:-1px; color:#ffffff; text-shadow:0 0 8px #67e8f9, 0 0 16px rgba(103,232,249,0.5); }
+    .jd-t1-text .jd-t1-day { font-family:'Orbitron', sans-serif; font-size:32px; font-weight:700; line-height:1; letter-spacing:1px; color:#ffffff; text-shadow:0 0 12px #67e8f9, 0 0 24px rgba(103,232,249,0.6); }
+    
+    /* =========================================================
+       ✨ 왼쪽 서브 도넛 (전력/100% 게이지) 글로우 강화
+       ========================================================= */
+    .jd-power-donut { position:relative; width:100px; height:100px; }
+    .jd-pd-ring-outer { position:absolute; inset:0; border-radius:50%; border:2px solid rgba(103,232,249,0.2); box-shadow: inset 0 0 8px rgba(103,232,249,0.1); }
+    .jd-pd-ring-mid { position:absolute; inset:6px; border-radius:50%; border:10px solid rgba(103,232,249,0.15); }
+    
+    /* 채워진 게이지(Progress)에 강한 네온 필터 적용 */
+    .jd-pd-ring-progress { 
+      position:absolute; inset:21px; border-radius:50%; 
+      border:5px solid transparent; 
+      border-top-color: #67e8f9; 
+      border-right-color: #67e8f9; 
+      transform:rotate(-45deg); 
+      filter: drop-shadow(0 0 6px #67e8f9); 
+    }
+    
+    /* 텍스트 발광 효과 */
+    .jd-pd-text { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#ffffff; text-shadow:0 0 8px #67e8f9; }
+    .jd-pd-percent { font-family:'Orbitron', sans-serif; font-size:13px; font-weight:700; }
+    .jd-pd-sub { font-family:'Share Tech Mono', monospace; font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#67e8f9; opacity:0.8; margin-top:1px; }
     .jd-t1-clock-block { margin-top:12px; text-align:left; }
     .jd-t1-clock-block .jd-t1-clock { font-family:'Orbitron', sans-serif; font-size:13px; font-weight:700; letter-spacing:1.5px; border-bottom:1px solid rgba(103,232,249,0.2); padding-bottom:4px; display:inline-block; color:#67e8f9; text-shadow:0 0 2px rgba(103,232,249,0.6); }
     .jd-t1-clock-block .jd-t1-day-str { font-family:'Share Tech Mono', monospace; font-size:12px; font-weight:700; margin-top:5px; letter-spacing:1.5px; text-transform:uppercase; color:rgba(103,232,249,0.75); text-shadow:0 0 2px rgba(103,232,249,0.4); }
