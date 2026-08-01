@@ -2962,10 +2962,10 @@ window.renderDeviationTrendTest = function() {
   <!-- 모든 링을 하나의 SVG로 렌더링 (JS 제어 및 정밀도 향상) -->
   <svg width="170" height="170" viewBox="0 0 170 170" style="position:absolute; inset:0; transform: rotate(-90deg);">
     <!-- 1. 바깥 테두리 링 (은은한 글로우) -->
-    <circle cx="85" cy="85" r="83" fill="none" stroke="rgba(34, 211, 238, 0.3)" stroke-width="2" style="filter: drop-shadow(0 0 6px rgba(34,211,238,0.4));"/>
+    <circle cx="85" cy="85" r="83" fill="none" stroke="rgba(34, 211, 238, 0.75)" stroke-width="3" style="filter: drop-shadow(0 0 6px rgba(34,211,238,0.4));"/>
     
     <!-- 2. 중간 실선 링 (기존 점선 -> 매끄러운 유리 패널 느낌의 얇은 실선으로 변경) -->
-    <circle cx="85" cy="85" r="74" fill="none" stroke="rgba(34, 211, 238, 0.4)" stroke-width="1.5"/>
+    <circle cx="85" cy="85" r="74" fill="none" stroke="rgba(34, 211, 238, 0.45)" stroke-width="2"/>
 
     <!-- 3. 두꺼운 일(Day) 게이지 배경 -->
     <circle cx="85" cy="85" r="60" fill="none" stroke="rgba(34, 211, 238, 0.1)" stroke-width="14"/>
@@ -8858,6 +8858,7 @@ window.jdFormatLiveClock = function() {
   if (dayStrEl) dayStrEl.textContent = now.toLocaleDateString('en-US', { weekday: 'long' });
   if (monthEl) monthEl.textContent = now.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
   if (dayNumEl) dayNumEl.textContent = now.getDate();
+  window.updateJarvisDateGauges(now);
 };
 
 window.jdSetPlaybackMode = function(isPlaying) {
