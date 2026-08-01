@@ -1802,6 +1802,45 @@
       animation: hudLockonPulse 1.5s cubic-bezier(0.16, 1, 0.3, 1) infinite;
       pointer-events: none;
     }
+    /* =========================================================
+       👇 PROJECT DOSSIER 모달 (자비스탭 프로젝트 정보) 👇
+       ========================================================= */
+    #projectDossierModal { display:none; position:fixed; inset:0; background:rgba(2,6,23,0.78); z-index:10002; align-items:center; justify-content:center; padding:20px; opacity:0; transition:opacity 0.2s ease; backdrop-filter:blur(2px); }
+    #projectDossierModal.active { display:flex; opacity:1; }
+    .pdm-box { width:320px; max-width:92vw; background:#0a1628; border:1px solid rgba(245,208,97,0.5); border-top:2px solid #f5d061; padding:16px 18px 14px; font-family:'Share Tech Mono', monospace; clip-path:polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px)); box-shadow:0 12px 40px rgba(0,0,0,0.6); transform:scale(0.96); transition:transform 0.22s cubic-bezier(0.16,1,0.3,1); }
+    #projectDossierModal.active .pdm-box { transform:scale(1); }
+    .pdm-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .pdm-head-title { font-family:'Orbitron', sans-serif; font-size:10px; color:#f5d061; letter-spacing:2px; }
+    .pdm-close { cursor:pointer; color:#64748b; font-size:13px; font-weight:700; transition:color 0.15s ease, transform 0.15s ease; }
+    .pdm-close:hover { color:#f5d061; transform:scale(1.15); }
+    .pdm-code { font-family:'Orbitron', sans-serif; font-size:18px; color:#fff; letter-spacing:2px; padding-bottom:8px; border-bottom:1px solid rgba(245,208,97,0.3); text-shadow:0 0 10px rgba(245,208,97,0.5); }
+    .pdm-grid { display:grid; grid-template-columns:86px 1fr; gap:7px 10px; font-size:11px; margin-top:11px; }
+    .pdm-grid .lbl { color:#0891b2; letter-spacing:0.5px; }
+    .pdm-grid .val { color:#e2e8f0; text-align:right; word-break:break-all; }
+    .pdm-memo { margin-top:11px; padding-top:9px; border-top:1px solid rgba(34,211,238,0.2); }
+    .pdm-memo-lbl { color:#0891b2; font-size:9px; letter-spacing:1.5px; margin-bottom:4px; }
+    .pdm-memo-txt { color:#94a3b8; font-size:11px; line-height:1.55; white-space:pre-wrap; }
+    .pdm-empty { color:#475569; font-size:11px; text-align:center; padding:16px 0; letter-spacing:1px; }
+
+    .hud-dossier-ico { width:16px; height:16px; border:1px solid #f5d061; color:#f5d061; font-size:9px; font-style:normal; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; cursor:pointer; flex-shrink:0; transition:background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease; }
+    .hud-dossier-ico:hover { background:rgba(245,208,97,0.2); box-shadow:0 0 8px rgba(245,208,97,0.7); transform:scale(1.1); }
+
+    /* RECENT ACTIVITY (기존 하드코딩 문구 대체) */
+    .hud-recent-lbl { color:#0891b2; font-size:9px; letter-spacing:1.5px; margin-bottom:6px; position:relative; z-index:2; }
+    .hud-recent-row { display:flex; align-items:center; gap:8px; padding:4px 6px; cursor:pointer; position:relative; z-index:2; transition:background 0.15s ease, transform 0.15s ease; }
+    .hud-recent-row:hover { background:rgba(34,211,238,0.12); transform:translateX(2px); }
+    .hud-recent-row + .hud-recent-row { border-top:1px solid rgba(34,211,238,0.12); }
+    .hud-recent-date { color:#475569; font-size:10px; width:46px; flex-shrink:0; }
+    .hud-recent-badge { font-size:9px; letter-spacing:0.5px; width:54px; height:16px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; border:1px solid currentColor; }
+    .hud-recent-title { font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .hud-recent-empty { color:#475569; font-size:11px; text-align:center; padding:8px 0; letter-spacing:1px; position:relative; z-index:2; }
+
+    /* ALERT COUNTER 태그 - 텍스트 길이와 무관하게 고정 사이즈 */
+    .hud-alert-tag { width:86px; height:22px; box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; font-family:'Share Tech Mono', monospace; font-size:9px; letter-spacing:1px; text-transform:uppercase; clip-path:polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px); }
+    .hud-alert-tag.at-danger { border:1px solid #f87171; background:rgba(248,113,113,0.18); color:#fca5a5; animation:towerHudBlink 1.4s ease-in-out infinite; }
+    .hud-alert-tag.at-warn { border:1px solid rgba(250,204,21,0.6); background:rgba(250,204,21,0.12); color:#facc15; }
+    .hud-alert-tag.at-info { border:1px solid rgba(56,189,248,0.5); background:rgba(56,189,248,0.1); color:#38bdf8; }
+    .hud-alert-tag.at-off { border:1px solid rgba(100,116,139,0.35); background:transparent; color:#475569; }
   </style>
 </head>
 <body>
@@ -2586,6 +2625,16 @@ window.renderDeviationTrendTest = function() {
     <div id="stageModalBars"></div>
     <div class="stage-bar-legend"><span style="display:inline-block; width:1px; height:10px; background:#94a3b8;"></span>계획 공수(100%) 지점 · 넘으면 초과로 빨간색 표시 · 원격 집계는 SET-UP·SAT만 적용</div>
     <table id="stageModalTable"></table>
+  </div>
+</div>
+      <div id="projectDossierModal" onclick="if(event.target===this) window.closeTowerDossier()">
+  <div class="pdm-box">
+    <div class="pdm-head">
+      <span class="pdm-head-title">◤ PROJECT DOSSIER</span>
+      <span class="pdm-close" onclick="window.closeTowerDossier()">✕</span>
+    </div>
+    <div class="pdm-code" id="pdm-code"></div>
+    <div id="pdm-body"></div>
   </div>
 </div>
 <div id="detailView" onclick="if(event.target===this) window.closeDetail()">
@@ -8223,6 +8272,123 @@ window.computeTowerSystemMonitor = function(target) {
     }
   };
 };
+    // ============================================================================
+// 🚀 PROJECT DOSSIER 모달 + RECENT ACTIVITY + ALERT COUNTER
+// ============================================================================
+window.towerGetProjectRows = function(code) {
+  const MP = ['마스터플랜', '마스터메모', '마스터이슈'];
+  let rows;
+  if (code && code.startsWith('CP')) {
+    rows = ((allData.project1 && allData.project1.history) || []).filter(r => (r['프로젝트 코드'] || '').toString().trim() === code);
+  } else {
+    const pKey = TOWER_PKEY_MAP[code];
+    rows = (allData[pKey] && allData[pKey].history) || [];
+  }
+  return rows.filter(r => !MP.includes((r['업무 구분'] || '').toString().trim()));
+};
+
+window.buildTowerRecentActivity = function(code) {
+  const rows = window.towerGetProjectRows(code);
+  const norm = (d) => (d || '').toString().replace(/[./]/g, '-').substring(0, 10);
+  const dated = rows.filter(r => /^\d{4}-\d{2}-\d{2}$/.test(norm(r['접수일'])));
+  dated.sort((a, b) => norm(a['접수일']) < norm(b['접수일']) ? 1 : (norm(a['접수일']) > norm(b['접수일']) ? -1 : 0));
+  const top3 = dated.slice(0, 3);
+  window._towerRecentRows = top3;
+  window._towerRecentCode = code;
+
+  if (top3.length === 0) {
+    return `<div class="hud-desc"><div class="hud-recent-lbl">RECENT ACTIVITY // LAST 3</div><div class="hud-recent-empty">NO ACTIVITY LOGGED</div></div>`;
+  }
+
+  const rowsHtml = top3.map((r, idx) => {
+    const st = (r['진행상태'] || '').toString().trim();
+    const task = (r['업무 구분'] || '').toString().trim();
+    const resp = (r['대응 구분'] || '').toString();
+    let badge = 'ACTIVE', color = '#67e8f9', titleColor = '#94a3b8';
+    if (task === 'Issue') { badge = 'ISSUE'; color = '#f87171'; titleColor = '#cffafe'; }
+    else if (st === '지연중') { badge = 'DELAY'; color = '#f87171'; titleColor = '#cffafe'; }
+    else if (st === '보류') { badge = 'HOLD'; color = '#64748b'; }
+    else if (st.includes('완료')) { badge = 'DONE'; color = '#4ade80'; }
+    else if (resp.includes('원격')) { badge = 'REMOTE'; color = '#38bdf8'; }
+    const dateStr = norm(r['접수일']).substring(2).replace(/-/g, '.');
+    const title = (r['표준 제작 Item / Issue / 개선사항'] || r['제목'] || '(제목 없음)').toString().replace(/\n/g, ' ');
+    const safeTitle = title.replace(/"/g, '&quot;');
+    return `<div class="hud-recent-row" onclick="window.towerRecentClick(${idx})" title="${safeTitle}">
+      <span class="hud-recent-date">${dateStr}</span>
+      <span class="hud-recent-badge" style="color:${color};">${badge}</span>
+      <span class="hud-recent-title" style="color:${titleColor};">${title}</span>
+    </div>`;
+  }).join('');
+
+  return `<div class="hud-desc"><div class="hud-recent-lbl">RECENT ACTIVITY // LAST 3</div>${rowsHtml}</div>`;
+};
+
+window.towerRecentClick = function(idx) {
+  const r = (window._towerRecentRows || [])[idx];
+  if (!r) return;
+  const code = window._towerRecentCode || '';
+  const rowCopy = { '프로젝트 코드': r._pName || code, '접수일': r['접수일'] || '-', ...r };
+  const title = r['표준 제작 Item / Issue / 개선사항'] || r['제목'] || '상세';
+  window.showDetailView(`${rowCopy['접수일']} · ${rowCopy['프로젝트 코드']}`, title, [rowCopy]);
+};
+
+window.buildTowerAlertTags = function(code) {
+  const rows = window.towerGetProjectRows(code);
+  const rep = rows.filter(r => r._isRep !== false);
+  const issueCnt = rep.filter(r => (r['업무 구분'] || '').toString().trim() === 'Issue').length;
+  const delayCnt = rep.filter(r => (r['진행상태'] || '').toString().trim() === '지연중').length;
+  const holdCnt = rep.filter(r => (r['진행상태'] || '').toString().trim() === '보류').length;
+  const remoteCnt = rows.filter(r => (r['대응 구분'] || '').toString().includes('원격')).length;
+  const remotePct = rows.length > 0 ? Math.round((remoteCnt / rows.length) * 100) : 0;
+
+  const tag = (label, on, cls) => `<span class="hud-alert-tag ${on ? cls : 'at-off'}">${label}</span>`;
+  return `<div class="hud-tags">
+    ${tag('ISSUE ' + issueCnt, issueCnt > 0, 'at-danger')}
+    ${tag('DELAY ' + delayCnt, delayCnt > 0, 'at-danger')}
+    ${tag('HOLD ' + holdCnt, holdCnt > 0, 'at-warn')}
+    ${tag('REMOTE ' + remotePct + '%', remotePct > 0, 'at-info')}
+  </div>`;
+};
+
+window.showTowerDossier = function(code) {
+  const modal = document.getElementById('projectDossierModal');
+  if (!modal) return;
+  const info = (allData.projectInfo && allData.projectInfo[code]) || null;
+  document.getElementById('pdm-code').textContent = code;
+
+  let bodyHtml = '';
+  if (!info) {
+    bodyHtml = `<div class="pdm-empty">NO DOSSIER DATA</div>`;
+  } else {
+    const normCountry = towerNormalize(info.납품국가, TOWER_COUNTRY_ALIAS);
+    const normCity = towerNormalize(info.납품도시, TOWER_CITY_ALIAS);
+    const countryEn = (TOWER_COUNTRY_EN[normCountry] || info.납품국가 || '-').toString().toUpperCase();
+    const cityEn = (TOWER_CITY_EN[normCity] || info.납품도시 || '-').toString().toUpperCase();
+    const rowsDef = [
+      ['REAL CODE', info.실제코드],
+      ['CLIENT', info.발주처],
+      ['END USER', info.엔드유저],
+      ['COUNTRY', countryEn],
+      ['CITY', cityEn],
+      ['START', info.시작일]
+    ];
+    bodyHtml = `<div class="pdm-grid">${rowsDef.map(([l, v]) => `<span class="lbl">${l}</span><span class="val">${v || '-'}</span>`).join('')}</div>`;
+    if (info.메모 && info.메모.toString().trim() !== '') {
+      bodyHtml += `<div class="pdm-memo"><div class="pdm-memo-lbl">MEMO</div><div class="pdm-memo-txt">${info.메모}</div></div>`;
+    }
+  }
+  document.getElementById('pdm-body').innerHTML = bodyHtml;
+  modal.classList.add('active');
+};
+
+window.closeTowerDossier = function() {
+  const modal = document.getElementById('projectDossierModal');
+  if (modal) modal.classList.remove('active');
+};
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') window.closeTowerDossier();
+});
 window.renderTowerCards = function(group, activeCode) {
   window._towerSelectedCode = null;
 
@@ -8355,7 +8521,10 @@ window.renderTowerCards = function(group, activeCode) {
       </div>
     `;
   };
-
+const hasDossier = !!(allData.projectInfo && allData.projectInfo[firstCode]);
+  const dossierIcoHtml = hasDossier ? `<i class="hud-dossier-ico" onclick="event.stopPropagation(); window.showTowerDossier('${firstCode}')" title="프로젝트 정보">i</i>` : '';
+  const recentHtml = window.buildTowerRecentActivity(firstCode);
+  const alertTagHtml = window.buildTowerAlertTags(firstCode);
   container.innerHTML = `
     <div class="hud-panel">
       <div class="hud-panel-title">PROJECT NAVIGATION</div>
@@ -8374,7 +8543,10 @@ window.renderTowerCards = function(group, activeCode) {
     <div class="hud-panel">
       <div class="hud-panel-title">PROJECT DETAIL</div>
       <div class="hud-detail-header">
-        <h2>${TOWER_LABEL_MAP[firstCode] || firstCode}</h2>
+        <div style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+          <h2>${TOWER_LABEL_MAP[firstCode] || firstCode}</h2>
+          ${dossierIcoHtml}
+        </div>
         ${stageHtml}
         <span class="hud-detail-status-badge">${getStatusText(firstCode).replace(' >','').toUpperCase()}</span>
       </div>
@@ -8389,14 +8561,8 @@ window.renderTowerCards = function(group, activeCode) {
         <div class="lbl">START DATE</div><div class="val">${startDateVal}</div>
         <div class="lbl">ENGINEER</div><div class="val" style="color:#cffafe;">TEAM JARVIS ✉</div>
       </div>
-      <div class="hud-desc">
-        System monitoring active.<br>
-        Real-time telemetry linked to ${firstCode} node.<br>
-        Awaiting further commands.
-      </div>
-      <div class="hud-tags">
-        <span class="hud-tag">AUTOMATION</span><span class="hud-tag">BATTERY</span><span class="hud-tag">SYSTEM</span>
-      </div>
+      ${recentHtml}
+      ${alertTagHtml}
     </div>
 
     <div class="hud-panel">
