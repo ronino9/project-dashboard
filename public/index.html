@@ -9116,9 +9116,7 @@ window.travelStepNext = function() {
     return;
   }
   if (st.index >= st.data.length) {
-    st.playing = false;
-    window.travelUpdatePlayButton();
-    window.setMapInterlock(false);
+    window.travelReset();
     return;
   }
 
