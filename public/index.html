@@ -1351,9 +1351,9 @@
     .jd-playback-blink { animation: jdPlaybackBlink 2s ease-in-out infinite; font-size: 13px !important; letter-spacing: 1px !important; }
     
     .jd-hud-btn {
-      font-family: 'Orbitron', sans-serif; height: 22px; padding: 0 6px; flex-shrink: 0;
+      font-family: 'Orbitron', sans-serif; height: 30px; padding: 0 10px; flex-shrink: 0;
       background: rgba(5, 18, 31, 0.4); backdrop-filter: blur(4px); border: 1px solid rgba(103, 232, 249, 0.15);
-      border-left: 2px solid rgba(103, 232, 249, 0.6); color: rgba(103, 232, 249, 0.5); font-size: 9px;
+      border-left: 2px solid rgba(103, 232, 249, 0.6); color: rgba(103, 232, 249, 0.5); font-size: 11px;
       font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; display: flex;
       align-items: center; justify-content: center; clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
       transition: all 0.2s ease;
@@ -1443,13 +1443,13 @@
        ========================================================= */
     #jd-eq-frame {
       position: absolute;
-      top: 258px;
+      top: 305px;
       left: calc(-9.52% - 10px);
       z-index: 5010;
       display: flex;
       align-items: flex-end;
       gap: 6px;
-      height: 118px;
+      height: 85px;
       margin-left: 2px;
       padding-bottom: 2px;
       border-bottom: 2px solid rgba(34, 211, 238, 0.3);
@@ -1501,11 +1501,14 @@
     .jd-pd-text { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#ffffff; text-shadow:0 0 8px #67e8f9; }
     .jd-pd-percent { font-family:'Orbitron', sans-serif; font-size:13px; font-weight:700; }
     .jd-pd-sub { font-family:'Share Tech Mono', monospace; font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#67e8f9; opacity:0.8; margin-top:1px; }
-    .jd-player-col { font-family:'Share Tech Mono', monospace; flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-start; justify-content:space-between; text-align:left; padding-top:2px; padding-bottom:2px; min-height:100px; max-width:200px; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
-    .jd-player-row-top { font-family:'Orbitron', sans-serif; display:flex; align-items:center; gap:10px; font-size:9px; font-weight:600; letter-spacing:0.3px; opacity:0.85; margin-bottom:8px; }
-    .jd-player-row-bottom { display:flex; align-items:center; gap:8px; font-size:11px; margin-bottom:6px; }
+    .jd-player-col { font-family:'Share Tech Mono', monospace; flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-start; justify-content:space-between; text-align:left; padding-top:2px; padding-bottom:2px; min-height:100px; max-width:220px; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
+    .jd-player-row-top { font-family:'Orbitron', sans-serif; display:flex; align-items:center; gap:14px; font-size:13px; font-weight:700; letter-spacing:0.3px; opacity:0.9; margin-bottom:10px; }
+    .jd-player-row-bottom { display:flex; align-items:center; gap:8px; font-size:11px; margin-bottom:8px; }
     .jd-player-buttons { display:flex; align-items:center; gap:8px; }
-    .jd-track-name { font-family:'Orbitron', sans-serif; font-size:9.5px; font-weight:700; letter-spacing:0.3px; max-width:200px; line-height:1.4; }
+    .jd-player-btn { display:inline-flex; align-items:center; justify-content:center; width:30px; height:26px; font-size:13px; background:rgba(5,18,31,0.5); border:1px solid rgba(103,232,249,0.35); border-radius:4px; cursor:pointer; transition:all 0.2s ease; }
+    .jd-player-btn:hover { background:rgba(103,232,249,0.18); border-color:#67e8f9; box-shadow:0 0 8px rgba(103,232,249,0.5); }
+    .jd-player-btn-main { border-color:rgba(103,232,249,0.6); background:rgba(103,232,249,0.12); }
+    .jd-track-name { font-family:'Orbitron', sans-serif; font-size:12.5px; font-weight:700; letter-spacing:0.3px; max-width:220px; line-height:1.4; margin-top:2px; }
     .jd-waste-status { font-family:'Share Tech Mono', monospace; font-size:10px; letter-spacing:0.5px; margin-top:10px; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
     .jd-waste-title { font-family:'Orbitron', sans-serif; font-size:9.5px; font-weight:600; letter-spacing:0.3px; margin-bottom:6px; opacity:0.9; }
     .jd-waste-value { font-family:'Orbitron', sans-serif; font-size:12px; font-weight:700; }
@@ -3046,15 +3049,15 @@ window.renderDeviationTrendTest = function() {
 
                   <div class="jd-player-col">
                     <div class="jd-player-row-top">
-                      <span>▲</span><span>▼</span>
                       <span>Player</span>
                       <span>0:02</span>
-                      <span>⤨</span>
-                      <span>↻</span>
                     </div>
                     <div class="jd-player-row-bottom">
                       <div class="jd-player-buttons">
-                        <span>▶</span><span>Ⅱ</span><span>▶▶</span><span>◀◀</span>
+                        <span class="jd-player-btn">◀◀</span>
+                        <span class="jd-player-btn jd-player-btn-main">▶</span>
+                        <span class="jd-player-btn">Ⅱ</span>
+                        <span class="jd-player-btn">▶▶</span>
                       </div>
                     </div>
                     <div class="jd-track-name">LOVE ATTACK<br>- RESCENE</div>
@@ -3166,18 +3169,18 @@ window.renderDeviationTrendTest = function() {
                 <div class="routing-path"><span style="color:#475569; font-size:11px;">로딩중...</span></div>
               </div>
             </div>
-            <div id="jd-travel-controls" style="position:absolute; top:16px; left:calc(-9.52% - 10px); z-index:5010; display:flex; flex-direction:column; gap:8px; align-items:flex-start;">
+            <div id="jd-travel-controls" style="position:absolute; top:16px; left:calc(-9.52% - 10px); z-index:5010; display:flex; flex-direction:column; gap:14px; align-items:flex-start;">
   <!-- 1층: 텍스트 (Full Capacity와 동일한 강렬한 색상) -->
-  <div id="jd-travel-label" style="font-family:'Orbitron', sans-serif; font-size:11px; font-weight:800; letter-spacing:1px; color:#67e8f9; text-shadow:0 0 6px rgba(103,232,249,0.7); margin-left:2px;">BUSINESS TRIP LOG</div>
+  <div id="jd-travel-label" style="font-family:'Orbitron', sans-serif; font-size:12px; font-weight:800; letter-spacing:1px; color:#67e8f9; text-shadow:0 0 6px rgba(103,232,249,0.7); margin-left:2px;">BUSINESS TRIP LOG</div>
   
   <!-- 2층: 재생/정지 버튼 -->
-  <div style="display:flex; align-items:center; gap:4px;">
-    <button id="jd-travel-play" onclick="window.travelPlayToggle()" aria-label="재생" class="jd-hud-btn jd-hud-icon-btn"><i class="ti ti-player-play" style="font-size:11px"></i></button>
-    <button onclick="window.travelReset()" aria-label="정지" class="jd-hud-btn jd-hud-icon-btn"><i class="ti ti-player-stop" style="font-size:11px"></i></button>
+  <div style="display:flex; align-items:center; gap:6px;">
+    <button id="jd-travel-play" onclick="window.travelPlayToggle()" aria-label="재생" class="jd-hud-btn jd-hud-icon-btn"><i class="ti ti-player-play" style="font-size:13px"></i></button>
+    <button onclick="window.travelReset()" aria-label="정지" class="jd-hud-btn jd-hud-icon-btn"><i class="ti ti-player-stop" style="font-size:13px"></i></button>
   </div>
   
   <!-- 3층: 배속 버튼 -->
-  <div style="display:flex; align-items:center; gap:4px;">
+  <div style="display:flex; align-items:center; gap:6px;">
     <button id="jd-speed-slow" onclick="window.travelSetSpeed('slow')" class="jd-hud-btn">SLOW</button>
     <button id="jd-speed-normal" onclick="window.travelSetSpeed('normal')" class="jd-hud-btn jd-hud-active">NORM</button>
     <button id="jd-speed-fast" onclick="window.travelSetSpeed('fast')" class="jd-hud-btn">FAST</button>
