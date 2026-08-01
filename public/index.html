@@ -1443,13 +1443,13 @@
        ========================================================= */
     #jd-eq-frame {
       position: absolute;
-      top: 305px;
+      top: 275px;
       left: calc(-9.52% - 10px);
       z-index: 5010;
       display: flex;
       align-items: flex-end;
       gap: 6px;
-      height: 85px;
+      height: 95px;
       margin-left: 2px;
       padding-bottom: 2px;
       border-bottom: 2px solid rgba(34, 211, 238, 0.3);
@@ -1505,9 +1505,11 @@
     .jd-player-row-top { font-family:'Orbitron', sans-serif; display:flex; align-items:center; gap:14px; font-size:13px; font-weight:700; letter-spacing:0.3px; opacity:0.9; margin-bottom:10px; }
     .jd-player-row-bottom { display:flex; align-items:center; gap:8px; font-size:11px; margin-bottom:8px; }
     .jd-player-buttons { display:flex; align-items:center; gap:8px; }
-    .jd-player-btn { display:inline-flex; align-items:center; justify-content:center; width:30px; height:26px; font-size:13px; background:rgba(5,18,31,0.5); border:1px solid rgba(103,232,249,0.35); border-radius:4px; cursor:pointer; transition:all 0.2s ease; }
+    .jd-player-btn { display:inline-flex; align-items:center; justify-content:center; width:32px; height:28px; line-height:1; background:rgba(5,18,31,0.5); border:1px solid rgba(103,232,249,0.35); border-radius:4px; cursor:pointer; transition:all 0.2s ease; }
+    .jd-player-btn i { font-size:14px; color:#67e8f9; }
     .jd-player-btn:hover { background:rgba(103,232,249,0.18); border-color:#67e8f9; box-shadow:0 0 8px rgba(103,232,249,0.5); }
-    .jd-player-btn-main { border-color:rgba(103,232,249,0.6); background:rgba(103,232,249,0.12); }
+    .jd-player-btn-main { border-color:#67e8f9; background:rgba(103,232,249,0.18); box-shadow:0 0 6px rgba(103,232,249,0.35); }
+    .jd-player-btn-main i { font-size:15px; }
     .jd-track-name { font-family:'Orbitron', sans-serif; font-size:12.5px; font-weight:700; letter-spacing:0.3px; max-width:220px; line-height:1.4; margin-top:2px; }
     .jd-waste-status { font-family:'Share Tech Mono', monospace; font-size:10px; letter-spacing:0.5px; margin-top:10px; color:#67e8f9; text-shadow:0 0 5px rgba(103,232,249,0.6); }
     .jd-waste-title { font-family:'Orbitron', sans-serif; font-size:9.5px; font-weight:600; letter-spacing:0.3px; margin-bottom:6px; opacity:0.9; }
@@ -3054,10 +3056,10 @@ window.renderDeviationTrendTest = function() {
                     </div>
                     <div class="jd-player-row-bottom">
                       <div class="jd-player-buttons">
-                        <span class="jd-player-btn">◀◀</span>
-                        <span class="jd-player-btn jd-player-btn-main">▶</span>
-                        <span class="jd-player-btn">Ⅱ</span>
-                        <span class="jd-player-btn">▶▶</span>
+                        <span class="jd-player-btn" title="이전"><i class="ti ti-player-skip-back"></i></span>
+                        <span class="jd-player-btn jd-player-btn-main" title="재생"><i class="ti ti-player-play"></i></span>
+                        <span class="jd-player-btn" title="일시정지"><i class="ti ti-player-pause"></i></span>
+                        <span class="jd-player-btn" title="다음"><i class="ti ti-player-skip-forward"></i></span>
                       </div>
                     </div>
                     <div class="jd-track-name">LOVE ATTACK<br>- RESCENE</div>
