@@ -3177,7 +3177,8 @@ window.renderDeviationTrendTest = function() {
   
   <!-- 2층: 재생/정지 버튼 -->
   <div style="display:flex; align-items:center; gap:6px;">
-    <button id="jd-travel-play" onclick="window.travelPlayToggle()" aria-label="재생" class="jd-hud-btn jd-hud-icon-btn"><i class="ti ti-player-play" style="font-size:13px"></i></button>
+    <button id="jd-travel-play" onclick="window.travelPlayStart()" aria-label="재생" class="jd-hud-btn jd-hud-icon-btn"><i class="ti ti-player-play" style="font-size:13px"></i></button>
+    <button id="jd-travel-pause" onclick="window.travelPlayPause()" aria-label="일시정지" class="jd-hud-btn jd-hud-icon-btn"><i class="ti ti-player-pause" style="font-size:13px"></i></button>
     <button onclick="window.travelReset()" aria-label="정지" class="jd-hud-btn jd-hud-icon-btn"><i class="ti ti-player-stop" style="font-size:13px"></i></button>
   </div>
   
@@ -8847,11 +8848,11 @@ window.travelSetSpeed = function(spd) {
 };
 
 window.travelUpdatePlayButton = function() {
-  const btn = document.getElementById('jd-travel-play');
-  if (!btn) return;
+  const playBtn = document.getElementById('jd-travel-play');
+  const pauseBtn = document.getElementById('jd-travel-pause');
   const st = window.travelPlayState;
-  btn.innerHTML = st.playing ? '<i class="ti ti-player-pause" style="font-size:12px"></i>' : '<i class="ti ti-player-play" style="font-size:12px"></i>';
-  btn.setAttribute('aria-label', st.playing ? '일시정지' : '재생');
+  if (playBtn) playBtn.classList.toggle('jd-hud-active', st.playing);
+  if (pauseBtn) pauseBtn.classList.toggle('jd-hud-active', !st.playing && st.index > 0 && st.index < st.data.length);
   window.jdSetPlaybackMode(st.playing);
 };
 
@@ -9132,6 +9133,11 @@ window.travelStepNext = function() {
     if (typeof window.travelUpdateProgress === 'function') {
       window.travelUpdateProgress(st.index, st.data.length);
     }
+    if (entry.project && entry.project !== window._travelLastProjectCode && typeof window.renderTowerCards === 'function') {
+      window._travelLastProjectCode = entry.project;
+      const towerInfo = (allData.controlTower && allData.controlTower[entry.project]) || {};
+      window.renderTowerCards({ projects: [entry.project], country: towerInfo.country, city: towerInfo.city }, entry.project);
+    }
   };
 
   // 이동 완료 → 이번 일정 표시 → 잠시 확인 시간 → 다음 스텝
@@ -9255,6 +9261,9 @@ window.travelUpdateDateDisplay = function(dateStr) {
   if (dayStrEl) {
     dayStrEl.textContent = d.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
   }
+
+  // 3. 게이지 링(월/일)도 해당 날짜 기준으로 동기화
+  if (typeof window.updateJarvisDateGauges === 'function') window.updateJarvisDateGauges(d);
 };
 
 window.travelUpdateProgress = function(idx, total) {
@@ -9282,6 +9291,7 @@ window.travelReset = function() {
   window.travelResetVisuals();
   
   st.index = 0;
+  window._travelLastProjectCode = null;
   window.travelUpdatePlayButton();
   window.setMapInterlock(false);
   
@@ -9290,6 +9300,8 @@ window.travelReset = function() {
   towerMapInstance.fitWorld({ animate: true });
   towerMapInstance.setZoom(towerMapInstance.getZoom() + 0.1);
   towerMapInstance.setMinZoom(towerMapInstance.getZoom());
+
+  if (typeof window.renderTowerDefaultState === 'function') window.renderTowerDefaultState();
 };
 
 // 👆 여기까지 복사하세요 👆
