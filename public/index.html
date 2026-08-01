@@ -8851,9 +8851,10 @@ window.travelUpdatePlayButton = function() {
   const playBtn = document.getElementById('jd-travel-play');
   const pauseBtn = document.getElementById('jd-travel-pause');
   const st = window.travelPlayState;
+  const isPaused = !st.playing && st.index > 0 && st.index < st.data.length;
   if (playBtn) playBtn.classList.toggle('jd-hud-active', st.playing);
-  if (pauseBtn) pauseBtn.classList.toggle('jd-hud-active', !st.playing && st.index > 0 && st.index < st.data.length);
-  window.jdSetPlaybackMode(st.playing);
+  if (pauseBtn) pauseBtn.classList.toggle('jd-hud-active', isPaused);
+  window.jdSetPlaybackMode(st.playing, !isPaused);
 };
 
 window._jdLiveClockTimer = null;
@@ -8870,7 +8871,7 @@ window.jdFormatLiveClock = function() {
   if (typeof window.updateJarvisDateGauges === 'function') window.updateJarvisDateGauges(now);
 };
 
-window.jdSetPlaybackMode = function(isPlaying) {
+window.jdSetPlaybackMode = function(isPlaying, fullyStopped) {
   const clockEl = document.getElementById('jdClockText');
   const labelEl = document.getElementById('jd-travel-label');
   const ring = document.getElementById('jdProgressRing');
@@ -8882,12 +8883,14 @@ window.jdSetPlaybackMode = function(isPlaying) {
     if (clockEl) { clockEl.textContent = 'PLAYBACK'; clockEl.classList.add('jd-playback-blink'); }
     
     // (기존의 'IN PROGRESS' 덮어쓰기 로직 삭제 - 요일 텍스트를 유지하기 위함)
-  } else {
+  } else if (fullyStopped) {
     if (clockEl) clockEl.classList.remove('jd-playback-blink');
     if (labelEl) labelEl.textContent = 'BUSINESS TRIP LOG'; 
     if (ring) ring.style.strokeDashoffset = 0;
     window.jdFormatLiveClock();
     if (!window._jdLiveClockTimer) window._jdLiveClockTimer = setInterval(window.jdFormatLiveClock, 1000);
+  } else {
+    if (clockEl) clockEl.classList.remove('jd-playback-blink');
   }
 };
 window.jdSetPlaybackMode(false);
@@ -9127,9 +9130,6 @@ window.travelStepNext = function() {
     if (typeof window.travelUpdateDateDisplay === 'function') {
       window.travelUpdateDateDisplay(entry.date || entry.접수일 || entry.날짜 || '');
     }
-    if (typeof window.travelUpdateInfoDisplay === 'function') {
-      window.travelUpdateInfoDisplay(entry);
-    }
     if (typeof window.travelUpdateProgress === 'function') {
       window.travelUpdateProgress(st.index, st.data.length);
     }
@@ -9297,6 +9297,7 @@ window.travelReset = function() {
   
   window.travelUpdateProgress(0, 0);
   
+  towerMapInstance.setMinZoom(0);
   towerMapInstance.fitWorld({ animate: true });
   towerMapInstance.setZoom(towerMapInstance.getZoom() + 0.1);
   towerMapInstance.setMinZoom(towerMapInstance.getZoom());
