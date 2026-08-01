@@ -1392,6 +1392,9 @@
       padding: 0; 
       border-left: 1px solid rgba(103, 232, 249, 0.15); 
     }
+   /* =========================================================
+       ✨ J.A.R.V.I.S 분절형(블록) 막대 이퀄라이저
+       ========================================================= */
     #jd-eq-frame {
       position: absolute;
       top: 258px;
@@ -1399,48 +1402,58 @@
       z-index: 5010;
       display: flex;
       align-items: flex-end;
-      gap: 9px;
-      height: 118px;
+      gap: 6px; /* 막대 간격 최적화 */
+      height: 118px; /* 기존 레이아웃 높이 유지 */
       margin-left: 2px;
       padding-bottom: 2px;
+      border-bottom: 2px solid rgba(34, 211, 238, 0.3); /* 홀로그램 바닥 프레임 */
     }
+    
+    /* 바닥 프레임 좌우 포인트 데코레이션 */
+    #jd-eq-frame::before {
+      content: ''; position: absolute; bottom: -2px; left: 0;
+      width: 14px; height: 2px; background: #67e8f9; box-shadow: 0 0 8px #67e8f9;
+    }
+    #jd-eq-frame::after {
+      content: ''; position: absolute; bottom: -2px; right: 0;
+      width: 4px; height: 2px; background: #67e8f9;
+    }
+
     #jd-eq-frame .eqbar-f {
-      position: relative;
-      width: 2px;
-      border-radius: 2px;
-      background: linear-gradient(to top, transparent 0%, rgba(34,211,238,0.3) 40%, #67e8f9 100%);
-      box-shadow: 0 0 5px rgba(34,211,238,0.4);
-      animation: jdPremiumEqWave 1s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+      width: 11px; /* 막대 두께 굵게 변경 */
+      /* 블록이 쌓인 듯한 홀로그램 스캔라인 패턴 */
+      background: repeating-linear-gradient(
+        to top,
+        rgba(34, 211, 238, 0.85) 0px,
+        rgba(34, 211, 238, 0.85) 4px,
+        transparent 4px,
+        transparent 6px
+      );
+      border-top: 2px solid #ffffff; /* 꼭대기 발광 캡 */
+      filter: drop-shadow(0 0 5px rgba(34, 211, 238, 0.5));
+      animation: jarvisEqBlockAnim 1s cubic-bezier(0.1, 0.9, 0.2, 1) infinite alternate;
+      transform-origin: bottom;
     }
-    #jd-eq-frame .eqbar-f::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 4px;
-      height: 4px;
-      background: #ffffff;
-      border-radius: 50%;
-      box-shadow: 0 0 6px #ffffff, 0 0 10px #22d3ee;
-    }
+
+    /* 기존 14개 막대에 맞춘 개별 리듬(텐션/속도) 부여 */
     #jd-eq-frame .eqbar-f:nth-child(1) { animation-duration: 0.6s; animation-delay: 0.1s; }
-    #jd-eq-frame .eqbar-f:nth-child(2) { animation-duration: 0.8s; animation-delay: 0.3s; }
+    #jd-eq-frame .eqbar-f:nth-child(2) { animation-duration: 0.8s; animation-delay: 0.4s; }
     #jd-eq-frame .eqbar-f:nth-child(3) { animation-duration: 0.5s; animation-delay: 0.0s; }
-    #jd-eq-frame .eqbar-f:nth-child(4) { animation-duration: 0.9s; animation-delay: 0.2s; }
+    #jd-eq-frame .eqbar-f:nth-child(4) { animation-duration: 0.9s; animation-delay: 0.3s; }
     #jd-eq-frame .eqbar-f:nth-child(5) { animation-duration: 0.7s; animation-delay: 0.5s; }
-    #jd-eq-frame .eqbar-f:nth-child(6) { animation-duration: 1.0s; animation-delay: 0.1s; }
-    #jd-eq-frame .eqbar-f:nth-child(7) { animation-duration: 0.6s; animation-delay: 0.4s; }
-    #jd-eq-frame .eqbar-f:nth-child(8) { animation-duration: 0.8s; animation-delay: 0.2s; }
+    #jd-eq-frame .eqbar-f:nth-child(6) { animation-duration: 1.0s; animation-delay: 0.2s; }
+    #jd-eq-frame .eqbar-f:nth-child(7) { animation-duration: 0.6s; animation-delay: 0.6s; }
+    #jd-eq-frame .eqbar-f:nth-child(8) { animation-duration: 0.8s; animation-delay: 0.1s; }
     #jd-eq-frame .eqbar-f:nth-child(9) { animation-duration: 0.75s; animation-delay: 0.35s; }
     #jd-eq-frame .eqbar-f:nth-child(10) { animation-duration: 0.95s; animation-delay: 0.05s; }
     #jd-eq-frame .eqbar-f:nth-child(11) { animation-duration: 0.65s; animation-delay: 0.45s; }
     #jd-eq-frame .eqbar-f:nth-child(12) { animation-duration: 0.85s; animation-delay: 0.15s; }
     #jd-eq-frame .eqbar-f:nth-child(13) { animation-duration: 0.55s; animation-delay: 0.3s; }
     #jd-eq-frame .eqbar-f:nth-child(14) { animation-duration: 1.0s; animation-delay: 0.25s; }
-    @keyframes jdPremiumEqWave {
-      0% { height: 15%; opacity: 0.4; }
-      100% { height: 95%; opacity: 1; filter: brightness(1.3); }
+
+    @keyframes jarvisEqBlockAnim {
+      0% { height: 15%; filter: drop-shadow(0 0 2px rgba(34, 211, 238, 0.3)); }
+      100% { height: 100%; filter: drop-shadow(0 0 8px rgba(103, 232, 249, 0.9)) brightness(1.3); }
     }
     .jd-tier2 { position:relative; z-index:10; margin-left:50px; margin-bottom:20px; }
     .jd-storage-block { margin-bottom:18px; max-width:300px; }
@@ -3155,7 +3168,7 @@ window.renderDeviationTrendTest = function() {
               <span class="eqbar-f"></span>
               <span class="eqbar-f"></span>
               <span class="eqbar-f"></span>
-            </div>>
+            </div>
             <div class="tower-map-frame">
               <!-- ✨ 맵 종합 컨트롤 패널 ✨ -->
               <div id="map-controller-panel" style="position:absolute; top:16px; left:16px; z-index:5010; background:rgba(2,6,23,0.85); border:1px solid #0e7490; border-radius:8px; padding:12px; width:220px; display:none; flex-direction:column; gap:12px; box-shadow:0 4px 16px rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
