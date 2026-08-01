@@ -8858,7 +8858,7 @@ window.jdFormatLiveClock = function() {
   if (dayStrEl) dayStrEl.textContent = now.toLocaleDateString('en-US', { weekday: 'long' });
   if (monthEl) monthEl.textContent = now.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
   if (dayNumEl) dayNumEl.textContent = now.getDate();
-  window.updateJarvisDateGauges(now);
+  if (typeof window.updateJarvisDateGauges === 'function') window.updateJarvisDateGauges(now);
 };
 
 window.jdSetPlaybackMode = function(isPlaying) {
