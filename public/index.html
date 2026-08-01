@@ -7966,6 +7966,14 @@ window.cancelTargetLock = function() {
   }
   window._targetScanData = null;
 
+  document.querySelectorAll('.tower-region-blink, .tower-region-blink-gold').forEach(el => {
+    el.classList.remove('tower-region-blink');
+    el.classList.remove('tower-region-blink-gold');
+    el.style.stroke = '';
+    el.style.strokeWidth = '';
+    el.style.filter = '';
+  });
+
   const select = document.getElementById('target-select');
   if (select) select.disabled = false;
 
