@@ -5621,13 +5621,7 @@ window.applyMacroFocusStyles = function() {
     if (bar) bar.style.width = active ? '9px' : '5px';
   });
 };
-
-function ganttDaysBetween(a, b) {
-  return Math.round((new Date(b) - new Date(a)) / 86400000);
-}
-
-function ganttClamp(dateStr, min, max) {
-  window.ganttIconMarker = function(emoji, color, corner, pct, title, onClick, hlKey) {
+    window.ganttIconMarker = function(emoji, color, corner, pct, title, onClick, hlKey) {
   const el = document.createElement('div');
   const pos = {
     tl: `top:-8px; left:${pct}%; transform:translate(-85%,0);`,
@@ -5649,6 +5643,7 @@ window.ganttHasLogPhoto = function(proj, stage, dateStr) {
     (r['로그사진경로'] || []).length > 0
   );
 };
+function ganttClamp(dateStr, min, max) {
   if (dateStr < min) return min;
   if (dateStr > max) return max;
   return dateStr;
