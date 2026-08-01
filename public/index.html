@@ -2962,10 +2962,10 @@ window.renderDeviationTrendTest = function() {
   <!-- 모든 링을 하나의 SVG로 렌더링 (JS 제어 및 정밀도 향상) -->
   <svg width="170" height="170" viewBox="0 0 170 170" style="position:absolute; inset:0; transform: rotate(-90deg);">
     <!-- 1. 바깥 테두리 링 (은은한 글로우) -->
-    <circle cx="85" cy="85" r="83" fill="none" stroke="rgba(34, 211, 238, 0.75)" stroke-width="3" style="filter: drop-shadow(0 0 6px rgba(34,211,238,0.4));"/>
+    <circle cx="85" cy="85" r="83" fill="none" stroke="rgba(34, 211, 238, 0.95)" stroke-width="3" style="filter: drop-shadow(0 0 8px rgba(34,211,238,0.6));"/>
     
     <!-- 2. 중간 실선 링 (기존 점선 -> 매끄러운 유리 패널 느낌의 얇은 실선으로 변경) -->
-    <circle cx="85" cy="85" r="74" fill="none" stroke="rgba(34, 211, 238, 0.45)" stroke-width="2"/>
+    <circle cx="85" cy="85" r="74" fill="none" stroke="rgba(34, 211, 238, 0.55)" stroke-width="3"/>
 
     <!-- 3. 두꺼운 일(Day) 게이지 배경 -->
     <circle cx="85" cy="85" r="60" fill="none" stroke="rgba(34, 211, 238, 0.1)" stroke-width="14"/>
@@ -2978,7 +2978,7 @@ window.renderDeviationTrendTest = function() {
     <!-- 6. 안쪽 스마일(월, Month) 게이지 배경 (하단 120도 영역만 표시) -->
     <circle cx="85" cy="85" r="36" fill="none" stroke="rgba(34, 211, 238, 0.1)" stroke-width="4" stroke-dasharray="75.39 226.19" transform="rotate(120 85 85)" stroke-linecap="round"/>
     <!-- 7. 안쪽 스마일(월, Month) 게이지 진행률 (쨍하게 발광하며 달과 동기화) -->
-    <circle id="jd-month-ring" cx="85" cy="85" r="36" fill="none" stroke="#22d3ee" stroke-width="4" stroke-dasharray="75.39 226.19" stroke-dashoffset="75.39" transform="rotate(120 85 85)" stroke-linecap="round" style="filter: drop-shadow(0 0 6px #22d3ee); transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);"/>
+    <circle id="jd-month-ring" cx="85" cy="85" r="36" fill="none" stroke="#22d3ee" stroke-width="4" stroke-dasharray="0 226.19" transform="rotate(120 85 85)" stroke-linecap="round" style="filter: drop-shadow(0 0 6px #22d3ee); transition: stroke-dasharray 1s cubic-bezier(0.16, 1, 0.3, 1);"/>
   </svg>
   
   <!-- 중앙 텍스트 -->
@@ -11436,13 +11436,14 @@ window.renderCompareInsight = function() {
     window.updateJarvisDateGauges = function(dateObj) {
   if (isNaN(dateObj)) return;
 
-  // 월(Month) 스마일 링 동기화
+  // 월(Month) 스마일 링 동기화 (120도 부분 호 전용 - dasharray 길이 방식)
   const month = dateObj.getMonth() + 1;
   const monthRing = document.getElementById('jd-month-ring');
   if (monthRing) {
-    const maxMonthDash = 75.39;
-    const monthOffset = maxMonthDash - (maxMonthDash * (month / 12));
-    monthRing.style.strokeDashoffset = monthOffset;
+    const monthArcTotal = 75.39;        // 120도에 해당하는 호의 전체 길이
+    const monthCircumference = 226.19;  // r=36 원의 전체 둘레
+    const monthFilled = monthArcTotal * (month / 12);
+    monthRing.setAttribute('stroke-dasharray', `${monthFilled} ${monthCircumference - monthFilled}`);
   }
 
   // 일(Day) 두꺼운 링 동기화
