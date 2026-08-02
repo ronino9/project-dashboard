@@ -81,6 +81,14 @@
 .pdca-kpi-item.clickable:hover { background:#ffffff; box-shadow:0 2px 6px rgba(59,130,246,0.15); transform:translateY(-1px); }
 .pdca-kpi-divider { width:1px; align-self:stretch; background:#cbd5e1; margin:2px 4px; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
+.jb-ring1, .jb-ring2, .jarvis-ring1, .jarvis-ring2,
+.hud-dial-circle::before,
+.hud-lockon-spin, .hud-lockon-spin-rev, .hud-lockon-spin-fast,
+.twem-radar, .twem-ring-outer, .twem-ring-mid {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
 .gantt-filter-pill { height:24px; box-sizing:border-box; display:inline-flex; align-items:center; gap:5px; padding:0 10px; border-radius:12px; font-size:11px; font-family:inherit; line-height:1; font-weight:700; cursor:pointer; white-space:nowrap; transition:transform 0.18s cubic-bezier(0.16,1,0.3,1), box-shadow 0.18s ease, opacity 0.18s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease; }
 .gantt-filter-pill:disabled { cursor:not-allowed; }
 .gantt-filter-pill:not(:disabled):hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(15,23,42,0.15); }
@@ -380,6 +388,11 @@
 }
     /* ========================================================= */
     .jb-ring1 { transform-origin:50px 50px; animation: jbSpin 10s linear infinite; }
+    .sidebar:not(.sidebar-tower-theme) .jb-ring1,
+    .sidebar:not(.sidebar-tower-theme) .jb-ring2,
+    .sidebar:not(.sidebar-tower-theme) .jb-core {
+      animation-play-state: paused;
+    }
     /* ▼▼▼ 지도 상단 GLOBAL PROJECT STATUS 명판 ▼▼▼ */
 .map-title-container { position:absolute; top:-54px; left:0; right:0; display:flex; justify-content:center; align-items:flex-start; z-index:5002; filter:drop-shadow(0 0 8px rgba(34,211,238,0.4)); pointer-events:none; }
 .map-title-wing { flex:1; position:relative; margin-top:0; max-width:120px; }
@@ -395,10 +408,10 @@
 .map-title-border-bottom { position:absolute; bottom:0; left:10px; right:10px; height:1.5px; background:rgba(34,211,238,0.8); box-shadow:0 0 8px #22d3ee; }
 .map-title-border-left { position:absolute; bottom:4px; left:4px; width:1.5px; height:14px; background:rgba(34,211,238,0.8); transform:rotate(-45deg); box-shadow:0 0 8px #22d3ee; }
 .map-title-border-right { position:absolute; bottom:4px; right:4px; width:1.5px; height:14px; background:rgba(34,211,238,0.8); transform:rotate(45deg); box-shadow:0 0 8px #22d3ee; }
-.map-title-text { position:relative; z-index:2; color:#e0f2fe; font-size:10px; font-family:'Orbitron', sans-serif; font-weight:800; letter-spacing:3px; padding-top:1px; white-space:nowrap; animation: mapTitleBlink 2s ease-in-out infinite; }
+.map-title-text { position:relative; z-index:2; color:#e0f2fe; font-size:10px; font-family:'Orbitron', sans-serif; font-weight:800; letter-spacing:3px; padding-top:1px; white-space:nowrap; text-shadow:0 0 10px rgba(34,211,238,0.9), 0 0 4px #fff; animation: mapTitleBlink 2s ease-in-out infinite; }
 @keyframes mapTitleBlink {
-  0%, 100% { opacity:1; text-shadow:0 0 10px rgba(34,211,238,0.9), 0 0 4px #fff; }
-  50% { opacity:0.45; text-shadow:none; }
+  0%, 100% { opacity:1; }
+  50% { opacity:0.45; }
 }
 
 /* ▼▼▼ 지도 상단 라우팅 바 (출장이력 연동) ▼▼▼ */
@@ -467,16 +480,16 @@
 .tl-node.planned .tl-label-top { color:#475569; }
 .tl-node.planned .tl-label-bottom { color:#64748b; }
     .jb-ring2 { transform-origin:50px 50px; animation: jbSpinRev 15s linear infinite; }
-    .jb-core { animation: jbFlicker 2.4s ease-in-out infinite; }
+    .jb-core { animation: jbFlicker 2.4s ease-in-out infinite; filter: drop-shadow(0 0 8px #4dd8e8); }
     @keyframes jbSpin { to { transform: rotate(360deg); } }
     @keyframes jbSpinRev { to { transform: rotate(-360deg); } }
     @keyframes jbFlicker {
-      0%, 100% { opacity:1; filter: drop-shadow(0 0 8px #4dd8e8); }
-      45% { opacity:1; filter: drop-shadow(0 0 8px #4dd8e8); }
-      50% { opacity:0.25; filter:none; }
-      55% { opacity:1; filter: drop-shadow(0 0 8px #4dd8e8); }
-      70% { opacity:1; filter: drop-shadow(0 0 22px #ffffff) drop-shadow(0 0 34px #7ff0fa); }
-      85% { opacity:1; filter: drop-shadow(0 0 8px #4dd8e8); }
+      0%, 100% { opacity:1; }
+      45% { opacity:1; }
+      50% { opacity:0.25; }
+      55% { opacity:1; }
+      70% { opacity:1; }
+      85% { opacity:1; }
       }
       @keyframes hudSubBlinkGreen {
       0%, 100% { opacity:1; color:#4ade80; text-shadow:0 0 6px rgba(74,222,128,0.7); }
@@ -794,16 +807,16 @@
     .tower-hud-sub { font-family:'Share Tech Mono', monospace; letter-spacing:3px; }
     .jarvis-ring1 { transform-origin:50px 50px; animation: jarvisSpin 10s linear infinite; }
     .jarvis-ring2 { transform-origin:50px 50px; animation: jarvisSpinRev 15s linear infinite; }
-    .jarvis-core { animation: jarvisFlicker 2.4s ease-in-out infinite; }
+    .jarvis-core { animation: jarvisFlicker 2.4s ease-in-out infinite; filter: drop-shadow(0 0 8px #4dd8e8); }
     @keyframes jarvisSpin { to { transform: rotate(360deg); } }
     @keyframes jarvisSpinRev { to { transform: rotate(-360deg); } }
     @keyframes jarvisFlicker {
-      0%, 100% { opacity:1; filter: drop-shadow(0 0 8px #4dd8e8); }
-      45% { opacity:1; filter: drop-shadow(0 0 8px #4dd8e8); }
-      50% { opacity:0.25; filter:none; }
-      55% { opacity:1; filter: drop-shadow(0 0 8px #4dd8e8); }
-      70% { opacity:1; filter: drop-shadow(0 0 22px #ffffff) drop-shadow(0 0 34px #7ff0fa); }
-      85% { opacity:1; filter: drop-shadow(0 0 8px #4dd8e8); }
+      0%, 100% { opacity:1; }
+      45% { opacity:1; }
+      50% { opacity:0.25; }
+      55% { opacity:1; }
+      70% { opacity:1; }
+      85% { opacity:1; }
     }
     .tower-side { display:flex; flex-direction:column; gap:12px; }
     /* =========================================================
@@ -1459,11 +1472,13 @@
     
     #jd-eq-frame .eqbar-f {
       width: 11px;
+      height: 100%;
       background: repeating-linear-gradient(to top, rgba(34, 211, 238, 0.85) 0px, rgba(34, 211, 238, 0.85) 4px, transparent 4px, transparent 6px);
       border-top: 2px solid #ffffff;
       filter: drop-shadow(0 0 5px rgba(34, 211, 238, 0.5));
       animation: jarvisEqBlockAnim 1s cubic-bezier(0.1, 0.9, 0.2, 1) infinite alternate;
       transform-origin: bottom;
+      will-change: transform;
     }
     
     #jd-eq-frame .eqbar-f:nth-child(1) { animation-duration: 0.6s; animation-delay: 0.1s; }
@@ -1478,8 +1493,8 @@
     #jd-eq-frame .eqbar-f:nth-child(10) { animation-duration: 0.95s; animation-delay: 0.05s; }
     
     @keyframes jarvisEqBlockAnim {
-      0% { height: 15%; filter: drop-shadow(0 0 2px rgba(34, 211, 238, 0.3)); }
-      100% { height: 100%; filter: drop-shadow(0 0 8px rgba(103, 232, 249, 0.9)) brightness(1.3); }
+      0% { transform: scaleY(0.15); opacity: 0.75; }
+      100% { transform: scaleY(1); opacity: 1; }
     }
 
     /* =========================================================
@@ -1565,12 +1580,13 @@
   stroke: #fef08a !important; 
   stroke-width: 3px !important;
   fill: none !important;      
+  filter: drop-shadow(0 0 6px rgba(254,240,138,0.8));
   animation: travelOutlinePulse 1.2s ease-in-out infinite;
 }
 
 @keyframes travelOutlinePulse {
-  0%, 100% { stroke-opacity: 1; filter: drop-shadow(0 0 6px rgba(254,240,138,0.8)); }
-  50% { stroke-opacity: 0.2; filter: none; }
+  0%, 100% { stroke-opacity: 1; }
+  50% { stroke-opacity: 0.2; }
 }
     .tower-card { background:#0a1628; border:1px solid #0e7490; border-radius:10px; padding:14px; margin-bottom:10px; transition:transform 0.15s ease, box-shadow 0.15s ease; cursor:pointer; }
     .tower-card:hover { transform:translateX(-3px); box-shadow:0 0 16px rgba(6,182,212,0.3); }
@@ -1808,17 +1824,12 @@
    👇 J.A.R.V.I.S SYSTEM MONITOR 실시간 게이지 & 경고 펄스 👇
    ========================================================= */
 @keyframes hudGaugeWarningPulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 4px #f87171) drop-shadow(0 0 10px rgba(248, 113, 113, 0.8));
-    opacity: 1;
-  }
-  50% {
-    filter: drop-shadow(0 0 2px #f87171);
-    opacity: 0.55;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
 }
 
 .hud-gauge-warning {
+  filter: drop-shadow(0 0 4px #f87171) drop-shadow(0 0 10px rgba(248, 113, 113, 0.8));
   animation: hudGaugeWarningPulse 1.2s ease-in-out infinite !important;
 }
 
@@ -2006,7 +2017,7 @@
           </filter>
         </defs>
         <circle cx="50" cy="50" r="48" fill="rgba(10,20,32,0.85)" stroke="#1e293b" stroke-width="4"/>
-        <circle class="jb-ring1" cx="50" cy="50" r="42" fill="none" stroke="#4dd8e8" stroke-width="3" stroke-dasharray="10 6 2 6" filter="url(#jbGlow)"/>
+        <circle class="jb-ring1" cx="50" cy="50" r="42" fill="none" stroke="#4dd8e8" stroke-width="3" stroke-dasharray="10 6 2 6"/>
         <circle cx="50" cy="50" r="32" fill="none" stroke="#2a5f66" stroke-width="2"/>
         <circle class="jb-ring2" cx="50" cy="50" r="26" fill="none" stroke="#4dd8e8" stroke-width="1" stroke-dasharray="4 8"/>
         <g stroke="#7ff0fa" stroke-width="2" filter="url(#jbGlow)">
@@ -2936,7 +2947,7 @@ window.renderDeviationTrendTest = function() {
                 </filter>
               </defs>
               <circle cx="50" cy="50" r="48" fill="rgba(10,20,32,0.8)" stroke="#1e293b" stroke-width="4"/>
-              <circle class="jarvis-ring1" cx="50" cy="50" r="42" fill="none" stroke="#4dd8e8" stroke-width="3" stroke-dasharray="10 6 2 6" filter="url(#jarvisGlow)"/>
+              <circle class="jarvis-ring1" cx="50" cy="50" r="42" fill="none" stroke="#4dd8e8" stroke-width="3" stroke-dasharray="10 6 2 6"/>
               <circle cx="50" cy="50" r="32" fill="none" stroke="#2a5f66" stroke-width="2"/>
               <circle class="jarvis-ring2" cx="50" cy="50" r="26" fill="none" stroke="#4dd8e8" stroke-width="1" stroke-dasharray="4 8"/>
               <g stroke="#7ff0fa" stroke-width="2" filter="url(#jarvisGlow)">
@@ -6033,15 +6044,23 @@ function renderIssueMarkers(track, dates, windowStart, windowEnd, totalDays, day
 // 헤더는 각 날짜 칸이 cellWidth 폭을 가지고 그 중앙에 숫자가 옴.
 // 그리드 선은 "칸과 칸 사이 경계"에 그어야 시각적으로 맞음 -> 각 날짜 칸의 시작 위치에 선을 긋는다.
 function renderDateGrid(track, windowStart, windowEnd, totalDays, dayOffset) {
+  // 매일 세로선은 DOM 생성 대신 배경 그라디언트 1개로 처리 (DOM 노드 수천 개 절감)
+  const dayWidthPct = 100 / totalDays;
+  const bgLayer = document.createElement('div');
+  bgLayer.style.cssText = `position:absolute; inset:0; pointer-events:none; z-index:1; background-image:linear-gradient(to right, #eef1f5 1px, transparent 1px); background-size:${dayWidthPct}% 100%; background-repeat:repeat-x;`;
+  track.appendChild(bgLayer);
+
+  // 월 경계선만 개별 div로 (개수 적어 부담 없음)
   let d = new Date(windowStart);
   while (calYMD(d) <= windowEnd) {
-    const dStr = calYMD(d);
-    const offset = dayOffset(dStr);
-    const pct = (offset / totalDays) * 100;
-    const isMonthStart = d.getDate() === 1;
-    const line = document.createElement('div');
-    line.style.cssText = `position:absolute; left:${pct}%; top:0; bottom:0; border-left:${isMonthStart ? '2px solid #94a3b8' : '1px solid #eef1f5'}; pointer-events:none; z-index:${isMonthStart ? 2 : 1};`;
-    track.appendChild(line);
+    if (d.getDate() === 1) {
+      const dStr = calYMD(d);
+      const offset = dayOffset(dStr);
+      const pct = (offset / totalDays) * 100;
+      const line = document.createElement('div');
+      line.style.cssText = `position:absolute; left:${pct}%; top:0; bottom:0; border-left:2px solid #94a3b8; pointer-events:none; z-index:2;`;
+      track.appendChild(line);
+    }
     d.setDate(d.getDate() + 1);
   }
 }
