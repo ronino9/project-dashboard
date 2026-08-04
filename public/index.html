@@ -709,7 +709,11 @@
 .log-photo-copy-btn { background:#f8fafc !important; border:1px solid #e2e8f0 !important; }
     #stageDetailModal { display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); z-index:9999; align-items:center; justify-content:center; padding:20px; }
 #stageDetailModal.active { display:flex; }
-#stageDetailModal .stage-modal-box { background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:22px; width:640px; max-width:95vw; max-height:88vh; overflow:auto; box-shadow:0 20px 60px rgba(15,23,42,0.25); }
+#stageDetailModal .stage-modal-box { background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:22px; width:1040px; max-width:95vw; max-height:88vh; overflow:auto; box-shadow:0 20px 60px rgba(15,23,42,0.25); }
+.stage-modal-grid { display:grid; grid-template-columns:1fr 340px; gap:22px; align-items:start; }
+.stage-modal-left { min-width:0; }
+.stage-modal-right { background:#fbfcfd; border:1px solid #e2e8f0; border-radius:12px; padding:16px; display:flex; flex-direction:column; position:sticky; top:0; }
+@media(max-width:900px){ .stage-modal-grid { grid-template-columns:1fr; } .stage-modal-right { position:static; } }
 .stage-modal-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:2px; }
 .stage-modal-title-wrap { display:flex; align-items:center; gap:6px; }
 #stageModalTitle { font-size:18px; font-weight:700; color:#0f172a; }
@@ -725,7 +729,24 @@
 .stage-bar-track:hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(15,23,42,0.15); filter:brightness(1.06); }
 .stage-bar-fill { width:0%; height:100%; border-radius:4px; transition:width 0.9s cubic-bezier(0.16,1,0.3,1); }
 .stage-bar-marker { position:absolute; left:50%; top:0; bottom:0; width:1px; background:#94a3b8; z-index:2; pointer-events:none; }
-.stage-bar-pct { width:48px; flex-shrink:0; font-size:13px; font-weight:700; text-align:right; }
+.stage-bar-pct { width:60px; flex-shrink:0; font-size:13px; font-weight:700; text-align:center; padding:3px 0; border-radius:10px; border:1px solid #e2e8f0; background:#f8fafc; cursor:pointer; transition:background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
+.stage-bar-pct:hover { background:#eff6ff; border-color:#93c5fd; transform:translateY(-1px); box-shadow:0 3px 8px rgba(59,130,246,0.18); }
+.stage-bar-pct.stage-pct-active { background:#3b82f6; border-color:#3b82f6; color:#ffffff !important; box-shadow:0 3px 8px rgba(59,130,246,0.3); }
+.stage-donut-title { font-size:14px; font-weight:800; color:#0f172a; }
+.stage-donut-sub { font-size:11px; color:#64748b; margin-top:2px; margin-bottom:10px; }
+.stage-donut-wrap { position:relative; width:170px; height:170px; margin:0 auto 14px; }
+.stage-donut-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; }
+.stage-donut-center .sdc-val { font-size:20px; font-weight:800; color:#0f172a; line-height:1; }
+.stage-donut-center .sdc-lbl { font-size:10px; color:#94a3b8; font-weight:600; margin-top:3px; }
+.stage-donut-legend { display:flex; flex-direction:column; gap:3px; }
+.stage-donut-row { display:flex; align-items:center; gap:7px; font-size:11.5px; padding:5px 8px; border-radius:8px; cursor:pointer; transition:background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
+.stage-donut-row:hover { background:#eff6ff; transform:translateX(3px); box-shadow:-3px 0 0 #3b82f6; }
+.stage-donut-row .sdl-dot { width:9px; height:9px; border-radius:2px; flex-shrink:0; }
+.stage-donut-row .sdl-name { flex:1; color:#334155; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.stage-donut-row .sdl-cnt { color:#64748b; width:32px; text-align:right; flex-shrink:0; }
+.stage-donut-row .sdl-md { color:#0f172a; font-weight:700; width:54px; text-align:right; flex-shrink:0; }
+.stage-donut-row .sdl-pct { color:#94a3b8; width:36px; text-align:right; flex-shrink:0; }
+.stage-donut-empty { font-size:11px; color:#94a3b8; text-align:center; padding:16px 0; }
 .stage-bar-sub { padding-left:66px; font-size:11px; color:#64748b; }
 .stage-bar-legend { display:flex; align-items:center; gap:6px; font-size:11px; color:#94a3b8; margin:4px 0 18px; }
 .stage-color-legend { display:flex; align-items:center; gap:14px; flex-wrap:wrap; font-size:11px; color:#64748b; margin-bottom:14px; }
@@ -2697,15 +2718,28 @@ window.renderDeviationTrendTest = function() {
     </div>
     <div id="stageModalSub" class="stage-modal-sub"></div>
     <div id="stageKickoffLine" class="stage-kickoff-line"></div>
-    <div class="stage-color-legend">
-      <span><span class="swatch" style="background:#1D9E75;"></span>출장(정상)</span>
-      <span><span class="swatch" style="background:#8ED3BA;"></span>원격(정상)</span>
-      <span><span class="swatch" style="background:#C24C4A;"></span>출장(초과)</span>
-      <span><span class="swatch" style="background:#E8A9A4;"></span>원격(초과)</span>
+    <div class="stage-modal-grid">
+      <div class="stage-modal-left">
+        <div class="stage-color-legend">
+          <span><span class="swatch" style="background:#1D9E75;"></span>출장(정상)</span>
+          <span><span class="swatch" style="background:#8ED3BA;"></span>원격(정상)</span>
+          <span><span class="swatch" style="background:#C24C4A;"></span>출장(초과)</span>
+          <span><span class="swatch" style="background:#E8A9A4;"></span>원격(초과)</span>
+        </div>
+        <div id="stageModalBars"></div>
+        <div class="stage-bar-legend"><span style="display:inline-block; width:1px; height:10px; background:#94a3b8;"></span>계획 공수(100%) 지점 · 넘으면 초과로 빨간색 표시 · 원격 집계는 SET-UP·SAT만 적용</div>
+        <table id="stageModalTable"></table>
+      </div>
+      <div class="stage-modal-right">
+        <div class="stage-donut-title" id="stageDonutTitle">단계 선택</div>
+        <div class="stage-donut-sub" id="stageDonutSub">우측 % 버튼을 눌러 단계를 바꿀 수 있습니다</div>
+        <div class="stage-donut-wrap">
+          <canvas id="stageDonutChart"></canvas>
+          <div class="stage-donut-center" id="stageDonutCenter"></div>
+        </div>
+        <div id="stageDonutLegend" class="stage-donut-legend"></div>
+      </div>
     </div>
-    <div id="stageModalBars"></div>
-    <div class="stage-bar-legend"><span style="display:inline-block; width:1px; height:10px; background:#94a3b8;"></span>계획 공수(100%) 지점 · 넘으면 초과로 빨간색 표시 · 원격 집계는 SET-UP·SAT만 적용</div>
-    <table id="stageModalTable"></table>
   </div>
 </div>
       <div id="projectDossierModal" onclick="if(event.target===this) window.closeTowerDossier()">
@@ -3540,7 +3574,7 @@ window.showStageDetailModal = function(rawCode) {
             ${marker}
             ${fillHtml}
           </div>
-          <span class="stage-bar-pct" style="color:${s.overCapacity ? '#dc2626' : '#0f172a'};">${s.pct}%</span>
+          <span class="stage-bar-pct" id="stage-pct-btn-${idx}" onclick="event.stopPropagation(); window.stageSelectDonut(${idx})" title="${s.stage} 업무 구분별 공수 보기" style="color:${s.overCapacity ? '#dc2626' : '#0f172a'};">${s.pct}%</span>
         </div>
         <div class="stage-bar-sub" style="${s.overCapacity ? 'color:#dc2626; font-weight:600;' : (s.isSplittable ? '' : 'color:#94a3b8;')}">${subText}</div>
       </div>`;
@@ -3572,10 +3606,126 @@ window.showStageDetailModal = function(rawCode) {
       fills.forEach(el => { el.style.width = el.dataset.targetWidth + '%'; });
     });
   });
+
+  const donutIdx = currentStageIdx === -1 ? stageData.length - 1 : currentStageIdx;
+  window.stageSelectDonut(donutIdx);
 };
 
 window.closeStageDetail = function() {
   document.getElementById('stageDetailModal').classList.remove('active');
+  if (window._stageDonutChart) { window._stageDonutChart.destroy(); window._stageDonutChart = null; }
+};
+
+const STAGE_TASK_COLORS = {
+  'Issue': '#C0392B', '이슈': '#C0392B',
+  '개선': '#27AE60',
+  '표준': '#3498DB',
+  '기술지원': '#5DADE2',
+  '기능요구': '#2980B9',
+  '미팅': '#8E44AD',
+  '일정': '#16A085'
+};
+const STAGE_TASK_FALLBACK = ['#3498DB', '#D4AC0D', '#16A085', '#E67E22', '#8E44AD', '#C0392B', '#27AE60', '#7F8C8D'];
+
+window._stageDonutChart = null;
+window._stageDonutData = null;
+
+window.stageSelectDonut = function(idx) {
+  const stageData = window._stageModalData || [];
+  const s = stageData[idx];
+  if (!s) return;
+  const code = window._stageModalCode;
+
+  document.querySelectorAll('.stage-bar-pct').forEach(el => el.classList.remove('stage-pct-active'));
+  const btn = document.getElementById('stage-pct-btn-' + idx);
+  if (btn) btn.classList.add('stage-pct-active');
+
+  const titleEl = document.getElementById('stageDonutTitle');
+  const subEl = document.getElementById('stageDonutSub');
+  const centerEl = document.getElementById('stageDonutCenter');
+  const legendEl = document.getElementById('stageDonutLegend');
+  const canvas = document.getElementById('stageDonutChart');
+  if (titleEl) titleEl.textContent = `${code} · ${s.stage}`;
+
+  const agg = {};
+  s.rows.forEach(r => {
+    const key = (r['파트 구분'] || '').toString().trim() || '미분류';
+    if (!agg[key]) agg[key] = { md: 0, cnt: 0, rows: [] };
+    agg[key].md += parseFloat(r['공수(MD)']) || 0;
+    agg[key].cnt++;
+    agg[key].rows.push(r);
+  });
+  const entries = Object.entries(agg).sort((a, b) => b[1].md - a[1].md);
+  const totalMd = entries.reduce((sum, e) => sum + e[1].md, 0);
+
+  if (window._stageDonutChart) { window._stageDonutChart.destroy(); window._stageDonutChart = null; }
+
+  if (entries.length === 0 || totalMd <= 0) {
+    if (subEl) subEl.textContent = '기록된 업무가 없습니다';
+    if (centerEl) centerEl.innerHTML = `<span style="font-size:12px; color:#cbd5e1;">데이터 없음</span>`;
+    if (legendEl) legendEl.innerHTML = `<div class="stage-donut-empty">이 단계에 집계된 공수가 없습니다</div>`;
+    return;
+  }
+
+  if (subEl) subEl.textContent = `${s.rows.length}건 · 총 ${totalMd.toFixed(1)}MD`;
+  if (centerEl) centerEl.innerHTML = `<span class="sdc-val">${totalMd.toFixed(1)}</span><span class="sdc-lbl">MD</span>`;
+
+  let fbIdx = 0;
+  const colors = entries.map(e => STAGE_TASK_COLORS[e[0]] || STAGE_TASK_FALLBACK[fbIdx++ % STAGE_TASK_FALLBACK.length]);
+  window._stageDonutData = { code, stage: s.stage, entries, colors };
+
+  window._stageDonutChart = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels: entries.map(e => e[0]),
+      datasets: [{
+        data: entries.map(e => e[1].md),
+        backgroundColor: colors,
+        borderWidth: 3, borderColor: '#ffffff',
+        hoverOffset: 8, borderRadius: 6, spacing: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      animation: { animateRotate: true, animateScale: true, duration: 900, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0f172a', padding: 10, cornerRadius: 8,
+          callbacks: {
+            label: (ctx) => {
+              const e = entries[ctx.dataIndex];
+              const pct = totalMd > 0 ? Math.round(e[1].md / totalMd * 100) : 0;
+              return `${e[0]}: ${e[1].cnt}건 · ${e[1].md.toFixed(1)}MD (${pct}%)`;
+            }
+          }
+        }
+      },
+      onClick: (evt, els) => { if (els.length > 0) window.stageDonutDrill(els[0].index); }
+    }
+  });
+
+  if (legendEl) {
+    legendEl.innerHTML = entries.map((e, i) => {
+      const pct = totalMd > 0 ? Math.round(e[1].md / totalMd * 100) : 0;
+      return `<div class="stage-donut-row" onclick="window.stageDonutDrill(${i})" title="${e[0]} 상세 이력 보기">
+        <span class="sdl-dot" style="background:${colors[i]};"></span>
+        <span class="sdl-name">${e[0]}</span>
+        <span class="sdl-cnt">${e[1].cnt}건</span>
+        <span class="sdl-md">${e[1].md.toFixed(1)}MD</span>
+        <span class="sdl-pct">${pct}%</span>
+      </div>`;
+    }).join('');
+  }
+};
+
+window.stageDonutDrill = function(i) {
+  const d = window._stageDonutData;
+  if (!d) return;
+  const e = d.entries[i];
+  if (!e) return;
+  const rowsForDisplay = e[1].rows.map(r => ({ '프로젝트 코드': d.code, '접수일': r['접수일'] || '-', ...r }));
+  window.showDetailView(`${d.code} · ${d.stage} · ${e[0]}`, `${rowsForDisplay.length}건 · ${e[1].md.toFixed(1)}MD`, rowsForDisplay);
 };
 
 window.stageBarClick = function(idx) {
