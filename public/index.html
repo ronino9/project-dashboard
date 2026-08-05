@@ -3497,6 +3497,7 @@ window.computeStageDetailData = function(code) {
 };
 
 window.showStageDetailModal = function(rawCode) {
+  document.getElementById('stageModalInfoIco').style.display = '';
   const code = stageNormalizeCode(rawCode);
   const pKey = stageGetPKey(code);
   if (!allData[pKey]) return;
@@ -4117,7 +4118,223 @@ async function syncDashboard() {
         console.error('동기화 실패:', err);
       }
     }
+// 도넛 그래프 호버 시 재생되는 진행률 애니메이션
+window.replayDonutAnimation = function(container) {
+  const circle = container.querySelector('.donut-progress-circle');
+  if (!circle) return;
+  const finalDash = circle.getAttribute('stroke-dasharray');
+  circle.style.transition = 'none';
+  circle.setAttribute('stroke-dasharray', '0, 100');
+  circle.getBoundingClientRect();
+  circle.style.transition = 'stroke-dasharray 0.9s cubic-bezier(0.16, 1, 0.3, 1)';
+  requestAnimationFrame(() => circle.setAttribute('stroke-dasharray', finalDash));
+};
 
+// ===== CP_All 도넛 클릭 시: 프로젝트(CP1~CP7 등)별 상세 모달 =====
+window.computeCsBreakdownData = function() {
+  const rows = (window.allMasterData || []).filter(r => r._pName === 'CP');
+  const groups = {};
+  rows.forEach(r => {
+    const code = (r['프로젝트 코드'] || '').toString().trim() || '미분류';
+    if (!groups[code]) groups[code] = [];
+    groups[code].push(r);
+  });
+  return Object.keys(groups).sort().map(code => {
+    const groupRows = groups[code];
+    const total = groupRows.length;
+    const done = groupRows.filter(r => (r['진행상태'] || '').toString().includes('완료')).length;
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    let md = 0;
+    groupRows.forEach(r => { md += parseFloat(r['공수(MD)']) || 0; });
+    const issueCnt = groupRows.filter(r => (r['업무 구분'] || '').toString().trim() === 'Issue').length;
+    const holdCnt = groupRows.filter(r => (r['진행상태'] || '').toString().trim() === '보류').length;
+    const incompleteCnt = groupRows.filter(r => {
+      const st = (r['진행상태'] || '').toString().trim();
+      return st !== '완료' && st !== '지연완료' && st !== '보류';
+    }).length;
+    return { code, rows: groupRows, total, done, pct, md, issueCnt, holdCnt, incompleteCnt };
+  });
+};
+
+window.showCsBreakdownModal = function() {
+  const data = window.computeCsBreakdownData();
+  window._csModalData = data;
+
+  document.getElementById('stageModalTitle').textContent = 'CP_All';
+  document.getElementById('stageModalInfoIco').style.display = 'none';
+
+  const totalAll = data.reduce((s, d) => s + d.total, 0);
+  const doneAll = data.reduce((s, d) => s + d.done, 0);
+  const overallPct = totalAll > 0 ? Math.round(doneAll / totalAll * 100) : 0;
+  document.getElementById('stageModalSub').innerHTML = `전체 완료율 <strong style="color:#0f172a;">${overallPct}%</strong> &nbsp;·&nbsp; 총 ${totalAll}건`;
+  document.getElementById('stageKickoffLine').style.display = 'none';
+
+  const barsEl = document.getElementById('stageModalBars');
+  if (data.length === 0) {
+    barsEl.innerHTML = `<div style="padding:20px; text-align:center; color:#94a3b8; font-size:13px;">CP_All 데이터가 없습니다.</div>`;
+  } else {
+    barsEl.innerHTML = data.map((d, idx) => `
+      <div class="stage-bar-row">
+        <div class="stage-bar-line">
+          <span class="stage-bar-label">${d.code}</span>
+          <div class="stage-bar-track" onclick="window.csBarClick(${idx})" style="display:flex;">
+            <div class="stage-bar-fill" data-target-width="${d.pct}" style="background:#059669; border-radius:4px; flex-shrink:0;"></div>
+          </div>
+          <span class="stage-bar-pct" id="cs-pct-btn-${idx}" onclick="event.stopPropagation(); window.csSelectDonut(${idx})" title="${d.code} 업무 구분별 공수 보기" style="color:#0f172a;">${d.pct}%</span>
+        </div>
+        <div class="stage-bar-sub">${d.done}/${d.total}건 완료 · ${d.md.toFixed(1)}MD</div>
+      </div>`).join('');
+  }
+
+  const tableEl = document.getElementById('stageModalTable');
+  const headHtml = `<tr><th>프로젝트</th><th>완료</th><th>이슈</th><th>미완료</th><th>보류</th></tr>`;
+  const bodyHtml = data.map((d, idx) => `
+    <tr class="stage-table-row">
+      <td>${d.code}</td>
+      <td>${d.done}/${d.total}</td>
+      <td class="${d.issueCnt > 0 ? 'stage-cell-clickable' : ''}" style="${d.issueCnt > 0 ? 'color:#dc2626; font-weight:700;' : 'color:#cbd5e1;'}" ${d.issueCnt > 0 ? `onclick="window.csStatClick(${idx}, 'issue')"` : ''}>${d.issueCnt}건</td>
+      <td class="${d.incompleteCnt > 0 ? 'stage-cell-clickable' : ''}" style="${d.incompleteCnt > 0 ? 'color:#d97706; font-weight:700;' : 'color:#cbd5e1;'}" ${d.incompleteCnt > 0 ? `onclick="window.csStatClick(${idx}, 'incomplete')"` : ''}>${d.incompleteCnt}건</td>
+      <td class="${d.holdCnt > 0 ? 'stage-cell-clickable' : ''}" style="${d.holdCnt > 0 ? 'color:#64748b; font-weight:700;' : 'color:#cbd5e1;'}" ${d.holdCnt > 0 ? `onclick="window.csStatClick(${idx}, 'hold')"` : ''}>${d.holdCnt}건</td>
+    </tr>`).join('');
+  tableEl.innerHTML = headHtml + bodyHtml;
+
+  document.getElementById('stageDetailModal').classList.add('active');
+
+  const fills = barsEl.querySelectorAll('.stage-bar-fill');
+  fills.forEach((el, idx) => {
+    el.style.width = '0%';
+    el.style.transitionDelay = (idx * 100) + 'ms';
+  });
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      fills.forEach(el => { el.style.width = el.dataset.targetWidth + '%'; });
+    });
+  });
+
+  if (data.length > 0) window.csSelectDonut(0);
+  else {
+    document.getElementById('stageDonutTitle').textContent = '데이터 없음';
+    document.getElementById('stageDonutSub').textContent = '';
+    document.getElementById('stageDonutCenter').innerHTML = '';
+    document.getElementById('stageDonutLegend').innerHTML = `<div class="stage-donut-empty">집계된 데이터가 없습니다</div>`;
+  }
+};
+
+window.csBarClick = function(idx) {
+  const d = (window._csModalData || [])[idx];
+  if (!d) return;
+  const rowsForDisplay = d.rows.map(r => ({ '프로젝트 코드': d.code, '접수일': r['접수일'] || '-', ...r }));
+  window.showDetailView(`CP_All · ${d.code}`, `${rowsForDisplay.length}건`, rowsForDisplay);
+};
+
+window.csStatClick = function(idx, type) {
+  const d = (window._csModalData || [])[idx];
+  if (!d) return;
+  let filtered, label;
+  if (type === 'issue') {
+    filtered = d.rows.filter(r => (r['업무 구분'] || '').toString().trim() === 'Issue');
+    label = '이슈';
+  } else if (type === 'hold') {
+    filtered = d.rows.filter(r => (r['진행상태'] || '').toString().trim() === '보류');
+    label = '보류';
+  } else {
+    filtered = d.rows.filter(r => {
+      const st = (r['진행상태'] || '').toString().trim();
+      return st !== '완료' && st !== '지연완료' && st !== '보류';
+    });
+    label = '미완료';
+  }
+  const rowsForDisplay = filtered.map(r => ({ '프로젝트 코드': d.code, '접수일': r['접수일'] || '-', ...r }));
+  window.showDetailView(`CP_All · ${d.code} · ${label}`, `${rowsForDisplay.length}건`, rowsForDisplay);
+};
+
+window.csSelectDonut = function(idx) {
+  const data = window._csModalData || [];
+  const d = data[idx];
+  if (!d) return;
+
+  document.querySelectorAll('.stage-bar-pct').forEach(el => el.classList.remove('stage-pct-active'));
+  const btn = document.getElementById('cs-pct-btn-' + idx);
+  if (btn) btn.classList.add('stage-pct-active');
+
+  const titleEl = document.getElementById('stageDonutTitle');
+  const subEl = document.getElementById('stageDonutSub');
+  const centerEl = document.getElementById('stageDonutCenter');
+  const legendEl = document.getElementById('stageDonutLegend');
+  const canvas = document.getElementById('stageDonutChart');
+  if (titleEl) titleEl.textContent = `CP_All · ${d.code}`;
+
+  const agg = {};
+  d.rows.forEach(r => {
+    const key = (r['업무 구분'] || '').toString().trim() || '미분류';
+    if (!agg[key]) agg[key] = { md: 0, cnt: 0, rows: [] };
+    agg[key].md += parseFloat(r['공수(MD)']) || 0;
+    agg[key].cnt++;
+    agg[key].rows.push(r);
+  });
+  const entries = Object.entries(agg).sort((a, b) => b[1].md - a[1].md);
+  const totalMd = entries.reduce((sum, e) => sum + e[1].md, 0);
+
+  if (window._stageDonutChart) { window._stageDonutChart.destroy(); window._stageDonutChart = null; }
+
+  if (entries.length === 0 || totalMd <= 0) {
+    if (subEl) subEl.textContent = '기록된 업무가 없습니다';
+    if (centerEl) centerEl.innerHTML = `<span style="font-size:12px; color:#cbd5e1;">데이터 없음</span>`;
+    if (legendEl) legendEl.innerHTML = `<div class="stage-donut-empty">이 프로젝트에 집계된 공수가 없습니다</div>`;
+    return;
+  }
+
+  if (subEl) subEl.textContent = `${d.rows.length}건 · 총 ${totalMd.toFixed(1)}MD`;
+  if (centerEl) centerEl.innerHTML = `<span class="sdc-val">${totalMd.toFixed(1)}</span><span class="sdc-lbl">MD</span>`;
+
+  let fbIdx = 0;
+  const colors = entries.map(e => STAGE_TASK_COLORS[e[0]] || STAGE_TASK_FALLBACK[fbIdx++ % STAGE_TASK_FALLBACK.length]);
+  window._stageDonutData = { code: 'CP_All', stage: d.code, entries, colors };
+
+  window._stageDonutChart = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels: entries.map(e => e[0]),
+      datasets: [{
+        data: entries.map(e => e[1].md),
+        backgroundColor: colors,
+        borderWidth: 3, borderColor: '#ffffff',
+        hoverOffset: 8, borderRadius: 6, spacing: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      animation: { animateRotate: true, animateScale: true, duration: 900, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0f172a', padding: 10, cornerRadius: 8,
+          callbacks: {
+            label: (ctx) => {
+              const e = entries[ctx.dataIndex];
+              const pct = totalMd > 0 ? Math.round(e[1].md / totalMd * 100) : 0;
+              return `${e[0]}: ${e[1].cnt}건 · ${e[1].md.toFixed(1)}MD (${pct}%)`;
+            }
+          }
+        }
+      },
+      onClick: (evt, els) => { if (els.length > 0) window.stageDonutDrill(els[0].index); }
+    }
+  });
+
+  if (legendEl) {
+    legendEl.innerHTML = entries.map((e, i) => {
+      const pct = totalMd > 0 ? Math.round(e[1].md / totalMd * 100) : 0;
+      return `<div class="stage-donut-row" onclick="window.stageDonutDrill(${i})" title="${e[0]} 상세 이력 보기">
+        <span class="sdl-dot" style="background:${colors[i]};"></span>
+        <span class="sdl-name">${e[0]}</span>
+        <span class="sdl-cnt">${e[1].cnt}건</span>
+        <span class="sdl-md">${e[1].md.toFixed(1)}MD</span>
+        <span class="sdl-pct">${pct}%</span>
+      </div>`;
+    }).join('');
+  }
+};
 // ✅ 여기서부터 복사하세요
 window.animateMainCards = function() {
   const container = document.getElementById('main-summary-cards');
@@ -4220,7 +4437,7 @@ return `
           <span class="badge" style="${badgeStyle}">${statusText}</span>
         </div>
         <div class="main-card-body">
-          <div class="donut-container">
+          <div class="donut-container" style="cursor:pointer;" title="프로젝트별 상세보기" onclick="event.stopPropagation(); window.showCsBreakdownModal()" onmouseenter="window.replayDonutAnimation(this)">
             <svg viewBox="0 0 36 36" style="width:100%;height:100%;">
               <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#f1f5f9" stroke-width="3"/>
               <circle class="donut-progress-circle" cx="18" cy="18" r="15.9155" fill="none" stroke="${proj.color}" stroke-width="3" stroke-dasharray="${rate}, 100" style="stroke-linecap:round;"/>
@@ -4307,7 +4524,7 @@ const summary = proj.d.summary || {};
           <span class="badge" style="${badgeStyle}">${statusText}</span>
         </div>
         <div class="main-card-body">
-          <div class="donut-container">
+          <div class="donut-container" style="cursor:pointer;" title="단계별 상세보기" onclick="event.stopPropagation(); window.showStageDetailModal('${proj.id}')" onmouseenter="window.replayDonutAnimation(this)">
             <svg viewBox="0 0 36 36" style="width:100%;height:100%;">
               <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#f1f5f9" stroke-width="3"/>
               <circle class="donut-progress-circle" cx="18" cy="18" r="15.9155" fill="none" stroke="${proj.color}" stroke-width="3" stroke-dasharray="${overall.replace('%','')}, 100" style="stroke-linecap:round;"/>
