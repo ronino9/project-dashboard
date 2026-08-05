@@ -4518,7 +4518,7 @@ const summary = proj.d.summary || {};
       <div class="main-card" draggable="true" data-card-idx="${cardIdx}" ondragstart="window.cardDragStart(event,${cardIdx})" ondragover="window.cardDragOver(event)" ondrop="window.cardDrop(event,${cardIdx})" ondragend="window.cardDragEnd(event)" onclick="window.cardClick('${proj.id}')" style="cursor: pointer; ${selectedSet.has(proj.id) ? 'border: 2px solid ' + proj.color + '; box-shadow: 0 0 0 3px ' + proj.color + '33;' : ''}">
 <div class="main-card-header">
           <div style="display:flex; align-items:center; gap:8px;">
-            <div class="main-card-title">${proj.id}<i class="proj-info-ico" style="font-size:13px; margin-left:6px;" onclick="event.stopPropagation(); window.showProjectInfoPopup('${proj.id}', this)" title="프로젝트 정보">ⓘ</i>
+            <div class="main-card-title">${proj.id}<i class="proj-info-ico" style="font-size:13px; margin-left:6px;" onclick="event.stopPropagation(); window.showProjectInfoPopup('${proj.id}', this)" title="프로젝트 정보">ⓘ</i></div>
             ${riskLampHtml}
           </div>
           <span class="badge" style="${badgeStyle}">${statusText}</span>
