@@ -4176,7 +4176,7 @@ window.showCsBreakdownModal = function() {
     barsEl.innerHTML = data.map((d, idx) => `
       <div class="stage-bar-row">
         <div class="stage-bar-line">
-          <span class="stage-bar-label">${d.code}</span>
+          <span class="stage-bar-label" style="display:flex; align-items:center; gap:3px; overflow:visible;">${d.code}<i class="proj-info-ico" style="font-size:11px; margin-left:1px;" onclick="event.stopPropagation(); window.showProjectInfoPopup('${d.code}', this)" title="프로젝트 정보">ⓘ</i></span>
           <div class="stage-bar-track" onclick="window.csBarClick(${idx})" style="display:flex;">
             <div class="stage-bar-fill" data-target-width="${d.pct}" style="background:#059669; border-radius:4px; flex-shrink:0;"></div>
           </div>
