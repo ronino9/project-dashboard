@@ -4266,7 +4266,7 @@ window.csSelectDonut = function(idx) {
 
   const agg = {};
   d.rows.forEach(r => {
-    const key = (r['업무 구분'] || '').toString().trim() || '미분류';
+    const key = (r['파트 구분'] || '').toString().trim() || '미분류';
     if (!agg[key]) agg[key] = { md: 0, cnt: 0, rows: [] };
     agg[key].md += parseFloat(r['공수(MD)']) || 0;
     agg[key].cnt++;
@@ -4518,7 +4518,7 @@ const summary = proj.d.summary || {};
       <div class="main-card" draggable="true" data-card-idx="${cardIdx}" ondragstart="window.cardDragStart(event,${cardIdx})" ondragover="window.cardDragOver(event)" ondrop="window.cardDrop(event,${cardIdx})" ondragend="window.cardDragEnd(event)" onclick="window.cardClick('${proj.id}')" style="cursor: pointer; ${selectedSet.has(proj.id) ? 'border: 2px solid ' + proj.color + '; box-shadow: 0 0 0 3px ' + proj.color + '33;' : ''}">
 <div class="main-card-header">
           <div style="display:flex; align-items:center; gap:8px;">
-            <div class="main-card-title">${proj.id}<i class="proj-info-ico" style="font-size:13px; margin-left:6px;" onclick="event.stopPropagation(); window.showProjectInfoPopup('${proj.id}', this)" title="프로젝트 정보">ⓘ</i><i class="proj-info-ico" style="font-size:13px; margin-left:4px;" onclick="event.stopPropagation(); window.showStageDetailModal('${proj.id}')" title="단계별 상세보기">▤</i></div>
+            <div class="main-card-title">${proj.id}<i class="proj-info-ico" style="font-size:13px; margin-left:6px;" onclick="event.stopPropagation(); window.showProjectInfoPopup('${proj.id}', this)" title="프로젝트 정보">ⓘ</i>
             ${riskLampHtml}
           </div>
           <span class="badge" style="${badgeStyle}">${statusText}</span>
