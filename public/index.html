@@ -1968,6 +1968,7 @@
         <select id="gs-response"><option value="">대응 구분</option></select>
         <select id="gs-task"><option value="">업무 구분</option></select>
         <select id="gs-part"><option value="">파트 구분</option></select>
+        <select id="gs-subpart"><option value="">세부파트</option></select>
       </div>
     </div>
   </div>
@@ -10193,8 +10194,9 @@ window.populateGlobalSearchFilters = function() {
   const map = {
     'gs-stage': '단계 구분', 'gs-response': '대응 구분',
     'gs-task': '업무 구분', 'gs-part': '파트 구분',
+    'gs-subpart': '세부파트',
     'gs-status': '진행상태'
-  };
+};
   Object.entries(map).forEach(([elId, col]) => {
     const sel = document.getElementById(elId);
     if (!sel) return;
@@ -10217,6 +10219,7 @@ const project = document.getElementById('gs-project').value;
   const response = document.getElementById('gs-response').value;
   const task = document.getElementById('gs-task').value;
   const part = document.getElementById('gs-part').value;
+  const subPart = document.getElementById('gs-subpart').value;   // 추가
 
   if (!keyword && !project && !status && !stage && !response && !task && !part) {
     alert('검색어 또는 필터 조건을 하나 이상 입력해주세요.');
@@ -10230,6 +10233,7 @@ const project = document.getElementById('gs-project').value;
     if (response && r['대응 구분'] !== response) return false;
     if (task && r['업무 구분'] !== task) return false;
     if (part && r['파트 구분'] !== part) return false;
+    if (subPart && r['세부파트'] !== subPart) return false;   // 추가
     if (keyword) {
       const text = [
         r['표준 제작 Item / Issue / 개선사항'], r['제목'], r['진행 사항'], r['분석 데이터']
