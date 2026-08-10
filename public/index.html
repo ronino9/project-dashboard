@@ -1943,6 +1943,34 @@
     .hud-alert-tag.at-warn { border:1px solid rgba(250,204,21,0.6); background:rgba(250,204,21,0.12); color:#facc15; }
     .hud-alert-tag.at-info { border:1px solid rgba(56,189,248,0.5); background:rgba(56,189,248,0.1); color:#38bdf8; }
     .hud-alert-tag.at-off { border:1px solid rgba(100,116,139,0.35); background:transparent; color:#475569; }
+
+    /* ===== 상세내역 인쇄/PDF 저장 전용 스타일 ===== */
+    @media print {
+      @page { size: landscape; margin: 12mm; }
+      body * { visibility: hidden; }
+      #detailView, #detailView * { visibility: visible; }
+      #detailView {
+        position: static !important;
+        background: #fff !important;
+        display: block !important;
+      }
+      #detailView .detail-modal-box {
+        width: 100% !important;
+        max-width: none !important;
+        max-height: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+      }
+      #detailView .detail-modal-scroll {
+        overflow: visible !important;
+      }
+      #detailBackBtn, #detailClose,
+      #detailView button[onclick="window.printDetailView()"] { display: none !important; }
+      #detailTable { width: 100% !important; min-width: 0 !important; table-layout: auto !important; }
+      #detailTable th, #detailTable td { position: static !important; }
+      #detailTable thead { display: table-header-group; }
+      #detailTable tr { break-inside: avoid; page-break-inside: avoid; }
+    }
   </style>
 </head>
 <body>
@@ -2781,7 +2809,10 @@ window.renderDeviationTrendTest = function() {
             <button id="detailBackBtn" onclick="window.detailGoBack()" style="display:none; align-items:center; gap:4px; background:#0f172a; border:1px solid #334155; color:#93c5fd; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:700; flex-shrink:0; transition:0.2s;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='#0f172a'">← 뒤로</button>
             <span id="detailTitle" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
           </div>
-          <span id="detailClose" onclick="window.closeDetail()" style="cursor: pointer; flex-shrink:0;">✕</span>
+          <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+            <button onclick="window.printDetailView()" style="display:flex; align-items:center; gap:5px; background:#f8fafc; border:1px solid #e2e8f0; color:#3b82f6; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:700;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='#f8fafc'">🖨️ PDF/인쇄</button>
+            <span id="detailClose" onclick="window.closeDetail()" style="cursor: pointer;">✕</span>
+          </div>
         </div>
         <div id="detailStatusBar" style="display:none; align-items:center; justify-content:center; padding:10px 0; border-bottom:1px solid #f1f5f9; flex-shrink:0; flex-wrap:wrap;"></div>
         <div id="detailSummaryBar" style="display:none; align-items:center; gap:12px; padding:0 0 10px; border-bottom:1px solid #f1f5f9; flex-shrink:0;">
@@ -3785,6 +3816,10 @@ window.closeDetail = function() {
       document.getElementById('detailView').classList.remove('active');
       window._detailStack = [];
       window._detailCurrent = null;
+    }
+
+    window.printDetailView = function() {
+      window.print();
     }
 
     window.detailGoBack = function() {
