@@ -2638,8 +2638,8 @@ window.renderDeviationTrendTest = function() {
   <input type="date" id="indiv-period-start" style="height:24px; border:1px solid #bfdbfe; border-radius:6px; padding:0 6px; font-size:11px;">
   <span style="color:#94a3b8;">~</span>
   <input type="date" id="indiv-period-end" style="height:24px; border:1px solid #bfdbfe; border-radius:6px; padding:0 6px; font-size:11px;">
-  <button id="btn-period-apply" onclick="window.applyIndivPeriodFilter()" class="period-action-btn" style="height:24px; padding:0 12px; background:#3b82f6; color:#fff; border:none; border-radius:6px; font-weight:700; cursor:pointer;">적용</button>
-  <button id="btn-period-clear" onclick="window.clearIndivPeriod()" class="period-action-btn" style="height:24px; padding:0 12px; background:#fff; color:#cbd5e1; border:1px solid #e2e8f0; border-radius:6px; font-weight:700; cursor:not-allowed;" disabled>해제</button>
+  <button id="btn-period-apply" onclick="window.applyIndivPeriodFilter()" class="period-action-btn" style="height:24px; padding:0 12px; background:#fff; color:#64748b; border:1px solid #e2e8f0; border-radius:6px; font-weight:700; cursor:pointer;">적용</button>
+  <button id="btn-period-clear" onclick="window.clearIndivPeriod()" class="period-action-btn" style="height:24px; padding:0 12px; background:#3b82f6; color:#fff; border:none; border-radius:6px; font-weight:700; cursor:pointer;">해제</button>
   <span id="period-status-badge" class="period-status-badge" style="background:#f1f5f9; color:#94a3b8;">미적용</span>
 </div>
               <div id="gantt-legend-master">
@@ -6804,14 +6804,18 @@ window.syncPeriodButtonsUI = function() {
   if (!applyBtn || !clearBtn || !badge) return;
   const isApplied = !!window._indivPeriod;
   if (isApplied) {
-    applyBtn.style.background = '#16a34a'; applyBtn.style.color = '#fff'; applyBtn.innerHTML = '✓ 적용됨';
-    clearBtn.disabled = false; clearBtn.style.background = '#fef2f2'; clearBtn.style.color = '#dc2626';
-    clearBtn.style.borderColor = '#fca5a5'; clearBtn.style.cursor = 'pointer';
-    badge.style.background = '#f0fdf4'; badge.style.color = '#16a34a'; badge.textContent = '적용중';
+    // 적용 상태: 적용 버튼이 선택된 모양
+    applyBtn.disabled = false; applyBtn.style.background = '#3b82f6'; applyBtn.style.color = '#fff';
+    applyBtn.style.border = 'none'; applyBtn.style.cursor = 'pointer'; applyBtn.innerHTML = '✓ 적용';
+    clearBtn.disabled = false; clearBtn.style.background = '#fff'; clearBtn.style.color = '#64748b';
+    clearBtn.style.border = '1px solid #e2e8f0'; clearBtn.style.cursor = 'pointer';
+    badge.style.background = '#eff6ff'; badge.style.color = '#1d4ed8'; badge.textContent = '적용중';
   } else {
-    applyBtn.style.background = '#3b82f6'; applyBtn.style.color = '#fff'; applyBtn.innerHTML = '적용';
-    clearBtn.disabled = true; clearBtn.style.background = '#fff'; clearBtn.style.color = '#cbd5e1';
-    clearBtn.style.borderColor = '#e2e8f0'; clearBtn.style.cursor = 'not-allowed';
+    // 미적용 상태: 해제 버튼이 선택된 모양
+    applyBtn.disabled = false; applyBtn.style.background = '#fff'; applyBtn.style.color = '#64748b';
+    applyBtn.style.border = '1px solid #e2e8f0'; applyBtn.style.cursor = 'pointer'; applyBtn.innerHTML = '적용';
+    clearBtn.disabled = false; clearBtn.style.background = '#3b82f6'; clearBtn.style.color = '#fff';
+    clearBtn.style.border = 'none'; clearBtn.style.cursor = 'pointer';
     badge.style.background = '#f1f5f9'; badge.style.color = '#94a3b8'; badge.textContent = '미적용';
   }
 };
