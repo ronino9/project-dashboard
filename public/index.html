@@ -2783,6 +2783,7 @@ window.renderDeviationTrendTest = function() {
           </div>
           <span id="detailClose" onclick="window.closeDetail()" style="cursor: pointer; flex-shrink:0;">✕</span>
         </div>
+        <div id="detailStatusBar" style="display:none; align-items:center; justify-content:center; padding:10px 0; border-bottom:1px solid #f1f5f9; flex-shrink:0; flex-wrap:wrap;"></div>
         <div id="detailSummaryBar" style="display:none; align-items:center; gap:12px; padding:0 0 10px; border-bottom:1px solid #f1f5f9; flex-shrink:0;">
           <div id="detailBadgeScroll" style="display:flex; gap:8px; overflow-x:auto; flex:1; min-width:0; cursor:grab; scrollbar-width:none;">
             <div id="detailBadgeRow" style="display:flex; gap:8px; flex-shrink:0;"></div>
@@ -3820,6 +3821,41 @@ window.closeDetail = function() {
     }
 
     // (기존 showDetailView 함수 그대로 유지 - 생략 없이 포함)
+window.renderDetailStatusBar = function(dataRows) {
+  const bar = document.getElementById('detailStatusBar');
+  if (!bar) return;
+  if (!dataRows || dataRows.length === 0) { bar.style.display = 'none'; return; }
+
+  const order = [
+    { key: '완료', label: '완료', color: '#16a34a' },
+    { key: '진행중', label: '진행중', color: '#2563eb' },
+    { key: '지연완료', label: '지연완료', color: '#7c3aed', showExt: true },
+    { key: '지연중', label: '지연중', color: '#dc2626', showExt: true },
+    { key: '임박', label: '임박', color: '#d97706' },
+    { key: '보류', label: '보류', color: '#64748b' }
+  ];
+  const counts = {}, extCounts = {};
+  order.forEach(o => { counts[o.key] = 0; extCounts[o.key] = 0; });
+  dataRows.forEach(r => {
+    const st = (r['진행상태'] || '').toString().trim();
+    if (!counts.hasOwnProperty(st)) return;
+    counts[st]++;
+    const ext = (r['외부요인'] || '').toString().trim();
+    if (ext && ext !== '해당없음') extCounts[st]++;
+  });
+
+  bar.innerHTML = order.map((o, i) => {
+    const val = counts[o.key];
+    const extVal = extCounts[o.key];
+    const isRisk = (o.key === '지연중' || o.key === '임박') && val > 0;
+    const color = isRisk ? '#dc2626' : (val > 0 ? o.color : '#cbd5e1');
+    const extBadge = (o.showExt && extVal > 0) ? `<span style="font-size:10px; color:#94a3b8; font-weight:600;">(외부 ${extVal})</span>` : '';
+    const divider = i > 0 ? '<span style="color:#e2e8f0; font-size:12px; margin:0 12px;">·</span>' : '';
+    return `${divider}<span style="display:inline-flex; align-items:baseline; gap:5px; min-width:66px; justify-content:center;"><span style="font-size:11px; color:#94a3b8; font-weight:700;">${o.label}</span><span style="font-size:14px; font-weight:800; color:${color};">${val}</span>${extBadge}</span>`;
+  }).join('');
+  bar.style.display = 'flex';
+};
+
 window.showDetailView = function(dateLabel, typeLabel, dataRows, _fromBack) {
   const detailView = document.getElementById('detailView');
   const detailTitle = document.getElementById('detailTitle');
@@ -3839,6 +3875,7 @@ window.showDetailView = function(dateLabel, typeLabel, dataRows, _fromBack) {
   if (backBtn) backBtn.style.display = window._detailStack.length > 0 ? 'inline-flex' : 'none';
 
   detailTitle.textContent = `${dateLabel} - [${typeLabel}] 상세 내역`;
+  window.renderDetailStatusBar(dataRows);
   window.renderDetailSummaryBar(dataRows);
 
   if (dataRows.length === 0) {
