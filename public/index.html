@@ -2082,22 +2082,22 @@
           <div class="kpi-strip-value" id="kpi-master-hold-hdr">0<span class="kpi-strip-unit">건</span></div>
         </div>
       </div>
-      <div class="kpi-strip-item" style="cursor:default;">
-        <div style="min-width:0;">
-          <div class="kpi-strip-label">일정 준수율</div>
-          <div class="kpi-strip-value" id="kpi-master-compliance-hdr" style="color:#16a34a;">0<span class="kpi-strip-unit">%</span></div>
-        </div>
-      </div>
-      <div class="kpi-strip-item" style="cursor:default;">
+      <div class="kpi-strip-item" onclick="window.showKpiDetail('delaydone')">
         <div style="min-width:0;">
           <div class="kpi-strip-label">지연완료</div>
           <div class="kpi-strip-value" id="kpi-master-delaydone-hdr" style="color:#7c3aed;">0<span class="kpi-strip-unit">건</span></div>
         </div>
       </div>
-      <div class="kpi-strip-item" style="cursor:default;">
+      <div class="kpi-strip-item" onclick="window.showKpiDetail('incomplete')">
         <div style="min-width:0;">
           <div class="kpi-strip-label">미완료</div>
           <div class="kpi-strip-value" id="kpi-master-incomplete-hdr" style="color:#d97706;">0<span class="kpi-strip-unit">건</span></div>
+        </div>
+      </div>
+      <div class="kpi-strip-item" style="cursor:default;">
+        <div style="min-width:0;">
+          <div class="kpi-strip-label">일정 준수율</div>
+          <div class="kpi-strip-value" id="kpi-master-compliance-hdr" style="color:#16a34a;">0<span class="kpi-strip-unit">%</span></div>
         </div>
       </div>
       <span id="kpi-period-label" style="display:none; align-self:center; font-size:11px; font-weight:700; color:#1d4ed8; background:#eff6ff; border:1px solid #bfdbfe; padding:4px 10px; border-radius:10px; white-space:nowrap;"></span>
@@ -5007,42 +5007,45 @@ document.addEventListener('click', function(e) {
 
 window.showKpiDetail = function(type) {
   const matchedRows = [];
-  
+  const period = window._indivPeriod;
+  const periodCode = window._activeCardCode;
+
   window.allMasterData.forEach(r => {
-      // 1. 현재 위쪽 슬라이서에서 선택된 필터 조건들을 먼저 통과하는지 검사
-      let pass = true;
-      for (let cat in window.masterMdFilters) {
-          const selectedSet = window.masterMdFilters[cat];
-          if (selectedSet.size > 0) {
-              const rowVal = cat === '프로젝트' ? r._pName : (r[cat] || r[cat.replace('/', '')] || '');
-              if (!selectedSet.has(rowVal)) { pass = false; break; }
+      // 0. 기간 지정 중이면 그 프로젝트·그 기간(접수일)만 대상으로
+      if (period) {
+          if (r._pName !== periodCode) return;
+          const d = (r['접수일'] || '').toString().replace(/[./]/g, '-').substring(0, 10);
+          if (!d || d < period.start || d > period.end) return;
+      } else {
+          // 1. 기간 미지정 시엔 기존처럼 상단 슬라이서 필터 통과 여부 검사
+          let pass = true;
+          for (let cat in window.masterMdFilters) {
+              const selectedSet = window.masterMdFilters[cat];
+              if (selectedSet.size > 0) {
+                  const rowVal = cat === '프로젝트' ? r._pName : (r[cat] || r[cat.replace('/', '')] || '');
+                  if (!selectedSet.has(rowVal)) { pass = false; return; }
+              }
           }
+          if (!pass) return;
       }
 
-      // 2. 필터를 통과한 녀석들 중에서 해당 KPI 조건에 맞는 것만 쏙쏙 뽑아냄
-      if (pass) {
-          const status = r['진행상태'] || '';
-          const taskType = r['업무 구분'] || '';
-          
-let isMatch = false;
-          if (type === 'delay' && status === '지연중') {
-              isMatch = true;
-          } else if (type === 'imminent' && status === '임박') {
-              isMatch = true;
-          } else if (type === 'hold' && status === '보류') {
-              isMatch = true;
-          }
+      // 2. 해당 KPI 조건에 맞는 것만 뽑아냄
+      const status = r['진행상태'] || '';
+      let isMatch = false;
+      if (type === 'delay' && status === '지연중') isMatch = true;
+      else if (type === 'imminent' && status === '임박') isMatch = true;
+      else if (type === 'hold' && status === '보류') isMatch = true;
+      else if (type === 'delaydone' && status === '지연완료') isMatch = true;
+      else if (type === 'incomplete' && status !== '완료' && status !== '지연완료' && status !== '보류') isMatch = true;
 
-          if (isMatch) {
-              // 팝업창에 예쁘게 띄우기 위해 데이터 가공
-              const rowCopy = {
-                  '프로젝트 코드': r._pName,
-                  '접수일': r['접수일'] || '-',
-                  ...r
-              };
-              rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${r._pName}] ${r['표준 제작 Item / Issue / 개선사항'] || r['제목'] || ''}`;
-              matchedRows.push(rowCopy);
-          }
+      if (isMatch) {
+          const rowCopy = {
+              '프로젝트 코드': r._pName,
+              '접수일': r['접수일'] || '-',
+              ...r
+          };
+          rowCopy['표준 제작 Item / Issue / 개선사항'] = `[${r._pName}] ${r['표준 제작 Item / Issue / 개선사항'] || r['제목'] || ''}`;
+          matchedRows.push(rowCopy);
       }
   });
 
@@ -5051,8 +5054,7 @@ let isMatch = false;
       return;
   }
 
-  // 3. 팝업창 띄우기!
-const titleMap = { delay: '🔴 지연 항목 전체', imminent: '🟡 임박 항목 전체', hold: '⚪ 보류 항목 전체' };
+  const titleMap = { delay: '🔴 지연 항목 전체', imminent: '🟡 임박 항목 전체', hold: '⚪ 보류 항목 전체', delaydone: '🟣 지연완료 항목 전체', incomplete: '🟠 미완료 항목 전체' };
   const title = titleMap[type] || '항목 전체';
   window.showDetailView(title, `총 ${matchedRows.length}건`, matchedRows);
 };
