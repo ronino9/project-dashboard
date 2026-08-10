@@ -1994,6 +1994,7 @@
       </div>
       <div class="search-popover-grid">
         <select id="gs-project"><option value="">프로젝트</option></select>
+        <select id="gs-year"><option value="">연도 전체</option></select>
         <select id="gs-status"><option value="">진행상태</option></select>
         <select id="gs-stage"><option value="">단계 구분</option></select>
         <select id="gs-response"><option value="">대응 구분</option></select>
@@ -10376,6 +10377,18 @@ contentDiv.innerHTML = html;
 window.populateGlobalSearchFilters = function() {
   if (!window.allMasterData) return;
 
+  // 연도 필터: 접수일에서 연도만 뽑아 최신순 정렬
+  const yearSel = document.getElementById('gs-year');
+  if (yearSel) {
+    const currentYear = yearSel.value;
+    const years = [...new Set(window.allMasterData
+      .map(r => (r['접수일'] || '').toString().substring(0, 4))
+      .filter(y => /^\d{4}$/.test(y))
+    )].sort((a, b) => b - a);
+    yearSel.innerHTML = `<option value="">연도 전체</option>` + years.map(y => `<option value="${y}">${y}년</option>`).join('');
+    if (years.includes(currentYear)) yearSel.value = currentYear;
+  }
+
   // 프로젝트 필터는 컬럼값이 아닌 _pName 기준이라 별도 처리
   const projSel = document.getElementById('gs-project');
   if (projSel) {
@@ -10408,6 +10421,7 @@ window.runGlobalSearch = function() {
     return;
   }
 const project = document.getElementById('gs-project').value;
+  const year = document.getElementById('gs-year').value;   // 추가
   const status = document.getElementById('gs-status').value;
   const keyword = (document.getElementById('gs-keyword').value || '').trim().toLowerCase();
   const stage = document.getElementById('gs-stage').value;
@@ -10416,13 +10430,14 @@ const project = document.getElementById('gs-project').value;
   const part = document.getElementById('gs-part').value;
   const subPart = document.getElementById('gs-subpart').value;   // 추가
 
-  if (!keyword && !project && !status && !stage && !response && !task && !part) {
+  if (!keyword && !project && !year && !status && !stage && !response && !task && !part) {
     alert('검색어 또는 필터 조건을 하나 이상 입력해주세요.');
     return;
   }
 
   const matched = window.allMasterData.filter(r => {
     if (project && r._pName !== project) return false;
+    if (year && (r['접수일'] || '').toString().substring(0, 4) !== year) return false;   // 추가
     if (status && r['진행상태'] !== status) return false;
     if (stage && r['단계 구분'] !== stage) return false;
     if (response && r['대응 구분'] !== response) return false;
