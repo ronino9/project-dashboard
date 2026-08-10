@@ -93,6 +93,10 @@
 .gantt-filter-pill:disabled { cursor:not-allowed; }
 .gantt-filter-pill:not(:disabled):hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(15,23,42,0.15); }
 .gantt-filter-pill:not(:disabled):active { transform:translateY(0) scale(0.94); box-shadow:none; transition-duration:0.08s; }
+.period-action-btn { transition: transform 0.15s cubic-bezier(0.16,1,0.3,1), box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
+.period-action-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(15,23,42,0.15); }
+.period-action-btn:active:not(:disabled) { transform: translateY(0) scale(0.96); transition-duration:0.08s; }
+.period-status-badge { font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px; white-space:nowrap; transition:all 0.15s ease; }
 #gantt-legend-master, #gantt-legend-indiv { height:36px; box-sizing:border-box; display:flex; align-items:center; gap:6px; flex-wrap:nowrap; overflow-x:auto; padding:6px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:11px; }
 #gantt-legend-master > span:first-child, #gantt-legend-indiv > span:first-child { font-size:10px; font-weight:700; color:#94a3b8; width:60px; flex-shrink:0; }
 /* 👇 여기에 한 줄만 딱 추가해 주시면 됩니다 👇 */
@@ -2630,7 +2634,7 @@ window.renderDeviationTrendTest = function() {
             </div>
             <div id="gantt-filter-rows" style="display:none; flex-direction:column; gap:6px; width:100%; flex-basis:100%; flex-shrink:0; margin-top:8px;">
               <div id="gantt-period-row" style="display:flex; align-items:center; gap:8px; height:32px; padding:0 10px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; font-size:11px;">
-                <span style="font-weight:700; color:#1d4ed8;">기간 지정(증빙용)</span>
+                <span style="font-weight:700; color:#1d4ed8;">기간 지정</span>
                 <input type="date" id="indiv-period-start" style="height:24px; border:1px solid #bfdbfe; border-radius:6px; padding:0 6px; font-size:11px;">
                 <span style="color:#94a3b8;">~</span>
                 <input type="date" id="indiv-period-end" style="height:24px; border:1px solid #bfdbfe; border-radius:6px; padding:0 6px; font-size:11px;">
@@ -4899,8 +4903,9 @@ window.cardDragEnd = function(e) {
 window.cardClick = function(pName) {
   if (window._cardDidDrag) return;   // 방금 드래그한 거면 클릭 무시
   window._indivPeriod = null;
-  window.applyDonutDimming(null);
   window.selectMasterProject(pName);
+  const selSet = window.masterMdFilters['프로젝트'];
+  window.applyDonutDimming(selSet.size === 1 ? [...selSet][0] : null);
 };
 // 👇 여기서부터 복사해서 기존 updateMasterMdChart 함수를 완전히 덮어쓰세요 👇
 
@@ -6791,6 +6796,25 @@ window.ganttSetIndivMode = function(mode) {
 window._indivPeriod = null;
 window._activeCardCode = null;
 
+window.syncPeriodButtonsUI = function() {
+  const applyBtn = document.getElementById('btn-period-apply');
+  const clearBtn = document.getElementById('btn-period-clear');
+  const badge = document.getElementById('period-status-badge');
+  if (!applyBtn || !clearBtn || !badge) return;
+  const isApplied = !!window._indivPeriod;
+  if (isApplied) {
+    applyBtn.style.background = '#16a34a'; applyBtn.style.color = '#fff'; applyBtn.innerHTML = '✓ 적용됨';
+    clearBtn.disabled = false; clearBtn.style.background = '#fef2f2'; clearBtn.style.color = '#dc2626';
+    clearBtn.style.borderColor = '#fca5a5'; clearBtn.style.cursor = 'pointer';
+    badge.style.background = '#f0fdf4'; badge.style.color = '#16a34a'; badge.textContent = '적용중';
+  } else {
+    applyBtn.style.background = '#3b82f6'; applyBtn.style.color = '#fff'; applyBtn.innerHTML = '적용';
+    clearBtn.disabled = true; clearBtn.style.background = '#fff'; clearBtn.style.color = '#cbd5e1';
+    clearBtn.style.borderColor = '#e2e8f0'; clearBtn.style.cursor = 'not-allowed';
+    badge.style.background = '#f1f5f9'; badge.style.color = '#94a3b8'; badge.textContent = '미적용';
+  }
+};
+
 window.applyIndivPeriodFilter = function() {
   const s = document.getElementById('indiv-period-start').value;
   const e = document.getElementById('indiv-period-end').value;
@@ -6800,6 +6824,7 @@ window.applyIndivPeriodFilter = function() {
   window.renderProjectGantt();
   window.updateIndivPeriodKpi();
   window.applyDonutDimming(window._activeCardCode);
+  window.syncPeriodButtonsUI();
 };
 
 window.clearIndivPeriod = function() {
@@ -6808,7 +6833,9 @@ window.clearIndivPeriod = function() {
   const e = document.getElementById('indiv-period-end'); if (e) e.value = '';
   window.renderProjectGantt();
   window.updateMasterMdChart();
-  window.applyDonutDimming(null);
+  const selSet = window.masterMdFilters['프로젝트'];
+  window.applyDonutDimming(selSet.size === 1 ? [...selSet][0] : null);
+  window.syncPeriodButtonsUI();
 };
 
 window.updateIndivPeriodKpi = function() {
@@ -7568,6 +7595,7 @@ if (hasLog) actTrack.appendChild(window.ganttIconMarker('📷', null, 'br', dPct
     rowsEl.appendChild(spacer);
   });
     window.applyGanttAnimation(); // 💡 딱 한 줄 추가! 게이지 애니메이션 발사!
+    window.syncPeriodButtonsUI();
   };
 window.renderIndivGantt = function() {
   const code = indivGanttProject;
