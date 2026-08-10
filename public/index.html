@@ -2088,6 +2088,19 @@
           <div class="kpi-strip-value" id="kpi-master-compliance-hdr" style="color:#16a34a;">0<span class="kpi-strip-unit">%</span></div>
         </div>
       </div>
+      <div class="kpi-strip-item" style="cursor:default;">
+        <div style="min-width:0;">
+          <div class="kpi-strip-label">지연완료</div>
+          <div class="kpi-strip-value" id="kpi-master-delaydone-hdr" style="color:#7c3aed;">0<span class="kpi-strip-unit">건</span></div>
+        </div>
+      </div>
+      <div class="kpi-strip-item" style="cursor:default;">
+        <div style="min-width:0;">
+          <div class="kpi-strip-label">미완료</div>
+          <div class="kpi-strip-value" id="kpi-master-incomplete-hdr" style="color:#d97706;">0<span class="kpi-strip-unit">건</span></div>
+        </div>
+      </div>
+      <span id="kpi-period-label" style="display:none; align-self:center; font-size:11px; font-weight:700; color:#1d4ed8; background:#eff6ff; border:1px solid #bfdbfe; padding:4px 10px; border-radius:10px; white-space:nowrap;"></span>
       <div style="position:relative; flex-shrink:0;">
         <button onclick="window.togglePendingIssuePanel()" id="pending-issue-toggle-btn" style="height:100%; padding:12px 18px; background:#fef2f2; border:1.5px solid #fca5a5; border-radius:10px; cursor:pointer; font-size:12px; font-weight:800; color:#991b1b; display:flex; align-items:center; gap:8px; white-space:nowrap; transition:border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;" onmouseover="this.style.borderColor='#dc2626'; this.style.boxShadow='0 4px 12px rgba(220,38,38,0.25)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.borderColor='#fca5a5'; this.style.boxShadow='none'; this.style.transform='none';">
           <span>처리 대기</span><span style="color:#fca5a5;">|</span><span>고질 이슈</span>
@@ -2584,6 +2597,14 @@ window.renderDeviationTrendTest = function() {
               <span>📷 로그</span>
             </div>
             <div id="gantt-filter-rows" style="display:none; flex-direction:column; gap:6px; width:100%; flex-basis:100%; flex-shrink:0; margin-top:8px;">
+              <div id="gantt-period-row" style="display:flex; align-items:center; gap:8px; height:32px; padding:0 10px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; font-size:11px;">
+                <span style="font-weight:700; color:#1d4ed8;">기간 지정(증빙용)</span>
+                <input type="date" id="indiv-period-start" style="height:24px; border:1px solid #bfdbfe; border-radius:6px; padding:0 6px; font-size:11px;">
+                <span style="color:#94a3b8;">~</span>
+                <input type="date" id="indiv-period-end" style="height:24px; border:1px solid #bfdbfe; border-radius:6px; padding:0 6px; font-size:11px;">
+                <button onclick="window.applyIndivPeriodFilter()" style="height:24px; padding:0 12px; background:#3b82f6; color:#fff; border:none; border-radius:6px; font-weight:700; cursor:pointer;">적용</button>
+                <button onclick="window.clearIndivPeriod()" style="height:24px; padding:0 12px; background:#fff; color:#64748b; border:1px solid #e2e8f0; border-radius:6px; font-weight:700; cursor:pointer;">해제</button>
+              </div>
               <div id="gantt-legend-master">
                 <span>마스터플랜</span>
                 <span id="mp-filter-buttons" style="display:flex; align-items:center; gap:6px; flex-wrap:nowrap;"></span>
@@ -4801,6 +4822,8 @@ window.cardDragEnd = function(e) {
 // 클릭 래퍼: 드래그였으면 선택 동작 무시
 window.cardClick = function(pName) {
   if (window._cardDidDrag) return;   // 방금 드래그한 거면 클릭 무시
+  window._indivPeriod = null;
+  window.applyDonutDimming(null);
   window.selectMasterProject(pName);
 };
 // 👇 여기서부터 복사해서 기존 updateMasterMdChart 함수를 완전히 덮어쓰세요 👇
@@ -4815,6 +4838,8 @@ let totalMd = 0;
   let delayCount = 0;
   let imminentCount = 0;
   let holdCount = 0;
+  let delayDoneCount = 0;
+  let incompleteCount = 0;
   let totalItems = 0;
 
   // 트렌드 데이터 수집용 객체 (월별로 데이터 적재)
@@ -4855,6 +4880,8 @@ window.allMasterData.forEach(r => {
 if (status === '지연중') delayCount++;
           if (status === '임박') imminentCount++;
           if (status === '보류') holdCount++;
+          if (status === '지연완료') delayDoneCount++;
+          if (status !== '완료' && status !== '지연완료' && status !== '보류') incompleteCount++;
       }
   });
 
@@ -4870,6 +4897,9 @@ document.getElementById('kpi-master-md').textContent = totalMd.toFixed(1);
   const hdrImminent = document.getElementById('kpi-master-imminent-hdr'); if (hdrImminent) hdrImminent.textContent = imminentCount;
   const hdrHold = document.getElementById('kpi-master-hold-hdr'); if (hdrHold) hdrHold.textContent = holdCount;
   const hdrCompliance = document.getElementById('kpi-master-compliance-hdr'); if (hdrCompliance) hdrCompliance.textContent = totalItems > 0 ? (((totalItems - delayCount - imminentCount) / totalItems) * 100).toFixed(1) + '%' : '100.0%';
+  const hdrDelayDone = document.getElementById('kpi-master-delaydone-hdr'); if (hdrDelayDone) hdrDelayDone.textContent = delayDoneCount;
+  const hdrIncomplete = document.getElementById('kpi-master-incomplete-hdr'); if (hdrIncomplete) hdrIncomplete.textContent = incompleteCount;
+  const periodLabelEl = document.getElementById('kpi-period-label'); if (periodLabelEl && !window._indivPeriod) periodLabelEl.style.display = 'none';
 
 const colors = ['#ec4899', '#14b8a6', '#d97757', '#8cc63f', '#3b82f6', '#06b6d4', '#a855f7', '#f59e0b', '#db2777', '#64748b'];
 const pKeys  = ['OP10', 'OP9', 'OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2', 'CP'];
@@ -6092,6 +6122,7 @@ window.ganttMove = function(dir) {
   // 1. 슬라이서에서 프로젝트가 딱 1개 선택되어 세부 간트(월간)로 보고 있을 때
   const selSet = window.masterMdFilters && window.masterMdFilters['프로젝트'];
   if (selSet && selSet.size === 1) {
+    if (window._indivPeriod) return;
     // 전역 변수가 비어있으면 오늘 날짜로 즉시 초기화
     if (typeof indivGanttCursor === 'undefined' || !indivGanttCursor) {
       indivGanttCursor = new Date();
@@ -6132,6 +6163,7 @@ window.renderProjectGantt = function() {
   // ① 상단 슬라이서에서 특정 프로젝트를 1개만 골랐다면 세부 간트로 전환
 const selSet = window.masterMdFilters && window.masterMdFilters['프로젝트'];
   if (selSet && selSet.size === 1) {
+    window._activeCardCode = [...selSet][0];
     let selCode = [...selSet][0];
     // 카드 코드값 → allMasterData의 _pName 값으로 정규화
     if (selCode === 'projectEtc') selCode = 'ETC';
@@ -6678,6 +6710,80 @@ window.ganttSetIndivMode = function(mode) {
   window.renderProjectGantt();
 };
 
+window._indivPeriod = null;
+window._activeCardCode = null;
+
+window.applyIndivPeriodFilter = function() {
+  const s = document.getElementById('indiv-period-start').value;
+  const e = document.getElementById('indiv-period-end').value;
+  if (!s || !e) { alert('시작일과 종료일을 모두 선택하세요.'); return; }
+  if (s > e) { alert('시작일이 종료일보다 늦습니다.'); return; }
+  window._indivPeriod = { start: s, end: e };
+  window.renderProjectGantt();
+  window.updateIndivPeriodKpi();
+  window.applyDonutDimming(window._activeCardCode);
+};
+
+window.clearIndivPeriod = function() {
+  window._indivPeriod = null;
+  const s = document.getElementById('indiv-period-start'); if (s) s.value = '';
+  const e = document.getElementById('indiv-period-end'); if (e) e.value = '';
+  window.renderProjectGantt();
+  window.updateMasterMdChart();
+  window.applyDonutDimming(null);
+};
+
+window.updateIndivPeriodKpi = function() {
+  const period = window._indivPeriod;
+  const code = indivGanttProject;
+  const labelEl = document.getElementById('kpi-period-label');
+  if (!period || !code) {
+    if (labelEl) labelEl.style.display = 'none';
+    return;
+  }
+  const rows = (window.allMasterData || []).filter(r => {
+    if (r._pName !== code) return false;
+    const d = (r['접수일'] || '').toString().replace(/[./]/g, '-').substring(0, 10);
+    return d && d >= period.start && d <= period.end;
+  });
+  let totalMd = 0, delayCnt = 0, imminentCnt = 0, holdCnt = 0, delayDoneCnt = 0, incompleteCnt = 0;
+  const total = rows.length;
+  rows.forEach(r => {
+    totalMd += parseFloat(r['공수(MD)']) || 0;
+    const st = (r['진행상태'] || '').toString().trim();
+    if (st === '지연중') delayCnt++;
+    else if (st === '임박') imminentCnt++;
+    else if (st === '보류') holdCnt++;
+    else if (st === '지연완료') delayDoneCnt++;
+    if (st !== '완료' && st !== '지연완료' && st !== '보류') incompleteCnt++;
+  });
+  const compliance = total > 0 ? (((total - delayCnt - imminentCnt) / total) * 100).toFixed(1) : '100.0';
+
+  const setHTML = (id, val, unit) => { const el = document.getElementById(id); if (el) el.innerHTML = val + '<span class="kpi-strip-unit">' + unit + '</span>'; };
+  setHTML('kpi-master-md-hdr', totalMd.toFixed(1), 'MD');
+  setHTML('kpi-master-delay-hdr', delayCnt, '건');
+  setHTML('kpi-master-imminent-hdr', imminentCnt, '건');
+  setHTML('kpi-master-hold-hdr', holdCnt, '건');
+  setHTML('kpi-master-compliance-hdr', compliance, '%');
+  setHTML('kpi-master-delaydone-hdr', delayDoneCnt, '건');
+  setHTML('kpi-master-incomplete-hdr', incompleteCnt, '건');
+
+  if (labelEl) {
+    const codeLabel = code === 'ETC' ? '기타업무' : code;
+    labelEl.textContent = `${codeLabel} · ${period.start.substring(2).replace(/-/g,'.')} ~ ${period.end.substring(2).replace(/-/g,'.')} 기준`;
+    labelEl.style.display = 'inline-block';
+  }
+};
+
+window.applyDonutDimming = function(activeCode) {
+  document.querySelectorAll('#main-summary-cards .main-card').forEach(card => {
+    const onclickAttr = card.getAttribute('onclick') || '';
+    const m = onclickAttr.match(/cardClick\('([^']+)'\)/);
+    const code = m ? m[1] : null;
+    card.style.opacity = (!activeCode || code === activeCode) ? '1' : '0.35';
+  });
+};
+
 // 개별 간트 막대 색: 업무구분 기준 (이슈=빨강 / 표준·기술지원·기능요구=파랑 / 그 외 전부 황토)
 // 단, 보류 상태는 이 색을 무시하고 무조건 회색으로 덮어씀 (아래 렌더 로직에서 처리)
 const INDIV_TASK_COLOR = {
@@ -6772,12 +6878,20 @@ function lightenColor(hex, ratio) { return window.lightenColor(hex, ratio); }
     monthStart = calYMD(new Date(y, m, 1));
     monthEnd = calYMD(new Date(y, m + 1, 0));
   }
+  if (window._indivPeriod) {
+    monthStart = window._indivPeriod.start;
+    monthEnd = window._indivPeriod.end;
+  }
   const totalDays = Math.max(ganttDaysBetween(monthStart, monthEnd) + 1, 1);
   const todayStr = calYMD(CAL_TODAY);
   if (titleLabel) {
-    titleLabel.textContent = indivGanttMode === 'week'
-      ? `📋 ${code} 세부 · ${monthStart.substring(2).replace(/-/g,'.')} ~ ${monthEnd.substring(2).replace(/-/g,'.')}`
-      : `📋 ${code} 세부 · ${y}.${String(m + 1).padStart(2, '0')}`;
+    if (window._indivPeriod) {
+      titleLabel.textContent = `📋 ${code} 세부 · ${monthStart.substring(2).replace(/-/g,'.')} ~ ${monthEnd.substring(2).replace(/-/g,'.')} (지정 기간)`;
+    } else if (indivGanttMode === 'week') {
+      titleLabel.textContent = `📋 ${code} 세부 · ${monthStart.substring(2).replace(/-/g,'.')} ~ ${monthEnd.substring(2).replace(/-/g,'.')}`;
+    } else {
+      titleLabel.textContent = `📋 ${code} 세부 · ${y}.${String(m + 1).padStart(2, '0')}`;
+    }
   }
 
   const dayOffset = (dateStr) => ganttDaysBetween(monthStart, dateStr);
@@ -6879,10 +6993,14 @@ const rows = (window.allMasterData || []).filter(r => r._pName === code);
     const isDelayed = !isDone && !isHold && todayStr > planEnd;
     const carriedOver = !isDone && !isHold && planEnd < monthStart;
 
-    const overlapsPlan = planStart <= monthEnd && planEnd >= monthStart;
-    const overlapsAct = actStart <= monthEnd && actEnd >= monthStart;
-    const hasDayInMonth = execDaysRaw.some(d => d.date >= monthStart && d.date <= monthEnd);
-    if (!overlapsPlan && !overlapsAct && !carriedOver && !hasDayInMonth) return;
+    if (window._indivPeriod) {
+      if (firstDay < monthStart || firstDay > monthEnd) return;
+    } else {
+      const overlapsPlan = planStart <= monthEnd && planEnd >= monthStart;
+      const overlapsAct = actStart <= monthEnd && actEnd >= monthStart;
+      const hasDayInMonth = execDaysRaw.some(d => d.date >= monthStart && d.date <= monthEnd);
+      if (!overlapsPlan && !overlapsAct && !carriedOver && !hasDayInMonth) return;
+    }
 
     const repRow = groupRows[0]; // 제목 등 대표값은 그룹 첫 행 사용
     items.push({
