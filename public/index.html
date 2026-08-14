@@ -2004,7 +2004,8 @@
         <select id="gs-response"><option value="">대응 구분</option></select>
         <select id="gs-task"><option value="">업무 구분</option></select>
         <select id="gs-part"><option value="">파트 구분</option></select>
-        <select id="gs-subpart"><option value="">세부파트</option></select>
+        <select id="gs-subpart"><option value="">세부파트 전체</option></select>
+<select id="gs-rework"><option value="">재작업여부 전체</option></select>
       </div>
     </div>
   </div>
@@ -10433,19 +10434,22 @@ window.populateGlobalSearchFilters = function() {
   }
 
   const map = {
-    'gs-stage': '단계 구분', 'gs-response': '대응 구분',
-    'gs-task': '업무 구분', 'gs-part': '파트 구분',
-    'gs-subpart': '세부파트',
-    'gs-status': '진행상태'
+  'gs-stage': ['단계 구분', '단계 구분'],
+  'gs-response': ['대응 구분', '대응 구분'],
+  'gs-task': ['업무 구분', '업무 구분'],
+  'gs-part': ['파트 구분', '파트 구분'],
+  'gs-subpart': ['세부파트', '세부파트'],
+  'gs-status': ['진행상태', '진행상태'],
+  'gs-rework': ['재작업 여부(Y/N)', '재작업여부']
 };
-  Object.entries(map).forEach(([elId, col]) => {
-    const sel = document.getElementById(elId);
-    if (!sel) return;
-    const current = sel.value;
-    const uniqueVals = [...new Set(window.allMasterData.map(r => r[col] || r[col.replace('/', '')] || '').filter(v => v.trim() !== ''))];
-    sel.innerHTML = `<option value="">${col} 전체</option>` + uniqueVals.map(v => `<option value="${v}">${v}</option>`).join('');
-    if (uniqueVals.includes(current)) sel.value = current;
-  });
+Object.entries(map).forEach(([elId, [col, label]]) => {
+  const sel = document.getElementById(elId);
+  if (!sel) return;
+  const current = sel.value;
+  const uniqueVals = [...new Set(window.allMasterData.map(r => r[col] || r[col.replace('/', '')] || '').filter(v => v.trim() !== ''))];
+  sel.innerHTML = `<option value="">${label} 전체</option>` + uniqueVals.map(v => `<option value="${v}">${v}</option>`).join('');
+  if (uniqueVals.includes(current)) sel.value = current;
+});
 };
 
 window.runGlobalSearch = function() {
@@ -10462,7 +10466,7 @@ const project = document.getElementById('gs-project').value;
   const task = document.getElementById('gs-task').value;
   const part = document.getElementById('gs-part').value;
   const subPart = document.getElementById('gs-subpart').value;   // 추가
-
+  const rework = document.getElementById('gs-rework').value;     // ← 추가
   if (!keyword && !project && !year && !status && !stage && !response && !task && !part) {
     alert('검색어 또는 필터 조건을 하나 이상 입력해주세요.');
     return;
