@@ -10547,7 +10547,7 @@ const dEnd = parseDate(dateEnd);
       if (dateStart && rd < dateStart) return false;
       if (dateEnd && rd > dateEnd) return false;
     }
-    if (keyword) {{
+    if (keyword) {
       const text = [
         r['표준 제작 Item / Issue / 개선사항'], r['제목'], r['진행 사항'], r['분석 데이터']
       ].filter(Boolean).join(' ').toLowerCase();
