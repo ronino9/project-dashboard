@@ -3871,7 +3871,6 @@ window.renderDetailStatusBar = function(dataRows) {
   if (!bar) return;
   if (!dataRows || dataRows.length === 0) { bar.style.display = 'none'; return; }
 
-  // 지연완료는 더 이상 별도 배지로 렌더링하지 않고 '완료'에 합산 표시
   const order = [
     { key: '진행중', label: '진행중', color: '#2563eb' },
     { key: '지연중', label: '지연중', color: '#dc2626', showExt: true },
@@ -3889,15 +3888,33 @@ window.renderDetailStatusBar = function(dataRows) {
     if (ext && ext !== '해당없음') extCounts[st]++;
   });
 
-  // 보류 제외 모수 기준 완료율 / 지연율
+  // ← 완료율/지연율 계산용: 보류 + 개선(업무 구분==='개선') 건은 모수에서 통째로 제외
+  const isImprove = r => (r['업무 구분'] || '').toString().trim() === '개선';
   const holdCnt = counts['보류'] || 0;
-  const base = dataRows.length - holdCnt;
-  const doneCnt = (counts['완료'] || 0) + (counts['지연완료'] || 0);
-  const delayCnt = (counts['지연중'] || 0) + (counts['지연완료'] || 0); // ← 지연중 + 지연완료 합산
-  const completionRate = base > 0 ? (doneCnt / base * 100) : 0;
-  const delayRate = base > 0 ? (delayCnt / base * 100) : 0;
+  const improveCnt = dataRows.filter(isImprove).length;
+  const rateRows = dataRows.filter(r => {
+    const st = (r['진행상태'] || '').toString().trim();
+    if (st === '보류') return false;
+    if (isImprove(r)) return false;
+    return true;
+  });
+  const base = rateRows.length;
 
-  // ← 완료 배지: 완료+지연완료 합산 표시, 지연완료 건수는 괄호로 병기
+  let doneRateCnt = 0, delayRateCnt = 0, delayExtExcluded = 0;
+  rateRows.forEach(r => {
+    const st = (r['진행상태'] || '').toString().trim();
+    const ext = (r['외부요인'] || '').toString().trim();
+    const isExt = ext && ext !== '해당없음';
+    if (st === '완료' || st === '지연완료') doneRateCnt++;
+    if (st === '지연중' || st === '지연완료') {
+      if (isExt) delayExtExcluded++; else delayRateCnt++;
+    }
+  });
+  const completionRate = base > 0 ? (doneRateCnt / base * 100) : 0;
+  const delayRate = base > 0 ? (delayRateCnt / base * 100) : 0;
+
+  // 완료 배지: 상단 배지는 검색결과 원본 그대로 (완료+지연완료 합산, 개선 포함)
+  const doneCnt = (counts['완료'] || 0) + (counts['지연완료'] || 0);
   const delayedDoneCnt = counts['지연완료'] || 0;
   const delayedDoneExt = extCounts['지연완료'] || 0;
   const doneColor = doneCnt > 0 ? '#16a34a' : '#cbd5e1';
@@ -3918,13 +3935,18 @@ window.renderDetailStatusBar = function(dataRows) {
 
   const statusHtml = doneHtml + restHtml;
 
-  // 완료율 / 지연율 뱃지
+  // ← 예외처리 문구 정리: 모수 제외 사유(보류/개선)와 지연율 추가 제외 사유(외부요인)를 분리해서 표기
+  const exclusionParts = [];
+  if (holdCnt > 0) exclusionParts.push(`보류 ${holdCnt}건`);
+  if (improveCnt > 0) exclusionParts.push(`개선 ${improveCnt}건`);
+  const exclusionNote = exclusionParts.length > 0 ? `${exclusionParts.join('·')} 제외` : '제외 항목 없음';
+
   const kpiHtml = `
     <span style="color:#e2e8f0; font-size:12px; margin:0 12px;">·</span>
     <span style="display:inline-flex; align-items:baseline; gap:5px; min-width:76px; justify-content:center;"><span style="font-size:11px; color:#94a3b8; font-weight:700;">완료율</span><span style="font-size:14px; font-weight:800; color:#16a34a;">${completionRate.toFixed(1)}%</span></span>
     <span style="color:#e2e8f0; font-size:12px; margin:0 12px;">·</span>
-    <span style="display:inline-flex; align-items:baseline; gap:5px; min-width:76px; justify-content:center;"><span style="font-size:11px; color:#94a3b8; font-weight:700;">지연율</span><span style="font-size:14px; font-weight:800; color:${delayRate > 0 ? '#dc2626' : '#cbd5e1'};">${delayRate.toFixed(1)}%</span></span>
-    <span style="font-size:10px; color:#cbd5e1; font-weight:600; margin-left:8px;">(보류 제외 · 모수 ${base}건, 지연율=지연중+지연완료)</span>
+    <span style="display:inline-flex; align-items:baseline; gap:5px; min-width:76px; justify-content:center;"><span style="font-size:11px; color:#94a3b8; font-weight:700;">지연율</span><span style="font-size:14px; font-weight:800; color:${delayRate > 0 ? '#dc2626' : '#cbd5e1'};">${delayRate.toFixed(1)}%</span>${delayExtExcluded > 0 ? `<span style="font-size:10px; color:#94a3b8; font-weight:600;">(외부 ${delayExtExcluded}건 추가제외)</span>` : ''}</span>
+    <span style="font-size:10px; color:#cbd5e1; font-weight:600; margin-left:8px;">(${exclusionNote} · 모수 ${base}건)</span>
   `;
 
   bar.innerHTML = statusHtml + kpiHtml;
