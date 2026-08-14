@@ -12325,7 +12325,8 @@ function __renderDetailFilterChips() {
     box = document.createElement('div');
     box.id = 'detail-filter-chips';
     box.style.cssText = 'display:flex; align-items:center; gap:6px; padding:8px 0; border-bottom:1px solid #f1f5f9; flex-shrink:0; flex-wrap:wrap;';
-    anchor.parentNode.insertBefore(box, anchor);
+    var dateBar = document.getElementById('detail-date-filter-bar');
+    anchor.parentNode.insertBefore(box, dateBar || anchor);
   }
 
   var html = '<span style="font-size:11px; color:#94a3b8; font-weight:700; margin-right:2px;">적용 조건</span>';
