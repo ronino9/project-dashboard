@@ -10540,7 +10540,14 @@ const dEnd = parseDate(dateEnd);
     if (task && r['업무 구분'] !== task) return false;
     if (part && r['파트 구분'] !== part) return false;
     if (subPart && r['세부파트'] !== subPart) return false;   // 추가
-    if (keyword) {
+    if (rework && r['재작업 여부(Y/N)'] !== rework) return false;
+    if (dateStart || dateEnd) {
+      const rd = (r['접수일'] || '').toString().trim().replace(/[./]/g, '-').substring(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(rd)) return false;
+      if (dateStart && rd < dateStart) return false;
+      if (dateEnd && rd > dateEnd) return false;
+    }
+    if (keyword) {{
       const text = [
         r['표준 제작 Item / Issue / 개선사항'], r['제목'], r['진행 사항'], r['분석 데이터']
       ].filter(Boolean).join(' ').toLowerCase();
@@ -12197,6 +12204,97 @@ window.renderCompareInsight = function() {
     dayRing.style.strokeDashoffset = dayOffset;
   }
 };
+    /* ===== 상세내역 기간 필터 (자동 설치형) ===== */
+(function initDetailDateFilter() {
+  if (typeof window.showDetailView !== 'function') return setTimeout(initDetailDateFilter, 300);
+  if (window._ddfInstalled) return;
+  window._ddfInstalled = true;
+
+  const normDate = s => {
+    if (!s) return '';
+    const n = s.toString().trim().replace(/[./]/g, '-').substring(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(n) ? n : '';
+  };
+
+  function ensureUI() {
+    if (document.getElementById('detail-date-filter-bar')) return;
+    const anchor = document.getElementById('detailStatusBar');
+    if (!anchor || !anchor.parentNode) return;
+
+    const bar = document.createElement('div');
+    bar.id = 'detail-date-filter-bar';
+    bar.style.cssText = 'display:flex; align-items:center; gap:6px; padding:8px 0; border-bottom:1px solid #f1f5f9; flex-shrink:0; flex-wrap:wrap;';
+
+    const label = document.createElement('span');
+    label.textContent = '기간';
+    label.style.cssText = 'font-size:12px; color:#64748b; font-weight:700;';
+
+    const css = 'font-size:12px; padding:3px 6px; border:1px solid #e2e8f0; border-radius:6px; color:#334155;';
+    const s = document.createElement('input'); s.type = 'date'; s.id = 'detail-date-start'; s.style.cssText = css;
+    const t = document.createElement('span'); t.textContent = '~'; t.style.cssText = 'color:#94a3b8;';
+    const e = document.createElement('input'); e.type = 'date'; e.id = 'detail-date-end'; e.style.cssText = css;
+
+    const reset = document.createElement('button');
+    reset.textContent = '초기화';
+    reset.style.cssText = 'font-size:11px; color:#3b82f6; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:4px 10px; cursor:pointer; font-weight:700;';
+
+    const info = document.createElement('span');
+    info.id = 'detail-date-info';
+    info.style.cssText = 'font-size:11px; color:#94a3b8; font-weight:600;';
+
+    s.addEventListener('change', window.applyDetailDateFilter);
+    e.addEventListener('change', window.applyDetailDateFilter);
+    reset.addEventListener('click', function() { s.value = ''; e.value = ''; window.applyDetailDateFilter(); });
+
+    [label, s, t, e, reset, info].forEach(el => bar.appendChild(el));
+    anchor.parentNode.insertBefore(bar, anchor);
+  }
+
+  const _orig = window.showDetailView;
+  window.showDetailView = function(title, sub, rows, _fromBack) {
+    if (!window._ddfApplying) {
+      window._ddfRawRows = rows || [];
+      window._ddfTitle = title;
+      window._ddfSub = sub;
+      const s = document.getElementById('detail-date-start');
+      const e = document.getElementById('detail-date-end');
+      if (s) s.value = '';
+      if (e) e.value = '';
+      const info = document.getElementById('detail-date-info');
+      if (info) info.textContent = '';
+    }
+    _orig(title, sub, rows, _fromBack);
+    ensureUI();
+  };
+
+  window.applyDetailDateFilter = function() {
+    const rows = window._ddfRawRows || [];
+    const sEl = document.getElementById('detail-date-start');
+    const eEl = document.getElementById('detail-date-end');
+    const startVal = sEl ? sEl.value : '';
+    const endVal = eEl ? eEl.value : '';
+
+    let filtered = rows;
+    if (startVal || endVal) {
+      filtered = rows.filter(r => {
+        const rd = normDate(r['접수일']);
+        if (!rd) return false;
+        if (startVal && rd < startVal) return false;
+        if (endVal && rd > endVal) return false;
+        return true;
+      });
+    }
+
+    const suffix = (startVal || endVal) ? ` · 기간 ${startVal || '처음'}~${endVal || '현재'}` : '';
+
+    window._ddfApplying = true;
+    window.showDetailView(window._ddfTitle, (window._ddfSub || '') + suffix, filtered, true);
+    window._ddfApplying = false;
+
+    const info = document.getElementById('detail-date-info');
+    if (info) info.textContent = (startVal || endVal) ? `${rows.length}건 중 ${filtered.length}건` : '';
+  };
+})();
   </script>
 </body>
 </html>
