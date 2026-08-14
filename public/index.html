@@ -3871,16 +3871,16 @@ window.renderDetailStatusBar = function(dataRows) {
   if (!bar) return;
   if (!dataRows || dataRows.length === 0) { bar.style.display = 'none'; return; }
 
+  // 지연완료는 더 이상 별도 배지로 렌더링하지 않고 '완료'에 합산 표시
   const order = [
-    { key: '완료', label: '완료', color: '#16a34a' },
     { key: '진행중', label: '진행중', color: '#2563eb' },
-    { key: '지연완료', label: '지연완료', color: '#7c3aed', showExt: true },
     { key: '지연중', label: '지연중', color: '#dc2626', showExt: true },
     { key: '임박', label: '임박', color: '#d97706' },
     { key: '보류', label: '보류', color: '#64748b' }
   ];
+  const allKeys = ['완료', '진행중', '지연완료', '지연중', '임박', '보류'];
   const counts = {}, extCounts = {};
-  order.forEach(o => { counts[o.key] = 0; extCounts[o.key] = 0; });
+  allKeys.forEach(k => { counts[k] = 0; extCounts[k] = 0; });
   dataRows.forEach(r => {
     const st = (r['진행상태'] || '').toString().trim();
     if (!counts.hasOwnProperty(st)) return;
@@ -3889,15 +3889,45 @@ window.renderDetailStatusBar = function(dataRows) {
     if (ext && ext !== '해당없음') extCounts[st]++;
   });
 
-  bar.innerHTML = order.map((o, i) => {
+  // 보류 제외 모수 기준 완료율 / 지연율
+  const holdCnt = counts['보류'] || 0;
+  const base = dataRows.length - holdCnt;
+  const doneCnt = (counts['완료'] || 0) + (counts['지연완료'] || 0);
+  const delayCnt = (counts['지연중'] || 0) + (counts['지연완료'] || 0); // ← 지연중 + 지연완료 합산
+  const completionRate = base > 0 ? (doneCnt / base * 100) : 0;
+  const delayRate = base > 0 ? (delayCnt / base * 100) : 0;
+
+  // ← 완료 배지: 완료+지연완료 합산 표시, 지연완료 건수는 괄호로 병기
+  const delayedDoneCnt = counts['지연완료'] || 0;
+  const delayedDoneExt = extCounts['지연완료'] || 0;
+  const doneColor = doneCnt > 0 ? '#16a34a' : '#cbd5e1';
+  const doneSubBadge = delayedDoneCnt > 0
+    ? `<span style="font-size:10px; color:#94a3b8; font-weight:600;">(지연완료 ${delayedDoneCnt}${delayedDoneExt > 0 ? `, 외부 ${delayedDoneExt}` : ''})</span>`
+    : '';
+  const doneHtml = `<span style="display:inline-flex; align-items:baseline; gap:5px; min-width:66px; justify-content:center;"><span style="font-size:11px; color:#94a3b8; font-weight:700;">완료</span><span style="font-size:14px; font-weight:800; color:${doneColor};">${doneCnt}</span>${doneSubBadge}</span>`;
+
+  const restHtml = order.map(o => {
     const val = counts[o.key];
     const extVal = extCounts[o.key];
     const isRisk = (o.key === '지연중' || o.key === '임박') && val > 0;
     const color = isRisk ? '#dc2626' : (val > 0 ? o.color : '#cbd5e1');
     const extBadge = (o.showExt && extVal > 0) ? `<span style="font-size:10px; color:#94a3b8; font-weight:600;">(외부 ${extVal})</span>` : '';
-    const divider = i > 0 ? '<span style="color:#e2e8f0; font-size:12px; margin:0 12px;">·</span>' : '';
+    const divider = '<span style="color:#e2e8f0; font-size:12px; margin:0 12px;">·</span>';
     return `${divider}<span style="display:inline-flex; align-items:baseline; gap:5px; min-width:66px; justify-content:center;"><span style="font-size:11px; color:#94a3b8; font-weight:700;">${o.label}</span><span style="font-size:14px; font-weight:800; color:${color};">${val}</span>${extBadge}</span>`;
   }).join('');
+
+  const statusHtml = doneHtml + restHtml;
+
+  // 완료율 / 지연율 뱃지
+  const kpiHtml = `
+    <span style="color:#e2e8f0; font-size:12px; margin:0 12px;">·</span>
+    <span style="display:inline-flex; align-items:baseline; gap:5px; min-width:76px; justify-content:center;"><span style="font-size:11px; color:#94a3b8; font-weight:700;">완료율</span><span style="font-size:14px; font-weight:800; color:#16a34a;">${completionRate.toFixed(1)}%</span></span>
+    <span style="color:#e2e8f0; font-size:12px; margin:0 12px;">·</span>
+    <span style="display:inline-flex; align-items:baseline; gap:5px; min-width:76px; justify-content:center;"><span style="font-size:11px; color:#94a3b8; font-weight:700;">지연율</span><span style="font-size:14px; font-weight:800; color:${delayRate > 0 ? '#dc2626' : '#cbd5e1'};">${delayRate.toFixed(1)}%</span></span>
+    <span style="font-size:10px; color:#cbd5e1; font-weight:600; margin-left:8px;">(보류 제외 · 모수 ${base}건, 지연율=지연중+지연완료)</span>
+  `;
+
+  bar.innerHTML = statusHtml + kpiHtml;
   bar.style.display = 'flex';
 };
 
