@@ -10566,7 +10566,19 @@ const dEnd = parseDate(dateEnd);
     '접수일': r['접수일'] || '-',
     ...r
   }));
-
+window._detailAppliedFilters = [
+    ['프로젝트', project],
+    ['연도', year ? year + '년' : ''],
+    ['진행상태', status],
+    ['단계', stage],
+    ['대응', response],
+    ['업무', task],
+    ['파트', part],
+    ['세부파트', subPart],
+    ['재작업', rework],
+    ['기간', (dateStart || dateEnd) ? ((dateStart || '처음') + '~' + (dateEnd || '현재')) : ''],
+    ['검색어', keyword]
+  ].filter(function(x) { return x[1]; });
   window._searchHighlightKeyword = keyword || '';
   window.showDetailView('🔍 검색 결과', `총 ${matched.length}건`, rowsForDisplay);
   window._searchHighlightKeyword = '';
@@ -12295,6 +12307,63 @@ window.renderCompareInsight = function() {
     if (info) info.textContent = (startVal || endVal) ? `${rows.length}건 중 ${filtered.length}건` : '';
   };
 })();
+    /* ===== 상세내역: 적용된 검색 조건 표시 ===== */
+function __renderDetailFilterChips() {
+  var old = document.getElementById('detail-filter-chips');
+  var list = window._ddfChips;
+
+  if (!list || list.length === 0) {
+    if (old) old.remove();
+    return;
+  }
+
+  var anchor = document.getElementById('detailStatusBar');
+  if (!anchor || !anchor.parentNode) return;
+
+  var box = old;
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'detail-filter-chips';
+    box.style.cssText = 'display:flex; align-items:center; gap:6px; padding:8px 0; border-bottom:1px solid #f1f5f9; flex-shrink:0; flex-wrap:wrap;';
+    anchor.parentNode.insertBefore(box, anchor);
+  }
+
+  var html = '<span style="font-size:11px; color:#94a3b8; font-weight:700; margin-right:2px;">적용 조건</span>';
+  for (var i = 0; i < list.length; i++) {
+    var k = list[i][0];
+    var v = String(list[i][1]);
+    var isKeyword = (k === '검색어');
+    var bg = isKeyword ? '#fef9c3' : '#eff6ff';
+    var bd = isKeyword ? '#fde047' : '#bfdbfe';
+    var fg = isKeyword ? '#854d0e' : '#1d4ed8';
+    html += '<span style="display:inline-flex; align-items:baseline; gap:4px; background:' + bg +
+            '; border:1px solid ' + bd + '; border-radius:999px; padding:3px 10px; font-size:11px; white-space:nowrap;">' +
+            '<span style="color:#64748b; font-weight:600;">' + k + '</span>' +
+            '<span style="color:' + fg + '; font-weight:800;">' + v + '</span></span>';
+  }
+  box.innerHTML = html;
+}
+    /* ===== 적용 조건 칩: 독립 설치 ===== */
+function __chipInstall() {
+  if (typeof window.showDetailView !== 'function') {
+    setTimeout(__chipInstall, 300);
+    return;
+  }
+  if (window._chipInstalled) return;
+  window._chipInstalled = true;
+
+  var prev = window.showDetailView;
+  window.showDetailView = function(title, sub, rows, fromBack) {
+    if (!window._ddfApplying) {
+      window._ddfChips = window._detailAppliedFilters || null;
+      window._detailAppliedFilters = null;
+    }
+    prev(title, sub, rows, fromBack);
+    __renderDetailFilterChips();
+  };
+}
+
+__chipInstall();
   </script>
 </body>
 </html>
