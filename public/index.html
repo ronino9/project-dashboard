@@ -2006,6 +2006,8 @@
         <select id="gs-part"><option value="">파트 구분</option></select>
         <select id="gs-subpart"><option value="">세부파트 전체</option></select>
 <select id="gs-rework"><option value="">재작업여부 전체</option></select>
+        <input type="date" id="gs-date-start" style="font-size:12px;">
+<input type="date" id="gs-date-end" style="font-size:12px;">
       </div>
     </div>
   </div>
@@ -10519,7 +10521,12 @@ const project = document.getElementById('gs-project').value;
   const part = document.getElementById('gs-part').value;
   const subPart = document.getElementById('gs-subpart').value;   // 추가
   const rework = document.getElementById('gs-rework').value;     // ← 추가
-  if (!keyword && !project && !year && !status && !stage && !response && !task && !part) {
+  const dateStart = document.getElementById('gs-date-start').value;
+const dateEnd = document.getElementById('gs-date-end').value;
+const parseDate = s => { if (!s) return null; const d = new Date(s); return isNaN(d) ? null : d; };
+const dStart = parseDate(dateStart);
+const dEnd = parseDate(dateEnd);
+  if (!keyword && !project && !year && !status && !stage && !response && !task && !part && !rework && !dateStart && !dateEnd) {
     alert('검색어 또는 필터 조건을 하나 이상 입력해주세요.');
     return;
   }
