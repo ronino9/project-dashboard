@@ -6272,10 +6272,11 @@ window.ganttMove = function(dir) {
       indivGanttCursor.setMonth(indivGanttCursor.getMonth() + dir);
     }
     window.indivGanttCursor = indivGanttCursor; // 동기화 보장
+    window._indivExpandedParts = new Set();
+    window._mpExpanded = false;
     window.renderProjectGantt();
     return;
   }
-
   // 2. 전체 매크로 간트로 보고 있을 때
   if (typeof ganttCursor === 'undefined' || !ganttCursor) {
     ganttCursor = new Date();
@@ -6294,6 +6295,8 @@ window.ganttToday = function() {
   indivGanttCursor = new Date();
   window.ganttCursor = ganttCursor;
   window.indivGanttCursor = indivGanttCursor;
+  window._indivExpandedParts = new Set();
+  window._mpExpanded = false;
   window.renderProjectGantt();
 };
 
@@ -6839,9 +6842,12 @@ window.applyMacroFocusStyles();
 let indivGanttCursor = new Date();
 let indivGanttProject = null; // 👈 팝업 에러를 막아주는 핵심 변수 추가!
 let indivGanttMode = 'month';
-
+window._indivExpandedParts = new Set();   // 펼쳐진 파트 목록 (기본: 전체 접힘)
+window._mpExpanded = false;               // 마스터플랜 펼침 여부 (기본: 접힘)
 window.ganttSetIndivMode = function(mode) {
   indivGanttMode = mode;
+  window._indivExpandedParts = new Set();
+  window._mpExpanded = false;
   const btnMonth = document.getElementById('gantt-indiv-mode-month');
   const btnWeek = document.getElementById('gantt-indiv-mode-week');
   if (btnMonth) btnMonth.classList.toggle('cal-mode-active', mode === 'month');
@@ -7013,7 +7019,11 @@ window.lightenColor = function(hex, ratio) {
 };
 function lightenColor(hex, ratio) { return window.lightenColor(hex, ratio); }
     window.renderMacroGanttAsIndiv = function(code) {
-  if (indivGanttProject !== code) indivGanttCursor = new Date();   // 프로젝트가 바뀌면 오늘 기준으로 리셋
+  if (indivGanttProject !== code) {
+    indivGanttCursor = new Date();   // 프로젝트가 바뀌면 오늘 기준으로 리셋
+    window._indivExpandedParts = new Set();
+    window._mpExpanded = false;
+  }
   indivGanttProject = code;
   if (!indivGanttCursor) indivGanttCursor = new Date();
 
@@ -7170,6 +7180,7 @@ const rows = (window.allMasterData || []).filter(r => r._pName === code);
     const repRow = groupRows[0]; // 제목 등 대표값은 그룹 첫 행 사용
     items.push({
       title: repRow['표준 제작 Item / Issue / 개선사항'] || '(제목 없음)',
+      part: (repRow['파트 구분'] || '').toString().trim() || '미지정', // 파트 그룹핑용
       planStart, planEnd, actStart, actEnd, isDone, isHold, isDelayed, carriedOver,
       // 다건 그룹만 execDays를 채움 → 렌더링 시 이 값 유무로 분기
       execDays: isMultiRow ? execDaysRaw : null,
@@ -7363,8 +7374,24 @@ row.appendChild(track);
     return overlapsBar || overlapsNote;
   });
 
+  // ── 마스터플랜 접힘/펼침 헤더 (기본 접힘 · 클릭 시 펼침) ──
+  window.toggleMpSection = function() {
+    window._mpExpanded = !window._mpExpanded;
+    window.renderMacroGanttAsIndiv(indivGanttProject);
+  };
+  const mpChevron = window._mpExpanded ? '▾' : '▸';
+  const mpHeaderLabel = `<span style="cursor:pointer;">${mpChevron} <span style="font-weight:800;">📌 마스터플랜</span> <span style="color:#94a3b8; font-weight:600;">${mpGroupsInMonth.length}건</span></span>`;
+  const { row: mpHeaderRow } = makeRow(mpHeaderLabel, true, false, '#64748b');
+  mpHeaderRow.style.cursor = 'pointer';
+  mpHeaderRow.onclick = window.toggleMpSection;
+  rowsEl.appendChild(mpHeaderRow);
+  const mpHeaderSpacer = document.createElement('div');
+  mpHeaderSpacer.style.cssText = 'height:4px;';
+  rowsEl.appendChild(mpHeaderSpacer);
+
   const mpBtnWrap = document.getElementById('mp-filter-buttons');
-  if (mpBtnWrap) {
+  if (mpBtnWrap) mpBtnWrap.style.display = window._mpExpanded ? 'flex' : 'none';
+  if (mpBtnWrap && window._mpExpanded) {
     if (mpGroupsInMonth.length === 0) {
       mpBtnWrap.innerHTML = '<span style="font-size:11px; color:#cbd5e1; font-weight:600;">이 달에 해당하는 마스터플랜 항목이 없습니다</span>';
     } else {
@@ -7410,7 +7437,7 @@ row.appendChild(track);
   });
 
   let mpRenderedAny = false;
-  mpParts.forEach(part => {
+  if (window._mpExpanded) mpParts.forEach(part => {
     const partGroups = mpByPart[part];
     if (!partGroups || partGroups.length === 0) return;
     const partColor = mpPartColorMap[part];
@@ -7500,7 +7527,58 @@ row.appendChild(track);
   }
   // ===== 마스터플랜 렌더링 블록 끝 =====
 
-  filteredItems.forEach((it, idx) => {
+  // ===== 파트별 그룹핑 렌더 (건수 많은 순 정렬, 기본 접힘 · 클릭 시 펼침) =====
+  const indivPartGroups = {};
+  filteredItems.forEach(it => {
+    const p = it.part || '미지정';
+    if (!indivPartGroups[p]) indivPartGroups[p] = [];
+    indivPartGroups[p].push(it);
+  });
+  const indivPartOrder = Object.keys(indivPartGroups).sort((a, b) => indivPartGroups[b].length - indivPartGroups[a].length);
+  const indivPartColorMap = {};
+  indivPartOrder.forEach((p, i) => { indivPartColorMap[p] = MP_PART_COLORS[i % MP_PART_COLORS.length]; });
+  window.toggleIndivPart = function(part) {
+    if (window._indivExpandedParts.has(part)) window._indivExpandedParts.delete(part);
+    else window._indivExpandedParts.add(part);
+    window.renderMacroGanttAsIndiv(indivGanttProject);
+  };
+  indivPartOrder.forEach((part, gIdx) => {
+    const partItems = indivPartGroups[part];
+    const partColor = indivPartColorMap[part];
+    const isPartOpen = window._indivExpandedParts.has(part);
+    const partHasIssue = partItems.some(pit => {
+      const t = (pit.row['업무 구분'] || '').toString().trim();
+      return !pit.isHold && (t === '이슈' || t === 'Issue');
+    });
+    const partLabelColor = partHasIssue ? '#C0392B' : partColor;
+    const chevron = isPartOpen ? '▾' : '▸';
+    const partHeaderLabel = `<span style="cursor:pointer;">${chevron} <span style="font-weight:800; color:${partLabelColor};">${part}</span> <span style="color:#94a3b8; font-weight:600;">${partItems.length}건</span></span>`;
+    const { row: partHeaderRow, track: partHeaderTrack } = makeRow(partHeaderLabel, true, gIdx % 2 === 1, partLabelColor, `${part} · ${partItems.length}건`);
+    partHeaderRow.style.cursor = 'pointer';
+    partHeaderRow.onclick = () => window.toggleIndivPart(part);
+    if (!isPartOpen) {
+      let gStart = partItems[0].planStart, gEnd = partItems[0].isDone ? partItems[0].actEnd : partItems[0].planEnd;
+      partItems.forEach(pit => {
+        if (pit.planStart < gStart) gStart = pit.planStart;
+        const e = pit.isDone ? pit.actEnd : pit.planEnd;
+        if (e > gEnd) gEnd = e;
+      });
+      if (gStart <= monthEnd && gEnd >= monthStart) {
+        const cs = ganttClamp(gStart, monthStart, monthEnd), ce = ganttClamp(gEnd, monthStart, monthEnd);
+        const sPct = (dayOffset(cs) / totalDays) * 100;
+        const wPct = Math.max((ganttDaysBetween(cs, ce) / totalDays) * 100, (100 / totalDays) * 0.9);
+        const miniBar = document.createElement('div');
+        miniBar.style.cssText = `position:absolute; top:6px; height:8px; left:${sPct}%; width:${wPct}%; background:${lightenColor(partColor, 0.35)}; border-radius:4px; cursor:pointer;`;
+        miniBar.onclick = () => window.toggleIndivPart(part);
+        partHeaderTrack.appendChild(miniBar);
+      }
+    }
+    rowsEl.appendChild(partHeaderRow);
+    const partHeaderSpacer = document.createElement('div');
+    partHeaderSpacer.style.cssText = 'height:4px;';
+    rowsEl.appendChild(partHeaderSpacer);
+    if (!isPartOpen) return;
+  partItems.forEach((it, idx) => {
     const stripe = idx % 2 === 1;
     // 보류면 무조건 회색, 그 외엔 업무구분 색 (완료/지연 여부는 오른쪽 텍스트가 표현)
     const taskType = it.row ? (it.row['업무 구분'] || '') : '';
@@ -7653,6 +7731,7 @@ if (hasLog) actTrack.appendChild(window.ganttIconMarker('📷', null, 'br', dPct
     const spacer = document.createElement('div');
     spacer.style.cssText = 'height:4px;';
     rowsEl.appendChild(spacer);
+  });
   });
     window.applyGanttAnimation(); // 💡 딱 한 줄 추가! 게이지 애니메이션 발사!
     window.syncPeriodButtonsUI();
