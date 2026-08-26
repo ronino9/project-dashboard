@@ -4968,6 +4968,19 @@ window.cardClick = function(pName) {
 // 트렌드 차트 인스턴스 전역 관리
 let mainTrendChartInstance = null;
 
+// 그룹ID 중 완료/지연완료 상태가 하나라도 있으면 그 그룹 전체를 "해결됨"으로 처리
+window.getResolvedGroupIds = function() {
+    const resolvedGroupIds = new Set();
+    window.allMasterData.forEach(r => {
+        const gid = r['그룹ID'];
+        const status = r['진행상태'] || '';
+        if (gid && (status === '완료' || status === '지연완료')) {
+            resolvedGroupIds.add(gid);
+        }
+    });
+    return resolvedGroupIds;
+};
+
 window.updateMasterMdChart = function() {
   let mdSums = { 'OP10': 0, 'OP9': 0, 'OP8': 0, 'OP7': 0, 'OP6': 0, 'OP5': 0, 'OP4': 0, 'OP3': 0, 'OP2': 0, 'CP': 0 };
   let cntSums = { 'OP10': 0, 'OP9': 0, 'OP8': 0, 'OP7': 0, 'OP6': 0, 'OP5': 0, 'OP4': 0, 'OP3': 0, 'OP2': 0, 'CP': 0 };
@@ -4982,8 +4995,9 @@ let totalMd = 0;
   // 트렌드 데이터 수집용 객체 (월별로 데이터 적재)
   const trendData = {};
 
-window.allMasterData.forEach(r => {
-      let pass = true;
+    const resolvedGroupIds = window.getResolvedGroupIds();
+    window.allMasterData.forEach(r => {
+        let pass = true;
       for (let cat in window.masterMdFilters) {
           const selectedSet = window.masterMdFilters[cat];
           if (selectedSet.size > 0) {
@@ -5018,7 +5032,8 @@ if (status === '지연중') delayCount++;
           if (status === '임박') imminentCount++;
           if (status === '보류') holdCount++;
           if (status === '지연완료') delayDoneCount++;
-          if (status !== '완료' && status !== '지연완료' && status !== '보류') incompleteCount++;
+          const isGroupResolved = r['그룹ID'] && resolvedGroupIds.has(r['그룹ID']);
+                if (status !== '완료' && status !== '지연완료' && status !== '보류' && !isGroupResolved) incompleteCount++;
       }
   });
 
@@ -5143,7 +5158,8 @@ document.addEventListener('click', function(e) {
 });
 
 window.showKpiDetail = function(type) {
-  const matchedRows = [];
+    const matchedRows = [];
+    const resolvedGroupIds = window.getResolvedGroupIds();
   const period = window._indivPeriod;
   const periodCode = window._activeCardCode;
 
@@ -5173,7 +5189,7 @@ window.showKpiDetail = function(type) {
       else if (type === 'imminent' && status === '임박') isMatch = true;
       else if (type === 'hold' && status === '보류') isMatch = true;
       else if (type === 'delaydone' && status === '지연완료') isMatch = true;
-      else if (type === 'incomplete' && status !== '완료' && status !== '지연완료' && status !== '보류') isMatch = true;
+      else if (type === 'incomplete' && status !== '완료' && status !== '지연완료' && status !== '보류' && !(r['그룹ID'] && resolvedGroupIds.has(r['그룹ID']))) isMatch = true;
 
       if (isMatch) {
           const rowCopy = {
