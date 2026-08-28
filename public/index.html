@@ -10276,7 +10276,7 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .catch(err => {
       console.error(err);
-      alert('✅ 시스템 사양상 호출 요청 후 제한시간 초과 오류가 날 수 있습니다.\n잠시 후 대시보드를 새로고침(F5)하여 갱신 시각을 확인해 보세요.');
+      alert('⚠️ 서버 통신에 실패했습니다.\n' + err + '\n\n갱신이 안 됐을 가능성이 큽니다. 시트의 갱신시각을 직접 확인해 주세요.');
       resetRebuildBtn(btn);
     });
 }
