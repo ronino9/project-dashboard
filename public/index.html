@@ -4124,13 +4124,14 @@ if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') 
 }
 if (h === '업무/특이사항') {
   const val = row['업무 구분'] || '-';
+  const lv  = parseInt(row['이슈레벨']) || 0;
   const taskColorMap = { '표준': '#64748b', '개선': '#16a34a', 'Issue': '#dc2626', '이슈': '#dc2626', '기술지원': '#d97706', '기능요구': '#2563eb', '미팅': '#7c3aed', '일정': '#0891b2' };
-  const tColor = taskColorMap[val] || '#475569';
-
+  const ISSUE_LV = { 3: '#C0392B', 2: '#ea580c', 1: '#ca8a04' };
+  const label  = (val === 'Issue' && lv) ? `Issue-Lv${lv}` : val;
+  const tColor = (val === 'Issue' && lv) ? ISSUE_LV[lv] : (taskColorMap[val] || '#475569');
   const badges = [];
   if (val !== '-') {
-    badges.push(`<span class="badge" style="background:#ffffff; color:${tColor}; font-weight:700; border:1.5px solid ${tColor}; min-width:56px; display:inline-block; text-align:center;">${val}</span>`);
-    if (val === 'Issue') badges.push(window.levelBadge(row['이슈레벨']));   // ← 추가
+    badges.push(`<span class="badge" style="background:#ffffff; color:${tColor}; font-weight:700; border:1.5px solid ${tColor}; min-width:66px; display:inline-block; text-align:center;">${label}</span>`);
   }
 
   const reworkYN = (row['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
@@ -5877,7 +5878,11 @@ summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD · ${fo
 
       rows.forEach(row => {
         const sColor = statusColor[row['진행상태']] || '#334155';
-        const tColor = taskColor[row['업무구분']] || '#374151';
+        const _lv = parseInt(row['이슈레벨']) || 0;
+const _label = (row['업무구분'] === 'Issue' && _lv) ? `Issue-Lv${_lv}` : (row['업무구분'] || '-');
+const tColor = (row['업무구분'] === 'Issue' && _lv)
+  ? ({ 3: '#7f1d1d', 2: '#7c2d12', 1: '#854d0e' })[_lv]
+  : (taskColor[row['업무구분']] || '#374151');
         const stColor = stageBadge[row['단계']] || '#1e293b';
 
         function parseAnalysis(val) {
