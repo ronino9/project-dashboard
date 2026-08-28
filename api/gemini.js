@@ -7,11 +7,17 @@ export default async function handler(req, res) {
     const { projectTitle, historyData, mode } = req.body;
     
     // 모델 분기 (roast는 pro 모델 사용 - 풍자/유머 잘함)
+const MODELS = {
+  pro:   process.env.GEMINI_MODEL_PRO   || 'gemini-3.7-flash',
+  roast: process.env.GEMINI_MODEL_ROAST || 'gemini-3.5-flash',
+  base:  process.env.GEMINI_MODEL_BASE  || 'gemini-3.5-flash-lite'
+};
+
 const model = mode === 'pro'
-  ? 'gemini-2.5-pro' 
+  ? MODELS.pro
   : ((mode === 'roast' || mode === 'stageRoast')
-    ? 'gemini-2.5-flash'   // 팩폭은 Flash로
-    : 'gemini-2.5-flash-lite');
+    ? MODELS.roast
+    : MODELS.base);
     
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     
