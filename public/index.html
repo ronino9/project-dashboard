@@ -3440,6 +3440,15 @@ window.renderDeviationTrendTest = function() {
       return dateStr.toString().substring(2);
     }
 
+    // 이슈 레벨 배지 (LV1/LV2/LV3)
+    window.levelBadge = function(lv) {
+      const n = parseInt(lv) || 0;
+      if (!n) return '';
+      const c = { 3: '#C0392B', 2: '#b45309', 1: '#64748b' }[n];
+      return `<span style="background:${c}; color:#fff; font-size:10px; font-weight:800;
+        padding:2px 6px; border-radius:3px; letter-spacing:.02em; margin-left:3px;">LV${n}</span>`;
+    };
+
     window.showProjectInfoPopup = function(code, anchorEl) {
   const pop = document.getElementById('project-info-popover');
   if (!pop) return;
@@ -4121,6 +4130,7 @@ if (h === '업무/특이사항') {
   const badges = [];
   if (val !== '-') {
     badges.push(`<span class="badge" style="background:#ffffff; color:${tColor}; font-weight:700; border:1.5px solid ${tColor}; min-width:56px; display:inline-block; text-align:center;">${val}</span>`);
+    if (val === 'Issue') badges.push(window.levelBadge(row['이슈레벨']));   // ← 추가
   }
 
   const reworkYN = (row['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase();
@@ -5914,7 +5924,7 @@ summary.textContent = `총 ${logs.length}건 · ${totalMD.toFixed(1)} MD · ${fo
             <div>
               <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
                 <span style="background:${sColor}; color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${row['진행상태'] || '-'}</span>
-                <span style="background:${tColor}; color:#e2e8f0; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${row['업무구분'] || '-'}</span>
+                <span style="background:${tColor}; color:#e2e8f0; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">${row['업무구분'] || '-'}</span>${window.levelBadge(row['이슈레벨'])}
                 ${row['단계'] ? `<span style="background:${stColor}; color:#94a3b8; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px;">${row['단계']}</span>` : ''}
                 ${row['파트'] ? `<span style="background:#1a2e1a; color:#4ade80; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid #166534;">${row['파트']}</span>` : ''}
                 ${row['유무상'] ? `<span style="background:${row['유무상']==='유상'?'#1e3a5f':'#1e293b'}; color:${row['유무상']==='유상'?'#93c5fd':'#64748b'}; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid ${row['유무상']==='유상'?'#1d4ed8':'#334155'};">${row['유무상']}</span>` : ''}
