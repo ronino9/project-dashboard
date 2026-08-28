@@ -4106,6 +4106,9 @@ if (h === '표준 제작 Item / Issue / 개선사항' || h === '진행 사항') 
     const badgeParts = [];
     if (gid) {
       badgeParts.push(`<span onclick="window.showGroupHistory('${gid}')" style="display:inline-flex; align-items:center; gap:4px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; cursor:pointer;" title="이 그룹의 전체 이력 보기">🔗 ${gid}</span>`);
+      
+      // 👇 여기에 보고서 버튼 추가 👇
+      badgeParts.push(`<span onclick="window.openReportModal('${gid}')" style="display:inline-flex; align-items:center; gap:4px; background:#0f172a; border:1px solid #334155; color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#334155'" onmouseout="this.style.background='#0f172a'" title="1페이지 요약 보고서 보기">📄 요약 보고서</span>`);
     }
     if (gid && iid) {
       badgeParts.push(`<span onclick="window.showImproveHistory('${gid}', '${iid}')" style="display:inline-flex; align-items:center; gap:4px; background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; cursor:pointer;" title="이 개선ID로 묶인 문제·개선 이력 보기">💡 ${iid}</span>`);
@@ -12475,6 +12478,161 @@ function __chipInstall() {
 }
 
 __chipInstall();
-  </script>
+<script>
+// ── 보고서 팝업 스케일 조정 (1280x720 고정비율 유지) ──
+window.resizeReportModal = function() {
+  const wrap = document.getElementById('rptCanvasWrap');
+  if (!wrap) return;
+  // 좌우 여백을 위해 약간의 여유(1360, 800)를 둡니다
+  const scale = Math.min(window.innerWidth / 1360, window.innerHeight / 800, 1);
+  wrap.style.transform = `scale(${scale})`;
+};
+window.addEventListener('resize', window.resizeReportModal);
+
+window.closeReportModal = function() {
+  document.getElementById('rptModal').style.display = 'none';
+};
+
+// ── 보고서 열기 (GAS 함수 호출) ──
+window.openReportModal = function(groupId) {
+  document.getElementById('rptModal').style.display = 'flex';
+  document.getElementById('rptLoading').style.display = 'flex';
+  window.resizeReportModal();
+
+  google.script.run.withSuccessHandler(function(res) {
+    document.getElementById('rptLoading').style.display = 'none';
+    if (!res.ok) {
+      alert('보고서 생성 실패: ' + res.msg);
+      window.closeReportModal();
+      return;
+    }
+    window.renderReportCanvas(res);
+  }).withFailureHandler(function(err) {
+    document.getElementById('rptLoading').style.display = 'none';
+    alert('서버 오류 발생: ' + err.message);
+    window.closeReportModal();
+  }).buildIssueReportData(groupId);
+};
+
+// ── 조립된 데이터 화면 출력 ──
+window.renderReportCanvas = function(d) {
+  document.getElementById('rptProj').textContent = d.프로젝트;
+  document.getElementById('rptType').textContent = d.유형;
+  
+  const lvEl = document.getElementById('rptLevel');
+  if (d.레벨 > 0) {
+    lvEl.style.display = 'inline-block';
+    lvEl.textContent = 'Lv' + d.레벨;
+    lvEl.style.background = (d.레벨 === 3) ? '#C0392B' : '#475569';
+  } else {
+    lvEl.style.display = 'none';
+  }
+
+  document.getElementById('rptTitle').textContent = d.제목;
+  
+  const hlEl = document.getElementById('rptHeadline');
+  hlEl.textContent = d.헤드라인;
+  hlEl.style.color = d.종결 ? '#16a34a' : '#C0392B';
+
+  document.getElementById('rptPeriod').textContent = 
+    `${d.기간.시작.replace(/-/g,'.')} ~ ${d.기간.종료.replace(/-/g,'.')} (대응 ${d.기간.대응일수}일)`;
+  document.getElementById('rptMetrics').textContent = 
+    `투입 ${d.지표.투입H.toFixed(1)}H · ${d.지표.MD.toFixed(1)}MD · ${d.지표.세션수}건 세션 · ${d.지표.시도횟수}차 시도`;
+
+  // 빈 슬롯 숨김 및 렌더링
+  const grid = document.getElementById('rptGrid');
+  grid.innerHTML = '';
+  const slots = ['배경', '원인', '진행', '결과', '검증', '보완'];
+  
+  slots.forEach(s => {
+    const items = d.슬롯[s];
+    if (!items || items.length === 0) return; 
+    
+    let listHtml = items.map(x => `
+      <div style="margin-bottom:8px; display:flex; gap:10px; align-items:flex-start;">
+        <div style="width:58px; flex-shrink:0; font-family:monospace; color:#64748b; font-size:11px; padding-top:2px;">
+          ${x.날짜.substring(5).replace('-','.')} ${x.시간||''}
+        </div>
+        <div style="flex:1; line-height:1.5;">${x.내용.replace(/\n/g, '<br>')}</div>
+      </div>
+    `).join('');
+
+    grid.innerHTML += `
+      <div style="background:#ffffff; border:1px solid #cbd5e1; display:flex; flex-direction:column; overflow:hidden; border-radius:4px;">
+        <div style="background:#f1f5f9; border-bottom:1px solid #cbd5e1; padding:8px 16px; font-weight:800; color:#0f172a; font-size:14px;">
+          ${s}
+        </div>
+        <div style="padding:16px; flex:1; overflow-y:auto; font-size:13px; color:#334155;">
+          ${listHtml}
+        </div>
+      </div>
+    `;
+  });
+
+  // 동일 유형 바로가기 배지
+  const simWrap = document.getElementById('rptSimilar');
+  if (d.동일유형.length > 0) {
+    simWrap.innerHTML = d.동일유형.map(e => 
+      `<span onclick="window.openReportModal('${e.그룹ID}')" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:700; color:#475569; cursor:pointer;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+        ${e.라벨}
+      </span>`
+    ).join('');
+  } else {
+    simWrap.innerHTML = `<span style="font-size:12px; color:#94a3b8;">(없음)</span>`;
+  }
+
+  // 하단 원본 이력 보기
+  const originBtn = document.getElementById('rptViewOriginBtn');
+  originBtn.onclick = function() {
+    window.closeReportModal();
+    window.showGroupHistory(d.그룹ID);
+  };
+};
+</script>
+  <!-- 보고서 팝업 오버레이 (1280x720 캔버스) -->
+<div id="rptModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.85); z-index:100000; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+  <div id="rptCanvasWrap" style="width:1280px; height:720px; transform-origin:center; transition:transform 0.1s;">
+    <div id="rptCanvas" style="width:100%; height:100%; background:#ffffff; display:flex; flex-direction:column; box-shadow:0 24px 64px rgba(0,0,0,0.5); overflow:hidden; font-family:-apple-system, sans-serif;">
+      
+      <!-- 헤더 영역 -->
+      <div style="padding:32px 40px 24px; border-bottom:2px solid #0f172a; display:flex; justify-content:space-between; align-items:flex-end;">
+        <div>
+          <div style="display:flex; gap:12px; margin-bottom:12px; align-items:center;">
+            <span id="rptProj" style="font-size:16px; font-weight:800; color:#475569; border:1px solid #cbd5e1; padding:4px 12px; border-radius:4px;">PROJ</span>
+            <span id="rptType" style="font-size:16px; font-weight:800; color:#475569; border:1px solid #cbd5e1; padding:4px 12px; border-radius:4px;">TYPE</span>
+            <span id="rptLevel" style="font-size:16px; font-weight:800; color:#fff; background:#C0392B; padding:4px 12px; border-radius:4px;">Lv0</span>
+            <span id="rptClose" onclick="window.closeReportModal()" style="position:absolute; top:24px; right:32px; font-size:28px; color:#94a3b8; cursor:pointer; font-weight:bold; transition:0.2s;" onmouseover="this.style.color='#0f172a'" onmouseout="this.style.color='#94a3b8'">✕</span>
+          </div>
+          <div id="rptTitle" style="font-size:32px; font-weight:800; color:#0f172a; margin-bottom:8px; max-width:800px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">제목</div>
+          <div id="rptHeadline" style="font-size:20px; font-weight:700; color:#16a34a;">헤드라인</div>
+        </div>
+        
+        <div style="text-align:right; font-size:14px; color:#475569;">
+          <div id="rptPeriod" style="font-weight:700; margin-bottom:6px;">기간</div>
+          <div id="rptMetrics" style="font-weight:600;">지표</div>
+        </div>
+      </div>
+
+      <!-- 본문 그리드 (슬롯 6개) -->
+      <div id="rptGrid" style="flex:1; padding:24px 40px; display:grid; grid-template-columns:1fr 1fr 1fr; grid-template-rows:1fr 1fr; gap:20px; background:#f8fafc;">
+        <!-- JS로 동적 생성 -->
+      </div>
+
+      <!-- 하단 푸터 (동일유형 바로가기 / 원본보기) -->
+      <div style="padding:16px 40px; background:#ffffff; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span style="font-size:13px; font-weight:700; color:#64748b;">동일 유형 이력</span>
+          <div id="rptSimilar" style="display:flex; gap:8px;"></div>
+        </div>
+        <button id="rptViewOriginBtn" style="padding:8px 20px; background:#0f172a; color:#fff; border:none; border-radius:6px; font-size:14px; font-weight:700; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#334155'" onmouseout="this.style.background='#0f172a'">원본 이력 보기 📋</button>
+      </div>
+      
+      <!-- 로딩 화면 -->
+      <div id="rptLoading" style="position:absolute; inset:0; background:rgba(255,255,255,0.85); z-index:10; display:none; align-items:center; justify-content:center; font-size:24px; font-weight:800; color:#0f172a; backdrop-filter:blur(2px);">
+        데이터 조립 중... ⏳
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
