@@ -12504,13 +12504,18 @@ window.buildIssueReportData = function(groupId) {
   if (!g.length) return { ok: false, msg: '해당 그룹ID 없음: ' + gid };
 
   const normD = v => (v || '').toString().replace(/[./]/g, '-').substring(0, 10);
+  // "9:00" → "09:00" 으로 맞춰야 정렬이 뒤집히지 않음
+  const normT = v => {
+    const m = (v || '').toString().match(/(\d{1,2}):(\d{2})/);
+    return m ? m[1].padStart(2, '0') + ':' + m[2] : '';
+  };
 
   // 정렬: 접수일 → 시작시간, 시간 없는 행이 그날 맨 앞
   const rows = g.slice().sort((a, b) => {
     const da = normD(a['접수일']), db = normD(b['접수일']);
     if (da !== db) return da < db ? -1 : 1;
-    const ta = (a['시작 시간'] || '').toString();
-    const tb = (b['시작 시간'] || '').toString();
+    const ta = normT(a['시작 시간']);
+    const tb = normT(b['시작 시간']);
     if (!ta && tb) return -1;
     if (ta && !tb) return 1;
     return ta < tb ? -1 : (ta > tb ? 1 : 0);
@@ -12535,7 +12540,7 @@ window.buildIssueReportData = function(groupId) {
     const slot = SLOT_MAP[slotKey(기록)];
     const item = {
       날짜: normD(r['접수일']),
-      시간: r['시작 시간'] || '',
+      시간: normT(r['시작 시간']),
       기록: 기록,
       내용: r['진행 사항'] || '',
       H: parseFloat(r['작업 시간']) || 0
@@ -12682,7 +12687,10 @@ window.renderReportCanvas = function(d) {
   const warnEl = document.getElementById('rptWarn');
   const warns = [];
   if (d.누락필수 && d.누락필수.length) warns.push(`Lv3 필수 항목 누락 → ${d.누락필수.join(' · ')}`);
-  if (d.미분류 && d.미분류.length) warns.push(`기록구분 미입력 ${d.미분류.length}건 (보고서에 표시 안 됨)`);
+  if (d.미분류 && d.미분류.length) {
+    const dates = [...new Set(d.미분류.map(x => x.날짜).filter(Boolean))].join(', ');
+    warns.push(`기록구분 미입력 ${d.미분류.length}건 (${dates}) — 보고서에 표시 안 됨`);
+  }
   if (warnEl) {
     if (warns.length) { warnEl.textContent = '⚠ ' + warns.join('   |   '); warnEl.style.display = 'block'; }
     else warnEl.style.display = 'none';
