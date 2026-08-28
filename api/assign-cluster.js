@@ -50,9 +50,28 @@ ${JSON.stringify(issues, null, 2)}`;
       return { ok: resp.ok, status: resp.status, data };
     }
 
-    // 배정 작업은 처음부터 flash로 (pro는 대량 배치에서 시간 초과 위험이 확인됨)
-    let modelUsed = 'gemini-2.5-flash';
-    let result = await callGemini(modelUsed);
+    // 배정은 flash 계열만 사용 (pro는 대량 배치에서 시간 초과 위험이 확인됨)
+    // ⚠ 1순위를 바꾸면 신규 항목의 클러스터링 기준이 달라져 개선추이가 오염됩니다.
+    //   현 모델이 차단될 때만 자동으로 다음으로 넘어가도록 폴백만 둡니다.
+    const MODELS = (process.env.GEMINI_MODELS_ASSIGN || 'gemini-2.5-flash,gemini-3.5-flash')
+      .split(',').map(s => s.trim()).filter(Boolean);
+
+    let modelUsed = null;
+    let result = null;
+    const attempts = [];
+
+    for (const m of MODELS) {
+      result = await callGemini(m);
+      if (result.ok) { modelUsed = m; break; }
+
+      const code = result.data?.error?.code;
+      attempts.push(`${m} → ${code || '?'} ${(result.data?.error?.message || '').slice(0, 200)}`);
+      if (code === 401 || code === 403) break;
+    }
+
+    if (!modelUsed) {
+      return res.status(500).json({ error: '배정 실패', attempts });
+    }
 
     if (!result.ok) {
       return res.status(500).json({ error: 'AI 배정 실패', modelUsed, detail: result.data });
