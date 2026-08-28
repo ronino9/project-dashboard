@@ -12511,25 +12511,133 @@ window.closeReportModal = function() {
   document.getElementById('rptModal').style.display = 'none';
 };
 
-// ── 보고서 열기 (GAS 함수 호출) ──
+// ── 로컬 데이터 기반 보고서 조립 엔진 (서버 통신 불필요!) ──
+window.buildIssueReportData = function(groupId) {
+  const all = window.allMasterData || [];
+  const g = all.filter(r => (r['그룹ID'] || '').toString().trim() === groupId);
+
+  if (!g.length) return { ok: false, msg: '해당 그룹ID 없음: ' + groupId };
+
+  // 정렬 (날짜 -> 시간)
+  const rows = g.slice().sort((a, b) => {
+    const da = (a['접수일']||'').toString().replace(/[./]/g, '-').substring(0,10);
+    const db = (b['접수일']||'').toString().replace(/[./]/g, '-').substring(0,10);
+    if (da !== db) return da < db ? -1 : 1;
+    const ta = (a['시작 시간']||'').toString();
+    const tb = (b['시작 시간']||'').toString();
+    if (!ta && tb) return -1;
+    if (ta && !tb) return 1;
+    return ta < tb ? -1 : (ta > tb ? 1 : 0);
+  });
+
+  const head = rows[0];
+
+  const SLOT_MAP = {
+    '이슈-증상': '배경',  '개선-배경': '배경',
+    '이슈-원인': '원인',
+    '이슈-대응': '진행',  '개선-진행': '진행',
+    '이슈-해결': '결과',  '개선-결과': '결과',
+    '이슈-검증': '검증',  '개선-검증': '검증',
+    '이슈-예방': '보완',  '개선-보완': '보완'
+  };
+
+  const slots = { '배경':[], '원인':[], '진행':[], '결과':[], '검증':[], '보완':[] };
+  
+  rows.forEach(r => {
+    const type = (r['기록구분'] || '').toString().trim();
+    const slot = SLOT_MAP[type];
+    const item = {
+      날짜: (r['접수일']||'').toString().replace(/[./]/g, '-').substring(0,10),
+      시간: r['시작 시간'] || '',
+      내용: r['진행 사항'] || '',
+      H: parseFloat(r['작업 시간']) || 0
+    };
+    if (slot) slots[slot].push(item);
+  });
+
+  const 날짜들 = [...new Set(rows.map(r => (r['접수일']||'').toString().replace(/[./]/g, '-').substring(0,10)).filter(Boolean))];
+  const 재작업수 = rows.filter(r => (r['재작업 여부(Y/N)']||'').toString().trim().toUpperCase() === 'Y').length;
+  const 레벨 = Math.max(...rows.map(r => parseInt(r['이슈레벨']) || 0), 0);
+
+  const 시작일 = 날짜들[0] || '';
+  const 종료일 = 날짜들[날짜들.length - 1] || '';
+  const 결과행 = slots['결과'][0] || null;
+  const 원인행 = slots['원인'][0] || null;
+  const 오늘 = new Date().toISOString().substring(0,10);
+  
+  const dayDiff = (a, b) => (!a || !b) ? 0 : Math.round((new Date(b) - new Date(a)) / 86400000);
+
+  const meta = {
+    종결: !!결과행,
+    시도횟수: 재작업수 + 1,
+    당일복구: !!결과행 && 결과행.날짜 === 시작일,
+    경과일: dayDiff(시작일, 결과행 ? 결과행.날짜 : 오늘),
+    복구후원인: !!(결과행 && 원인행 && 원인행.날짜 > 결과행.날짜)
+  };
+
+  let 헤드라인;
+  if (meta.종결) {
+    if (meta.당일복구) 헤드라인 = '당일 복구';
+    else if (meta.시도횟수 <= 1) 헤드라인 = '1차 조치로 종결';
+    else 헤드라인 = meta.시도횟수 + '차 조치로 종결';
+  } else {
+    헤드라인 = '조치 진행 중 · ' + meta.경과일 + '일 경과';
+  }
+  if (meta.복구후원인) 헤드라인 += ' · 복구 후 원인 규명';
+
+  const 동일유형 = [];
+  const head소속 = (head['소속그룹'] || '').toString().trim();
+  if (head소속) {
+    const map = {};
+    all.forEach(r => {
+      const s = (r['소속그룹'] || '').toString().trim();
+      const gid = (r['그룹ID'] || '').toString().trim();
+      if (s !== head소속 || gid === groupId || !gid) return;
+      
+      if (!map[gid]) map[gid] = { 그룹ID: gid, 프로젝트: r._pName, 날짜: (r['접수일']||'').toString().replace(/[./]/g, '-').substring(0,10), H: 0 };
+      map[gid].H += parseFloat(r['작업 시간']) || 0;
+      const rd = (r['접수일']||'').toString().replace(/[./]/g, '-').substring(0,10);
+      if (rd && (!map[gid].날짜 || rd < map[gid].날짜)) map[gid].날짜 = rd;
+    });
+    Object.values(map).sort((a,b) => a.날짜 < b.날짜 ? -1 : 1).forEach(e => {
+      e.라벨 = `${e.프로젝트} ${e.날짜.substring(2,7).replace('-','.')} ${e.H.toFixed(1)}H`;
+      동일유형.push(e);
+    });
+  }
+
+  return {
+    ok: true,
+    그룹ID: groupId,
+    프로젝트: head._pName,
+    유형: (head['업무 구분'] || '').toString().startsWith('Issue') ? '이슈' : '개선',
+    레벨: 레벨,
+    제목: head['표준 제작 Item / Issue / 개선사항'] || '(제목 없음)',
+    헤드라인: 헤드라인,
+    종결: meta.종결,
+    기간: { 시작: 시작일, 종료: 종료일, 대응일수: 날짜들.length },
+    지표: {
+      투입H: rows.reduce((s, r) => s + (parseFloat(r['작업 시간']) || 0), 0),
+      MD: rows.reduce((s, r) => s + (parseFloat(r['공수(MD)']) || 0), 0),
+      세션수: rows.length,
+      시도횟수: meta.시도횟수
+    },
+    슬롯: slots,
+    동일유형: 동일유형
+  };
+};
+
+// ── 즉시 팝업 오픈 (로딩 없음) ──
 window.openReportModal = function(groupId) {
   document.getElementById('rptModal').style.display = 'flex';
-  document.getElementById('rptLoading').style.display = 'flex';
   window.resizeReportModal();
 
-  google.script.run.withSuccessHandler(function(res) {
-    document.getElementById('rptLoading').style.display = 'none';
-    if (!res.ok) {
-      alert('보고서 생성 실패: ' + res.msg);
-      window.closeReportModal();
-      return;
-    }
-    window.renderReportCanvas(res);
-  }).withFailureHandler(function(err) {
-    document.getElementById('rptLoading').style.display = 'none';
-    alert('서버 오류 발생: ' + err.message);
+  const res = window.buildIssueReportData(groupId);
+  if (!res.ok) {
+    alert('보고서 생성 실패: ' + res.msg);
     window.closeReportModal();
-  }).buildIssueReportData(groupId);
+    return;
+  }
+  window.renderReportCanvas(res);
 };
 
 // ── 조립된 데이터 화면 출력 ──
@@ -12604,7 +12712,6 @@ window.renderReportCanvas = function(d) {
   };
 };
 </script>
-
 <!-- 보고서 팝업 오버레이 (1280x720 캔버스) -->
 <div id="rptModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.85); z-index:100000; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
   <div id="rptCanvasWrap" style="width:1280px; height:720px; transform-origin:center; transition:transform 0.1s;">
