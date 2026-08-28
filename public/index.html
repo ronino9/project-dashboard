@@ -663,7 +663,7 @@
     #main-panel .charts-grid { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 16px; margin-bottom: 16px; }
     #main-panel .chart-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
     #main-panel .chart-title { font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; }
-     background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px; padding: 6px 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+    #main-panel .issue-list-item { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px; padding: 6px 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
     #main-panel .issue-list-item:hover { background: #f1f5f9; }
     #main-panel .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
     /* =========================================
@@ -4555,6 +4555,13 @@ window.animateMainCards = function() {
     requestAnimationFrame(() => bar.style.width = finalWidth);
   });
 };
+    // 카드 id → allMasterData의 _pName 표기로 통일
+    window.cardCodeOf = function(id) {
+      if (id === 'projectEtc') return 'ETC';
+      if (id === 'CP_ALL') return 'CP';
+      return id;
+    };
+
     window.renderMainDashboard = function() {
   if (!allData || !allData.project7) return;
 
@@ -4710,7 +4717,7 @@ const summary = proj.d.summary || {};
     }).join('');
 
     return `
-      <div class="main-card" draggable="true" data-card-idx="${cardIdx}" ondragstart="window.cardDragStart(event,${cardIdx})" ondragover="window.cardDragOver(event)" ondrop="window.cardDrop(event,${cardIdx})" ondragend="window.cardDragEnd(event)" onclick="window.cardClick('${proj.id}')" style="cursor: pointer; ${selectedSet.has(proj.id) ? 'border: 2px solid ' + proj.color + '; box-shadow: 0 0 0 3px ' + proj.color + '33;' : ''}">
+      <div class="main-card" draggable="true" data-card-idx="${cardIdx}" ondragstart="window.cardDragStart(event,${cardIdx})" ondragover="window.cardDragOver(event)" ondrop="window.cardDrop(event,${cardIdx})" ondragend="window.cardDragEnd(event)" onclick="window.cardClick('${window.cardCodeOf(proj.id)}')" style="cursor: pointer; ${selectedSet.has(window.cardCodeOf(proj.id)) ? 'border: 2px solid ' + proj.color + '; box-shadow: 0 0 0 3px ' + proj.color + '33;' : ''}">
 <div class="main-card-header">
           <div style="display:flex; align-items:center; gap:8px;">
             <div class="main-card-title">${proj.id}<i class="proj-info-ico" style="font-size:13px; margin-left:6px;" onclick="event.stopPropagation(); window.showProjectInfoPopup('${proj.id}', this)" title="프로젝트 정보">ⓘ</i></div>
@@ -4868,7 +4875,7 @@ window.renderMasterSlicers = function() {
   categories.forEach(cat => {
       let uniqueVals;
       if (cat === '프로젝트') {
-          uniqueVals = ['OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2', 'CP'].filter(p =>
+          uniqueVals = ['OP10', 'OP9', 'OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2', 'CP'].filter(p =>
               window.allMasterData.some(r => r._pName === p)
           );
       } else {
@@ -4929,9 +4936,7 @@ window.selectMasterProject = function(pName) {
   window.renderMainDashboard();   // ← 카드까지 다시 그려서 테두리 반영
 
   // 간트 라벨 클릭 등으로 넘어온 코드값(ETC/CP)을 카드 id(projectEtc/CP_ALL)로 역매핑해서 스크롤
-  let cardId = pName;
-      if (pName === 'ETC') cardId = 'projectEtc';
-      const cardEl = document.querySelector(`.main-card[onclick*="'${cardId}'"]`);
+  const cardEl = document.querySelector(`.main-card[onclick*="'${pName}'"]`);
   if (cardEl) {
     cardEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   } else {
@@ -4996,8 +5001,8 @@ window.getResolvedGroupIds = function() {
 };
 
 window.updateMasterMdChart = function() {
-  let mdSums = { 'OP10': 0, 'OP9': 0, 'OP8': 0, 'OP7': 0, 'OP6': 0, 'OP5': 0, 'OP4': 0, 'OP3': 0, 'OP2': 0, 'CP': 0 };
-  let cntSums = { 'OP10': 0, 'OP9': 0, 'OP8': 0, 'OP7': 0, 'OP6': 0, 'OP5': 0, 'OP4': 0, 'OP3': 0, 'OP2': 0, 'CP': 0 };
+  let mdSums = { 'OP10': 0, 'OP9': 0, 'OP8': 0, 'OP7': 0, 'OP6': 0, 'OP5': 0, 'OP4': 0, 'OP3': 0, 'OP2': 0, 'CP': 0, 'ETC': 0 };
+  let cntSums = { 'OP10': 0, 'OP9': 0, 'OP8': 0, 'OP7': 0, 'OP6': 0, 'OP5': 0, 'OP4': 0, 'OP3': 0, 'OP2': 0, 'CP': 0, 'ETC': 0 };
 let totalMd = 0;
   let delayCount = 0;
   let imminentCount = 0;
@@ -5022,8 +5027,8 @@ let totalMd = 0;
 
       if (pass) {
           const val = parseFloat(r['공수(MD)']) || 0;
-          mdSums[r._pName] += val;
-          cntSums[r._pName] += 1;
+          mdSums[r._pName]  = (mdSums[r._pName]  || 0) + val;
+          cntSums[r._pName] = (cntSums[r._pName] || 0) + 1;
           totalMd += val;
           totalItems++;
 
@@ -5067,8 +5072,8 @@ document.getElementById('kpi-master-md').textContent = totalMd.toFixed(1);
   const hdrIncomplete = document.getElementById('kpi-master-incomplete-hdr'); if (hdrIncomplete) hdrIncomplete.textContent = incompleteCount;
   const periodLabelEl = document.getElementById('kpi-period-label'); if (periodLabelEl && !window._indivPeriod) periodLabelEl.style.display = 'none';
 
-const colors = ['#ec4899', '#14b8a6', '#d97757', '#8cc63f', '#3b82f6', '#06b6d4', '#a855f7', '#f59e0b', '#db2777', '#64748b'];
-const pKeys  = ['OP10', 'OP9', 'OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2', 'CP'];
+const colors = ['#ec4899','#14b8a6','#d97757','#8cc63f','#3b82f6','#06b6d4','#a855f7','#f59e0b','#db2777','#64748b','#94a3b8'];
+const pKeys  = ['OP10','OP9','OP8','OP7','OP6','OP5','OP4','OP3','OP2','CP','ETC'];
 
 // 도넛 범례 업데이트
   document.getElementById('main-md-legend').innerHTML = pKeys.map((k, i) => {
@@ -5282,7 +5287,7 @@ window.showIssueDetail = function(idx) {
   const cleanMemberTitles = rawMembers.split('|').map(t => t.replace(/[^a-zA-Z0-9가-힣]/g, ''));
 
   const matchedRows = [];
-  const targetProjects = ['project8', 'project7', 'project6', 'project5', 'project4', 'project3', 'project2', 'project1'];
+  const targetProjects = ['project10', 'project9', 'project8', 'project7', 'project6', 'project5', 'project4', 'project3', 'project2', 'project1'];
 
   targetProjects.forEach(pKey => {
     if (allData[pKey] && allData[pKey].history) {
@@ -6087,7 +6092,7 @@ function weeklyBuildTable(rows, mode) {
 }
 
 function weeklyGroupByProject(rows) {
-  const order = ['OP8','OP7','OP6','OP5','OP4','OP3','OP2','CP','ETC'];
+  const order = ['OP10','OP9','OP8','OP7','OP6','OP5','OP4','OP3','OP2','CP','ETC'];
   const grouped = {};
   rows.forEach(r => {
     if (!grouped[r._pName]) grouped[r._pName] = [];
@@ -10184,7 +10189,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!docPanel) return;
       docPanel.style.display = 'block';
 
-      const map = { 'project8': 'OP8', 'project7': 'OP7', 'project6': 'OP6', 'project5': 'OP5', 'project4': 'OP4', 'project3': 'OP3', 'project2': 'OP2', 'project1cs': 'CP_All' };
+      const map = { 'project10': 'OP10', 'project9': 'OP9', 'project8': 'OP8', 'project7': 'OP7', 'project6': 'OP6', 'project5': 'OP5', 'project4': 'OP4', 'project3': 'OP3', 'project2': 'OP2', 'project1cs': 'CP_All' };
       const pName = map[projectId];
       
       currentProjectDocs = documentLinksData.filter(d => d.project === pName);
@@ -10253,9 +10258,10 @@ document.addEventListener('DOMContentLoaded', function() {
   btn.style.background = '#94a3b8';
   btn.innerText = '⏳ AI 분석 중...';
 
-  // 💡 본인의 구글 웹앱 URL 뒤에 '?action=rebuild'를 붙여서 호출합니다.
-  // 기존에 대시보드 데이터 로드할 때 쓰시는 GAS 웹앱 주소를 넣어주세요.
-  const gasUrl = 'https://script.google.com/macros/s/AKfycbwnofFstNzykpJ1exsbQbUFEIwShj9SX2oot7gPlHSShn3lzMHYQDi1CIx7bIBP3fvvsw/exec?action=rebuild'; 
+  // 대시보드가 쓰는 것과 동일한 배포본 + 로그인 정보를 함께 전송
+  const id  = localStorage.getItem('auth_id');
+  const pin = localStorage.getItem('auth_pin');
+  const gasUrl = `${API_URL}?action=rebuild&id=${encodeURIComponent(id)}&pin=${encodeURIComponent(pin)}`;
 
   fetch(gasUrl)
     .then(res => res.json())
@@ -10594,7 +10600,7 @@ window.populateGlobalSearchFilters = function() {
   const projSel = document.getElementById('gs-project');
   if (projSel) {
     const currentProj = projSel.value;
-    const order = ['OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2', 'CP'];
+    const order = ['OP10', 'OP9', 'OP8', 'OP7', 'OP6', 'OP5', 'OP4', 'OP3', 'OP2', 'CP'];
     const uniqueProjects = order.filter(p => window.allMasterData.some(r => r._pName === p));
     projSel.innerHTML = `<option value="">프로젝트 전체</option>` + uniqueProjects.map(v => `<option value="${v}">${v}</option>`).join('');
     if (uniqueProjects.includes(currentProj)) projSel.value = currentProj;
@@ -12457,7 +12463,7 @@ function __renderDetailFilterChips() {
   }
   box.innerHTML = html;
 }
-    /* ===== 적용 조건 칩: 독립 설치 ===== */
+/* ===== 적용 조건 칩: 독립 설치 ===== */
 function __chipInstall() {
   if (typeof window.showDetailView !== 'function') {
     setTimeout(__chipInstall, 300);
@@ -12465,7 +12471,6 @@ function __chipInstall() {
   }
   if (window._chipInstalled) return;
   window._chipInstalled = true;
-
   var prev = window.showDetailView;
   window.showDetailView = function(title, sub, rows, fromBack) {
     if (!window._ddfApplying) {
@@ -12476,26 +12481,6 @@ function __chipInstall() {
     __renderDetailFilterChips();
   };
 }
-
-function __chipInstall() {
-  if (typeof window.showDetailView !== 'function') {
-    setTimeout(__chipInstall, 300);
-    return;
-  }
-  if (window._chipInstalled) return;
-  window._chipInstalled = true;
-
-  var prev = window.showDetailView;
-  window.showDetailView = function(title, sub, rows, fromBack) {
-    if (!window._ddfApplying) {
-      window._ddfChips = window._detailAppliedFilters || null;
-      window._detailAppliedFilters = null;
-    }
-    prev(title, sub, rows, fromBack);
-    __renderDetailFilterChips();
-  };
-}
-
 __chipInstall();
 
 // ── 보고서 팝업 스케일 조정 (1280x720 고정비율 유지) ──
