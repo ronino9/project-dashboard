@@ -48,17 +48,28 @@ ${JSON.stringify(issues, null, 2)}`;
       return { ok: resp.ok, status: resp.status, data };
     }
 
-    // 1차: pro 시도
-    let modelUsed = 'gemini-2.5-pro';
-    let result = await callGemini(modelUsed);
+    // 앞에서부터 순서대로 시도, 성공하는 첫 모델을 사용
+    const MODELS = (process.env.GEMINI_MODELS || 'gemini-3.7-flash,gemini-3.5-flash,gemini-2.5-flash')
+      .split(',').map(s => s.trim()).filter(Boolean);
 
-    // pro가 할당량 초과(429)거나 실패하면 → flash로 폴백
-    if (!result.ok) {
-      const errCode = result.data?.error?.code;
-      if (errCode === 429 || errCode === 400 || errCode === 500) {
-        modelUsed = 'gemini-2.5-flash';
-        result = await callGemini(modelUsed);
-      }
+    let modelUsed = null;
+    let result = null;
+    const attempts = [];
+
+    for (const m of MODELS) {
+      result = await callGemini(m);
+      if (result.ok) { modelUsed = m; break; }
+
+      const code = result.data?.error?.code;
+      const msg  = result.data?.error?.message || '';
+      attempts.push(`${m} → ${code || '?'} ${msg}`.slice(0, 250));
+
+      // 키·권한 문제는 모델을 바꿔도 소용없으므로 즉시 중단
+      if (code === 401 || code === 403) break;
+    }
+
+    if (!modelUsed) {
+      return res.status(500).json({ error: 'AI 분석 실패', attempts });
     }
 
     const raw = result.data?.candidates?.[0]?.content?.parts?.[0]?.text;
