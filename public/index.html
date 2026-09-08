@@ -2547,6 +2547,104 @@ window.renderDeviationTrendTest = function() {
     `;
   }).join('');
 };
+// ==========================================
+// [작업 2] repOnly 적용 전후 진단 — 읽기 전용
+// ==========================================
+window.diagnoseMetrics = function() {
+  const rows = window.allMasterData || [];
+  if (rows.length === 0) {
+    console.warn('⚠ allMasterData 비어있음 — 프로젝트 현황 탭을 한 번 연 뒤 다시 실행하세요.');
+    return;
+  }
+  const rep = rows.filter(r => r._isRep !== false);
+  const S   = r => (r['진행상태'] || '').toString().trim();
+  const T   = r => (r['업무 구분'] || '').toString().trim();
+  const EXT = r => { const v = (r['외부요인'] || '').toString().trim(); return !!v && v !== '해당없음'; };
+  const c   = (a, f) => a.filter(f).length;
+  const pc  = (a, b) => b > 0 ? +(a / b * 100).toFixed(1) : 0;
+
+  const T1 = [];
+  const add = (구분, 현재, 적용, 단위) => T1.push({
+    구분, 현재, 'repOnly': 적용,
+    차이: +(적용 - 현재).toFixed(1),
+    '감소율(%)': 현재 > 0 ? +((현재 - 적용) / 현재 * 100).toFixed(1) : 0,
+    단위: 단위 || '건'
+  });
+
+  // ── 1. 상단 KPI ──
+  add('모수(전체)',   rows.length, rep.length);
+  add('지연중',       c(rows, r => S(r) === '지연중'),   c(rep, r => S(r) === '지연중'));
+  add('임박',         c(rows, r => S(r) === '임박'),     c(rep, r => S(r) === '임박'));
+  add('보류',         c(rows, r => S(r) === '보류'),     c(rep, r => S(r) === '보류'));
+  add('지연완료',     c(rows, r => S(r) === '지연완료'), c(rep, r => S(r) === '지연완료'));
+
+  const resolved = window.getResolvedGroupIds();
+  const incNow = c(rows, r => {
+    const st = S(r);
+    const g = r['그룹ID'] && resolved.has(r['그룹ID']);
+    return st !== '완료' && st !== '지연완료' && st !== '보류' && !g;
+  });
+  const incRep = c(rep, r => {
+    const st = S(r);
+    return st !== '완료' && st !== '지연완료' && st !== '보류';
+  });
+  add('미완료(현재=그룹해소 임시로직)', incNow, incRep);
+
+  const compNow = pc(rows.length - c(rows, r => S(r) === '지연중') - c(rows, r => S(r) === '임박'), rows.length);
+  const compRep = pc(rep.length  - c(rep,  r => S(r) === '지연중') - c(rep,  r => S(r) === '임박'),  rep.length);
+  add('일정 준수율', compNow, compRep, '%');
+
+  // ── 3. 상세내역 완료율·지연율 (전체 기준 프록시) ──
+  const baseF = a => a.filter(r => S(r) !== '보류' && T(r) !== '개선');
+  const bN = baseF(rows), bR = baseF(rep);
+  add('상세 모수',   bN.length, bR.length);
+  add('상세 완료율', pc(c(bN, r => S(r) === '완료' || S(r) === '지연완료'), bN.length),
+                     pc(c(bR, r => S(r) === '완료' || S(r) === '지연완료'), bR.length), '%');
+  add('상세 지연율', pc(c(bN, r => (S(r) === '지연중' || S(r) === '지연완료') && !EXT(r)), bN.length),
+                     pc(c(bR, r => (S(r) === '지연중' || S(r) === '지연완료') && !EXT(r)), bR.length), '%');
+
+  // ── 4. 단계 상세 모달 (전 프로젝트 합계) ──
+  add('단계모달 이슈',  c(rows, r => T(r) === 'Issue'), c(rep, r => T(r) === 'Issue'));
+  add('단계모달 보류',  c(rows, r => S(r) === '보류'),  c(rep, r => S(r) === '보류'));
+
+  // ── 5·6. CP_All ──
+  const MP = ['마스터플랜', '마스터메모', '마스터이슈'];
+  const cpRaw = ((allData.project1 && allData.project1.history) || []);
+  const cpNoMp = cpRaw.filter(r => !MP.includes((r['업무 구분'] || '').toString().trim()));
+  const cpRep  = cpNoMp.filter(r => r._isRep !== false);
+  console.log('%c▼ CP_All 카드 완료율 (MP 제외 누락 건 포함)', 'font-weight:bold');
+  console.table([
+    { 기준: '현재 (MP포함·전행)', 모수: cpRaw.length,   완료율: pc(c(cpRaw,   r => S(r).includes('완료')), cpRaw.length) },
+    { 기준: 'MP 제외',            모수: cpNoMp.length, 완료율: pc(c(cpNoMp, r => S(r).includes('완료')), cpNoMp.length) },
+    { 기준: 'MP 제외 + repOnly',  모수: cpRep.length,  완료율: pc(c(cpRep,  r => S(r).includes('완료')), cpRep.length) }
+  ]);
+
+  // ── 8. PDCA 계획수립률 ──
+  const psN = c(rows, r => (parseFloat(r['예상 작업 시간(H)']) || 0) > 0);
+  const psR = c(rep,  r => (parseFloat(r['예상 작업 시간(H)']) || 0) > 0);
+  add('PDCA 계획수립률', pc(psN, rows.length), pc(psR, rep.length), '%');
+
+  console.log('%c▼ [작업 2] repOnly 적용 전후 대조  ' + new Date().toLocaleString('ko-KR'),
+              'font-weight:bold; font-size:13px; color:#1d4ed8');
+  console.table(T1);
+
+  // ── 2·7. 프로젝트별 건수 (도넛 범례 / 검색 결과) ──
+  const T2 = [];
+  ['OP10','OP9','OP8','OP7','OP6','OP5','OP4','OP3','OP2','CP','ETC'].forEach(p => {
+    const a = rows.filter(r => r._pName === p), b = rep.filter(r => r._pName === p);
+    if (a.length === 0) return;
+    T2.push({ 프로젝트: p, 현재: a.length, repOnly: b.length, 차이: b.length - a.length,
+              '감소율(%)': +((a.length - b.length) / a.length * 100).toFixed(1) });
+  });
+  console.log('%c▼ 도넛 범례 N건 / 검색 결과 총 N건 (프로젝트별)', 'font-weight:bold');
+  console.table(T2);
+
+  // ── 그룹 구조 요약 ──
+  const gids = new Set(rows.filter(r => (r['그룹ID'] || '').toString().trim()).map(r => r['그룹ID'].toString().trim()));
+  const solo = c(rows, r => !(r['그룹ID'] || '').toString().trim());
+  console.log(`%c▼ 그룹 구조 — 단독 ${solo}행 · 그룹 ${gids.size}개(${rows.length - solo}행) · 그룹당 평균 ${((rows.length - solo) / (gids.size || 1)).toFixed(1)}행`,
+              'font-weight:bold');
+};  
 </script>      
 
 <div class="chart-card" style="display: none; flex-direction: column; padding: 21px; margin-top: 16px;">
