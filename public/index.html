@@ -7670,7 +7670,7 @@ if (!it.execDays) {
         const md = parseFloat(it.row['공수(MD)']) || 0;
         
         // 공수가 0보다 크고, 내용이 하나라도 있어야 '실제 작업'으로 간주합니다.
-        const hasWork = (md > 0) && ((workTime !== '' && workTime !== '-') || (progressInfo !== '' && progressInfo !== '-'));
+        const hasWork = true;
 
         // 3. 특정 날짜에 진한 실작업 막대(Opacity 1.0) 그리는 내부 함수
         const drawSolidDay = (dateStr) => {
@@ -12585,7 +12585,7 @@ window.buildIssueReportData = function(groupId) {
   // ★ 유형·제목은 첫 행이 아니라 그룹 전체 기준으로 판정
   const isIssueRow = r => /^(issue|이슈)/i.test((r['업무 구분'] || '').toString().trim());
   const 유형 = rows.some(isIssueRow) ? '이슈' : '개선';
-  const 제목행 = rows.find(r => (r['표준 제작 Item / Issue / 개선사항'] || '').toString().trim());
+  const 제목행 = [...rows].reverse().find(r => (r['표준 제작 Item / Issue / 개선사항'] || '').toString().trim());
   const 제목 = 제목행 ? 제목행['표준 제작 Item / Issue / 개선사항'] : '(제목 없음)';
 
   // ★ Lv3 필수 4종 검사
