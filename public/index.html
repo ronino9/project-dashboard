@@ -3516,6 +3516,81 @@ window.diagnoseMetrics = function() {
 
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbyTG8__8iNfbxnVIp6OjVn8Cp5LfYMFxtymyKmxR7iMlMlQTZjPzsfnR7kcpfGBYRKEbg/exec';
+    // ==========================================
+// [작업 2] normalize + metrics 계층
+// ==========================================
+window.MP_TASK_TYPES = ['마스터플랜', '마스터메모', '마스터이슈'];
+
+window.normalizeRows = function(rows, pName) {
+  return (rows || []).map(r => {
+    const task = (r['업무 구분'] || '').toString().trim();
+    const st   = (r['진행상태'] || '').toString().trim();
+    const ext  = (r['외부요인'] || '').toString().trim();
+    const d    = v => (v || '').toString().replace(/[./]/g, '-').substring(0, 10);
+    return Object.assign({}, r, {
+      _pName  : pName || r._pName || '',
+      _task   : task,
+      _status : st,
+      _isMP   : window.MP_TASK_TYPES.includes(task),
+      _isRep  : r._isRep !== false,
+      _isHold : st === '보류',
+      _isExt  : !!ext && ext !== '해당없음',
+      _isDone : st === '완료' || st === '지연완료',
+      _recv   : d(r['접수일']),
+      _due    : d(r['완료예정일']),
+      _compl  : d(r['완료일']),
+      _md     : parseFloat(r['공수(MD)']) || 0,
+      _delay  : parseFloat(r['지연일']) || 0
+    });
+  });
+};
+
+window.buildDerivedData = function() {
+  window.allMasterData = [];
+  window.allMasterPlanData = [];
+  ['project10','project9','project8','project7','project6','project5',
+   'project4','project3','project2','project1','projectEtc'].forEach(pKey => {
+    const pName = pKey === 'project1' ? 'CP'
+                : (pKey === 'projectEtc' ? 'ETC' : pKey.replace('project', 'OP'));
+    if (!allData[pKey] || !allData[pKey].history) return;
+    window.normalizeRows(allData[pKey].history, pName).forEach(row => {
+      if (row._isMP) window.allMasterPlanData.push(row);
+      else window.allMasterData.push(row);
+    });
+  });
+  console.log(`[buildDerivedData] 전체 ${window.allMasterData.length}행 · 대표 ${window.allMasterData.filter(r => r._isRep).length}건 · MP ${window.allMasterPlanData.length}행`);
+};
+
+window.metrics = {
+  _sel(rows, o) {
+    o = o || {};
+    let a = rows || [];
+    if (o.repOnly)         a = a.filter(r => r._isRep !== false);
+    if (o.excludeHold)     a = a.filter(r => !r._isHold);
+    if (o.excludeExternal) a = a.filter(r => !r._isExt);
+    if (o.excludeImprove)  a = a.filter(r => r._task !== '개선');
+    return a;
+  },
+  count(rows, o) { return this._sel(rows, o).length; },
+  status(rows, st, o) { return this._sel(rows, o).filter(r => r._status === st).length; },
+  incomplete(rows, o) { return this._sel(rows, o).filter(r => !r._isDone && !r._isHold).length; },
+  doneRate(rows, o) {
+    const a = this._sel(rows, o);
+    return a.length ? +(a.filter(r => r._isDone).length / a.length * 100).toFixed(1) : 0;
+  },
+  compliance(rows, o) {
+    const a = this._sel(rows, o);
+    if (!a.length) return 100;
+    const bad = a.filter(r => r._status === '지연중' || r._status === '임박').length;
+    return +((a.length - bad) / a.length * 100).toFixed(1);
+  },
+  rework(rows, o) {
+    const a = this._sel(rows, o);
+    if (!a.length) return 0;
+    const y = a.filter(r => (r['재작업 여부(Y/N)'] || '').toString().trim().toUpperCase() === 'Y').length;
+    return +(y / a.length * 100).toFixed(1);
+  }
+};
 
     let allData = {}; 
     let documentLinksData = [];
@@ -4401,6 +4476,7 @@ async function syncDashboard() {
         localStorage.setItem('auth_id', id);
         localStorage.setItem('auth_pin', pin);
         window._lastSyncTime = new Date();
+        window.buildDerivedData();
 
         if (allData.project1CsRiskMap) csRiskData = allData.project1CsRiskMap;
         if (allData.csStatistics) { csStatsData = allData.csStatistics; renderTotalStats(); }
@@ -4934,20 +5010,7 @@ if (!window.masterMdFilters) {
 }
 
   // 모든 프로젝트의 데이터를 한 곳에 모음 (필터링을 위해)
-window.allMasterData = [];
-  window.allMasterPlanData = [];
-  const MP_TYPES = ['마스터플랜', '마스터메모', '마스터이슈'];
-['project10', 'project9', 'project8', 'project7', 'project6', 'project5', 'project4', 'project3', 'project2', 'project1', 'projectEtc'].forEach(pKey => {
-    const pName = pKey === 'project1' ? 'CP' : (pKey === 'projectEtc' ? 'ETC' : pKey.replace('project', 'OP'));
-      if(allData[pKey] && allData[pKey].history) {
-          allData[pKey].history.forEach(r => {
-              const row = { ...r, _pName: pName };
-              if (MP_TYPES.includes((r['업무 구분'] || '').toString().trim())) {
-                window.allMasterPlanData.push(row);
-              } else {
-                window.allMasterData.push(row);
-              }
-          });
+  if (!window.allMasterData || window.allMasterData.length === 0) window.buildDerivedData();
       }
   });
 
@@ -5126,9 +5189,8 @@ let totalMd = 0;
       if (pass) {
           const val = parseFloat(r['공수(MD)']) || 0;
           mdSums[r._pName]  = (mdSums[r._pName]  || 0) + val;
-          cntSums[r._pName] = (cntSums[r._pName] || 0) + 1;
           totalMd += val;
-          totalItems++;
+          if (r._isRep !== false) { cntSums[r._pName] = (cntSums[r._pName] || 0) + 1; totalItems++; }
 
           const status = r['진행상태'] || '';
           const taskType = r['업무 구분'] || '';
@@ -5145,12 +5207,13 @@ let totalMd = 0;
               trendData[monthKey].risk += 1;
           }
 
-if (status === '지연중') delayCount++;
-          if (status === '임박') imminentCount++;
-          if (status === '보류') holdCount++;
-          if (status === '지연완료') delayDoneCount++;
-          const isGroupResolved = r['그룹ID'] && resolvedGroupIds.has(r['그룹ID']);
-                if (status !== '완료' && status !== '지연완료' && status !== '보류' && !isGroupResolved) incompleteCount++;
+          if (r._isRep !== false) {
+            if (status === '지연중') delayCount++;
+            if (status === '임박') imminentCount++;
+            if (status === '보류') holdCount++;
+            if (status === '지연완료') delayDoneCount++;
+            if (status !== '완료' && status !== '지연완료' && status !== '보류') incompleteCount++;
+          }
       }
   });
 
