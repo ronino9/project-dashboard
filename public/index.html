@@ -5360,14 +5360,16 @@ window.showKpiDetail = function(type) {
           if (!pass) return;
       }
 
-      // 2. 해당 KPI 조건에 맞는 것만 뽑아냄
+      // 2. 그룹은 대표행 1건만 (상단 KPI 숫자와 행 수를 일치시킴)
+      if (r._isRep === false) return;
+
       const status = r['진행상태'] || '';
       let isMatch = false;
       if (type === 'delay' && status === '지연중') isMatch = true;
       else if (type === 'imminent' && status === '임박') isMatch = true;
       else if (type === 'hold' && status === '보류') isMatch = true;
       else if (type === 'delaydone' && status === '지연완료') isMatch = true;
-      else if (type === 'incomplete' && status !== '완료' && status !== '지연완료' && status !== '보류' && !(r['그룹ID'] && resolvedGroupIds.has(r['그룹ID']))) isMatch = true;
+      else if (type === 'incomplete' && status !== '완료' && status !== '지연완료' && status !== '보류') isMatch = true;
 
       if (isMatch) {
           const rowCopy = {
