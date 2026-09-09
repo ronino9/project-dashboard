@@ -5228,13 +5228,13 @@ document.getElementById('kpi-master-md').textContent = totalMd.toFixed(1);
   document.getElementById('kpi-master-delay').textContent = delayCount;
   document.getElementById('kpi-master-imminent').textContent = imminentCount;
   document.getElementById('kpi-master-hold').textContent = holdCount;
-  document.getElementById('kpi-master-compliance').textContent = totalItems > 0 ? (((totalItems - delayCount - imminentCount) / totalItems) * 100).toFixed(1) + '%' : '100.0%';
+  document.getElementById('kpi-master-compliance').textContent = totalItems > 0 ? (((totalItems - delayCount - imminentCount - delayDoneCount) / totalItems) * 100).toFixed(1) + '%' : '100.0%';
 
   const hdrMd = document.getElementById('kpi-master-md-hdr'); if (hdrMd) hdrMd.textContent = totalMd.toFixed(1);
   const hdrDelay = document.getElementById('kpi-master-delay-hdr'); if (hdrDelay) hdrDelay.textContent = delayCount;
   const hdrImminent = document.getElementById('kpi-master-imminent-hdr'); if (hdrImminent) hdrImminent.textContent = imminentCount;
   const hdrHold = document.getElementById('kpi-master-hold-hdr'); if (hdrHold) hdrHold.textContent = holdCount;
-  const hdrCompliance = document.getElementById('kpi-master-compliance-hdr'); if (hdrCompliance) hdrCompliance.textContent = totalItems > 0 ? (((totalItems - delayCount - imminentCount) / totalItems) * 100).toFixed(1) + '%' : '100.0%';
+  const hdrCompliance = document.getElementById('kpi-master-compliance-hdr'); if (hdrCompliance) hdrCompliance.textContent = totalItems > 0 ? (((totalItems - delayCount - imminentCount - delayDoneCount) / totalItems) * 100).toFixed(1) + '%' : '100.0%';
   const hdrDelayDone = document.getElementById('kpi-master-delaydone-hdr'); if (hdrDelayDone) hdrDelayDone.textContent = delayDoneCount;
   const hdrIncomplete = document.getElementById('kpi-master-incomplete-hdr'); if (hdrIncomplete) hdrIncomplete.textContent = incompleteCount;
   const periodLabelEl = document.getElementById('kpi-period-label'); if (periodLabelEl && !window._indivPeriod) periodLabelEl.style.display = 'none';
