@@ -3724,9 +3724,10 @@ window.computeStageDetailData = function(code) {
       if (!isNaN(p) && p > 0) plannedMD = p;
     }
 
-    const issueCnt = stageRows.filter(r => (r['업무 구분'] || '').toString().trim() === 'Issue').length;
-    const holdCnt = stageRows.filter(r => (r['진행상태'] || '').toString().trim() === '보류').length;
-    const incompleteCnt = stageRows.filter(r => {
+    const repRows = stageRows.filter(r => r._isRep !== false);
+    const issueCnt = repRows.filter(r => (r['업무 구분'] || '').toString().trim() === 'Issue').length;
+    const holdCnt = repRows.filter(r => (r['진행상태'] || '').toString().trim() === '보류').length;
+    const incompleteCnt = repRows.filter(r => {
       const st = (r['진행상태'] || '').toString().trim();
       return st !== '완료' && st !== '지연완료' && st !== '보류';
     }).length;
@@ -3989,15 +3990,16 @@ window.stageStatClick = function(idx, type) {
   const s = window._stageModalData[idx];
   if (!s) return;
   const code = window._stageModalCode;
+  const repRows = s.rows.filter(r => r._isRep !== false);
   let filtered, label;
   if (type === 'issue') {
-    filtered = s.rows.filter(r => (r['업무 구분'] || '').toString().trim() === 'Issue');
+    filtered = repRows.filter(r => (r['업무 구분'] || '').toString().trim() === 'Issue');
     label = '이슈';
   } else if (type === 'hold') {
-    filtered = s.rows.filter(r => (r['진행상태'] || '').toString().trim() === '보류');
+    filtered = repRows.filter(r => (r['진행상태'] || '').toString().trim() === '보류');
     label = '보류';
   } else {
-    filtered = s.rows.filter(r => {
+    filtered = repRows.filter(r => {
       const st = (r['진행상태'] || '').toString().trim();
       return st !== '완료' && st !== '지연완료' && st !== '보류';
     });
@@ -4064,7 +4066,8 @@ window.renderDetailStatusBar = function(dataRows) {
   const allKeys = ['완료', '진행중', '지연완료', '지연중', '임박', '보류'];
   const counts = {}, extCounts = {};
   allKeys.forEach(k => { counts[k] = 0; extCounts[k] = 0; });
-  dataRows.forEach(r => {
+  const repRows = dataRows.filter(r => r._isRep !== false);
+  repRows.forEach(r => {
     const st = (r['진행상태'] || '').toString().trim();
     if (!counts.hasOwnProperty(st)) return;
     counts[st]++;
@@ -4075,8 +4078,8 @@ window.renderDetailStatusBar = function(dataRows) {
   // ← 완료율/지연율 계산용: 보류 + 개선(업무 구분==='개선') 건은 모수에서 통째로 제외
   const isImprove = r => (r['업무 구분'] || '').toString().trim() === '개선';
   const holdCnt = counts['보류'] || 0;
-  const improveCnt = dataRows.filter(isImprove).length;
-  const rateRows = dataRows.filter(r => {
+  const improveCnt = repRows.filter(isImprove).length;
+  const rateRows = repRows.filter(r => {
     const st = (r['진행상태'] || '').toString().trim();
     if (st === '보류') return false;
     if (isImprove(r)) return false;
@@ -4130,7 +4133,7 @@ window.renderDetailStatusBar = function(dataRows) {
     <span style="display:inline-flex; align-items:baseline; gap:5px; min-width:76px; justify-content:center;"><span style="font-size:11px; color:#94a3b8; font-weight:700;">완료율</span><span style="font-size:14px; font-weight:800; color:#16a34a;">${completionRate.toFixed(1)}%</span></span>
     <span style="color:#e2e8f0; font-size:12px; margin:0 12px;">·</span>
     <span style="display:inline-flex; align-items:baseline; gap:5px; min-width:76px; justify-content:center;"><span style="font-size:11px; color:#94a3b8; font-weight:700;">지연율</span><span style="font-size:14px; font-weight:800; color:${delayRate > 0 ? '#dc2626' : '#cbd5e1'};">${delayRate.toFixed(1)}%</span>${delayExtExcluded > 0 ? `<span style="font-size:10px; color:#94a3b8; font-weight:600;">(외부 ${delayExtExcluded}건 추가제외)</span>` : ''}</span>
-    <span style="font-size:10px; color:#cbd5e1; font-weight:600; margin-left:8px;">(${exclusionNote} · 모수 ${base}건)</span>
+    <span style="font-size:10px; color:#cbd5e1; font-weight:600; margin-left:8px;">(${exclusionNote} · 모수 ${base}건${dataRows.length !== repRows.length ? ` / 표시 ${dataRows.length}행` : ''})</span>
   `;
 
   bar.innerHTML = statusHtml + kpiHtml;
@@ -4510,14 +4513,15 @@ window.computeCsBreakdownData = function() {
   });
   return Object.keys(groups).sort().map(code => {
     const groupRows = groups[code];
-    const total = groupRows.length;
-    const done = groupRows.filter(r => (r['진행상태'] || '').toString().includes('완료')).length;
+    const repRows = groupRows.filter(r => r._isRep !== false);
+    const total = repRows.length;
+    const done = repRows.filter(r => (r['진행상태'] || '').toString().includes('완료')).length;
     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
     let md = 0;
     groupRows.forEach(r => { md += parseFloat(r['공수(MD)']) || 0; });
-    const issueCnt = groupRows.filter(r => (r['업무 구분'] || '').toString().trim() === 'Issue').length;
-    const holdCnt = groupRows.filter(r => (r['진행상태'] || '').toString().trim() === '보류').length;
-    const incompleteCnt = groupRows.filter(r => {
+    const issueCnt = repRows.filter(r => (r['업무 구분'] || '').toString().trim() === 'Issue').length;
+    const holdCnt = repRows.filter(r => (r['진행상태'] || '').toString().trim() === '보류').length;
+    const incompleteCnt = repRows.filter(r => {
       const st = (r['진행상태'] || '').toString().trim();
       return st !== '완료' && st !== '지연완료' && st !== '보류';
     }).length;
@@ -4599,15 +4603,16 @@ window.csBarClick = function(idx) {
 window.csStatClick = function(idx, type) {
   const d = (window._csModalData || [])[idx];
   if (!d) return;
+  const repRows = d.rows.filter(r => r._isRep !== false);
   let filtered, label;
   if (type === 'issue') {
-    filtered = d.rows.filter(r => (r['업무 구분'] || '').toString().trim() === 'Issue');
+    filtered = repRows.filter(r => (r['업무 구분'] || '').toString().trim() === 'Issue');
     label = '이슈';
   } else if (type === 'hold') {
-    filtered = d.rows.filter(r => (r['진행상태'] || '').toString().trim() === '보류');
+    filtered = repRows.filter(r => (r['진행상태'] || '').toString().trim() === '보류');
     label = '보류';
   } else {
-    filtered = d.rows.filter(r => {
+    filtered = repRows.filter(r => {
       const st = (r['진행상태'] || '').toString().trim();
       return st !== '완료' && st !== '지연완료' && st !== '보류';
     });
@@ -4781,9 +4786,11 @@ const riskLampHtml = `
 
     // ===== CP_ALL은 C/S 전용 카드 (완료율 + 유무상 막대) =====
     if (proj.id === 'CP_ALL') {
-      const history = (proj.d && proj.d.history) ? proj.d.history : [];
-      const total = history.length;
-      const done = history.filter(r => (r['진행상태'] || '').includes('완료')).length;
+      const historyAll = (proj.d && proj.d.history) ? proj.d.history : [];
+      const history = historyAll.filter(r => !['마스터플랜','마스터메모','마스터이슈'].includes((r['업무 구분'] || '').toString().trim()));
+      const repHistory = history.filter(r => r._isRep !== false);
+      const total = repHistory.length;
+      const done = repHistory.filter(r => (r['진행상태'] || '').includes('완료')).length;
       const rate = total > 0 ? Math.round((done / total) * 100) : 0;
 
       // 유무상 건수 & MD 집계
@@ -4791,8 +4798,9 @@ const riskLampHtml = `
       history.forEach(r => {
         const yn = r['유/무상'] || '';
         const md = parseFloat(r['공수(MD)']) || 0;
-        if (yn === '유상') { paidCnt++; paidMd += md; }
-        else if (yn === '무상') { freeCnt++; freeMd += md; }
+        const isRep = r._isRep !== false;
+        if (yn === '유상') { if (isRep) paidCnt++; paidMd += md; }
+        else if (yn === '무상') { if (isRep) freeCnt++; freeMd += md; }
       });
 
       // 막대 길이: 건수 높은 쪽 100%
@@ -10860,7 +10868,8 @@ window._detailAppliedFilters = [
     ['검색어', keyword]
   ].filter(function(x) { return x[1]; });
   window._searchHighlightKeyword = keyword || '';
-  window.showDetailView('🔍 검색 결과', `총 ${matched.length}건`, rowsForDisplay);
+    const repCnt = matched.filter(r => r._isRep !== false).length;
+  window.showDetailView('🔍 검색 결과', repCnt === matched.length ? `총 ${matched.length}건` : `총 ${repCnt}건 · ${matched.length}행`, rowsForDisplay);
   window._searchHighlightKeyword = '';
 };
     // ==========================================
