@@ -8581,7 +8581,7 @@ window.renderTowerMap = function() {
       zoomSnap: 0.1,
       zoomDelta: 0.5
     });
-    window.towerTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', {
+    window.towerTileLayer = L.tileLayer('https://{s}.basemaps.c.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap &copy; CARTO',
       maxZoom: 18,
       subdomains: 'abcd',
@@ -11926,14 +11926,14 @@ window.changeMapBase = function(theme, isInit) {
   let url = '';
   let bVal = 3.0, cVal = 1.15; 
 
-  if (theme === 'dark_all') {
-    url = 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png';
+if (theme === 'dark_all') {
+    url = 'https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png?key=cb1_32q0_1_d727150b19f7de0da0eebcec';
     bVal = 4.0; cVal = 2.5;
   } else if (theme === 'light_all') {
-    url = 'https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png';
+    url = 'https://basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png?key=cb1_32q0_1_d727150b19f7de0da0eebcec';
     bVal = 0.95; cVal = 1.0;
   } else if (theme === 'voyager') {
-    url = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    url = 'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=cb1_32q0_1_d727150b19f7de0da0eebcec';
     bVal = 0.95; cVal = 1.05;
   }
   
